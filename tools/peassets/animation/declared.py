@@ -10,11 +10,15 @@ of its own, and decoding checks its bytes decode to the original's.
 
 A bank (type `animation_bank`) binds clips to the slots of its schema (`animation_schema`). It may extend another
 bank (`base`), which gives every slot it does not bind, and so on up to the bank stating the schema; a slot none of
-them binds is empty. A bank with a placement is a table in
-its package: its words are the addresses of its clips' `AnimationSet` records there, and zero past the schema's slots
-to the end of its placement. A bank may also bind clips another package places when that package is resident with its
-own (`borrows`, those packages' names): the police officers' banks bind the plaza's clips. A bank without one is a layer others extend - Aya's own clips, a carry style's
-locomotion, a weapon family's combat clips - and exists only in the assets.
+them binds is empty. A bank without a placement is a layer others extend - Aya's own clips, a carry style's
+locomotion, a weapon family's combat clips - and exists only in the assets. A bank with one is a table in its
+package: its words are the addresses of its clips' `AnimationSet` records there, and zero past the schema's slots to
+the end of its placement.
+
+A placed bank may also bind clips another package places while that package is resident with its own: a package its
+package binds or requires (the sanctuary's player scene binds Rupert's clips), whose clips its C names by that
+package's exports at their addresses, or a package it `borrows` (those packages' names: the police officers' banks
+bind the plaza's clips).
 """
 from __future__ import annotations
 
@@ -151,17 +155,35 @@ def bank_words(name: str, embedded: dict) -> int:
     return embedded[name]["size"] // 4
 
 
+def bank_package(name: str, assets: dict, embedded: dict) -> str | None:
+    """The package record that places a bank."""
+    source = embedded[name]["source"]
+    return next((k for k, r in assets.items() if r.get("type") in asset_schema.PACKAGE_TYPES
+                 and f"{r.get('package_name', k)}.pe2pkg" == source), None)
+
+
+def bank_place(name: str, clip: str, assets: dict, embedded: dict) -> tuple[dict, str | None]:
+    """Where a bank finds a clip it binds: its placement, and the package record of a package the bank's package binds
+    or requires (None: the bank's own package, or one it borrows)."""
+    import package as packages
+    source = embedded[name]["source"]
+    for s in [source, *(f"{p}.pe2pkg" for p in assets[name].get("borrows", ()))]:
+        if place := placed_in(clip, s, assets, embedded):
+            return place, None
+    own = bank_package(name, assets, embedded)
+    for other in [*packages.bindings(own, assets).values(), *packages.resident(own, assets)] if own else ():
+        if place := placed_in(clip, f"{assets[other].get('package_name', other)}.pe2pkg", assets, embedded):
+            return place, other
+    raise SystemExit(f"{name}: binds {clip}, which neither its package {source} nor a package it binds, requires or "
+                     "borrows places")
+
+
 def bank_bytes(name: str, assets: dict, embedded: dict) -> bytes:
     """A bank's words: each slot's clip's AnimationSet address in the bank's package, zero past the slots, to the
     end of its placement."""
-    source = embedded[name]["source"]
-    sources = [source, *(f"{package}.pe2pkg" for package in assets[name].get("borrows", ()))]
     words = []
     for clip in bank_slots(name, assets):
-        place = next((p for s in sources if (p := placed_in(clip, s, assets, embedded))), None) if clip is not None else None
-        if clip is not None and place is None:
-            raise SystemExit(f"{name}: binds {clip}, which neither its package {source} nor a package it borrows places")
-        words.append(set_address(clip, embedded, place) if clip else 0)
+        words.append(set_address(clip, embedded, bank_place(name, clip, assets, embedded)[0]) if clip else 0)
     if len(words) > bank_words(name, embedded):
         raise SystemExit(f"{name}: {len(words)} slots in a placement of {bank_words(name, embedded)} words")
     words += [0] * (bank_words(name, embedded) - len(words))

@@ -107,12 +107,28 @@ def clips_source(package: str, assets_root: Path) -> str:
     return HEADER.format(what=what) + "\n" + "\n".join(clip_source(n, assets_root) for n in names)
 
 
+def clip_symbol(bank: str, clip: str) -> str:
+    """A bank's clip by its C name: its own (`symbol`, else ident), or where another package the bank's package binds
+    or requires places it, that package's export at its address."""
+    assets = asset_data.ASSETS
+    place, other = declared.bank_place(bank, clip, assets, asset_data.EMBEDDED_ASSETS)
+    if other is None:
+        return assets[clip].get("symbol") or ident(clip)
+    import package
+    address = declared.set_address(clip, asset_data.EMBEDDED_ASSETS, place)
+    base = package.load_address(other, assets)
+    symbol = next((e["symbol"] for e in (assets[other].get("exports") or {}).values() if base + e["at"] == address), None)
+    if symbol is None:
+        raise SystemExit(f"{bank}: binds {clip}, which {other} places at 0x{address:08X} but does not export")
+    return symbol
+
+
 def bank_source(name: str) -> str:
     """A bank as a clip table, `AnimationSet* symbol[N]`: N its placement's words, each slot's clip, NULL past them."""
     assets = asset_data.ASSETS
     bank = assets[name]
     slots = declared.bank_slots(name, assets)
-    entries = [f"    [{i}] = &{assets[clip].get('symbol') or ident(clip)}," for i, clip in enumerate(slots) if clip]
+    entries = [f"    [{i}] = &{clip_symbol(name, clip)}," for i, clip in enumerate(slots) if clip]
     head = HEADER.format(what=f"the bank {name}, slots of {declared.bank_schema(name, assets)}")
     count = declared.bank_words(name, asset_data.EMBEDDED_ASSETS)
     storage = "static " if bank["symbol"].startswith("_") else ""      # the project's TU-local names

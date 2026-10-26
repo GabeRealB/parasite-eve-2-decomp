@@ -239,17 +239,7 @@ static TaskMessageEntry _gAkropolisSanctuaryRoomMessages[] = {
 #define ROOM_PART _gAkropolisSanctuaryPlayerSceneStartPlacement
 #include "assets/rooms/akropolis/sanctuary/events.inc"
 /// Nine animation sets copied into the player's sanctuary scene bank extension.
-static AnimationSet* _gAkropolisSanctuaryPlayerSceneAnimationSets[9] = {
-    &gAkropolisSanctuaryPlayerSanctuaryArrival7Clip,
-    &gAkropolisSanctuaryPlayerSanctuaryArrival11Clip,
-    &gAkropolisSanctuaryPlayerSanctuaryTalkClip,
-    &gAkropolisSanctuaryPlayerSanctuaryTalkEndClip,
-    &gAkropolisSanctuaryPlayerSanctuaryReplyClip,
-    &gAkropolisSanctuaryPlayerSanctuaryListenClip,
-    &gAkropolisSanctuaryPlayerSanctuaryArrival26Clip,
-    &gAkropolisSanctuaryPlayerSanctuaryArrival27Clip,
-    &_gAkropolisCafeteriaRupertArriveClip,
-};
+#include "assets/rooms/akropolis/sanctuary/player_scene_bank.inc"
 
 #define ROOM_PART _gAkropolisSanctuaryPlayerSceneBankExtensionRequest
 #include "assets/rooms/akropolis/sanctuary/events.inc"

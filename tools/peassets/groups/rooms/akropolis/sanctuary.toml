@@ -134,17 +134,28 @@ embedded = [
     "characters/rupert/eyes_closed",
     { name = "rupert_bank", offset = 0x0E78C, size = 0x1C, address = 0x801585AC },
 ]
-exports = { tasks = { at = 0x0E7AC, symbol = "gActor210700RupertBroderickTaskDesc" } }
 load = { slot = "actor_2" }
 package_name = "actor_210700"
 required = true
 requires = ["gameplay"]
 sha1 = "672c188bf5dd3c02d031ea77ad11c6cacddd23e4"
 
+[rupert.exports]
+tasks = { at = 0x0E7AC, symbol = "gActor210700RupertBroderickTaskDesc" }
+player_sanctuary_arrival_7 = { at = 0x01E2C, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival7Clip" }
+player_sanctuary_arrival_11 = { at = 0x027F8, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival11Clip" }
+player_sanctuary_talk = { at = 0x02B54, symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkClip" }
+player_sanctuary_talk_end = { at = 0x02E0C, symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkEndClip" }
+player_sanctuary_reply = { at = 0x0318C, symbol = "gAkropolisSanctuaryPlayerSanctuaryReplyClip" }
+player_sanctuary_listen = { at = 0x03424, symbol = "gAkropolisSanctuaryPlayerSanctuaryListenClip" }
+player_sanctuary_arrival_26 = { at = 0x03BD0, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival26Clip" }
+player_sanctuary_arrival_27 = { at = 0x067E8, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival27Clip" }
+
 [package]
 type = "package"
 embedded = [
     { asset = "rooms/akropolis/cafeteria/rupert_arrive", offset = 0x02D88, size = 0x4D4, address = 0x80180348 },
+    { name = "player_scene_bank", offset = 0x03358, size = 0x24, address = 0x80180918 },
     { name = "cutscene_player_anim_00", offset = 0x0435C, size = 0x3D4, address = 0x8018191C },
     { name = "extra_anim", offset = 0x04730, size = 0x3F4, address = 0x80181CF0 },
     { name = "cutscene_player_bank", offset = 0x04B24, size = 0x4, address = 0x801820E4 },
@@ -1313,6 +1324,22 @@ sha1 = "2693c52cc571d5c8bf046fdd6adaed29e21b3fae"
 type = "clip"
 rig = "enemies/golem/no_9/rig"
 
+[player_scene_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/sanctuary/player_scene_schema"
+symbol = "_gAkropolisSanctuaryPlayerSceneAnimationSets"
+
+[player_scene_bank.clips]
+slot_0 = "rooms/akropolis/sanctuary/player_sanctuary_arrival_7"
+slot_1 = "rooms/akropolis/sanctuary/player_sanctuary_arrival_11"
+slot_2 = "rooms/akropolis/sanctuary/player_sanctuary_talk"
+slot_3 = "rooms/akropolis/sanctuary/player_sanctuary_talk_end"
+slot_4 = "rooms/akropolis/sanctuary/player_sanctuary_reply"
+slot_5 = "rooms/akropolis/sanctuary/player_sanctuary_listen"
+slot_6 = "rooms/akropolis/sanctuary/player_sanctuary_arrival_26"
+slot_7 = "rooms/akropolis/sanctuary/player_sanctuary_arrival_27"
+slot_8 = "rooms/akropolis/cafeteria/rupert_arrive"
+
 [rupert_arrival_11]
 type = "clip"
 rig = "characters/rupert/rig"
@@ -1348,6 +1375,10 @@ sha1 = "4444115705bbb550ccde36b7a3a257dc374d8ec8"
 [no_9_attack_rupert]
 type = "clip"
 rig = "enemies/golem/no_9/rig"
+
+[player_scene_schema]
+type = "animation_schema"
+slots = ["slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8"]
 
 [promenade_door_open]
 type = "sound"

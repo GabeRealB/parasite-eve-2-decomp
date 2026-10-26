@@ -163,6 +163,27 @@ def export_of(name: str, assets: dict[str, dict[str, Any]], ref: str) -> tuple[i
     return load_address(package, assets) + e["at"], e["symbol"]
 
 
+def bank_exports(name: str, assets: dict[str, dict[str, Any]], embedded: dict) -> set[str]:
+    """`<binding or package>.<export>` for every clip a bank this package places binds from a package it binds or
+    requires: what its C names there besides its decoded data."""
+    from animation import declared
+    source = f"{assets[name].get('package_name', name)}.pe2pkg"
+    named = {**{r: r for r in resident(name, assets)}, **bindings(name, assets)}
+    out = set()
+    for bank in declared.placed_banks(assets, embedded):
+        if embedded[bank]["source"] != source:
+            continue
+        for clip in filter(None, declared.bank_slots(bank, assets)):
+            place, other = declared.bank_place(bank, clip, assets, embedded)
+            if other is None:
+                continue
+            address, base = declared.set_address(clip, embedded, place), load_address(other, assets)
+            for export, e in (assets[other].get("exports") or {}).items():
+                if base + e["at"] == address:
+                    out |= {f"{n}.{export}" for n, p in named.items() if p == other}
+    return out
+
+
 def check_package(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]]) -> list[str]:
     """A package names a memory slot to load into, packages it requires, packages its bindings name, and exports each
     with an offset and a C symbol."""

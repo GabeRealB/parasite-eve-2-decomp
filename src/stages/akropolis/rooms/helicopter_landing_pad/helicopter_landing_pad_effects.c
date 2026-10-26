@@ -135,11 +135,7 @@ AkropolisHelicopterLandingPadSceneMarkStorage gAkropolisHelicopterLandingPadScen
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 
 /// Three words copied into the equipped-weapon bank's departure-scene extension.
-static AnimationSet* _gAkropolisHelicopterLandingPadDeparturePlayerAnimationSets[3] = {
-    NULL,
-    &gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip,
-    &gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip,
-};
+#include "assets/rooms/akropolis/helicopter_landing_pad/departure_player_bank.inc"
 
 #define ROOM_PART _gAkropolisHelicopterLandingPadDeparturePlayerBankCopyRequest
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"

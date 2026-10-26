@@ -128,20 +128,13 @@ TaskDesc gAkropolisCafeteriaSceneTasks[4] = {
 #include "assets/rooms/akropolis/cafeteria/events.inc"
 
 /// The player's clip in the opening, copied into the equipped weapon's bank at slot 47.
-static AnimationSet* _gAkropolisCafeteriaOpeningPlayerAnimationSets[1] = {
-    &gAkropolisCafeteriaPlayerOpeningClip,
-};
+#include "assets/rooms/akropolis/cafeteria/opening_player_bank.inc"
 
 #define ROOM_PART _gAkropolisCafeteriaOpeningPlayerBankCopy
 #include "assets/rooms/akropolis/cafeteria/events.inc"
 
 /// The player's clips in the follow-up, copied into the equipped weapon's bank from slot 47.
-static AnimationSet* _gAkropolisCafeteriaFollowUpPlayerAnimationSets[4] = {
-    &gAkropolisCafeteriaPlayerFollowUpStartClip,
-    &_gAkropolisCafeteriaFollowUpPlayerClip,
-    &gAkropolisCafeteriaPlayerRupertTalkClip,
-    &gAkropolisCafeteriaPlayerFollowUpEndClip,
-};
+#include "assets/rooms/akropolis/cafeteria/follow_up_player_bank.inc"
 
 #define ROOM_PART _gAkropolisCafeteriaFollowUpPlayerBankCopy
 #include "assets/rooms/akropolis/cafeteria/events.inc"

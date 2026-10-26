@@ -98,10 +98,6 @@ _gAkropolisCafeteriaLooseProp4ModelVerts = 0x80186CF8; // size:0x128 defined:Tru
 _gAkropolisCafeteriaLooseProp4ModelNormals = 0x80186E20; // size:0x1C0 defined:True
 _gAkropolisCafeteriaLooseProp4ModelStream = 0x80186FE0; // size:0x538 defined:True
 gAkropolisCafeteriaLooseProp4Model = 0x80187518; // size:0x24 defined:True
-gAkropolisCafeteriaPlayerOpeningClip = 0x8014FEB8; // absolute:True owner=actor_202900
-gAkropolisCafeteriaPlayerFollowUpStartClip = 0x801668FC; // absolute:True owner=actor_310600
-gAkropolisCafeteriaPlayerRupertTalkClip = 0x80151D14; // absolute:True owner=actor_210600
-gAkropolisCafeteriaPlayerFollowUpEndClip = 0x80153E70; // absolute:True owner=actor_210600
 _gAkropolisCafeteriaView5SpriteBatches = 0x8018B394; // size:0x10 defined:True
 _gAkropolisCafeteriaView5DrawAreas = 0x8018B3A4; // size:0x14 defined:True
 _gAkropolisCafeteriaView6SpriteSources = 0x8018B3B8; // size:0x30C defined:True

@@ -355,6 +355,7 @@ def write_export_symbols() -> None:
         texts = [p.read_text() for p in (ASSETS_DIR / "USA" / own).glob("*.toml")] + \
                 [p.read_text() for p in (ASSETS_DIR / "USA" / own).glob("*.evs")]
         used = {m for t in texts for m in re.findall(r'"?\b([a-z][a-z0-9_/]*\.[a-z][a-z0-9_]*)\b"?', t)}
+        used |= package.bank_exports(key, data.ASSETS, data.EMBEDDED_ASSETS)    # what its banks bind there
         lines, seen = [], {}
         named = {**{r: r for r in package.resident(key, data.ASSETS)}, **(rec.get("slots") or {})}
         for binding, bound in sorted(named.items()):

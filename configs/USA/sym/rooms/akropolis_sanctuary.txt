@@ -86,14 +86,6 @@ _gAkropolisSanctuaryRedKeyPickupModelVerts = 0x80186A54; // size:0x98 defined:Tr
 _gAkropolisSanctuaryRedKeyPickupModelNormals = 0x80186AEC; // size:0x58 defined:True
 _gAkropolisSanctuaryRedKeyPickupModelStream = 0x80186B44; // size:0x124 defined:True
 gAkropolisSanctuaryRedKeyPickupModel = 0x80186C68; // size:0x24 defined:True
-gAkropolisSanctuaryPlayerSanctuaryArrival7Clip = 0x8014BC4C; // absolute:True owner=actor_210700
-gAkropolisSanctuaryPlayerSanctuaryArrival11Clip = 0x8014C618; // absolute:True owner=actor_210700
-gAkropolisSanctuaryPlayerSanctuaryTalkClip = 0x8014C974; // absolute:True owner=actor_210700
-gAkropolisSanctuaryPlayerSanctuaryTalkEndClip = 0x8014CC2C; // absolute:True owner=actor_210700
-gAkropolisSanctuaryPlayerSanctuaryReplyClip = 0x8014CFAC; // absolute:True owner=actor_210700
-gAkropolisSanctuaryPlayerSanctuaryListenClip = 0x8014D244; // absolute:True owner=actor_210700
-gAkropolisSanctuaryPlayerSanctuaryArrival26Clip = 0x8014D9F0; // absolute:True owner=actor_210700
-gAkropolisSanctuaryPlayerSanctuaryArrival27Clip = 0x80150608; // absolute:True owner=actor_210700
 _gAkropolisSanctuaryArrivalScript = 0x80180B0C; // size:0xB58 defined:True
 _gAkropolisSanctuaryArrivalSkipScript = 0x80181664; // size:0x1B0 defined:True
 _gAkropolisSanctuaryBlockerScript = 0x80181814; // size:0x108 defined:True

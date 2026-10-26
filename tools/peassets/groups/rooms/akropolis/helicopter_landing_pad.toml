@@ -415,6 +415,7 @@ tongue_7 = [224, 112, 32, 48]
 type = "package"
 embedded = [
     { name = "akropolis_helicopter_landing_pad_model_0547C", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
+    { name = "departure_player_bank", offset = 0x06334, size = 0xC, address = 0x801838F4 },
     { name = "ammunition_pickup", offset = 0x0A828, size = 0x18C, address = 0x80187DE8 },
 ]
 load = { slot = "room" }
@@ -1771,9 +1772,23 @@ requires = ["gameplay"]
 sha1 = "e742256cbd375eff51b21ed26f4631946ba06139"
 
 [helicopter_departure.exports]
+player_helipad_report_escape = { at = 0x04CC8, symbol = "gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip" }
 no_9_tasks = { at = 0x23250, symbol = "gHelicopterDepartureNo9GolemTaskDescriptors" }
 rupert_tasks = { at = 0x154C8, symbol = "gHelicopterDepartureRupertTaskDescriptors" }
 helicopter_tasks = { at = 0x07B04, symbol = "gHelicopterDepartureHelicopterTaskDescriptors" }
+
+[helicopter_departure.exports.player_helipad_detonator_talk]
+at = 0x07ADC
+symbol = "gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip"
+
+[departure_player_bank]
+type = "animation_bank"
+schema = "rooms/akropolis/helicopter_landing_pad/departure_player_schema"
+symbol = "_gAkropolisHelicopterLandingPadDeparturePlayerAnimationSets"
+
+[departure_player_bank.clips]
+slot_1 = "rooms/akropolis/helicopter_landing_pad/player_helipad_report_escape"
+slot_2 = "rooms/akropolis/helicopter_landing_pad/player_helipad_detonator_talk"
 
 [rupert_detonator_talk]
 type = "clip"
@@ -1782,6 +1797,10 @@ rig = "characters/rupert/rig"
 [encounter_intro_impact]
 type = "sound"
 sha1 = "18e686f8ffdbab741a9de541d5e9877cc83cabcf"
+
+[departure_player_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2"]
 
 [helicopter_camera_track]
 type = "camera_path"
