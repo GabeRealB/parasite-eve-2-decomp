@@ -265,6 +265,12 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
             else:
                 vals = [named(decode_value(im.own, a - im.base + i * size(o.kind), o.kind), o.kind, name_of)
                         for i in range(o.count)]
+            if o.kind == "MenuMapAreaShape":                 # its shape: an export of the map page bound to it
+                for v in vals:
+                    if isinstance(v.get("model"), int) and v["model"]:
+                        ref = package_decl.resolve_export(name, assets, v["model"],
+                                                          package_decl.map_page_file_id(im.stage, v["page"]))
+                        v["model"] = ref or v["model"]
             if o.kind == "AreaResource":                    # the actor it spawns: an export of the package bound to it
                 for v in vals:
                     if isinstance(v.get("taskTable"), int) and v["taskTable"]:

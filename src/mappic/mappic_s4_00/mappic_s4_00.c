@@ -6,17 +6,17 @@
 
 /// Identity transform and self-parented root for the Cavern shape.
 static TmdBone _gMappicS400CavernShapeSkeleton[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_skeleton.inc"
+#include "assets/mappic_s4_00_model_0005C_0008C_skeleton.inc"
 };
 
 /// Six vertices in the Cavern shape's sole part.
 static u32 _gMappicS400CavernShapePartVerts[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_partVerts.inc"
+#include "assets/mappic_s4_00_model_0005C_0008C_partVerts.inc"
 };
 
 /// Cavern's map footprint in integer model X/Z coordinates, with Y zero.
 static SVECTOR _gMappicS400CavernShapeVerts[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_verts.inc"
+#include "assets/mappic_s4_00_model_0005C_0008C_verts.inc"
 };
 
 /// Packed command stream for the Cavern shape's two unlit quads.
@@ -24,7 +24,7 @@ static SVECTOR _gMappicS400CavernShapeVerts[] = {
 /// Elements contain four SVECTOR byte offsets and white colour; two group
 /// ends precede the stream end. The map reads only the first group.
 static u32 _gMappicS400CavernShapeStream[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_mappic_s4_00_stream.inc"
+#include "assets/mappic_s4_00_model_0005C_0008C_stream.inc"
 };
 
 TmdSource gMappicS400CavernShape = {

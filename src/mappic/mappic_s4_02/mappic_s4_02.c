@@ -6,22 +6,22 @@
 
 /// Identity transform and self-parented root for the Mesa shape.
 static TmdBone _gMappicS402MesaShapeSkeleton[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s4_02_skeleton.inc"
+#include "assets/mappic_s2_02_model_00C48_00070_skeleton.inc"
 };
 
 /// Vertex count of the Mesa shape's sole part (four vertices).
 static u32 _gMappicS402MesaShapePartVerts[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s4_02_partVerts.inc"
+#include "assets/mappic_s2_02_model_00C48_00070_partVerts.inc"
 };
 
 /// Mesa's map footprint in integer model X/Z coordinates, with Y zero.
 static SVECTOR _gMappicS402MesaShapeVerts[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s4_02_verts.inc"
+#include "assets/mappic_s2_02_model_00C48_00070_verts.inc"
 };
 
 /// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
 static u32 _gMappicS402MesaShapeStream[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s4_02_stream.inc"
+#include "assets/mappic_s2_02_model_00C48_00070_stream.inc"
 };
 
 TmdSource gMappicS402MesaShape = {

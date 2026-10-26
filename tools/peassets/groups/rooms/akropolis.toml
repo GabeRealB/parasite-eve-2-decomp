@@ -15,6 +15,7 @@ load = { slot = "stage" }
 package_name = "map_akropolis"
 required = true
 requires = ["gameplay"]
+slots = { map_page_1 = "rooms/akropolis/map/page_1", map_page_2 = "rooms/akropolis/map/page_2" }
 sha1 = "abf6f6196ba05d45f48b59d4981cab5a01dc7d98"
 
 [stage.entries]

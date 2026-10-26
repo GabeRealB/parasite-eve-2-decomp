@@ -6,22 +6,22 @@
 
 /// Identity transform and self-parented root for the Gas Station shape.
 static TmdBone _gMappicS202GasStationShapeSkeleton[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_skeleton.inc"
+#include "assets/mappic_s4_00_model_0005C_skeleton.inc"
 };
 
 /// Vertex count of the Gas Station shape's sole part (six vertices).
 static u32 _gMappicS202GasStationShapePartVerts[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_partVerts.inc"
+#include "assets/mappic_s4_00_model_0005C_partVerts.inc"
 };
 
 /// Gas Station's map footprint in integer model X/Z coordinates, with Y zero.
 static SVECTOR _gMappicS202GasStationShapeVerts[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_verts.inc"
+#include "assets/mappic_s4_00_model_0005C_verts.inc"
 };
 
 /// Two unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
 static u32 _gMappicS202GasStationShapeStream[] = {
-#include "assets/mappic_s4_00_model_0005C_0008C_stream.inc"
+#include "assets/mappic_s4_00_model_0005C_stream.inc"
 };
 
 TmdSource gMappicS202GasStationShape = {
@@ -657,17 +657,17 @@ TmdSource gMappicS202GarageShape = {
 
 /// Identity transform and self-parented root for the Driveway shape.
 static TmdBone _gMappicS202DrivewayShapeSkeleton[] = {
-#include "assets/mappic_s2_02_model_00CF8_00D34_skeleton.inc"
+#include "assets/mappic_s2_02_model_00CF8_skeleton.inc"
 };
 
 /// Vertex count of the Driveway shape's sole part (eight vertices).
 static u32 _gMappicS202DrivewayShapePartVerts[] = {
-#include "assets/mappic_s2_02_model_00CF8_00D34_partVerts.inc"
+#include "assets/mappic_s2_02_model_00CF8_partVerts.inc"
 };
 
 /// Driveway's map footprint in integer model X/Z coordinates, with Y zero.
 static SVECTOR _gMappicS202DrivewayShapeVerts[] = {
-#include "assets/mappic_s2_02_model_00CF8_00D34_verts.inc"
+#include "assets/mappic_s2_02_model_00CF8_verts.inc"
 };
 
 /// Packed command stream for the Driveway shape's three unlit quads.
@@ -675,7 +675,7 @@ static SVECTOR _gMappicS202DrivewayShapeVerts[] = {
 /// Each quad has four vertex byte offsets and white colour. Two group ends
 /// and the stream end follow; the map reads only the first group.
 static u32 _gMappicS202DrivewayShapeStream[] = {
-#include "assets/mappic_s2_02_model_00CF8_00D34_stream.inc"
+#include "assets/mappic_s2_02_model_00CF8_stream.inc"
 };
 
 TmdSource gMappicS202DrivewayShape = {

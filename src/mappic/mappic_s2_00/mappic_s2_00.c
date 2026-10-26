@@ -6,22 +6,22 @@
 
 /// Identity transform and self-parented root for the Motel room 6 shape.
 static TmdBone _gMappicS200MotelRoom6ShapeSkeleton[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_skeleton.inc"
+#include "assets/mappic_s2_02_model_00C48_skeleton.inc"
 };
 
 /// Vertex count of the Motel room 6 shape's sole part (four vertices).
 static u32 _gMappicS200MotelRoom6ShapePartVerts[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_partVerts.inc"
+#include "assets/mappic_s2_02_model_00C48_partVerts.inc"
 };
 
 /// Motel room 6's map outline in integer model X/Z coordinates, with Y zero.
 static SVECTOR _gMappicS200MotelRoom6ShapeVerts[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_verts.inc"
+#include "assets/mappic_s2_02_model_00C48_verts.inc"
 };
 
 /// One unlit quad's packed vertex offsets and colour, followed by two group ends and the stream end.
 static u32 _gMappicS200MotelRoom6ShapeStream[] = {
-#include "assets/mappic_s2_02_model_00C48_00070_mappic_s2_00_stream.inc"
+#include "assets/mappic_s2_02_model_00C48_stream.inc"
 };
 
 TmdSource gMappicS200MotelRoom6Shape = {

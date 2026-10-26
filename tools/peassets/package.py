@@ -96,11 +96,11 @@ def load_address(name: str, assets: dict[str, dict[str, Any]]) -> int:
     return assets[f"engine/memory/{slot}"]["at"]
 
 
-def file_id(name: str) -> int | None:
-    """The disc id of the file that loads a package: the stage-0 file holding it as a chunk."""
+def file_ids(name: str) -> set[int]:
+    """The disc ids of the files that load a package: the stage-0 files holding it as a chunk (one, or several: the
+    Akropolis map's first page is files 30100 and 30101)."""
     import asset_data
-    ids = [node["id"] for node in asset_data.TREE[0]["files"].values() if name in (node.get("chunks") or {}).values()]
-    return ids[0] if len(ids) == 1 else None
+    return {node["id"] for node in asset_data.TREE[0]["files"].values() if name in (node.get("chunks") or {}).values()}
 
 
 def resource_file_id(file_number: int, group_index: int) -> int:
@@ -108,6 +108,11 @@ def resource_file_id(file_number: int, group_index: int) -> int:
     hundreds, and its number's units and tens as the id's hundreds (gameplay's area loader)."""
     base = 10 * (group_index + 1) if group_index < 6 else group_index - 6
     return (base + file_number // 100) * 10000 + (file_number % 100) * 100
+
+
+def map_page_file_id(stage: int, page: int) -> int:
+    """The disc id of a stage's map page (a MenuMapAreaShape's `page`): 30000 + 100 x stage + page."""
+    return 30000 + 100 * stage + page
 
 
 def bindings(name: str, assets: dict[str, dict[str, Any]]) -> dict[str, str]:
@@ -120,7 +125,7 @@ def resolve_export(name: str, assets: dict[str, dict[str, Any]], address: int, f
     loads (all of them when no file is given), the export at that address. None where none is."""
     hits = []
     for binding, package in bindings(name, assets).items():
-        if file is not None and file_id(package) != file:
+        if file is not None and file not in file_ids(package):
             continue
         base = load_address(package, assets)
         for export, e in (assets[package].get("exports") or {}).items():

@@ -1,0 +1,214 @@
+# The assets of the group rooms/akropolis/map, each named rooms/akropolis/map/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[patio]
+type = "model"
+slots = []
+symbol = "gMappicS100PatioShape"
+sha1 = "ef0d40957eda3414a2e1fb6afc31fe3884b82ce2"
+
+[bridge]
+type = "model"
+slots = []
+symbol = "gMappicS100BridgeShape"
+sha1 = "ab8b50eb351ce3ece33a4b18c3a2a9fe83ff4dc0"
+
+[page_1]
+type = "package"
+embedded = [
+    { name = "square", offset = 0x00004, size = 0xC8, address = 0x8012EF34 },
+    { name = "east_elevator_hall", offset = 0x000CC, size = 0x150, address = 0x8012EFFC },
+    { name = "patio", offset = 0x0021C, size = 0xFC, address = 0x8012F14C },
+    { name = "cafeteria", offset = 0x00318, size = 0xAC, address = 0x8012F248 },
+    { name = "security_room", offset = 0x003C4, size = 0x90, address = 0x8012F2F4 },
+    { name = "hallway", offset = 0x00454, size = 0x90, address = 0x8012F384 },
+    { name = "fountain", offset = 0x004E4, size = 0x104, address = 0x8012F414 },
+    { name = "forked_road", offset = 0x005E8, size = 0xE0, address = 0x8012F518 },
+    { name = "observatory", offset = 0x006C8, size = 0xB0, address = 0x8012F5F8 },
+    { name = "promenade", offset = 0x00778, size = 0xE8, address = 0x8012F6A8 },
+    { name = "sanctuary", offset = 0x00860, size = 0x90, address = 0x8012F790 },
+    { name = "roof_garden", offset = 0x008F0, size = 0x90, address = 0x8012F820 },
+    { name = "bridge", offset = 0x00980, size = 0x90, address = 0x8012F8B0 },
+    { name = "fire_escape", offset = 0x00A10, size = 0x90, address = 0x8012F940 },
+    { name = "west_elevator_hall", offset = 0x00AA0, size = 0x150, address = 0x8012F9D0 },
+]
+load = { slot = "pe" }
+package_name = "mappic_s1_00"
+required = true
+requires = ["gameplay"]
+sha1 = "cb0ba1bfc0ee339511791bdbd4720c5e3eb8af7a"
+
+[page_1.exports]
+square = { at = 0x000A8, symbol = "gMappicS100SquareShape" }
+east_elevator_hall = { at = 0x001F8, symbol = "gMappicS100EastElevatorHallShape" }
+patio = { at = 0x002F4, symbol = "gMappicS100PatioShape" }
+cafeteria = { at = 0x003A0, symbol = "gMappicS100CafeteriaShape" }
+security_room = { at = 0x00430, symbol = "gMappicS100SecurityRoomShape" }
+hallway = { at = 0x004C0, symbol = "gMappicS100HallwayShape" }
+fountain = { at = 0x005C4, symbol = "gMappicS100FountainShape" }
+forked_road = { at = 0x006A4, symbol = "gMappicS100ForkedRoadShape" }
+observatory = { at = 0x00754, symbol = "gMappicS100ObservatoryShape" }
+promenade = { at = 0x0083C, symbol = "gMappicS100PromenadeShape" }
+sanctuary = { at = 0x008CC, symbol = "gMappicS100SanctuaryShape" }
+roof_garden = { at = 0x0095C, symbol = "gMappicS100RoofGardenShape" }
+bridge = { at = 0x009EC, symbol = "gMappicS100BridgeShape" }
+fire_escape = { at = 0x00A7C, symbol = "gMappicS100FireEscapeShape" }
+west_elevator_hall = { at = 0x00BCC, symbol = "gMappicS100WestElevatorHallShape" }
+
+[page_2]
+type = "package"
+embedded = [{ name = "helicopter_landing_pad", offset = 0x00004, size = 0x90, address = 0x8012EF34 }]
+exports = { helicopter_landing_pad = { at = 0x00070, symbol = "gMappicS102HelicopterLandingPadShape" } }
+load = { slot = "pe" }
+package_name = "mappic_s1_02"
+required = true
+requires = ["gameplay"]
+sha1 = "ab15de45cb7044e9e21112abaac6e71bcf32b8f7"
+
+[square]
+type = "model"
+slots = []
+symbol = "gMappicS100SquareShape"
+sha1 = "3e04c4d3e1f7e1eacae99406336f168956420fdb"
+
+[hallway]
+type = "model"
+slots = []
+symbol = "gMappicS100HallwayShape"
+sha1 = "d6ccd28a19cdcffeba038c7305c3f5f4d6539bae"
+
+[fountain]
+type = "model"
+slots = []
+symbol = "gMappicS100FountainShape"
+sha1 = "ac788134a0af52536a0b2a64fd42c3a655844a45"
+
+[cafeteria]
+type = "model"
+slots = []
+symbol = "gMappicS100CafeteriaShape"
+sha1 = "ee3be9637ac13907453694dcc6939fc06f44cf36"
+
+[promenade]
+type = "model"
+slots = []
+symbol = "gMappicS100PromenadeShape"
+sha1 = "d4743837a2e0e654e7cd50199820b6329fb1798b"
+
+[sanctuary]
+type = "model"
+slots = []
+symbol = "gMappicS100SanctuaryShape"
+sha1 = "52f5f85526263b4fe9cfe03d4fb02cc11180b5c5"
+
+[fire_escape]
+type = "model"
+slots = []
+symbol = "gMappicS100FireEscapeShape"
+sha1 = "379d9bd51efe8097145a4129b5b2d57d41b3cc62"
+
+[forked_road]
+type = "model"
+slots = []
+symbol = "gMappicS100ForkedRoadShape"
+sha1 = "0bd60a355ace95a293c74902277b6ed0ff239652"
+
+[observatory]
+type = "model"
+slots = []
+symbol = "gMappicS100ObservatoryShape"
+sha1 = "f8ca4475759ab7fcd5a07879a65262b53187f804"
+
+[roof_garden]
+type = "model"
+slots = []
+symbol = "gMappicS100RoofGardenShape"
+sha1 = "6af17e1f03610f49823bee065c89154c358f0eaf"
+
+[patio_binding]
+type = "binding"
+model = "rooms/akropolis/map/patio"
+
+[security_room]
+type = "model"
+slots = []
+symbol = "gMappicS100SecurityRoomShape"
+sha1 = "7f45daea2d916d8122ede90c27dc3846eb626323"
+
+[bridge_binding]
+type = "binding"
+model = "rooms/akropolis/map/bridge"
+
+[square_binding]
+type = "binding"
+model = "rooms/akropolis/map/square"
+
+[hallway_binding]
+type = "binding"
+model = "rooms/akropolis/map/hallway"
+
+[fountain_binding]
+type = "binding"
+model = "rooms/akropolis/map/fountain"
+
+[cafeteria_binding]
+type = "binding"
+model = "rooms/akropolis/map/cafeteria"
+
+[promenade_binding]
+type = "binding"
+model = "rooms/akropolis/map/promenade"
+
+[sanctuary_binding]
+type = "binding"
+model = "rooms/akropolis/map/sanctuary"
+
+[east_elevator_hall]
+type = "model"
+slots = []
+symbol = "gMappicS100EastElevatorHallShape"
+sha1 = "612600ff97c3753516a181a81f179bc772d831f5"
+
+[west_elevator_hall]
+type = "model"
+slots = []
+symbol = "gMappicS100WestElevatorHallShape"
+sha1 = "a640806c7d97ed9495f3897ea10a82e892107cae"
+
+[fire_escape_binding]
+type = "binding"
+model = "rooms/akropolis/map/fire_escape"
+
+[forked_road_binding]
+type = "binding"
+model = "rooms/akropolis/map/forked_road"
+
+[observatory_binding]
+type = "binding"
+model = "rooms/akropolis/map/observatory"
+
+[roof_garden_binding]
+type = "binding"
+model = "rooms/akropolis/map/roof_garden"
+
+[security_room_binding]
+type = "binding"
+model = "rooms/akropolis/map/security_room"
+
+[helicopter_landing_pad]
+type = "model"
+slots = []
+symbol = "gMappicS102HelicopterLandingPadShape"
+sha1 = "4de3a1184358b67d43a42c5c7f3629e77e517471"
+
+[east_elevator_hall_binding]
+type = "binding"
+model = "rooms/akropolis/map/east_elevator_hall"
+
+[west_elevator_hall_binding]
+type = "binding"
+model = "rooms/akropolis/map/west_elevator_hall"
+
+[helicopter_landing_pad_binding]
+type = "binding"
+model = "rooms/akropolis/map/helicopter_landing_pad"

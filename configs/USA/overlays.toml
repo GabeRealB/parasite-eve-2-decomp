@@ -669,36 +669,6 @@ id = 63
 objects = [
   { kind = "packageId" },
   { unit = "mappic_s1_00/mappic_s1_00", data = "0x4" },
-  { kind = "model", at = "0x4", in_c = true },
-  { kind = "modelSource", at = "0xA8", in_c = true },
-  { kind = "model", at = "0xCC", in_c = true },
-  { kind = "modelSource", at = "0x1F8", in_c = true },
-  { kind = "model", at = "0x21C", in_c = true },
-  { kind = "modelSource", at = "0x2F4", in_c = true },
-  { kind = "model", at = "0x318", in_c = true },
-  { kind = "modelSource", at = "0x3A0", in_c = true },
-  { kind = "model", at = "0x3C4", in_c = true },
-  { kind = "modelSource", at = "0x430", in_c = true },
-  { kind = "model", at = "0x454", in_c = true },
-  { kind = "modelSource", at = "0x4C0", in_c = true },
-  { kind = "model", at = "0x4E4", in_c = true },
-  { kind = "modelSource", at = "0x5C4", in_c = true },
-  { kind = "model", at = "0x5E8", in_c = true },
-  { kind = "modelSource", at = "0x6A4", in_c = true },
-  { kind = "model", at = "0x6C8", in_c = true },
-  { kind = "modelSource", at = "0x754", in_c = true },
-  { kind = "model", at = "0x778", in_c = true },
-  { kind = "modelSource", at = "0x83C", in_c = true },
-  { kind = "model", at = "0x860", in_c = true },
-  { kind = "modelSource", at = "0x8CC", in_c = true },
-  { kind = "model", at = "0x8F0", in_c = true },
-  { kind = "modelSource", at = "0x95C", in_c = true },
-  { kind = "model", at = "0x980", in_c = true },
-  { kind = "modelSource", at = "0x9EC", in_c = true },
-  { kind = "model", at = "0xA10", in_c = true },
-  { kind = "modelSource", at = "0xA7C", in_c = true },
-  { kind = "model", at = "0xAA0", in_c = true },
-  { kind = "modelSource", at = "0xBCC", in_c = true },
 ]
 
 [mappic.overlays.mappic_s1_02]
@@ -706,8 +676,6 @@ id = 64
 objects = [
   { kind = "packageId" },
   { unit = "mappic_s1_02/mappic_s1_02", data = "0x4" },
-  { kind = "model", at = "0x4", in_c = true },
-  { kind = "modelSource", at = "0x70", in_c = true },
 ]
 
 [mappic.overlays.mappic_s2_00]

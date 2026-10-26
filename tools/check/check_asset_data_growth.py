@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-BASELINE = {"ASSETS": 4842, "EMBEDDED_ASSETS": 587}
+BASELINE = {"ASSETS": 4833, "EMBEDDED_ASSETS": 580}
 
 
 def counts(text: str) -> dict[str, int]:

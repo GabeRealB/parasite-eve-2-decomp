@@ -202,22 +202,6 @@ gMistShootingGalleryViewCameras = 0x8018998C; // absolute:True owner=mist_shooti
 gMistShootingGallerySpriteViews = 0x8018BD10; // absolute:True owner=mist_shooting_gallery
 gMistShootingGallerySurfacePropertiesByClass = 0x8018E09C; // absolute:True owner=mist_shooting_gallery
 mistR21RoomTask = 0x8017D708; // type:func absolute:True owner=mist_r21 shared=rooms
-gMappicS100SquareShape = 0x8012EFD8; // absolute:True owner=mappic_s1_00 shared=mappic
-gMappicS100EastElevatorHallShape = 0x8012F128; // absolute:True owner=mappic_s1_00
-gMappicS100PatioShape = 0x8012F224; // absolute:True owner=mappic_s1_00 shared=mappic
-gMappicS100CafeteriaShape = 0x8012F2D0; // absolute:True owner=mappic_s1_00
-gMappicS100SecurityRoomShape = 0x8012F360; // absolute:True owner=mappic_s1_00
-gMappicS100HallwayShape = 0x8012F3F0; // absolute:True owner=mappic_s1_00
-gMappicS100FountainShape = 0x8012F4F4; // absolute:True owner=mappic_s1_00
-gMappicS100ForkedRoadShape = 0x8012F5D4; // absolute:True owner=mappic_s1_00
-gMappicS100ObservatoryShape = 0x8012F684; // absolute:True owner=mappic_s1_00
-gMappicS100PromenadeShape = 0x8012F76C; // absolute:True owner=mappic_s1_00
-gMappicS100SanctuaryShape = 0x8012F7FC; // absolute:True owner=mappic_s1_00
-gMappicS100RoofGardenShape = 0x8012F88C; // absolute:True owner=mappic_s1_00
-gMappicS100BridgeShape = 0x8012F91C; // absolute:True owner=mappic_s1_00
-gMappicS100FireEscapeShape = 0x8012F9AC; // absolute:True owner=mappic_s1_00
-gMappicS100WestElevatorHallShape = 0x8012FAFC; // absolute:True owner=mappic_s1_00
-gMappicS102HelicopterLandingPadShape = 0x8012EFA0; // absolute:True owner=mappic_s1_02 shared=mappic
 mapAkropolisSetupMovieBuffers = 0x80179988; // type:func
 _mapAkropolisDrawKeyItemRow = 0x80179c50; // type:func
 _mapAkropolisKeyItemPanelTask = 0x80179d78; // type:func
