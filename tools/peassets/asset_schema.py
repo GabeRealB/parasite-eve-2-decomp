@@ -165,9 +165,12 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # read by tools/peassets/cap_text.py.
     "cap": {"payload": (), "stored": ("glyphs",)},
     "stf": {"payload": (), "stored": ()},
-    # A room's collision grid: the normals, vertices, faces, cell lists and cell table its `WorldCollisionGrid`
-    # header points at (the header itself is declared in C). Placed in its package by the package's `embedded`.
-    "collision": {"payload": (), "stored": ()},
+    # Collision geometry, placed in its package by the package's `embedded`. A grid: the normals, vertices, faces,
+    # cell lists and cell table its `WorldCollisionGrid` header points at, the header following its placement (and
+    # declared in C); `cell_face_list_macro` names the binding its C cell table calls (GRID_CELL where unstated). A
+    # patch, which code copies into a live grid and so has no header: `pieces`, its arrays in order ("vectors N",
+    # "faces N").
+    "collision": {"payload": (), "stored": ("cell_face_list_macro", "pieces")},
     # An animation block: consecutive exported animation sets, the clips one skeleton plays - a weapon package
     # carries the player's for that weapon. Its embedded record (source, address, size, clips) comes from the
     # overlay manifest; a grouped package places it with its `embedded`.
@@ -995,6 +998,15 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             problems += texture_declaration.check_font(key, rec, assets, embedded, frozenset(text_encoding.ENCODINGS))
         if kind == "vram_region":
             problems += texture_declaration.check_region(key, rec, assets)
+        if kind == "collision":
+            pieces = rec.get("pieces")
+            if pieces is not None and not (isinstance(pieces, list) and pieces and all(
+                    isinstance(p, str) and len(p.split()) == 2 and p.split()[0] in ("vectors", "faces")
+                    and p.split()[1].isdigit() and int(p.split()[1]) > 0 for p in pieces)):
+                problems.append(f'{key}: pieces are "vectors N" or "faces N", in order')
+            macro = rec.get("cell_face_list_macro")
+            if macro is not None and (pieces is not None or not str(macro).isidentifier()):
+                problems.append(f"{key}: cell_face_list_macro is a C identifier, on a grid (not a patch)")
         if kind == "memory_slot":
             import package
             problems += package.check_memory_slot(key, rec, assets)

@@ -24,6 +24,7 @@ embedded = [
     { name = "opening_player_main_bank", offset = 0x08628, size = 0x8, address = 0x80185BE8 },
     { name = "opening_player_lead_in_bank", offset = 0x08630, size = 0x8, address = 0x80185BF0 },
     { name = "opening_player_exit_bank", offset = 0x08638, size = 0x8, address = 0x80185BF8 },
+    { name = "collision", offset = 0x08DB8, size = 0x4C0 },
 ]
 load = { slot = "room" }
 package_name = "akropolis_east_elevator_hall"
@@ -55,6 +56,11 @@ samples = [
 ]
 sounds = { elevator_depart = 1, elevator_arrive = 2, opening_scene = 3 }
 sha1 = "a215a647e2d1c212d9d612a56a188b1bfe135741"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_EAST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "dab2184767674c6d4d261ba71e1213594119cbc8"
 
 [swat_bank]
 type = "animation_bank"

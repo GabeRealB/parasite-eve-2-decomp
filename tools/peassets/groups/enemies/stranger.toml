@@ -97,7 +97,7 @@ rig = "enemies/stranger/rig"
 type = "model"
 slots = ["page_1", "page_2"]
 symbol = "_gStrangerBurstHand"
-sha1 = "bc12ce2a454e2eae375b792da3b4aeb9eba35a33"
+sha1 = "1eab845f2ebb680503d4ecdba2629d8ebc3a018d"
 
 [leap_start]
 type = "clip"

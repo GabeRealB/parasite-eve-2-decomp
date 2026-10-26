@@ -43,6 +43,7 @@ chunk = "bundle"
 type = "package"
 embedded = [
     { asset = "characters/jodie/body", offset = 0x006E0, size = 0x5D08, address = 0x8014A500 },
+    { asset = "rooms/mist/r18/laptop", offset = 0x063E8, size = 0x1F8, address = 0x80150208 },
     { asset = "characters/aya/stand", offset = 0x065E0, size = 0x304, address = 0x80150400 },
     { asset = "characters/aya/talk_start", offset = 0x068E4, size = 0x3D4, address = 0x80150704 },
     { asset = "characters/aya/talk", offset = 0x06CB8, size = 0x3F0, address = 0x80150AD8 },
@@ -328,6 +329,11 @@ size = 0x64
 address = 0x8018D7C8
 
 [[package.embedded]]
+name = "pierce_collision"
+offset = 0x12694
+size = 0x64
+
+[[package.embedded]]
 name = "stand_copy"
 offset = 0x1271C
 size = 0x304
@@ -350,6 +356,11 @@ name = "shop_player_bank"
 offset = 0x132A0
 size = 0x10
 address = 0x80190860
+
+[[package.embedded]]
+name = "collision"
+offset = 0x14108
+size = 0xB3C
 
 [package.entries]
 animations = [
@@ -464,6 +475,11 @@ cutscene_after = 18
 pierce_step_alternate = 19
 door_open = 20
 door_close = 21
+
+[collision]
+type = "collision"
+cell_face_list_macro = "MIST_PARKING_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "c3e6ce2879e194004b6b9e5aece85041ba72805a"
 
 [dialogue_0]
 type = "cap"
@@ -1312,6 +1328,11 @@ w = 64
 x = 704
 y = 0
 sha1 = "a750953b680ad38ff8a51b1438c9f9623660c338"
+
+[pierce_collision]
+type = "collision"
+cell_face_list_macro = "MIST_PARKING_PIERCE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "881d9bdb2867aa550d23b3e55dbc1b7b30a84199"
 
 [shop_player_bank]
 type = "animation_bank"

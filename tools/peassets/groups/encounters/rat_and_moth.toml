@@ -52,7 +52,7 @@ type = "model"
 rig = "encounters/rat_and_moth/rat_rig"
 slots = ["page_1"]
 symbol = "gRatAndMothRatBody"
-sha1 = "8d2834e807a5d4fcd5d3f3b53677bc78fa6574ac"
+sha1 = "83481f26292e08cea2acffef0dd6468954f864b8"
 
 [rat_hurt]
 type = "clip"
@@ -77,7 +77,7 @@ type = "model"
 rig = "encounters/rat_and_moth/moth_rig"
 slots = ["page_1"]
 symbol = "_gRatAndMothMothBody"
-sha1 = "43f917a2adc7ac90f2a77c24640eb7256252a591"
+sha1 = "ef49b2b515bdce51f63e17f6313172d19d8be867"
 
 [package_1]
 type = "package"
@@ -111,6 +111,7 @@ rat_tasks = { at = 0x06E60, symbol = "gActor00700RatTaskDesc" }
 [package_2]
 type = "package"
 embedded = [
+    { name = "rat_body", offset = 0x03670, size = 0x1868, address = 0x8014D490 },
     { name = "rat_idle", offset = 0x04ED8, size = 0x510, address = 0x8014ECF8 },
     { name = "rat_run", offset = 0x053E8, size = 0x2BC, address = 0x8014F208 },
     { name = "rat_back_off", offset = 0x056A4, size = 0x490, address = 0x8014F4C4 },
@@ -122,6 +123,7 @@ embedded = [
     { name = "rat_stagger_recover", offset = 0x06804, size = 0x294, address = 0x80150624 },
     { name = "rat_stagger", offset = 0x06A98, size = 0x344, address = 0x801508B8 },
     { name = "rat_bank", offset = 0x06E6C, size = 0x2C, address = 0x80150C8C },
+    { name = "moth_body", offset = 0x06EB0, size = 0x658, address = 0x80150CD0 },
     { name = "moth_rest_pose", offset = 0x07508, size = 0x7C, address = 0x80151328 },
     { name = "moth_bank", offset = 0x075B4, size = 0x8, address = 0x801513D4 },
 ]
@@ -138,8 +140,10 @@ rat_tasks = { at = 0x06E60, symbol = "gActor200700RatTaskDesc" }
 [package_3]
 type = "package"
 embedded = [
+    { name = "moth_body", offset = 0x03670, size = 0x658, address = 0x80165490 },
     { name = "moth_rest_pose", offset = 0x03CC8, size = 0x7C, address = 0x80165AE8 },
     { name = "moth_bank", offset = 0x03D74, size = 0x8, address = 0x80165B94 },
+    { name = "rat_body", offset = 0x03D9C, size = 0x1868, address = 0x80165BBC },
     { name = "rat_idle", offset = 0x05604, size = 0x510, address = 0x80167424 },
     { name = "rat_run", offset = 0x05B14, size = 0x2BC, address = 0x80167934 },
     { name = "rat_back_off", offset = 0x05DD0, size = 0x490, address = 0x80167BF0 },

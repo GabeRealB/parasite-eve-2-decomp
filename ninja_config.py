@@ -497,6 +497,9 @@ def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, l
             continue
         raw = ASSETS_DIR / version / "pe2pkg" / f"{grid['package']}.pe2pkg"
         parts = components(raw.read_bytes(), grid["load"], grid["source"])
+        if parts[0]["offset"] != grid["grid"]:              # a declared placement ends where its header begins
+            raise SystemExit(f"{grid['package']}: the grid header at 0x{grid['source']:X} describes a grid at "
+                             f"0x{parts[0]['offset']:X}, not the declared 0x{grid['grid']:X}")
         prefix = f"{grid['package']}_collision_{grid['source']:05X}"
         outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc" for part in parts]
         out.append((raw, outputs, grid["load"], grid["source"],

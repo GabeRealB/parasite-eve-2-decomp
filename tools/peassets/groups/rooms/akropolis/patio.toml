@@ -303,6 +303,11 @@ offset = 0x04FF0
 size = 0x14
 address = 0x801825B0
 
+[[package.embedded]]
+name = "collision"
+offset = 0x05A0C
+size = 0xE2C
+
 [package.entries]
 actor_commands = [0x02E80]
 animations = [0x02DD0, 0x0500C, 0x050E8, 0x05174]
@@ -374,6 +379,11 @@ opening_scene = 9
 follow_up_scene_3 = 10
 follow_up_scene_1 = 11
 follow_up_scene_2 = 12
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_PATIO_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "40b18c6446bcfce2adc2b86ab9ef5259c42c3e38"
 
 [swat_bank]
 type = "animation_bank"
@@ -1277,6 +1287,7 @@ sha1 = "5fefeb1801ad6037f42a5e37d84c5f2b0993a183"
 [leaping_strangers]
 type = "package"
 embedded = [
+    { asset = "enemies/stranger/grinning/body", offset = 0x00F44, size = 0x5664, address = 0x80162D64 },
     { asset = "enemies/stranger/react", offset = 0x065A8, size = 0x41C, address = 0x801683C8 },
     { asset = "enemies/stranger/odd/b_walk", offset = 0x069C4, size = 0xB24, address = 0x801687E4 },
     { asset = "enemies/stranger/odd/b_run", offset = 0x074E8, size = 0xA84, address = 0x80169308 },

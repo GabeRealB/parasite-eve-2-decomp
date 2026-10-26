@@ -94,6 +94,8 @@ sha1 = "500b6cb123acf985110012852212cf862611169c"
 [package_2]
 type = "package"
 embedded = [
+    { asset = "enemies/crawler/body", offset = 0x03FDC, size = 0x17B4, address = 0x8014DDFC },
+    { asset = "enemies/crawler/husk", offset = 0x05790, size = 0x7A4, address = 0x8014F5B0 },
     { asset = "enemies/crawler/idle", offset = 0x05F34, size = 0x28C, address = 0x8014FD54 },
     { asset = "enemies/crawler/crawl", offset = 0x061C0, size = 0x2B4, address = 0x8014FFE0 },
     { asset = "enemies/crawler/spray", offset = 0x06474, size = 0x484, address = 0x80150294 },
@@ -119,6 +121,8 @@ sha1 = "7b728cbc9b3a15e07418c57c6a0d7283979c7035"
 [package_3]
 type = "pe2pkg"
 embedded = [
+    { asset = "enemies/crawler/body", offset = 0x03FDC, size = 0x17B4, address = 0x80165DFC },
+    { asset = "enemies/crawler/husk", offset = 0x05790, size = 0x7A4, address = 0x801675B0 },
     { asset = "enemies/crawler/idle", offset = 0x05F34, size = 0x28C, address = 0x80167D54 },
     { asset = "enemies/crawler/crawl", offset = 0x061C0, size = 0x2B4, address = 0x80167FE0 },
     { asset = "enemies/crawler/spray", offset = 0x06474, size = 0x484, address = 0x80168294 },

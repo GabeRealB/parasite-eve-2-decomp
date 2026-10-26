@@ -10,7 +10,7 @@ type = "model"
 rig = "enemies/scavenger/rig"
 slots = ["body"]
 symbol = "_gScavengerBody"
-sha1 = "09b9bc7bb0ba375ba07a5cbbe03778aca0579583"
+sha1 = "d6ad6c88c53cef262d6e048f9eefda4b0ddb3a27"
 
 [grab]
 type = "sound"
@@ -181,13 +181,13 @@ grab_release = "enemies/scavenger/grab_release"
 type = "model"
 slots = ["body"]
 symbol = "_gScavengerBurstEar"
-sha1 = "08be81894519a849f2d3af98502013d29be3d10e"
+sha1 = "498b819f0dfc07145cd48dc93949ae274e4cc158"
 
 [burst_leg]
 type = "model"
 slots = ["body"]
 symbol = "_gScavengerBurstLeg"
-sha1 = "3b18a8635f10ead94695f6d9d034fe15e0653b5e"
+sha1 = "1b8c798471a158475060621285c114442ee184dc"
 
 [grab_hold]
 type = "clip"
@@ -246,6 +246,10 @@ sha1 = "ea653b77eb62a4d0b7ea993c22f9fb37c54f196e"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x07114, size = 0x1E84, address = 0x80150F34 },
+    { name = "burst_head", offset = 0x08F98, size = 0x7C8, address = 0x80152DB8 },
+    { name = "burst_leg", offset = 0x09760, size = 0x5C0, address = 0x80153580 },
+    { name = "burst_ear", offset = 0x09D20, size = 0x1E4, address = 0x80153B40 },
     { name = "rest", offset = 0x09F64, size = 0x26C, address = 0x80153D84 },
     { name = "wake", offset = 0x0A1D0, size = 0x318, address = 0x80153FF0 },
     { name = "roam_idle", offset = 0x0A4E8, size = 0x150, address = 0x80154308 },
@@ -289,6 +293,10 @@ sha1 = "f946fc3938cfe0f49020c3dc2786bbab621aeaf5"
 [package_3]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x07114, size = 0x1E84, address = 0x80168F34 },
+    { name = "burst_head", offset = 0x08F98, size = 0x7C8, address = 0x8016ADB8 },
+    { name = "burst_leg", offset = 0x09760, size = 0x5C0, address = 0x8016B580 },
+    { name = "burst_ear", offset = 0x09D20, size = 0x1E4, address = 0x8016BB40 },
     { name = "rest", offset = 0x09F64, size = 0x26C, address = 0x8016BD84 },
     { name = "wake", offset = 0x0A1D0, size = 0x318, address = 0x8016BFF0 },
     { name = "roam_idle", offset = 0x0A4E8, size = 0x150, address = 0x8016C308 },
@@ -345,7 +353,7 @@ rig = "enemies/scavenger/rig"
 type = "model"
 slots = ["body"]
 symbol = "_gScavengerBurstHead"
-sha1 = "f93a1ddeac76013606c0344a434ec26b67014614"
+sha1 = "58b4cbced67346bd7356a39265a456858d34b9ed"
 
 [lunge_land]
 type = "clip"

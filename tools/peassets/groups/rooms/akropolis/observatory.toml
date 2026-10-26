@@ -83,6 +83,7 @@ embedded = [
     "rooms/akropolis/observatory/promenade_arrival_player_path",
     { asset = "rooms/dryfield/trailer_coach/player_event_58", offset = 0x0250C, size = 0x394, address = 0x8017FACC },
     { name = "akropolis_observatory_player_bank", offset = 0x028A0, size = 0x8, address = 0x8017FE60 },
+    { name = "collision", offset = 0x02A2C, size = 0xA64 },
 ]
 load = { slot = "room" }
 package_name = "akropolis_observatory"
@@ -112,6 +113,11 @@ type = "sound_bank"
 samples = ["rooms/akropolis/square/walk_floor_1", "rooms/akropolis/square/walk_floor_2"]
 sounds = { walk_surface_1_1 = 17, walk_surface_1_2 = 18, run_surface_1_1 = 19, run_surface_1_2 = 20 }
 sha1 = "2234339e1f12a294a9d5abd766cd6f48d9c49219"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "66783b4257cf4f528309406b642bdec350d620c7"
 
 [dialogue_0]
 type = "cap"

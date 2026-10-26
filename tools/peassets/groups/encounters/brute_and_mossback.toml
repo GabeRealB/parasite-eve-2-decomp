@@ -61,7 +61,7 @@ type = "model"
 rig = "encounters/brute_and_mossback/rig"
 slots = ["page_1", "page_2"]
 symbol = "_gBruteAndMossbackBody"
-sha1 = "5a7708c378f530bc5682c10ac4bdceeeaf4d31f1"
+sha1 = "63ae98bea389978cc0d192ff12519a2b96f72608"
 
 [fall]
 type = "sound"
@@ -177,13 +177,13 @@ rig = "encounters/brute_and_mossback/rig"
 type = "model"
 slots = ["page_2", "page_1"]
 symbol = "_gBruteAndMossbackBurstArm"
-sha1 = "198c69c21e4719fc5129ecabffdf9455ebd5e4ab"
+sha1 = "03e7fa2b7039f5f3eaf9071f19e314248aeb7e2f"
 
 [burst_leg]
 type = "model"
 slots = ["page_1", "page_2"]
 symbol = "_gBruteAndMossbackBurstLeg"
-sha1 = "80c6e15e6e1304ba6f0d7bfa4e8dd4d169fcd1b0"
+sha1 = "84ffc0fdb9ef4bc7cd9f7885a5b01332ddf3bdbc"
 
 [fall_back]
 type = "clip"
@@ -230,6 +230,10 @@ sha1 = "4a21eb9797530b7d1a7ba4a2e9f4468c65cff4aa"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x07520, size = 0x562C, address = 0x80151340 },
+    { name = "burst_leg", offset = 0x0CB4C, size = 0x524, address = 0x8015696C },
+    { name = "burst_arm", offset = 0x0D070, size = 0x8A8, address = 0x80156E90 },
+    { name = "burst_head", offset = 0x0D918, size = 0xBE8, address = 0x80157738 },
     { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80158320 },
     { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80158714 },
     { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80158C78 },
@@ -261,6 +265,10 @@ sha1 = "820dd3b8560e6ccfdb6121875720ddc7ede40a28"
 [package_3]
 type = "package"
 embedded = [
+    { name = "body", offset = 0x07520, size = 0x562C, address = 0x80169340 },
+    { name = "burst_leg", offset = 0x0CB4C, size = 0x524, address = 0x8016E96C },
+    { name = "burst_arm", offset = 0x0D070, size = 0x8A8, address = 0x8016EE90 },
+    { name = "burst_head", offset = 0x0D918, size = 0xBE8, address = 0x8016F738 },
     { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80170320 },
     { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80170714 },
     { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80170C78 },
@@ -300,7 +308,7 @@ rig = "encounters/brute_and_mossback/rig"
 type = "model"
 slots = ["page_1"]
 symbol = "_gBruteAndMossbackBurstHead"
-sha1 = "9b296a6cb5d6156da9807c8b967ae02c172b2d14"
+sha1 = "2364332f1fbca1df9a5553792a960f656fde6625"
 
 [death_back]
 type = "clip"
@@ -504,6 +512,10 @@ page_2 = "encounters/brute_and_mossback/texture_page_2.default"
 [recolor_package_1]
 type = "package"
 embedded = [
+    { name = "body", offset = 0x07520, size = 0x562C, address = 0x80139340 },
+    { name = "burst_leg", offset = 0x0CB4C, size = 0x524, address = 0x8013E96C },
+    { name = "burst_arm", offset = 0x0D070, size = 0x8A8, address = 0x8013EE90 },
+    { name = "burst_head", offset = 0x0D918, size = 0xBE8, address = 0x8013F738 },
     { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80140320 },
     { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80140714 },
     { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80140C78 },
@@ -537,6 +549,10 @@ sha1 = "2d082936af3892c31908e671418049ef1944ee14"
 [recolor_package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x07520, size = 0x562C, address = 0x80151340 },
+    { name = "burst_leg", offset = 0x0CB4C, size = 0x524, address = 0x8015696C },
+    { name = "burst_arm", offset = 0x0D070, size = 0x8A8, address = 0x80156E90 },
+    { name = "burst_head", offset = 0x0D918, size = 0xBE8, address = 0x80157738 },
     { name = "idle", offset = 0x0E500, size = 0x3F4, address = 0x80158320 },
     { name = "swing_left", offset = 0x0E8F4, size = 0x564, address = 0x80158714 },
     { name = "swing_right", offset = 0x0EE58, size = 0x4D0, address = 0x80158C78 },

@@ -65,6 +65,8 @@ embedded = [
     { name = "player_story_talk_2", offset = 0x08C08, size = 0x2DC, address = 0x80152A28 },
     { name = "player_story_listen", offset = 0x08EE4, size = 0x1A8, address = 0x80152D04 },
     { name = "player_conversation_bank", offset = 0x0908C, size = 0x50, address = 0x80152EAC },
+    { asset = "characters/pierce/body", offset = 0x0A7CC, size = 0x621C, address = 0x801545EC },
+    { asset = "characters/pierce/glasses", offset = 0x109E8, size = 0x1FC, address = 0x8015A808 },
     { name = "pierce_phone_listen", offset = 0x10BE4, size = 0x22C, address = 0x8015AA04 },
     { name = "pierce_phone_talk", offset = 0x10E10, size = 0x3B8, address = 0x8015AC30 },
     { name = "pierce_quip", offset = 0x111C8, size = 0x1C4, address = 0x8015AFE8 },
@@ -120,6 +122,8 @@ scripts = [
 [package]
 type = "package"
 embedded = [
+    { name = "barrier_collision_1", offset = 0x07B50, size = 0x88 },
+    { name = "barrier_collision_2", offset = 0x07BFC, size = 0x3C },
     { name = "creature_target_1", offset = 0x09354, size = 0x1F0, address = 0x80186914 },
     { name = "creature_target_2", offset = 0x09544, size = 0x1F0, address = 0x80186B04 },
     { name = "creature_target_3", offset = 0x09734, size = 0x1F0, address = 0x80186CF4 },
@@ -139,6 +143,7 @@ embedded = [
     { name = "bullseye_2", offset = 0x0B218, size = 0x1F0, address = 0x801887D8 },
     { name = "bullseye_3", offset = 0x0B408, size = 0x1F0, address = 0x801889C8 },
     { name = "demonstration_target", offset = 0x0B5F8, size = 0x1F0, address = 0x80188BB8 },
+    { name = "collision", offset = 0x0B7E8, size = 0xBC0 },
 ]
 load = { slot = "room" }
 package_name = "mist_shooting_gallery"
@@ -270,6 +275,11 @@ bpp = 8
 height = 232
 variants = ["default"]
 width = 128
+
+[collision]
+type = "collision"
+cell_face_list_macro = "MIST_SHOOTING_GALLERY_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "799a9a7679230ffd0eaff8ac63a4bdfacbbc7130"
 
 [bullseye_1]
 type = "model"
@@ -1579,6 +1589,16 @@ rig = "characters/aya/rig"
 [target_kill_kind_9]
 type = "sound"
 sha1 = "a8c00952d8cf99acb2f546a13b6d60ea9d378a80"
+
+[barrier_collision_1]
+type = "collision"
+cell_face_list_macro = "MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "e8ec8f1230ba7cb7571f3fa0d914078f4658b548"
+
+[barrier_collision_2]
+type = "collision"
+cell_face_list_macro = "MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "8c046d70da8244f81653f35c2edbe18d3060becb"
 
 [pierce_gallery_idle]
 type = "clip"

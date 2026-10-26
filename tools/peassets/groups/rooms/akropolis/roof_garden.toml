@@ -158,6 +158,11 @@ size = 0xC
 address = 0x80184AA4
 
 [[package.embedded]]
+name = "collision"
+offset = 0x0775C
+size = 0x788
+
+[[package.embedded]]
 name = "armory_cardkey_pickup"
 offset = 0x09810
 size = 0xC4
@@ -244,6 +249,11 @@ step_1 = 15
 step_2 = 16
 radio_click = 17
 crawler_drop = 18
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "99387c3150ab851bc2b2ff3391ca0825e4a60ea0"
 
 [swat_bank]
 type = "animation_bank"
@@ -507,6 +517,7 @@ offset = [0x00000, 0x00005]
 [swat_member]
 type = "package"
 embedded = [
+    { asset = "characters/swat_member_2/body", offset = 0x007D0, size = 0x57C8, address = 0x801325F0 },
     { name = "swat_member_radio", offset = 0x05F98, size = 0x2B4, address = 0x80137DB8 },
     { name = "swat_radio_call_1", offset = 0x0624C, size = 0x4CC, address = 0x8013806C },
     { name = "swat_radio_call_2", offset = 0x06718, size = 0x3AC, address = 0x80138538 },

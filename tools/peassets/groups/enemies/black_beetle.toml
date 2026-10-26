@@ -28,7 +28,7 @@ type = "model"
 rig = "enemies/black_beetle/rig"
 slots = ["body"]
 symbol = "_gBlackBeetleBody"
-sha1 = "d18ca9e2674959396728a961425a1e92c01b9af2"
+sha1 = "299c1c117e97dba83a66636add4405d00c4522a6"
 
 [file]
 type = "file"
@@ -165,6 +165,12 @@ sha1 = "66c3122ec9e930a624e41dea6e65c74f26ecea70"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x038D0, size = 0xAF4, address = 0x8014D6F0 },
+    { name = "burst_fragment_1", offset = 0x043C4, size = 0x1FC, address = 0x8014E1E4 },
+    { name = "burst_fragment_2", offset = 0x045C0, size = 0x104, address = 0x8014E3E0 },
+    { name = "burst_fragment_3", offset = 0x046C4, size = 0x104, address = 0x8014E4E4 },
+    { name = "burst_fragment_4", offset = 0x047C8, size = 0xC4, address = 0x8014E5E8 },
+    { name = "burst_fragment_5", offset = 0x0488C, size = 0xC4, address = 0x8014E6AC },
     { name = "idle", offset = 0x04950, size = 0x1FC, address = 0x8014E770 },
     { name = "walk", offset = 0x04B4C, size = 0x1FC, address = 0x8014E96C },
     { name = "knocked_over", offset = 0x04D48, size = 0x2C0, address = 0x8014EB68 },
@@ -232,31 +238,31 @@ rig = "enemies/black_beetle/rig"
 type = "model"
 slots = ["body"]
 symbol = "_gBlackBeetleBurstFragment1"
-sha1 = "9fc558698611a6c43cf2b57fd077d2a3ce0be094"
+sha1 = "0dc614b9f905988b9e03f8dfe77f82c2e21df42e"
 
 [burst_fragment_2]
 type = "model"
 slots = ["body"]
 symbol = "_gBlackBeetleBurstFragment2"
-sha1 = "4e32952f7d6d1141e9e6334cb74ec40a1e536012"
+sha1 = "98a29f750bc7e2eccf847b982f1d90b4962dda25"
 
 [burst_fragment_3]
 type = "model"
 slots = ["body"]
 symbol = "_gBlackBeetleBurstFragment3"
-sha1 = "088a3287b59a557327ca7fdd1706689dc94b424f"
+sha1 = "da6b8dfb5b802c2384b0f90e1687f29664804ad2"
 
 [burst_fragment_4]
 type = "model"
 slots = ["body"]
 symbol = "_gBlackBeetleBurstFragment4"
-sha1 = "db826850213a7ba53ecf0e71a952b42f9c66e092"
+sha1 = "eabedf3b1c098b26dfbc02311be4362aeaafc4fb"
 
 [burst_fragment_5]
 type = "model"
 slots = ["body"]
 symbol = "_gBlackBeetleBurstFragment5"
-sha1 = "eb2cbb0febffffabbca7e64e876d935b93306942"
+sha1 = "3fec20a848b2d3c36d89c68580b3b838d50ff907"
 
 [death_overturned]
 type = "clip"

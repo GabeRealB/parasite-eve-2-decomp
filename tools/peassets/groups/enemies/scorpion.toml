@@ -29,7 +29,7 @@ type = "model"
 rig = "enemies/scorpion/rig"
 slots = ["body"]
 symbol = "_gScorpionBody"
-sha1 = "d9bc4703b7e9e852af15a2eeb58d50d3fbd62af9"
+sha1 = "7f285a60b9c6299e8ae2aed057a38dce17a2ba93"
 
 [file]
 type = "file"
@@ -154,6 +154,10 @@ sha1 = "ef573b42d32dbbe7deac16398b00d2eb27d89804"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x02914, size = 0x1630, address = 0x8014C734 },
+    { name = "burst_head", offset = 0x03F44, size = 0x528, address = 0x8014DD64 },
+    { name = "burst_pincer_2", offset = 0x0446C, size = 0x344, address = 0x8014E28C },
+    { name = "burst_pincer_1", offset = 0x047B0, size = 0x344, address = 0x8014E5D0 },
     { name = "idle", offset = 0x04AF4, size = 0x198, address = 0x8014E914 },
     { name = "walk", offset = 0x04C8C, size = 0x1D8, address = 0x8014EAAC },
     { name = "run", offset = 0x04E64, size = 0x1B4, address = 0x8014EC84 },
@@ -171,6 +175,10 @@ sha1 = "07886da9163703e24dfedd45f2873c677ac93a5d"
 [package_3]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x02914, size = 0x1630, address = 0x80164734 },
+    { name = "burst_head", offset = 0x03F44, size = 0x528, address = 0x80165D64 },
+    { name = "burst_pincer_2", offset = 0x0446C, size = 0x344, address = 0x8016628C },
+    { name = "burst_pincer_1", offset = 0x047B0, size = 0x344, address = 0x801665D0 },
     { name = "idle", offset = 0x04AF4, size = 0x198, address = 0x80166914 },
     { name = "walk", offset = 0x04C8C, size = 0x1D8, address = 0x80166AAC },
     { name = "run", offset = 0x04E64, size = 0x1B4, address = 0x80166C84 },
@@ -193,7 +201,7 @@ sha1 = "63a2b0f5ed63cad5f217d9b7f25c8bd6a785f368"
 type = "model"
 slots = ["body"]
 symbol = "_gScorpionBurstHead"
-sha1 = "c45784d55e78166417a68ca34307fa6d6f4a69df"
+sha1 = "752866c5a1d168170a8d63505af67fb822daab3f"
 
 [footstep_a]
 type = "sound"
@@ -251,13 +259,13 @@ chunk = "package_1"
 type = "model"
 slots = ["body"]
 symbol = "_gScorpionBurstPincer1"
-sha1 = "cff89e53bf3939c2ef971d65d36e57b8c029f3ed"
+sha1 = "935071e763dade200f21f03750f81eec26e21694"
 
 [burst_pincer_2]
 type = "model"
 slots = ["body"]
 symbol = "_gScorpionBurstPincer2"
-sha1 = "7d37472dbce6b329a5c7a9212e52b5399445c4e2"
+sha1 = "3977a0f34c0d81428caa42f43e09d1f8d3d2cb44"
 
 [burst_head_binding]
 type = "binding"

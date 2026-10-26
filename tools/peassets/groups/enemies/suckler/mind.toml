@@ -31,7 +31,7 @@ type = "model"
 rig = "enemies/suckler/mind/rig"
 slots = ["body"]
 symbol = "_gSucklerMindBody"
-sha1 = "3fe3fd08314a1ac5f82cc37ff31533414b56e183"
+sha1 = "d93784c8473061760b880d61be629633323129bf"
 
 [dive]
 type = "clip"
@@ -124,6 +124,11 @@ sha1 = "a84e21ee6968cb4d51ea61e1941aab55cf105738"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x02D28, size = 0x1588, address = 0x8014CB48 },
+    { name = "burst_head", offset = 0x042B0, size = 0x300, address = 0x8014E0D0 },
+    { name = "burst_wing", offset = 0x045B0, size = 0x144, address = 0x8014E3D0 },
+    { name = "burst_stinger", offset = 0x046F4, size = 0x1EC, address = 0x8014E514 },
+    { name = "burst_tail", offset = 0x048E0, size = 0x1D8, address = 0x8014E700 },
     { name = "perch_wall", offset = 0x04AB8, size = 0x350, address = 0x8014E8D8 },
     { name = "perch_ceiling", offset = 0x04E08, size = 0x350, address = 0x8014EC28 },
     { name = "alert_wall", offset = 0x05158, size = 0x1530, address = 0x8014EF78 },
@@ -147,6 +152,11 @@ sha1 = "ae47d8c4bf062b0a9179ad1aebe6e462b226cdc3"
 [package_3]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x02D28, size = 0x1588, address = 0x80164B48 },
+    { name = "burst_head", offset = 0x042B0, size = 0x300, address = 0x801660D0 },
+    { name = "burst_wing", offset = 0x045B0, size = 0x144, address = 0x801663D0 },
+    { name = "burst_stinger", offset = 0x046F4, size = 0x1EC, address = 0x80166514 },
+    { name = "burst_tail", offset = 0x048E0, size = 0x1D8, address = 0x80166700 },
     { name = "perch_wall", offset = 0x04AB8, size = 0x350, address = 0x801668D8 },
     { name = "perch_ceiling", offset = 0x04E08, size = 0x350, address = 0x80166C28 },
     { name = "alert_wall", offset = 0x05158, size = 0x1530, address = 0x80166F78 },
@@ -179,19 +189,19 @@ rig = "enemies/suckler/mind/rig"
 type = "model"
 slots = ["body"]
 symbol = "_gSucklerMindBurstHead"
-sha1 = "5dd67e07a429a4a1c59659cc5fc64256cc4667df"
+sha1 = "1b4ac0a94f22ad356a61273ca3b59cd6bc0f8ceb"
 
 [burst_tail]
 type = "model"
 slots = ["body"]
 symbol = "_gSucklerMindBurstTail"
-sha1 = "249605b24ae40788e6b73ede992f3fe876b71108"
+sha1 = "0455542227a7d35ba5eb7f4ce3bd5cb17ca16bce"
 
 [burst_wing]
 type = "model"
 slots = ["body"]
 symbol = "_gSucklerMindBurstWing"
-sha1 = "acac13a21ed43a4e4c1a6244c446223989da9393"
+sha1 = "2995d65976c84cedb85e810975cb71c1049c88e8"
 
 [flinch_air]
 type = "clip"
@@ -245,7 +255,7 @@ rig = "enemies/suckler/mind/rig"
 type = "model"
 slots = ["body"]
 symbol = "_gSucklerMindBurstStinger"
-sha1 = "67b3faec25fec217629d6c46815bf0bbf718ed23"
+sha1 = "0d71df242ac3e6e34a87d70501fbc6c4486771b6"
 
 [perch_ceiling]
 type = "clip"

@@ -103,6 +103,7 @@ embedded = [
     { asset = "characters/aya/thank_officer", offset = 0x1AAD4, size = 0x358, address = 0x80198094 },
     { asset = "characters/aya/ask_about_roof", offset = 0x1AE2C, size = 0x1A0, address = 0x801983EC },
     { asset = "characters/aya/look_at_wreck", offset = 0x1AFCC, size = 0x254, address = 0x8019858C },
+    { name = "collision", offset = 0x1B4E0, size = 0x6E0 },
 ]
 load = { slot = "room" }
 package_name = "akropolis_plaza"
@@ -207,6 +208,11 @@ rookie_step_1 = 8
 rookie_step_2 = 9
 rookie_step_3 = 10
 officers_walk_in = 11
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_PLAZA_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "49867623c775e6299b88264ef48e5771ca960750"
 
 [dialogue_0]
 type = "cap"

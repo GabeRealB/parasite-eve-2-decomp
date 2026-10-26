@@ -110,6 +110,8 @@ type = "package"
 embedded = [
     { name = "water_surface", offset = 0x0A81C, size = 0x1070, address = 0x80187DDC },
     "rooms/akropolis/bridge/keypad_movie_enemy_heights",
+    { name = "collision_1", offset = 0x0C564, size = 0xD78 },
+    { name = "collision_2", offset = 0x0D300, size = 0xDD4 },
     { asset = "enemies/bass/body", offset = 0x136AC, size = 0x554, address = 0x80190C6C },
     { asset = "enemies/bass/patrol", offset = 0x13C00, size = 0x100, address = 0x801911C0 },
     { asset = "enemies/bass/chase", offset = 0x13D00, size = 0x100, address = 0x801912C0 },
@@ -709,6 +711,16 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
+[collision_1]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "1ba95daea21b6dc2e1e160263119b247d97b659c"
+
+[collision_2]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "95cf0dd752ca3fab6ff9eda5d0d018d67af22313"
+
 [keypad_beep]
 type = "sound"
 mode = "high"
@@ -1003,7 +1015,7 @@ width = 128
 type = "model"
 slots = ["bridge"]
 symbol = "_gAkropolisBridgeWaterSurfaceModel"
-sha1 = "77ce31e152d110faf8cba604eadb8ff32db339c9"
+sha1 = "4905c8d01de551bde65b6ad41cf266643269689b"
 
 [run_surface_2_1]
 type = "sound"

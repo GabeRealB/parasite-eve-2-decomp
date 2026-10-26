@@ -221,7 +221,7 @@ sha1 = "e5e2c90b0cfc47443dcc48c09ab3e8a31629f9cb"
 type = "model"
 slots = ["props_row_264"]
 symbol = "_gMistR18Laptop"
-sha1 = "8a7112673f699d4bb7908e7a7e72e15485f60111"
+sha1 = "d08ec1a39e2681c653080614eb4e3b2f1ce65e57"
 
 [rupert]
 type = "package"
@@ -257,6 +257,8 @@ width = 256
 [package]
 type = "package"
 embedded = [
+    { name = "briefing_file", offset = 0x017FC, size = 0x2CC, address = 0x8017EDBC },
+    { name = "laptop", offset = 0x01AC8, size = 0x1F8, address = 0x8017F088 },
     { name = "player_briefing_anim_01", offset = 0x01CC0, size = 0x5DC, address = 0x8017F280 },
     { name = "player_briefing_anim_02", offset = 0x0229C, size = 0xE74, address = 0x8017F85C },
     { name = "player_briefing_anim_03", offset = 0x03110, size = 0x674, address = 0x801806D0 },
@@ -268,6 +270,7 @@ embedded = [
     { name = "player_briefing_anim_09", offset = 0x07258, size = 0x39C, address = 0x80184818 },
     { name = "player_briefing_anim_10", offset = 0x075F4, size = 0x2F4, address = 0x80184BB4 },
     { name = "player_briefing_bank", offset = 0x079A4, size = 0x2C, address = 0x80184F64 },
+    { name = "collision", offset = 0x090A4, size = 0x94 },
 ]
 load = { slot = "room" }
 package_name = "mist_r18"
@@ -318,6 +321,11 @@ sha1 = "f44c50674103fa573919a9afaf301a090eba2334"
 [unused_4]
 type = "sound"
 sha1 = "e27e0285b0be1e2120e3b8012a2a73cb9899a128"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "MIST_R18_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "6f690cf39f468b98720ac18d53bf8ad98f659307"
 
 [eric_bank]
 type = "animation_bank"
@@ -505,7 +513,7 @@ width = 128
 type = "model"
 slots = ["props_row_263"]
 symbol = "_gMistR18BriefingFile"
-sha1 = "fa59437f00f05b71da912e08b81c2650a1263591"
+sha1 = "782c84a59b6aec0b237aaaf02ec9bebb4e8c6480"
 
 [eric_reminder]
 type = "clip"

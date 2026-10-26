@@ -88,6 +88,10 @@ rig = "enemies/golem/rig"
 [package_1]
 type = "package"
 embedded = [
+    { asset = "enemies/golem/rook/body", offset = 0x0550C, size = 0x4EF0, address = 0x8013732C },
+    { asset = "enemies/golem/grenade_launcher", offset = 0x0A3FC, size = 0x44C, address = 0x8013C21C },
+    { asset = "enemies/golem/rook/shield", offset = 0x0A848, size = 0x328, address = 0x8013C668 },
+    { asset = "enemies/golem/grenade", offset = 0x0AB70, size = 0x32C, address = 0x8013C990 },
     { asset = "enemies/golem/idle", offset = 0x0AE9C, size = 0xC38, address = 0x8013CCBC },
     { asset = "enemies/golem/walk", offset = 0x0BAD4, size = 0x968, address = 0x8013D8F4 },
     { asset = "enemies/golem/turn", offset = 0x0C43C, size = 0x628, address = 0x8013E25C },
@@ -125,6 +129,10 @@ sha1 = "0139f4cbd03a0fc52e61000537f3a48fd9beca86"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { asset = "enemies/golem/rook/body", offset = 0x0550C, size = 0x4EF0, address = 0x8014F32C },
+    { asset = "enemies/golem/grenade_launcher", offset = 0x0A3FC, size = 0x44C, address = 0x8015421C },
+    { asset = "enemies/golem/rook/shield", offset = 0x0A848, size = 0x328, address = 0x80154668 },
+    { asset = "enemies/golem/grenade", offset = 0x0AB70, size = 0x32C, address = 0x80154990 },
     { asset = "enemies/golem/idle", offset = 0x0AE9C, size = 0xC38, address = 0x80154CBC },
     { asset = "enemies/golem/walk", offset = 0x0BAD4, size = 0x968, address = 0x801558F4 },
     { asset = "enemies/golem/turn", offset = 0x0C43C, size = 0x628, address = 0x8015625C },

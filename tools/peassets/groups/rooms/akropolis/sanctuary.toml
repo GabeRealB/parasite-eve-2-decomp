@@ -159,6 +159,8 @@ embedded = [
     { name = "cutscene_player_anim_00", offset = 0x0435C, size = 0x3D4, address = 0x8018191C },
     { name = "extra_anim", offset = 0x04730, size = 0x3F4, address = 0x80181CF0 },
     { name = "cutscene_player_bank", offset = 0x04B24, size = 0x4, address = 0x801820E4 },
+    { name = "collision_1", offset = 0x04C8C, size = 0xA0 },
+    { name = "collision_2", offset = 0x052F4, size = 0xCB4 },
     { asset = "rooms/item_box/model", offset = 0x08E84, size = 0x5E8, address = 0x80186444 },
     { name = "red_key_pickup", offset = 0x0946C, size = 0x260, address = 0x80186A2C },
 ]
@@ -735,6 +737,16 @@ name = "unread_row_5"
 entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
+
+[collision_1]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "b56b8ab87b05c37c9f7e2813e7074b0c28a1939a"
+
+[collision_2]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "ca1383e8ddfa3258b8a6edcbd7c57dd174d0bdcd"
 
 [no_9_schema]
 type = "animation_schema"

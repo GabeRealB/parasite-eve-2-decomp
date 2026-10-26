@@ -70,7 +70,7 @@ type = "model"
 rig = "enemies/stranger/horned/rig"
 slots = ["page_2", "page_1"]
 symbol = "_gStrangerHornedBody"
-sha1 = "f228e819f66f2cf177e1a34c408bd54449db3775"
+sha1 = "84edb2e298d9391fafa4cffed5ce0feb9161fb8b"
 
 [land]
 type = "clip"
@@ -191,6 +191,12 @@ package_name = "actor_401300"
 required = true
 requires = ["gameplay"]
 sha1 = "a4ce43e3dfd15c991531dc6ac76860fd2ffa7734"
+
+[[package_4.embedded]]
+name = "body"
+offset = 0x101A8
+size = 0x52EC
+address = 0x80141FC8
 
 [[package_4.embedded]]
 name = "burst_arm"

@@ -10,7 +10,7 @@ type = "model"
 rig = "enemies/crawler/rig"
 slots = ["body"]
 symbol = "_gCrawlerBody"
-sha1 = "d02065cf544fe34a3ac2f82bcfe365ddd3e02e44"
+sha1 = "30333ec965b5d002daa3c5d2f1b2b6317a8f9c0a"
 
 [burn]
 type = "sound"
@@ -32,7 +32,7 @@ rig = "enemies/crawler/rig"
 type = "model"
 slots = ["body"]
 symbol = "_gCrawlerHusk"
-sha1 = "c65784bf962e61ddaefcfb4dbae2d86a212bff01"
+sha1 = "2069cb3c0de0cff7a21179b82a1c47ba46e9b2fe"
 
 [idle]
 type = "clip"

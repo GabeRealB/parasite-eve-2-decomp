@@ -416,6 +416,7 @@ type = "package"
 embedded = [
     { name = "akropolis_helicopter_landing_pad_model_0547C", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
     { name = "departure_player_bank", offset = 0x06334, size = 0xC, address = 0x801838F4 },
+    { name = "collision", offset = 0x07A34, size = 0x9A4 },
     { name = "ammunition_pickup", offset = 0x0A828, size = 0x18C, address = 0x80187DE8 },
 ]
 load = { slot = "room" }
@@ -515,6 +516,11 @@ sha1 = "c5ca729fdaf02b3fdc03c33230fa20b74902a6c4"
 [unused_4]
 type = "sound"
 sha1 = "863b9bc243a152ba13c3254a969777f72c89350e"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "35869d95e475cf288f964a767515e5bb3015c738"
 
 [lift_move]
 type = "sound"
@@ -1759,6 +1765,7 @@ embedded = [
     { name = "tail_rotor", offset = 0x0A0FC, size = 0x160, address = 0x8013BF1C },
     { name = "searchlight", offset = 0x0A25C, size = 0x604, address = 0x8013C07C },
     { asset = "characters/rupert/body_2", offset = 0x0A860, size = 0x5EF8, address = 0x8013C680 },
+    { asset = "characters/rupert/mongoose", offset = 0x10758, size = 0x558, address = 0x80142578 },
     { asset = "characters/rupert/radio", offset = 0x10CB0, size = 0x1E4, address = 0x80142AD0 },
     { name = "rupert_shoot", offset = 0x10E94, size = 0x3B0, address = 0x80142CB4 },
     { name = "rupert_arrive", offset = 0x11244, size = 0x1EB8, address = 0x80143064 },
@@ -1770,6 +1777,10 @@ embedded = [
     "rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit",
     "rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark",
     { name = "helicopter_camera_track", offset = 0x160C4, size = 0x10E0 },
+    { asset = "enemies/golem/no_9/body_akropolis", offset = 0x17240, size = 0x56CC, address = 0x80149060 },
+    { asset = "enemies/golem/no_9/akropolis_sword", offset = 0x1C90C, size = 0x2A4, address = 0x8014E72C },
+    { asset = "enemies/golem/no_9/akropolis_prop", offset = 0x1CBB0, size = 0x31C, address = 0x8014E9D0 },
+    { asset = "enemies/golem/no_9/akropolis_chest_piece", offset = 0x1CECC, size = 0x35C, address = 0x8014ECEC },
     { name = "no_9_standoff", offset = 0x1D228, size = 0x36EC, address = 0x8014F048 },
     { name = "no_9_times_up", offset = 0x20914, size = 0x15D0, address = 0x80152734 },
     { name = "no_9_leap_away", offset = 0x21EE4, size = 0x136C, address = 0x80153D04 },

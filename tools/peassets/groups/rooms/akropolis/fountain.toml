@@ -32,6 +32,7 @@ sha1 = "c21a43de0467cd29377607d88d2196c1e4ba4dc0"
 
 [package]
 type = "package"
+embedded = [{ name = "collision", offset = 0x013C0, size = 0xC8C }]
 load = { slot = "room" }
 package_name = "akropolis_fountain"
 required = true
@@ -94,6 +95,11 @@ door_close = 6
 hallway_door_open = 7
 hallway_door_close = 8
 ammo_case_close = 9
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "0c7ec5899d571567298b1f1e96befcff96353818"
 
 [dialogue_0]
 type = "cap"

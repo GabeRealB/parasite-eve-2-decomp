@@ -30,7 +30,7 @@ type = "model"
 rig = "enemies/suckler/rig"
 slots = ["body"]
 symbol = "_gSucklerBloodBody"
-sha1 = "88a6c4e77e87d48db82bf1d3e0c54cda3633b866"
+sha1 = "7a72ae43136b47e20dd5e459b86c6d81dcb67f18"
 
 [file]
 type = "file"
@@ -158,6 +158,7 @@ sha1 = "7f8954da5b594573b930e9fbb1eb4724d9fb5cb8"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x070AC, size = 0x1690, address = 0x80150ECC },
     { asset = "enemies/suckler/bone/hang", offset = 0x0873C, size = 0x164, address = 0x8015255C },
     { asset = "enemies/suckler/bone/walk", offset = 0x088A0, size = 0x2C4, address = 0x801526C0 },
     { asset = "enemies/suckler/bone/run", offset = 0x08B64, size = 0x2A4, address = 0x80152984 },
@@ -190,6 +191,7 @@ sha1 = "888d5b579556ee33b995fe995bc24ef558e7bc7b"
 [package_3]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x070AC, size = 0x1690, address = 0x80168ECC },
     { asset = "enemies/suckler/bone/hang", offset = 0x0873C, size = 0x164, address = 0x8016A55C },
     { asset = "enemies/suckler/bone/walk", offset = 0x088A0, size = 0x2C4, address = 0x8016A6C0 },
     { asset = "enemies/suckler/bone/run", offset = 0x08B64, size = 0x2A4, address = 0x8016A984 },

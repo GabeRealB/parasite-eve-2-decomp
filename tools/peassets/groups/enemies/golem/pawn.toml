@@ -6,7 +6,7 @@ type = "model"
 rig = "enemies/golem/rig"
 slots = ["page_2", "page_1"]
 symbol = "_gGolemPawnBody"
-sha1 = "5d05412d3e2a515720bfdaa7c605e7e601bd51e2"
+sha1 = "fae161d2d1f575ebea71efeed582e761cfbf8b9c"
 
 [body_binding]
 type = "binding"

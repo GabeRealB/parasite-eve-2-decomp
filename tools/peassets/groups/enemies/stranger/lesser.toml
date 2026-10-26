@@ -26,9 +26,11 @@ slots = ["idle", "hit"]
 [package]
 type = "package"
 embedded = [
+    { asset = "rooms/akropolis/cafeteria/boss_stranger_body", offset = 0x01894, size = 0x5568, address = 0x801636B4 },
     { asset = "enemies/stranger/down_back", offset = 0x06DFC, size = 0x3B4, address = 0x80168C1C },
     { name = "idle", offset = 0x071B0, size = 0x2E8, address = 0x80168FD0 },
     { name = "bank", offset = 0x074D4, size = 0x8, address = 0x801692F4 },
+    { name = "collision_patch", offset = 0x074DC, size = 0x34 },
 ]
 exports = { tasks = { at = 0x07518, symbol = "gLesserStrangerTaskDesc" } }
 load = { slot = "actor_3" }
@@ -92,3 +94,8 @@ bpp = 8
 height = 256
 variants = ["default"]
 width = 128
+
+[collision_patch]
+type = "collision"
+pieces = ["vectors 1", "vectors 4", "faces 1"]
+sha1 = "11e73d331ef39cc08675092a0266b4f66941d260"

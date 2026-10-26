@@ -31,7 +31,7 @@ type = "model"
 rig = "characters/pierce/rig"
 slots = ["page_2", "page_1"]
 symbol = "_gPierceBody"
-sha1 = "7c14187bb68fa20c7e67fc9d635a95059a951565"
+sha1 = "c7689ae7af0c6d28e79cb5712ef688df0c220d0c"
 
 [file]
 type = "file"
@@ -142,7 +142,7 @@ rig = "characters/pierce/rig"
 type = "model"
 slots = ["page_2"]
 symbol = "_gPierceGlasses"
-sha1 = "88d218fe62a3239bacef997394a630959e01506c"
+sha1 = "b2bd393998d68ec5b8e2a850f9aebe20d2ab2506"
 
 [id_badge]
 type = "model"

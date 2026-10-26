@@ -87,6 +87,7 @@ sha1 = "f3c9d16e67f277a527674183b0eefcf6a17b0253"
 
 [collision]
 type = "collision"
+cell_face_list_macro = "AKROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET"
 sha1 = "712652c81e50591d9356ea192ff1352f03fc7444"
 
 [call_after]
@@ -703,6 +704,7 @@ sha1 = "334608feb4e2818b0ddc84405181a536d37247d0"
 [grinning_stranger]
 type = "package"
 embedded = [
+    { asset = "enemies/stranger/grinning/body", offset = 0x00BA4, size = 0x5664, address = 0x801329C4 },
     { asset = "enemies/stranger/react", offset = 0x06208, size = 0x41C, address = 0x80138028 },
     { asset = "enemies/stranger/odd/b_walk", offset = 0x06624, size = 0xB24, address = 0x80138444 },
     { asset = "enemies/stranger/odd/b_run", offset = 0x07148, size = 0xA84, address = 0x80138F68 },

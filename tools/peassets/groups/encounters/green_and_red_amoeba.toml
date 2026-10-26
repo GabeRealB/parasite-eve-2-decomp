@@ -5,7 +5,7 @@
 type = "model"
 slots = ["body"]
 symbol = "_gGreenAndRedAmoebaBody"
-sha1 = "0f74a3a6657b0dcb9f94bb65eaf1c5362bded295"
+sha1 = "2a1b9c9a3ee16bf47186dca0abd72b85f0716339"
 
 [hurt]
 type = "sound"
@@ -55,6 +55,7 @@ sha1 = "776093f52c7f70c1241551fb4445df2c4b2431b6"
 
 [package_2]
 type = "pe2pkg"
+embedded = [{ name = "body", offset = 0x03448, size = 0x115C, address = 0x8014D268 }]
 package_name = "actor_202400"
 required = true
 sha1 = "76fd06c026594209f88abd6d64675e0d2e42759d"

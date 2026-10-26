@@ -503,6 +503,7 @@ embedded = [
     { name = "player_step_out", offset = 0x031E0, size = 0x3DC8, address = 0x801807A0 },
     { name = "arrival_bank", offset = 0x06FCC, size = 0x4, address = 0x8018458C },
     "rooms/akropolis/west_elevator_hall/bay_lit_palette",
+    { name = "collision", offset = 0x07AF4, size = 0x248 },
 ]
 load = { slot = "room" }
 package_name = "akropolis_west_elevator_hall"
@@ -536,6 +537,11 @@ samples = [
 ]
 sounds = { door_open = 1, door_close = 2, elevator_arrival = 3, elevator_door_close = 4 }
 sha1 = "6ffcc52d4ae6d38d6d04d8660f66dd8cf81d584a"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_WEST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "09d6327da5eb1a7465a25bc7b72cf60ca45f69b9"
 
 [dialogue_0]
 type = "cap"

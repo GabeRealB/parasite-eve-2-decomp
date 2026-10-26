@@ -472,21 +472,12 @@ def _units(package: str) -> list[tuple[int, int, str, str]]:
 
 
 def _cell_macro(package: str, header: int) -> str:
-    """The face-list binding a grid's cell table include calls (the manifest's collisionSource)."""
-    manifest = tomllib.loads((ROOT / "configs" / "USA" / "overlays.toml").read_text())
-
-    def find(t):
-        if isinstance(t, dict):
-            if isinstance(t.get(package), dict) and "objects" in t[package]:
-                return t[package]
-            for v in t.values():
-                r = find(v)
-                if r:
-                    return r
-    for o in find(manifest)["objects"]:
-        if o.get("kind") == "collisionSource" and int(o["at"], 16) == header:
-            return o.get("cell_face_list_macro", "GRID_CELL")
-    raise SystemExit(f"{package}: no collisionSource at 0x{header:X}")
+    """The face-list binding a grid's cell table include calls: its collision asset's `cell_face_list_macro`."""
+    import asset_data
+    for grid in package_decl.placed_collisions(asset_data.ASSETS, asset_data.EMBEDDED_ASSETS)[0]:
+        if grid["package"] == package and grid["source"] == header:
+            return grid["cell_face_list_macro"]
+    raise SystemExit(f"{package}: no collision grid declared with its header at 0x{header:X}")
 
 
 def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[str, str]:

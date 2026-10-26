@@ -112,6 +112,8 @@ sha1 = "2baa3a5ff4f9455289a02bb69fe1b14bf749bca0"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { asset = "enemies/golem/pawn/body", offset = 0x037C4, size = 0x5308, address = 0x8014D5E4 },
+    { asset = "enemies/golem/beam_sword", offset = 0x08ACC, size = 0x544, address = 0x801528EC },
     { asset = "enemies/golem/idle", offset = 0x09010, size = 0xC38, address = 0x80152E30 },
     { asset = "enemies/golem/walk", offset = 0x09C48, size = 0x968, address = 0x80153A68 },
     { asset = "enemies/golem/turn", offset = 0x0A5B0, size = 0x628, address = 0x801543D0 },
@@ -143,6 +145,8 @@ sha1 = "6eb3066548b0b2bf260b658efdfa55370abae3de"
 [package_3]
 type = "pe2pkg"
 embedded = [
+    { asset = "enemies/golem/pawn/body", offset = 0x037C4, size = 0x5308, address = 0x801655E4 },
+    { asset = "enemies/golem/beam_sword", offset = 0x08ACC, size = 0x544, address = 0x8016A8EC },
     { asset = "enemies/golem/idle", offset = 0x09010, size = 0xC38, address = 0x8016AE30 },
     { asset = "enemies/golem/walk", offset = 0x09C48, size = 0x968, address = 0x8016BA68 },
     { asset = "enemies/golem/turn", offset = 0x0A5B0, size = 0x628, address = 0x8016C3D0 },

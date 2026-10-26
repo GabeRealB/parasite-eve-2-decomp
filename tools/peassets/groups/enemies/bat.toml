@@ -30,7 +30,7 @@ type = "model"
 rig = "enemies/bat/rig"
 slots = ["body"]
 symbol = "_gBatBody"
-sha1 = "7fe55e46c320bd701d82d3a5627b728267801857"
+sha1 = "b8bece2b16b271a9550580677f7db5baa0c9b481"
 
 [dash]
 type = "sound"
@@ -114,6 +114,9 @@ sha1 = "b579d5076495c314c1e9571ef4a6ff5b3b392537"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x03638, size = 0xBEC, address = 0x8014D458 },
+    { name = "burst_wing_right", offset = 0x04224, size = 0x1FC, address = 0x8014E044 },
+    { name = "burst_wing_left", offset = 0x04420, size = 0x204, address = 0x8014E240 },
     { name = "fly", offset = 0x04624, size = 0x1C8, address = 0x8014E444 },
     { name = "perch_drop", offset = 0x047EC, size = 0x2FC, address = 0x8014E60C },
     { name = "perch_back", offset = 0x04AE8, size = 0x198, address = 0x8014E908 },
@@ -190,13 +193,13 @@ rig = "characters/aya/rig"
 type = "model"
 slots = ["body"]
 symbol = "_gBatBurstWingLeft"
-sha1 = "f360f25520cad520133a58f554282585724b448e"
+sha1 = "75a965fd0ebb7f2871611e2128e84e86da1253c3"
 
 [burst_wing_right]
 type = "model"
 slots = ["body"]
 symbol = "_gBatBurstWingRight"
-sha1 = "f8dfcc13faf406cdf65c2a26eb1f7c979fde0af4"
+sha1 = "0b29267a8af6b9cdfb95544c0190d3419dfb95e1"
 
 [player_hold_bank]
 type = "animation_bank"

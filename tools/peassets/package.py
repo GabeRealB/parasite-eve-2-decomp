@@ -220,6 +220,66 @@ def link_symbols(name: str, assets: dict[str, dict[str, Any]], embedded: dict,
     return sorted(out, key=lambda s: s[1])
 
 
+# --- what packages place ------------------------------------------------------------------------------------------
+
+MODEL_RECORD_SIZE = 0x24                                # a model ends in its TmdSource record
+
+
+def _placements(assets: dict[str, dict[str, Any]], embedded: dict, kind: str):
+    """(package record, placement) for every placement of an asset of `kind` in a package, from the packages'
+    `embedded` lists and an asset's own placement record."""
+    import asset_schema
+    by_source = {f"{r.get('package_name', k)}.pe2pkg": k for k, r in assets.items()
+                 if r.get("type") in asset_schema.PACKAGE_TYPES}
+    seen = set()
+    for key, rec in assets.items():
+        if rec.get("type") not in asset_schema.PACKAGE_TYPES:
+            continue
+        for place in rec.get("embedded", ()):
+            if isinstance(place, dict) and "offset" in place and assets.get(place["name"], {}).get("type") == kind:
+                seen.add((key, place["offset"]))
+                yield key, place
+    for name, place in embedded.items():
+        key = by_source.get(place.get("source"))
+        if key and assets.get(name, {}).get("type") == kind and "offset" in place and (key, place["offset"]) not in seen:
+            yield key, {"name": name, **place}
+
+
+def _loaded(assets: dict[str, dict[str, Any]], embedded: dict, kind: str):
+    """_placements, with each package's load address; a package no memory slot gives one yet is left out."""
+    loads: dict[str, int | None] = {}
+    for key, place in _placements(assets, embedded, kind):
+        if key not in loads:
+            try:
+                loads[key] = load_address(key, assets)
+            except SystemExit:
+                loads[key] = None
+        if loads[key] is not None:
+            yield key, place, loads[key]
+
+
+def placed_models(assets: dict[str, dict[str, Any]], embedded: dict) -> list[dict]:
+    """Every model a package places, as the build's model rows: its arrays (`model`) and its record (`source`)."""
+    return [{"package": assets[key].get("package_name", key), "load": load, "model": p["offset"],
+             "source": p["offset"] + p["size"] - MODEL_RECORD_SIZE, "in_c": True, "name": p["name"]}
+            for key, p, load in _loaded(assets, embedded, "model")]
+
+
+def placed_collisions(assets: dict[str, dict[str, Any]], embedded: dict) -> tuple[list[dict], list[dict]]:
+    """Every collision grid and patch a package places, as the build's rows: a grid's arrays and the header after
+    them, with its face-list binding; a patch's arrays (`pieces`)."""
+    grids, patches = [], []
+    for key, p, load in _loaded(assets, embedded, "collision"):
+        rec, row = assets[p["name"]], {"package": assets[key].get("package_name", key), "load": load, "in_c": True,
+                                       "name": p["name"]}
+        if "pieces" in rec:
+            patches.append({**row, "offset": p["offset"], "pieces": list(rec["pieces"])})
+        else:
+            grids.append({**row, "grid": p["offset"], "source": p["offset"] + p["size"],
+                          "cell_face_list_macro": rec.get("cell_face_list_macro", "GRID_CELL")})
+    return grids, patches
+
+
 def check_package(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]]) -> list[str]:
     """A package names a memory slot to load into, packages it requires, packages its bindings name, and exports each
     with an offset and a C symbol."""

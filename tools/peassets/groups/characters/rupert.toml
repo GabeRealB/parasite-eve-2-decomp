@@ -31,7 +31,7 @@ type = "model"
 rig = "characters/rupert/rig"
 slots = ["bloodied_texture_page_2", "bloodied_texture_page_1"]
 symbol = "_gRupertBody"
-sha1 = "007029c2ad350d2739c8cad0292ad6941fab88ac"
+sha1 = "518d03ece9b8311021ae963b6caf15fe3520df28"
 
 [file]
 type = "file"
@@ -95,7 +95,7 @@ sha1 = "bcc423b38e2d1d117aa87d8912e2bfc4889030ee"
 type = "model"
 slots = ["mongoose_texture"]
 symbol = "_gRupertMongoose"
-sha1 = "9eb0eaecd1eb094c96d9b7a89ce17633afb3aee9"
+sha1 = "175796fbe081e6b4b62ba7daa5428e6bb6b9bdf5"
 
 [hurt_body]
 type = "model"

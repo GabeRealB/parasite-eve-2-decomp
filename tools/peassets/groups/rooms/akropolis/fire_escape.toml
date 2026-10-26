@@ -21,6 +21,7 @@ sha1 = "bba4b123b927b03dded77bf32902642f029eb7a2"
 
 [package]
 type = "package"
+embedded = [{ name = "collision", offset = 0x048B4, size = 0x434 }]
 entries = { samples = [0x047BC], spare_batches = [0x05848] }
 load = { slot = "room" }
 package_name = "akropolis_fire_escape"
@@ -124,6 +125,11 @@ sha1 = "d957bfdcd7611acbddb93971a5d5002597092c93"
 [unused_9]
 type = "sound"
 sha1 = "c8cd1142d7c631e29a42a561ec68b4e3b90796bc"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "d655bbdab49c9d9bb8a771af9cbfb8569eaac22b"
 
 [scene_end]
 type = "sound"

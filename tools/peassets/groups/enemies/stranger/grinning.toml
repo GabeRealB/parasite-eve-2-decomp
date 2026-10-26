@@ -28,7 +28,7 @@ type = "model"
 rig = "enemies/stranger/rig"
 slots = ["page_1", "page_2"]
 symbol = "_gStrangerGrinningBody"
-sha1 = "e9e9dbf08cdd6412d93c8afa66fd388f79bcc6a3"
+sha1 = "2148b4937c16f5a378b64245977f36a698230ddc"
 
 [down]
 type = "clip"
@@ -128,6 +128,8 @@ sha1 = "3d1b86aee037f5fcee88839df0b17533531a2af8"
 [package_3]
 type = "package"
 embedded = [
+    { name = "body", offset = 0x0AC88, size = 0x5664, address = 0x8016CAA8 },
+    { asset = "enemies/stranger/burst_hand", offset = 0x102EC, size = 0x8A0, address = 0x8017210C },
     { name = "strike", offset = 0x10B8C, size = 0xA84, address = 0x801729AC },
     { name = "flinch", offset = 0x11610, size = 0x404, address = 0x80173430 },
     { name = "rise", offset = 0x11A14, size = 0xBE4, address = 0x80173834 },

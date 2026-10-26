@@ -80,7 +80,7 @@ symbol = "gGolemBuildupClip"
 type = "model"
 slots = ["page_3"]
 symbol = "gGolemGrenade"
-sha1 = "8e91d0e4eb0226a72fdc4118c6f5c868cad1f5ca"
+sha1 = "7c0000608c013b82a8bc2d3ff8792f0f0480a28a"
 
 [recover]
 type = "clip"
@@ -108,7 +108,7 @@ rig = "enemies/golem/rig"
 type = "model"
 slots = ["page_3"]
 symbol = "_gGolemBeamSword"
-sha1 = "a49d6ecea069389a5f8db938d1cc828419d5899c"
+sha1 = "d25b88da23800668ea4bc5e00a5a9833dc76db9a"
 
 [fall_front]
 type = "clip"
@@ -248,7 +248,7 @@ sha1 = "913252eb1d5f3443881a89d7f8152c215f65baf7"
 type = "model"
 slots = ["page_3"]
 symbol = "_gGolemGrenadeLauncher"
-sha1 = "3b32529b410859cadc7e74c55d2000c96518b615"
+sha1 = "a0e7927403b8da4106cb4f4c19ce45120b09e934"
 
 [player_grab_hold]
 type = "clip"

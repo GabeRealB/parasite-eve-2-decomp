@@ -244,6 +244,7 @@ sha1 = "b7283539bb95856fe65b35796f55b891941cb839"
 type = "package"
 embedded = [
     { name = "player_follow_up_start", offset = 0x00ED8, size = 0x3C2C, address = 0x80162CF8 },
+    { asset = "characters/rupert/body", offset = 0x04B04, size = 0x5EF8, address = 0x80166924 },
     { asset = "characters/rupert/mongoose", offset = 0x0A9FC, size = 0x558, address = 0x8016C81C },
     { name = "rupert_shoot", offset = 0x0AF54, size = 0x3784, address = 0x8016CD74 },
     { name = "rupert_arrive", offset = 0x0E6D8, size = 0x4D4, address = 0x801704F8 },
@@ -272,6 +273,7 @@ embedded = [
     { name = "loose_prop_2", offset = 0x08328, size = 0x998, address = 0x801858E8 },
     { name = "loose_prop_3", offset = 0x08CC0, size = 0xA50, address = 0x80186280 },
     { name = "loose_prop_4", offset = 0x09710, size = 0x86C, address = 0x80186CD0 },
+    { name = "collision", offset = 0x0A0CC, size = 0x111C },
     { name = "stim_pickup", offset = 0x0F48C, size = 0x808, address = 0x8018CA4C },
     { name = "mendel_journal", offset = 0x0FC94, size = 0x34C, address = 0x8018D254 },
 ]
@@ -373,6 +375,7 @@ type = "package"
 embedded = [
     { name = "player_rupert_talk", offset = 0x03108, size = 0x4E14, address = 0x8014CF28 },
     { name = "player_follow_up_end", offset = 0x07F1C, size = 0x215C, address = 0x80151D3C },
+    { asset = "enemies/stranger/grinning/body", offset = 0x0A078, size = 0x5664, address = 0x80153E98 },
     { name = "grinning_stranger_appear", offset = 0x0F6DC, size = 0xF9C, address = 0x801594FC },
     { name = "grinning_stranger_bank", offset = 0x10694, size = 0x18, address = 0x8015A4B4 },
     { name = "boss_stranger_collapse", offset = 0x106D8, size = 0x18AC, address = 0x8015A4F8 },
@@ -404,6 +407,11 @@ sha1 = "a2cf2c986665ab41fbb4161c26763b186c0f1fe9"
 [unused_2]
 type = "sound"
 sha1 = "5197b3538c40c9ed3da0ec52ce10308450459cbb"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_CAFETERIA_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "86480839d6cde869cbc827e158db6766ee21e4d9"
 
 [container]
 type = "texture"
@@ -1564,7 +1572,7 @@ type = "model"
 rig = "enemies/stranger/rig"
 slots = ["boss_stranger_texture_page_1", "boss_stranger_texture_page_2"]
 symbol = "_gAkropolisCafeteriaBossStrangerBody"
-sha1 = "e0e984d6715592f802f1d02c62328d0c2da855ba"
+sha1 = "a47f461618f043cd305a7776cb7faffab97fac1c"
 
 [boss_stranger_file]
 type = "file"

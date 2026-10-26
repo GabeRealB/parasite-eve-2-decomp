@@ -139,7 +139,7 @@ def check_model_records(name: str, objects: list[dict], data: bytes, load: int) 
                     raise SystemExit(f"{name}: modelSource at 0x{at:X} runs to 0x{end:X}, not its record's end")
 
 
-def declared_models(manifest: dict) -> list[dict]:
+def _manifest_models(manifest: dict) -> list[dict]:
     """Every model the manifest declares, with its package, load address and record.
 
     One row per package, so an object list shared by several slots yields a row
@@ -166,6 +166,51 @@ def declared_models(manifest: dict) -> list[dict]:
                         "in_c": bool(objects[i - 1].get("in_c")),
                     })
     return rows
+
+
+def _asset_rows(manifest: dict, rows: list[dict], placed: list[dict], key: str) -> list[dict]:
+    """The manifest's rows, and those of the objects the asset declarations place that it does not declare: each
+    package's assets are moving out of the manifest into the packages' own declarations (package.py)."""
+    where = {}
+    for family, spec in manifest.items():
+        if isinstance(spec, dict) and "overlays" in spec:
+            entry_names = {id(e): n for n, e in spec["overlays"].items()}
+            for name, _slot, entry in slot_packages(spec):
+                where[name] = (family, entry_names[id(entry)])
+    have = {(r["package"], r[key]) for r in rows}
+    extra = [{"family": where[p["package"]][0], "entry": where[p["package"]][1], **p}
+             for p in placed if p["package"] in where and (p["package"], p[key]) not in have]
+    return rows + extra
+
+
+def _asset_tables():
+    root = Path(__file__).resolve().parents[2] / "tools" / "peassets"
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    import asset_data
+    import package
+    return asset_data, package
+
+
+def declared_models(manifest: dict) -> list[dict]:
+    """Models, one row per package carrying one: its arrays (`model`) and its TmdSource record (`source`)."""
+    data, package = _asset_tables()
+    return _asset_rows(manifest, _manifest_models(manifest), package.placed_models(data.ASSETS, data.EMBEDDED_ASSETS),
+                       "model")
+
+
+def declared_collisions(manifest: dict) -> list[dict]:
+    """Collision grids, one row per package: the grid's first array and its header."""
+    data, package = _asset_tables()
+    return _asset_rows(manifest, _manifest_collisions(manifest),
+                       package.placed_collisions(data.ASSETS, data.EMBEDDED_ASSETS)[0], "source")
+
+
+def declared_collision_patches(manifest: dict) -> list[dict]:
+    """Collision patches: headerless runs of grid arrays that code copies into a live grid."""
+    data, package = _asset_tables()
+    return _asset_rows(manifest, _manifest_collision_patches(manifest),
+                       package.placed_collisions(data.ASSETS, data.EMBEDDED_ASSETS)[1], "offset")
 
 
 def declared_resident_models(resident: dict) -> list[dict]:
@@ -233,7 +278,7 @@ def declared_animations(manifest: dict) -> list[dict]:
     return rows
 
 
-def declared_collisions(manifest: dict) -> list[dict]:
+def _manifest_collisions(manifest: dict) -> list[dict]:
     """Collision grids, one row per package: the grid's first array and its header."""
     rows = []
     for family, spec in manifest.items():
@@ -255,7 +300,7 @@ def declared_collisions(manifest: dict) -> list[dict]:
     return rows
 
 
-def declared_collision_patches(manifest: dict) -> list[dict]:
+def _manifest_collision_patches(manifest: dict) -> list[dict]:
     """Collision patches: headerless runs of grid arrays that code copies into a live grid."""
     rows = []
     for family, spec in manifest.items():

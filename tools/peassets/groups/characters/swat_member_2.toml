@@ -31,7 +31,7 @@ type = "model"
 rig = "characters/swat_member_2/rig"
 slots = ["page_2", "page_1"]
 symbol = "_gSwatMember2Body"
-sha1 = "e4cad068afbc5cb4f96173098090c88f713a3a9f"
+sha1 = "f2ab87338d31e679dbd44562b989f44c8f9f9527"
 
 [file]
 type = "file"

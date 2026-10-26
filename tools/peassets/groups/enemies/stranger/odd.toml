@@ -310,6 +310,8 @@ sha1 = "aad025de37e89ea86eb935d833da7e06be2b4ed2"
 [package_b_4]
 type = "package"
 embedded = [
+    { asset = "rooms/akropolis/cafeteria/boss_stranger_body", offset = 0x0C2B0, size = 0x5568, address = 0x8013E0D0 },
+    { asset = "enemies/stranger/burst_hand", offset = 0x11818, size = 0x8A0, address = 0x80143638 },
     { name = "b_burst_leg", offset = 0x120B8, size = 0x97C, address = 0x80143ED8 },
     { name = "b_burst_head", offset = 0x12A34, size = 0x116C, address = 0x80144854 },
     { name = "b_burst_torso", offset = 0x13BA0, size = 0x7F4, address = 0x801459C0 },

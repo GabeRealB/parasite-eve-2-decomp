@@ -27,7 +27,7 @@ type = "model"
 rig = "enemies/suckler/rig"
 slots = ["body"]
 symbol = "_gSucklerBoneBody"
-sha1 = "61c0165d5c3ea96c0c5b1be4152cdd42f2d21955"
+sha1 = "06065a8d4360d46b2e8f9380c5e0b8c1bf79ee9e"
 
 [hang]
 type = "clip"
@@ -132,6 +132,7 @@ sha1 = "8c512e7b19fadcdfc55e178ff41756c22f595b60"
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x0405C, size = 0x18FC, address = 0x8014DE7C },
     { name = "hang", offset = 0x05958, size = 0x164, address = 0x8014F778 },
     { name = "walk", offset = 0x05ABC, size = 0x2C4, address = 0x8014F8DC },
     { name = "run", offset = 0x05D80, size = 0x2A4, address = 0x8014FBA0 },
@@ -151,6 +152,7 @@ sha1 = "87d4f78007afed1dc9c4607d71f64cbc52bdab78"
 [package_3]
 type = "pe2pkg"
 embedded = [
+    { name = "body", offset = 0x0405C, size = 0x18FC, address = 0x80165E7C },
     { name = "hang", offset = 0x05958, size = 0x164, address = 0x80167778 },
     { name = "walk", offset = 0x05ABC, size = 0x2C4, address = 0x801678DC },
     { name = "run", offset = 0x05D80, size = 0x2A4, address = 0x80167BA0 },

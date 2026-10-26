@@ -6,13 +6,13 @@ type = "model"
 rig = "enemies/golem/rig"
 slots = ["page_2", "page_1"]
 symbol = "_gGolemRookBody"
-sha1 = "f0647e6daf2d2bc2604dba085784057f604e77ae"
+sha1 = "8cee0988d7dcfcd024190da094d35ce4e1556a53"
 
 [shield]
 type = "model"
 slots = ["page_3"]
 symbol = "_gGolemRookShield"
-sha1 = "98ec7ee947448d3caac360022898c8e9ac07e664"
+sha1 = "b59b45237386ddd61ad3d258ce9981a927e49319"
 
 [body_binding]
 type = "binding"

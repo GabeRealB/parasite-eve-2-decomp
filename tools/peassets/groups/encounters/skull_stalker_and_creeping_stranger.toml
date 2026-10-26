@@ -14,6 +14,7 @@ sha1 = "cfcd6416220980b15efafa2e25daaae461110b4a"
 [package_2]
 type = "package"
 embedded = [
+    { asset = "rooms/akropolis/forked_road/skull_stalker_body", offset = 0x03DAC, size = 0x920, address = 0x8014DBCC },
     { asset = "rooms/akropolis/forked_road/skull_stalker_idle", offset = 0x046CC, size = 0x64, address = 0x8014E4EC },
     { asset = "rooms/akropolis/forked_road/skull_stalker_alert", offset = 0x04730, size = 0x254, address = 0x8014E550 },
     { name = "skull_stalker_bank", offset = 0x04990, size = 0xC, address = 0x8014E7B0 },

@@ -36,6 +36,7 @@ sha1 = "52e8e63bd4f8424548a0c70a49809b3f354232f2"
 [package_1]
 type = "package"
 embedded = [
+    { asset = "rooms/akropolis/forked_road/sucklerceph_body", offset = 0x06950, size = 0x109C, address = 0x80138770 },
     { asset = "rooms/akropolis/forked_road/sucklerceph_idle", offset = 0x079EC, size = 0x358, address = 0x8013980C },
     { asset = "rooms/akropolis/forked_road/sucklerceph_crawl", offset = 0x07D44, size = 0x148, address = 0x80139B64 },
     { asset = "rooms/akropolis/forked_road/sucklerceph_anim_03", offset = 0x07E8C, size = 0x1A4, address = 0x80139CAC },
@@ -71,10 +72,15 @@ sucklerceph_tasks = { at = 0x08040, symbol = "gActor107000SucklercephTaskDescs" 
 [package_2]
 type = "pe2pkg"
 embedded = [
+    { asset = "rooms/akropolis/forked_road/sucklerceph_body", offset = 0x06950, size = 0x109C, address = 0x80150770 },
     { asset = "rooms/akropolis/forked_road/sucklerceph_idle", offset = 0x079EC, size = 0x358, address = 0x8015180C },
     { asset = "rooms/akropolis/forked_road/sucklerceph_crawl", offset = 0x07D44, size = 0x148, address = 0x80151B64 },
     { asset = "rooms/akropolis/forked_road/sucklerceph_anim_03", offset = 0x07E8C, size = 0x1A4, address = 0x80151CAC },
     { name = "sucklerceph_bank", offset = 0x08058, size = 0x10, address = 0x80151E78 },
+    { name = "slouch_body", offset = 0x08090, size = 0x265C, address = 0x80151EB0 },
+    { name = "slouch_burst_leg", offset = 0x0A6EC, size = 0x478, address = 0x8015450C },
+    { name = "slouch_burst_arm", offset = 0x0AB64, size = 0x654, address = 0x80154984 },
+    { name = "slouch_poison", offset = 0x0B1B8, size = 0x59C, address = 0x80154FD8 },
     { name = "slouch_idle", offset = 0x0B754, size = 0x13C, address = 0x80155574 },
     { name = "slouch_fidget", offset = 0x0B890, size = 0x48C, address = 0x801556B0 },
     { name = "slouch_spit", offset = 0x0BD1C, size = 0x224, address = 0x80155B3C },
@@ -127,7 +133,7 @@ type = "model"
 rig = "encounters/sucklerceph_and_slouch/slouch_rig"
 slots = ["page_1"]
 symbol = "_gSucklercephAndSlouchSlouchBody"
-sha1 = "7054403717642975ec33068fb5df85266b8427c3"
+sha1 = "00aa3251d3c04e10605f8b24b8ff54110037113b"
 
 [slouch_hurt]
 type = "sound"
@@ -199,7 +205,7 @@ rig = "encounters/sucklerceph_and_slouch/slouch_rig"
 type = "model"
 slots = ["page_1"]
 symbol = "_gSucklercephAndSlouchSlouchPoison"
-sha1 = "e77b9d21c3f2d431e1daa758676dfd45e81882ac"
+sha1 = "7909b8683141eb0bd5abdf581e913895571285f6"
 
 [slouch_recoil]
 type = "clip"
@@ -261,13 +267,13 @@ width = 128
 type = "model"
 slots = ["page_1"]
 symbol = "_gSucklercephAndSlouchSlouchBurstArm"
-sha1 = "1a9dca9b7f9b7e5eb7c43c3256c249a98fa29e78"
+sha1 = "a2f5ae18489b4dac31d49587d31ad07a77d2a68f"
 
 [slouch_burst_leg]
 type = "model"
 slots = ["page_1"]
 symbol = "_gSucklercephAndSlouchSlouchBurstLeg"
-sha1 = "ab9c62005ecdbeefc7344c7692bb8d2ecdaea8e0"
+sha1 = "b041b55575a4ae66eb7b9a1b38acafc1ee90fd83"
 
 [sucklerceph_bank]
 type = "animation_bank"

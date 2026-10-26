@@ -220,7 +220,12 @@ sha1 = "1ceb2f1ae9e72ee0ef98691aa0d48b0507bb7ea6"
 
 [package]
 type = "package"
-embedded = ["rooms/akropolis/promenade/arrival_player_path"]
+embedded = [
+    { asset = "rooms/akropolis/bridge/water_surface", offset = 0x02844, size = 0x1070, address = 0x8017FE04 },
+    "rooms/akropolis/promenade/arrival_player_path",
+    { name = "collision_1", offset = 0x04734, size = 0x6E8 },
+    { name = "collision_2", offset = 0x04E40, size = 0x7D0 },
+]
 load = { slot = "room" }
 package_name = "akropolis_promenade"
 required = true
@@ -885,6 +890,16 @@ name = "unread_row_5"
 entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
+
+[collision_1]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "58e1e031c276e7196294189fa569f9c8a10004dc"
+
+[collision_2]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "e61ddcd27385390bc9a07782c736afa8c7118b18"
 
 [view2_page_1]
 type = "texture"

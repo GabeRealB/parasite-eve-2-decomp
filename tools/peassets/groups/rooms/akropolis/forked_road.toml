@@ -98,6 +98,7 @@ embedded = [
     { asset = "characters/aya/stand", offset = 0x04320, size = 0x304, address = 0x801818E0 },
     { asset = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger", offset = 0x04624, size = 0x470, address = 0x80181BE4 },
     { name = "ambush_player_bank", offset = 0x04A94, size = 0xC, address = 0x80182054 },
+    { name = "collision", offset = 0x04DE0, size = 0x850 },
 ]
 load = { slot = "room" }
 package_name = "akropolis_forked_road"
@@ -167,6 +168,11 @@ stranger_dormant_2 = 9
 [unused_1]
 type = "sound"
 sha1 = "d156900d9450d5fe567cc344ec9f4708009f82be"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "e98eb13d072ee3f72f5dea62be5cfb48d8dc028b"
 
 [dialogue_0]
 type = "cap"
@@ -558,7 +564,7 @@ type = "model"
 rig = "rooms/akropolis/forked_road/sucklerceph_rig"
 slots = ["sucklerceph_and_skull_stalker_1_texture"]
 symbol = "_gAkropolisForkedRoadSucklercephBody"
-sha1 = "e163102ebb9ebcc1dec683a94d229891ae4b23ee"
+sha1 = "edc6f6c075a326dfa8de002dbc5c1480fed178d8"
 
 [sucklerceph_hurt]
 type = "sound"
@@ -647,7 +653,7 @@ type = "model"
 rig = "rooms/akropolis/forked_road/skull_stalker_rig"
 slots = ["sucklerceph_and_skull_stalker_1_texture"]
 symbol = "_gAkropolisForkedRoadSkullStalkerBody"
-sha1 = "1d9c867f7c6e322c4ca3be860a207878ce18da48"
+sha1 = "b2dbdd1b0650e4fe1f9919e2c9cb3a5d30632c4e"
 
 [skull_stalker_idle]
 type = "clip"
@@ -725,10 +731,12 @@ skull_stalker_tasks = { at = 0x0649C, symbol = "gActor104600SkullStalkerTaskDesc
 [sucklerceph_and_skull_stalker_2]
 type = "pe2pkg"
 embedded = [
+    { name = "sucklerceph_body", offset = 0x04188, size = 0x109C, address = 0x8014DFA8 },
     { name = "sucklerceph_idle", offset = 0x05224, size = 0x358, address = 0x8014F044 },
     { name = "sucklerceph_crawl", offset = 0x0557C, size = 0x148, address = 0x8014F39C },
     { name = "sucklerceph_anim_03", offset = 0x056C4, size = 0x1A4, address = 0x8014F4E4 },
     { name = "sucklerceph_bank", offset = 0x05890, size = 0x10, address = 0x8014F6B0 },
+    { name = "skull_stalker_body", offset = 0x058C4, size = 0x920, address = 0x8014F6E4 },
     { name = "skull_stalker_idle", offset = 0x061E4, size = 0x64, address = 0x80150004 },
     { name = "skull_stalker_alert", offset = 0x06248, size = 0x254, address = 0x80150068 },
     { name = "skull_stalker_bank", offset = 0x064A8, size = 0xC, address = 0x801502C8 },

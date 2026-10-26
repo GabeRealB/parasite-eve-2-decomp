@@ -631,6 +631,12 @@ requires = ["gameplay", "rooms/akropolis/helicopter_landing_pad/package"]
 sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"
 
 [[package_akropolis.embedded]]
+name = "body_akropolis"
+offset = 0x0A69C
+size = 0x56CC
+address = 0x8013C4BC
+
+[[package_akropolis.embedded]]
 name = "akropolis_sword"
 offset = 0x0FD68
 size = 0x2A4
@@ -647,6 +653,12 @@ name = "akropolis_chest_piece"
 offset = 0x10328
 size = 0x35C
 address = 0x80142148
+
+[[package_akropolis.embedded]]
+asset = "enemies/golem/grenade"
+offset = 0x10684
+size = 0x32C
+address = 0x801424A4
 
 [[package_akropolis.embedded]]
 name = "transformer_cable"
@@ -893,6 +905,11 @@ asset = "enemies/golem/no_9/helipad/player_grenade_bank"
 offset = 0x35D0C
 size = 0xC
 address = 0x80167B2C
+
+[[package_akropolis.embedded]]
+name = "akropolis_collision_patch"
+offset = 0x35DA4
+size = 0xD0
 
 [[package_akropolis.embedded]]
 asset = "enemies/golem/no_9/helipad/cable_bank"
@@ -1159,6 +1176,11 @@ bpp = 8
 height = 256
 variants = ["default"]
 width = 128
+
+[akropolis_collision_patch]
+type = "collision"
+pieces = ["vectors 3", "vectors 12", "faces 3", "vectors 1", "vectors 4", "faces 1"]
+sha1 = "3452e203e5839b17679894af30b5357c48b0a3ea"
 
 [transformer_cable_binding]
 type = "binding"
