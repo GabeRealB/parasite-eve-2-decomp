@@ -1,23 +1,4 @@
 // Overlay-local symbols for shooting_gallery_targets.
-gMistShootingGalleryCreatureTarget1Model = 0x80186AE0; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget2Model = 0x80186CD0; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget3Model = 0x80186EC0; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget4Model = 0x801870B0; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget5Model = 0x801872A0; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget6Model = 0x80187490; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget7Model = 0x80187680; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget8Model = 0x80187870; // absolute:True owner=mist_shooting_gallery shared=rooms
-gMistShootingGalleryCreatureTarget9Model = 0x80187A60; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryCreatureTarget10Model = 0x80187C50; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryMountModel = 0x80188034; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryHalfTarget1Model = 0x80188198; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryHalfTarget2Model = 0x801882FC; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryHalfTarget3Model = 0x80188460; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryHalfTarget4Model = 0x801885C4; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryBullseye1Model = 0x801887B4; // absolute:True owner=mist_shooting_gallery shared=rooms
-gMistShootingGalleryBullseye2Model = 0x801889A4; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryBullseye3Model = 0x80188B94; // absolute:True owner=mist_shooting_gallery
-gMistShootingGalleryDemonstrationTargetModel = 0x80188D84; // absolute:True owner=mist_shooting_gallery
 _gShootingGalleryTargetsTargetHitMarkOffsets = 0x80135730; // size:0x20 defined:True
 _gShootingGalleryTargetsTargetHitPoints = 0x80135750; // size:0x1A defined:True
 _gShootingGalleryTargetsMountPath0 = 0x80135078; // size:0xC defined:True
@@ -89,7 +70,6 @@ _gShootingGalleryTargetsMountAttacks = 0x80134F80; // size:0x4 defined:True
 _gShootingGalleryTargetsMountParams = 0x80134F84; // size:0x10 defined:True
 gShootingGalleryTargetsTaskDescriptors = 0x80134F94; // size:0xE4 defined:True
 
-gMistShootingGalleryControllerTask = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
 _shootingGalleryTargetsUpdateStandingMountPath = 0x80132160; // type:func
 _shootingGalleryTargetsUpdateHangingMountPath = 0x80132514; // type:func
 _shootingGalleryTargetsRetireMount = 0x80132a7c; // type:func

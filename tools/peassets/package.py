@@ -10,10 +10,14 @@ A package (type `package`) is an overlay image that states where it loads and wh
     requires = ["<package>", ...]              what is resident whenever it is
     slots = { <name> = "<file>" }              the files that fill the slots its objects point into, by name
     exports = { <name> = { at = 0x.., symbol = ".." } }
-                                               the tables other packages point at, by hand: only what they need
+                                               what other packages' data and code name in it, by hand: only what
+                                               they need
 
 with `package_name`, `entries`, `embedded` and `sha1` as a `pe2pkg` or `room` has them. Consumers name what they
-point at through these; no tool reads another package's symbol map. local/package_type_design.md is the design.
+point at through these, and a package's link takes every export of the packages it binds or requires
+(`link_symbols`, written into its generated symbol map by tools/buildsteps/gen_overlay_configs.py); after the link,
+tools/check/check_exports.py holds each export to its own package's image. Nothing here reads splat's symbol files.
+local/package_type_design.md is the design.
 """
 from __future__ import annotations
 
@@ -182,6 +186,38 @@ def bank_exports(name: str, assets: dict[str, dict[str, Any]], embedded: dict) -
                 if base + e["at"] == address:
                     out |= {f"{n}.{export}" for n, p in named.items() if p == other}
     return out
+
+
+def link_symbols(name: str, assets: dict[str, dict[str, Any]], embedded: dict,
+                 assets_root: Path) -> list[tuple[str, int, str]]:
+    """(symbol, address, reference) for every export of the packages `name` binds or requires: what its code and data
+    name there, by the export's offset at its package's memory slot (tools/check/check_exports.py holds each to its
+    own package's image). Where two of them give one symbol different addresses, the one its decoded data or banks
+    name (`<binding>.<export>`, `<package>.<export>`) is the symbol; where they name neither it is left out, so code
+    naming it does not link."""
+    rec = assets[name]
+    if rec.get("type") != "package" or not (rec.get("slots") or rec.get("requires")):
+        return []
+    own = rec["group"] if rec.get("load", {}).get("slot") in ("room", "stage") else f"{rec['group']}/{name.rsplit('/', 1)[1]}"
+    texts = [p.read_text() for pattern in ("*.toml", "*.evs") for p in (assets_root / own).glob(pattern)]
+    used = {m for t in texts for m in re.findall(r'"?\b([a-z][a-z0-9_/]*\.[a-z][a-z0-9_]*)\b"?', t)}
+    used |= bank_exports(name, assets, embedded)           # what its banks bind there
+    named = {**{r: r for r in resident(name, assets)}, **bindings(name, assets)}
+    candidates: dict[str, dict[int, list[str]]] = {}        # symbol -> address -> the references giving it
+    for binding, bound in sorted(named.items()):
+        exports = assets[bound].get("exports") or {}
+        base = load_address(bound, assets) if exports else 0
+        for export, e in sorted(exports.items()):
+            candidates.setdefault(e["symbol"], {}).setdefault(base + e["at"], []).append(f"{binding}.{export}")
+    out = []
+    for symbol, addresses in sorted(candidates.items()):
+        if len(addresses) > 1:
+            addresses = {a: refs for a, refs in addresses.items() if used.intersection(refs)}
+            if len(addresses) > 1:
+                raise SystemExit(f"{name}: its data names {symbol} at " + " and ".join(f"0x{a:08X}" for a in addresses)
+                                 + ": give one of the packages its own symbol for it")
+        out += [(symbol, address, refs[0]) for address, refs in addresses.items()]
+    return sorted(out, key=lambda s: s[1])
 
 
 def check_package(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]]) -> list[str]:

@@ -118,6 +118,43 @@ markers = [0x1B260]
 samples = [0x1B220]
 scripts = [0x05174, 0x05474, 0x05564, 0x056D0, 0x05958, 0x05B1C, 0x05EF4, 0x05F94, 0x0609C, 0x061A4]
 
+[package.exports]
+police_sergeant_hunter_from_mist = { at = 0x17E54, symbol = "gPoliceSergeantHunterFromMistClip" }
+police_sergeant_idle = { at = 0x17FF4, symbol = "gPoliceSergeantIdleClip" }
+police_rookie_stand = { at = 0x181CC, symbol = "gPoliceRookieStandClip" }
+police_rookie_look_at_badge = { at = 0x183B8, symbol = "gPoliceRookieLookAtBadgeClip" }
+police_rookie_shift_stance = { at = 0x18614, symbol = "gPoliceRookieShiftStanceClip" }
+police_rookie_idle = { at = 0x18904, symbol = "gPoliceRookieIdleClip" }
+police_rookie_explain_swat = { at = 0x18DE0, symbol = "gPoliceRookieExplainSwatClip" }
+aya_idle = { at = 0x18F98, symbol = "gAyaIdleClip" }
+aya_show_badge = { at = 0x19610, symbol = "gAyaShowBadgeClip" }
+aya_put_away_badge = { at = 0x19AD8, symbol = "gAyaPutAwayBadgeClip" }
+aya_turn_to_sergeant = { at = 0x19D64, symbol = "gAyaTurnToSergeantClip" }
+aya_face_sergeant = { at = 0x19F7C, symbol = "gAyaFaceSergeantClip" }
+aya_ask_situation = { at = 0x1A4F8, symbol = "gAyaAskSituationClip" }
+aya_turn_from_sergeant = { at = 0x1A784, symbol = "gAyaTurnFromSergeantClip" }
+aya_ask_about_civilians = { at = 0x1AAAC, symbol = "gAyaAskAboutCiviliansClip" }
+aya_thank_officer = { at = 0x1AE04, symbol = "gAyaThankOfficerClip" }
+aya_ask_about_roof = { at = 0x1AFA4, symbol = "gAyaAskAboutRoofClip" }
+aya_look_at_wreck = { at = 0x1B1F8, symbol = "gAyaLookAtWreckClip" }
+police_sergeant_cleared_for_entry = { at = 0x148BC, symbol = "gPoliceSergeantClearedForEntryClip" }
+police_sergeant_go_right_in = { at = 0x156B4, symbol = "gPoliceSergeantGoRightInClip" }
+police_sergeant_talk_idle = { at = 0x15864, symbol = "gPoliceSergeantTalkIdleClip" }
+police_sergeant_outta_control = { at = 0x15CC8, symbol = "gPoliceSergeantOuttaControlClip" }
+police_sergeant_outta_control_gesture = { at = 0x15F78, symbol = "gPoliceSergeantOuttaControlGestureClip" }
+police_sergeant_helicopter_down = { at = 0x1622C, symbol = "gPoliceSergeantHelicopterDownClip" }
+police_sergeant_something_big = { at = 0x1643C, symbol = "gPoliceSergeantSomethingBigClip" }
+police_sergeant_watch_yourself = { at = 0x16610, symbol = "gPoliceSergeantWatchYourselfClip" }
+police_sergeant_raise_arm = { at = 0x168FC, symbol = "gPoliceSergeantRaiseArmClip" }
+police_sergeant_lower_arm = { at = 0x16D00, symbol = "gPoliceSergeantLowerArmClip" }
+police_sergeant_listen = { at = 0x16EE4, symbol = "gPoliceSergeantListenClip" }
+police_sergeant_turn_head = { at = 0x170C0, symbol = "gPoliceSergeantTurnHeadClip" }
+police_sergeant_turn_head_back = { at = 0x17298, symbol = "gPoliceSergeantTurnHeadBackClip" }
+police_sergeant_heard_of_them = { at = 0x1754C, symbol = "gPoliceSergeantHeardOfThemClip" }
+police_sergeant_turned_idle = { at = 0x17818, symbol = "gPoliceSergeantTurnedIdleClip" }
+police_sergeant_damn_rookies = { at = 0x17A00, symbol = "gPoliceSergeantDamnRookiesClip" }
+police_sergeant_turn_away = { at = 0x17C68, symbol = "gPoliceSergeantTurnAwayClip" }
+
 [sounds_0]
 type = "sound_bank"
 samples = [
@@ -214,7 +251,7 @@ embedded = [
 load = { slot = "actor_3" }
 package_name = "police_officers"
 required = true
-requires = ["gameplay"]
+requires = ["gameplay", "rooms/akropolis/plaza/package"]
 sha1 = "f9b3a4b29e62b743444b4c28ff43cf71aa73b871"
 
 [police_officers.exports]
@@ -249,7 +286,6 @@ sha1 = "2b9be465630c96e2aeec7634e6887f639df6a48f"
 
 [police_rookie_bank]
 type = "animation_bank"
-borrows = ["akropolis_plaza"]
 schema = "rooms/akropolis/plaza/police_rookie_schema"
 symbol = "_gPoliceOfficersRookieAnimSets"
 
@@ -308,7 +344,6 @@ slots = [
 
 [police_sergeant_bank]
 type = "animation_bank"
-borrows = ["akropolis_plaza"]
 schema = "rooms/akropolis/plaza/police_sergeant_schema"
 symbol = "_gPoliceOfficersSergeantAnimSets"
 
@@ -366,7 +401,6 @@ slots = [
 
 [police_scene_player_bank]
 type = "animation_bank"
-borrows = ["akropolis_plaza"]
 schema = "rooms/akropolis/plaza/police_scene_player_schema"
 symbol = "gPoliceOfficersPlayerAnimSets"
 

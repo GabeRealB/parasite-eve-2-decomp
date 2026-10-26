@@ -29,6 +29,11 @@ requires = ["gameplay", "rooms/akropolis/stage"]
 slots = { stranger_lesser = "enemies/stranger/lesser/package" }
 sha1 = "b7511004662cffe54763d3d29b6dce61614e4451"
 
+[package.exports]
+collision_grid_normals = { at = 0x048B4, symbol = "gAkropolisFireEscapeCollisionGridNormals" }
+collision_grid_verts = { at = 0x04904, symbol = "gAkropolisFireEscapeCollisionGridVerts" }
+collision_grid_faces = { at = 0x04ABC, symbol = "gAkropolisFireEscapeCollisionGridFaces" }
+
 [sounds_0]
 type = "sound_bank"
 samples = [

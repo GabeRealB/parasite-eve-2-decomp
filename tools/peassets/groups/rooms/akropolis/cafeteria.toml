@@ -254,7 +254,7 @@ embedded = [
 load = { slot = "actor_3" }
 package_name = "actor_310600"
 required = true
-requires = ["gameplay"]
+requires = ["gameplay", "rooms/akropolis/cafeteria/package"]
 sha1 = "6dc5ccea0c7b5f38c42bd34dbdcacadb368602c5"
 
 [rupert.exports]
@@ -275,6 +275,7 @@ embedded = [
     { name = "stim_pickup", offset = 0x0F48C, size = 0x808, address = 0x8018CA4C },
     { name = "mendel_journal", offset = 0x0FC94, size = 0x34C, address = 0x8018D254 },
 ]
+exports = { scene_tasks = { at = 0x05518, symbol = "gAkropolisCafeteriaSceneTasks" } }
 load = { slot = "room" }
 package_name = "akropolis_cafeteria"
 required = true
@@ -387,6 +388,11 @@ requires = ["gameplay"]
 sha1 = "367774e983c09e4c9e372851335e0290d5505211"
 
 [stranger.exports]
+boss_stranger_collapse = { at = 0x11F5C, symbol = "gAkropolisCafeteriaBossStrangerCollapseClip" }
+stranger_lesser_idle = { at = 0x12244, symbol = "gStrangerLesserIdleClip" }
+boss_stranger_follow_up_3 = { at = 0x12B30, symbol = "gAkropolisCafeteriaBossStrangerFollowUp3Clip" }
+extra_anim_6 = { at = 0x1310C, symbol = "gAkropolisCafeteriaExtraAnim6Clip" }
+extra_anim_7 = { at = 0x134C8, symbol = "gAkropolisCafeteriaExtraAnim7Clip" }
 tasks = { at = 0x106CC, symbol = "gActor210600GrinningStrangerTaskDesc" }
 player_rupert_talk = { at = 0x07EF4, symbol = "gAkropolisCafeteriaPlayerRupertTalkClip" }
 player_follow_up_end = { at = 0x0A050, symbol = "gAkropolisCafeteriaPlayerFollowUpEndClip" }
@@ -1278,7 +1284,7 @@ exports = { tasks = { at = 0x16850, symbol = "gCafeteriaBossStrangerTaskDesc" } 
 load = { slot = "actor_1" }
 package_name = "cafeteria_boss_stranger"
 required = true
-requires = ["gameplay"]
+requires = ["gameplay", "rooms/akropolis/cafeteria/stranger"]
 sha1 = "74f1ae3aafbb1b7d92790dc2afab1a15becb8a25"
 
 [rupert_arrive]
@@ -1523,7 +1529,6 @@ sha1 = "0416ecee056d7b047cb5a61e368cff3bc14950cf"
 
 [boss_stranger_bank]
 type = "animation_bank"
-borrows = ["actor_210600"]
 schema = "rooms/akropolis/cafeteria/boss_stranger_schema"
 symbol = "_gCafeteriaBossStrangerAnimationSets"
 

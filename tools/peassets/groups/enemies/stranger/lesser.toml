@@ -34,7 +34,7 @@ exports = { tasks = { at = 0x07518, symbol = "gLesserStrangerTaskDesc" } }
 load = { slot = "actor_3" }
 package_name = "lesser_stranger"
 required = true
-requires = ["gameplay"]
+requires = ["gameplay", "rooms/akropolis/fire_escape/package"]
 sha1 = "b6b94075f3abcdbfd2f57b4977e4230c27622dd0"
 
 [body_binding]

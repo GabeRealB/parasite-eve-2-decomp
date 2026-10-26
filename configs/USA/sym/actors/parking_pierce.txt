@@ -203,7 +203,6 @@ _gPierceAnim35Clip = 0x80144228; // size:0x28 defined:True
 _gParkingPierceAnimationSets = 0x80144250; // size:0x90 defined:True
 _gParkingPierceAnimationBanks = 0x801442E0; // size:0x4 defined:True
 
-mistParkingSetPierceCollisionPatchLowered = 0x80183BAC; // type:func absolute:True owner=mist_parking
 _modelPlacementAttachChild = 0x80132CF4; // type:func
 actorMsgPlaceEuler = 0x8013333C; // type:func
 _modelPlacementMirrorParentDrawFlags = 0x80132E00; // type:func

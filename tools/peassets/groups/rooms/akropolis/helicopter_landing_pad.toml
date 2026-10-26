@@ -440,6 +440,17 @@ vibrations = [
 ]
 wide_view_masks = [0x07920]
 
+[package.exports]
+draw_lower_spark_line = { at = 0x034A4, symbol = "akropolisHelicopterLandingPadDrawLowerSparkLine" }
+
+[package.exports.lethal_strike_vibration_commands]
+at = 0x0A774
+symbol = "gAkropolisHelicopterLandingPadLethalStrikeVibrationCommands"
+
+[package.exports.lethal_strike_vibration_segment]
+at = 0x0A77C
+symbol = "gAkropolisHelicopterLandingPadLethalStrikeVibrationSegment"
+
 [package.slots]
 golem_no_9_akropolis = "enemies/golem/no_9/package_akropolis"
 helicopter_departure = "rooms/akropolis/helicopter_landing_pad/helicopter_departure"

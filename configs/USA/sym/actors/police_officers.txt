@@ -6,41 +6,6 @@ _gPoliceOfficersBodySwapTaskDescriptor = 0x801798E4; // size:0xC defined:True
 _gPoliceOfficersCulledBodySwapTaskDescriptor = 0x801798F0; // size:0xC defined:True
 gPoliceOfficersRookieTaskDescriptors = 0x801798FC; // size:0x24 defined:True
 gPoliceOfficersSergeantTaskDescriptors = 0x80179920; // size:0x24 defined:True
-gPoliceRookieStandClip = 0x8019578C; // absolute:True
-gPoliceRookieLookAtBadgeClip = 0x80195978; // absolute:True
-gPoliceRookieShiftStanceClip = 0x80195BD4; // absolute:True
-gPoliceRookieIdleClip = 0x80195EC4; // absolute:True
-gPoliceRookieExplainSwatClip = 0x801963A0; // absolute:True
-gPoliceSergeantClearedForEntryClip = 0x80191E7C; // absolute:True owner=akropolis_plaza
-gPoliceSergeantGoRightInClip = 0x80192C74; // absolute:True owner=akropolis_plaza
-gPoliceSergeantTalkIdleClip = 0x80192E24; // absolute:True owner=akropolis_plaza
-gPoliceSergeantOuttaControlClip = 0x80193288; // absolute:True owner=akropolis_plaza
-gPoliceSergeantOuttaControlGestureClip = 0x80193538; // absolute:True owner=akropolis_plaza
-gPoliceSergeantHelicopterDownClip = 0x801937EC; // absolute:True owner=akropolis_plaza
-gPoliceSergeantSomethingBigClip = 0x801939FC; // absolute:True owner=akropolis_plaza
-gPoliceSergeantWatchYourselfClip = 0x80193BD0; // absolute:True owner=akropolis_plaza
-gPoliceSergeantRaiseArmClip = 0x80193EBC; // absolute:True owner=akropolis_plaza
-gPoliceSergeantLowerArmClip = 0x801942C0; // absolute:True owner=akropolis_plaza
-gPoliceSergeantListenClip = 0x801944A4; // absolute:True owner=akropolis_plaza
-gPoliceSergeantTurnHeadClip = 0x80194680; // absolute:True owner=akropolis_plaza
-gPoliceSergeantTurnHeadBackClip = 0x80194858; // absolute:True owner=akropolis_plaza
-gPoliceSergeantHeardOfThemClip = 0x80194B0C; // absolute:True owner=akropolis_plaza
-gPoliceSergeantTurnedIdleClip = 0x80194DD8; // absolute:True owner=akropolis_plaza
-gPoliceSergeantDamnRookiesClip = 0x80194FC0; // absolute:True owner=akropolis_plaza
-gPoliceSergeantTurnAwayClip = 0x80195228; // absolute:True owner=akropolis_plaza
-gPoliceSergeantHunterFromMistClip = 0x80195414; // absolute:True
-gPoliceSergeantIdleClip = 0x801955B4; // absolute:True
-gAyaIdleClip = 0x80196558; // absolute:True
-gAyaShowBadgeClip = 0x80196BD0; // absolute:True
-gAyaPutAwayBadgeClip = 0x80197098; // absolute:True
-gAyaTurnToSergeantClip = 0x80197324; // absolute:True
-gAyaFaceSergeantClip = 0x8019753C; // absolute:True
-gAyaAskSituationClip = 0x80197AB8; // absolute:True
-gAyaTurnFromSergeantClip = 0x80197D44; // absolute:True
-gAyaAskAboutCiviliansClip = 0x8019806C; // absolute:True
-gAyaThankOfficerClip = 0x801983C4; // absolute:True
-gAyaAskAboutRoofClip = 0x80198564; // absolute:True
-gAyaLookAtWreckClip = 0x801987B8; // absolute:True
 _gPoliceRookieBodySkeleton = 0x801633BC; // size:0x2AC defined:True
 _gPoliceRookieBodyPartVerts = 0x80163668; // size:0x4C defined:True
 _gPoliceRookieBodyVerts = 0x801636B4; // size:0xAF8 defined:True

@@ -256,11 +256,8 @@ gGolemNo9HelipadCableBreakClip = 0x80167940; // size:0x28 defined:True
 gHelicopterLandingPadNo9Attacks = 0x80167968; // size:0x18 defined:True
 _gHelicopterLandingPadNo9Transformer3FlagValues = 0x80167CEC; // size:0x38 defined:True
 
-akropolisHelicopterLandingPadDrawLowerSparkLine = 0x80180A64; // type:func absolute:True owner=akropolis_helicopter_landing_pad shared=rooms
 
-gAkropolisHelicopterLandingPadLethalStrikeVibrationCommands = 0x80187D34; // absolute:True owner=akropolis_helicopter_landing_pad shared=rooms
 
-gAkropolisHelicopterLandingPadLethalStrikeVibrationSegment = 0x80187D3C; // absolute:True owner=akropolis_helicopter_landing_pad
 
 helicopterLandingPadNo9FlameJetTask = 0x80131F24; // type:func
 

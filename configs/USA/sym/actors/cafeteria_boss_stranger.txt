@@ -4,11 +4,6 @@
 _gCafeteriaBossStrangerHitAnchors = 0x801485C4; // size:0x60 defined:True
 _gCafeteriaBossStrangerMessages = 0x80148624; // size:0x38 defined:True
 _gCafeteriaBossStrangerFootstepShakePhase = 0x8014865C; // size:0x2 defined:True
-gAkropolisCafeteriaBossStrangerCollapseClip = 0x8015BD7C; // absolute:True owner=actor_210600
-gStrangerLesserIdleClip = 0x8015C064; // absolute:True owner=actor_210600
-gAkropolisCafeteriaBossStrangerFollowUp3Clip = 0x8015C950; // absolute:True owner=actor_210600
-gAkropolisCafeteriaExtraAnim7Clip = 0x8015D2E8; // absolute:True owner=actor_210600
-gAkropolisCafeteriaExtraAnim6Clip = 0x8015CF2C; // absolute:True owner=actor_210600
 _gAkropolisCafeteriaBossStrangerBodySkeleton = 0x80138F58; // size:0x2AC defined:True
 _gAkropolisCafeteriaBossStrangerBodyPartVerts = 0x80139204; // size:0x4C defined:True
 _gAkropolisCafeteriaBossStrangerBodyVerts = 0x80139250; // size:0x9B8 defined:True

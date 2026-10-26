@@ -16,9 +16,8 @@ package: its words are the addresses of its clips' `AnimationSet` records there,
 the end of its placement.
 
 A placed bank may also bind clips another package places while that package is resident with its own: a package its
-package binds or requires (the sanctuary's player scene binds Rupert's clips), whose clips its C names by that
-package's exports at their addresses, or a package it `borrows` (those packages' names: the police officers' banks
-bind the plaza's clips).
+package binds or requires (the sanctuary's player scene binds Rupert's clips, the police officers' banks the plaza's).
+Its C names those clips by that package's exports at their addresses.
 """
 from __future__ import annotations
 
@@ -164,18 +163,17 @@ def bank_package(name: str, assets: dict, embedded: dict) -> str | None:
 
 def bank_place(name: str, clip: str, assets: dict, embedded: dict) -> tuple[dict, str | None]:
     """Where a bank finds a clip it binds: its placement, and the package record of a package the bank's package binds
-    or requires (None: the bank's own package, or one it borrows)."""
+    or requires (None: the bank's own package)."""
     import package as packages
     source = embedded[name]["source"]
-    for s in [source, *(f"{p}.pe2pkg" for p in assets[name].get("borrows", ()))]:
-        if place := placed_in(clip, s, assets, embedded):
-            return place, None
+    if place := placed_in(clip, source, assets, embedded):
+        return place, None
     own = bank_package(name, assets, embedded)
     for other in [*packages.bindings(own, assets).values(), *packages.resident(own, assets)] if own else ():
         if place := placed_in(clip, f"{assets[other].get('package_name', other)}.pe2pkg", assets, embedded):
             return place, other
-    raise SystemExit(f"{name}: binds {clip}, which neither its package {source} nor a package it binds, requires or "
-                     "borrows places")
+    raise SystemExit(f"{name}: binds {clip}, which neither its package {source} nor a package it binds or requires "
+                     "places")
 
 
 def bank_bytes(name: str, assets: dict, embedded: dict) -> bytes:

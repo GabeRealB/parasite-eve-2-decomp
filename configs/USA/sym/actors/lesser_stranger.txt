@@ -25,11 +25,8 @@ _gLesserStrangerBarrierPatchFaces = 0x80169324; // size:0xC defined:True
 _gLesserStrangerMessages = 0x80169330; // size:0x8 defined:True
 gLesserStrangerTaskDesc = 0x80169338; // size:0xC defined:True
 
-gAkropolisFireEscapeCollisionGridNormals = 0x80181E74; // absolute:True owner=akropolis_fire_escape
 
-gAkropolisFireEscapeCollisionGridVerts = 0x80181EC4; // absolute:True owner=akropolis_fire_escape
 
-gAkropolisFireEscapeCollisionGridFaces = 0x8018207C; // absolute:True owner=akropolis_fire_escape
 _actorRenderYawJointInWorld = 0x801626CC; // type:func
 _actorContactFindLastObstaclePush = 0x80161E38; // type:func
 _actorContactApplyAvoidancePushback = 0x80162180; // type:func

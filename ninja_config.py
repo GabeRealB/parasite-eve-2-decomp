@@ -331,50 +331,6 @@ def asset_tables():
     return _ASSET_TABLES
 
 
-EXPORTS_DIR = BUILD_DIR / "exports"
-
-
-def write_export_symbols() -> None:
-    """build/exports/<overlay>.txt: for each package that binds or requires others (asset type `package`, `slots`,
-    `requires`), the absolute address of every export its decoded data names, `<binding>.<export>` or
-    `<required package>.<export>` - `symbol = address;`, the export's offset at its package's memory slot - which the
-    overlay's link resolves its C's references to them by (package.py). Rewritten only when its content changes,
-    since the split reads it (split_inputs)."""
-    import importlib.util
-    data, _schema = asset_tables()
-    spec = importlib.util.spec_from_file_location("package", TOOLS_DIR / "peassets" / "package.py")
-    package = importlib.util.module_from_spec(spec)
-    sys.path.insert(0, str(TOOLS_DIR / "peassets"))
-    spec.loader.exec_module(package)
-    EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
-    for key, rec in data.ASSETS.items():
-        if rec.get("type") != "package" or not (rec.get("slots") or rec.get("requires")):
-            continue
-        # the exports its decoded data references (room/), each once
-        own = rec["group"] if rec.get("load", {}).get("slot") in ("room", "stage") else f"{rec['group']}/{key.rsplit('/', 1)[1]}"
-        texts = [p.read_text() for p in (ASSETS_DIR / "USA" / own).glob("*.toml")] + \
-                [p.read_text() for p in (ASSETS_DIR / "USA" / own).glob("*.evs")]
-        used = {m for t in texts for m in re.findall(r'"?\b([a-z][a-z0-9_/]*\.[a-z][a-z0-9_]*)\b"?', t)}
-        used |= package.bank_exports(key, data.ASSETS, data.EMBEDDED_ASSETS)    # what its banks bind there
-        lines, seen = [], {}
-        named = {**{r: r for r in package.resident(key, data.ASSETS)}, **(rec.get("slots") or {})}
-        for binding, bound in sorted(named.items()):
-            exports = data.ASSETS[bound].get("exports") or {}
-            base = package.load_address(bound, data.ASSETS) if exports else 0
-            for export, e in sorted(exports.items()):
-                if f"{binding}.{export}" not in used:
-                    continue
-                address = base + e["at"]
-                if seen.setdefault(e["symbol"], address) != address:
-                    raise SystemExit(f"{key}: {e['symbol']} names 0x{seen[e['symbol']]:08X} and 0x{address:08X}: "
-                                     "give one of the packages its own symbol for it")
-                lines.append(f"{e['symbol']} = 0x{address:08X}; // {binding}.{export}")
-        path = EXPORTS_DIR / f"{rec.get('package_name', key)}.txt"
-        text = "\n".join(sorted(set(lines))) + "\n"
-        if not path.is_file() or path.read_text() != text:
-            path.write_text(text)
-
-
 def include_path(name: str, rec: dict) -> str:
     """A declared asset's generated include, grouped like the asset: `<group>/<local name>.inc`."""
     group = rec.get("group")
@@ -1105,10 +1061,12 @@ def append_overlay_absolute_imports(basename: str, imports_path: str | None = No
             m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
             if m:
                 extra.append(f"{m.group(1)} = {m.group(2)};")
-    exports = EXPORTS_DIR / f"{basename}.txt"           # the exports its package's bindings name
-    if exports.is_file():
-        for line in exports.read_text(encoding="utf-8").splitlines():
-            m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
+    # The exports of the packages its package binds or requires, which gen_overlay_configs writes into the
+    # overlay's generated symbol map as absolute symbols.
+    generated = CONFIG_DIR / "USA" / "generated" / "sym" / f"{basename}.txt"
+    if generated.is_file():
+        for line in generated.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+);.*absolute:True", line.strip())
             if m:
                 extra.append(f"{m.group(1)} = {m.group(2)};")
     if not extra:
@@ -1714,7 +1672,6 @@ def split_inputs(yaml: str, version_dir: str, basename: str, c_sources: list[str
     paths = [config, base / options["target_path"]]
     paths += [base / p for p in listed("symbol_addrs_path") + listed("reloc_addrs_path")]
     paths += [CONFIG_DIR / version_dir / f"sym.{basename}.imports.txt"]
-    paths += [EXPORTS_DIR / f"{basename}.txt"]          # the exports its bindings name (write_export_symbols)
     paths += [Path(c) for c in c_sources]
     if options.get("extensions_path"):
         # The segment types that place a library or variant unit's source.
@@ -2152,7 +2109,6 @@ def main():
         shutil.rmtree(PERMUTER_DIR, ignore_errors=True)
 
     version_dir = GAME_VERSIONS[game_version_option].metadata.version_dir
-    write_export_symbols()
     jobs = [
         (
             yaml,

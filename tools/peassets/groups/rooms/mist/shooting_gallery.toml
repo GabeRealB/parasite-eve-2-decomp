@@ -156,13 +156,44 @@ target_scores = [0x079D8]
 view_counts = 2
 wave_scripts = [0x0811C, 0x083EC, 0x08704, 0x08A88, 0x08F80]
 
+[package.exports]
+prepare_training_loadout = { at = 0x006EC, symbol = "mistShootingGalleryPrepareTrainingLoadout" }
+open_weapon_menu = { at = 0x0239C, symbol = "mistShootingGalleryOpenWeaponMenu" }
+set_training_barrier_lowered = { at = 0x02DD0, symbol = "mistShootingGallerySetTrainingBarrierLowered" }
+open_jukebox = { at = 0x03574, symbol = "mistShootingGalleryOpenJukebox" }
+select_room_lights = { at = 0x03C00, symbol = "mistShootingGallerySelectRoomLights" }
+spawn_demo_target = { at = 0x072F4, symbol = "mistShootingGallerySpawnDemoTarget" }
+signal_action = { at = 0x07394, symbol = "mistShootingGallerySignalAction" }
+movie_task_descs = { at = 0x07DC4, symbol = "gMistShootingGalleryMovieTaskDescs" }
+task_descs = { at = 0x080F8, symbol = "gMistShootingGalleryTaskDescs" }
+creature_target_1 = { at = 0x09520, symbol = "gMistShootingGalleryCreatureTarget1Model" }
+creature_target_2 = { at = 0x09710, symbol = "gMistShootingGalleryCreatureTarget2Model" }
+creature_target_3 = { at = 0x09900, symbol = "gMistShootingGalleryCreatureTarget3Model" }
+creature_target_4 = { at = 0x09AF0, symbol = "gMistShootingGalleryCreatureTarget4Model" }
+creature_target_5 = { at = 0x09CE0, symbol = "gMistShootingGalleryCreatureTarget5Model" }
+creature_target_6 = { at = 0x09ED0, symbol = "gMistShootingGalleryCreatureTarget6Model" }
+creature_target_7 = { at = 0x0A0C0, symbol = "gMistShootingGalleryCreatureTarget7Model" }
+creature_target_8 = { at = 0x0A2B0, symbol = "gMistShootingGalleryCreatureTarget8Model" }
+creature_target_9 = { at = 0x0A4A0, symbol = "gMistShootingGalleryCreatureTarget9Model" }
+creature_target_10 = { at = 0x0A690, symbol = "gMistShootingGalleryCreatureTarget10Model" }
+mount = { at = 0x0AA74, symbol = "gMistShootingGalleryMountModel" }
+half_target_1 = { at = 0x0ABD8, symbol = "gMistShootingGalleryHalfTarget1Model" }
+half_target_2 = { at = 0x0AD3C, symbol = "gMistShootingGalleryHalfTarget2Model" }
+half_target_3 = { at = 0x0AEA0, symbol = "gMistShootingGalleryHalfTarget3Model" }
+half_target_4 = { at = 0x0B004, symbol = "gMistShootingGalleryHalfTarget4Model" }
+bullseye_1 = { at = 0x0B1F4, symbol = "gMistShootingGalleryBullseye1Model" }
+bullseye_2 = { at = 0x0B3E4, symbol = "gMistShootingGalleryBullseye2Model" }
+bullseye_3 = { at = 0x0B5D4, symbol = "gMistShootingGalleryBullseye3Model" }
+demonstration_target = { at = 0x0B7C4, symbol = "gMistShootingGalleryDemonstrationTargetModel" }
+controller_task = { at = 0x10B04, symbol = "gMistShootingGalleryControllerTask" }
+
 [targets]
 type = "package"
 exports = { tasks = { at = 0x03174, symbol = "gShootingGalleryTargetsTaskDescriptors" } }
 load = { slot = "actor_1" }
 package_name = "shooting_gallery_targets"
 required = true
-requires = ["gameplay"]
+requires = ["gameplay", "rooms/mist/shooting_gallery/package"]
 sha1 = "ee6e6aba8227822c577ad915a2116932fdcbd056"
 
 [sounds_0]

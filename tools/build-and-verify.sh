@@ -171,6 +171,12 @@ if [[ $ninja_failed -eq 0 ]]; then
             echo "BUILD HAS FAILED. tools/peassets/asset_data.py breaks tools/peassets/asset_schema.py."
             exit 1
         fi
+        # A package's exports are declared offsets, which the links of the packages that bind or require it use as
+        # stated: only the exporting package's own image says whether each is still where its symbol is.
+        if ! "$PYTHON" tools/check/check_exports.py; then
+            echo "BUILD HAS FAILED. A package export disagrees with its package's linked image - correct its at or symbol."
+            exit 1
+        fi
     fi
     echo "$SUCCESS"
 else

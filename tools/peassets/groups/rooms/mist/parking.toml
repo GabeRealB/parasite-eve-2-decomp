@@ -147,7 +147,7 @@ load = { slot = "actor_1" }
 package_name = "parking_pierce"
 parent = "rooms/mist/parking/package"
 required = true
-requires = ["gameplay"]
+requires = ["gameplay", "rooms/mist/parking/package"]
 sha1 = "5e87c8524e5c2a3924655335b7b17dcac281a669"
 
 [package]
@@ -407,6 +407,9 @@ scripts = [
     81412,
 ]
 transforms = [0x1267C]
+
+[package.exports]
+set_pierce_collision_patch_lowered = { at = 0x065EC, symbol = "mistParkingSetPierceCollisionPatchLowered" }
 
 [sounds_0]
 type = "sound_bank"
