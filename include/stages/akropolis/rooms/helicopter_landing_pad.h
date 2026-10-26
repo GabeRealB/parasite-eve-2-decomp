@@ -24,7 +24,7 @@ extern PadScriptVibrationSegment gAkropolisHelicopterLandingPadLethalStrikeVibra
 /// Actor layout variants of the landing pad.
 extern AreaVariant gAkropolisHelicopterLandingPadAreaVariants[13];
 
-extern TmdSource gAkropolisHelicopterLandingPadAkropolisHelicopterLandingPadModel0547C;
+extern TmdSource gAkropolisHelicopterLandingPadLiftModel;
 
 extern TmdSource gAkropolisHelicopterLandingPadAmmunitionPickupModel;
 

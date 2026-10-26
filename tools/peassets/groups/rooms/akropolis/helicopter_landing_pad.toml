@@ -414,7 +414,7 @@ tongue_7 = [224, 112, 32, 48]
 [package]
 type = "package"
 embedded = [
-    { name = "akropolis_helicopter_landing_pad_model_0547C", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
+    { name = "lift_platform", offset = 0x04E04, size = 0x134C, address = 0x801823C4 },
     { name = "departure_player_bank", offset = 0x06334, size = 0xC, address = 0x801838F4 },
     { name = "collision", offset = 0x07A34, size = 0x9A4 },
     { name = "ammunition_pickup", offset = 0x0A828, size = 0x18C, address = 0x80187DE8 },
@@ -1511,6 +1511,12 @@ width = 128
 type = "sound"
 sha1 = "847099e47670f1f1ef85247628f79a9e3a2e5e09"
 
+[lift_platform]
+type = "model"
+slots = ["lift"]
+symbol = "gAkropolisHelicopterLandingPadLiftModel"
+sha1 = "88e26b362ce7871a986f0dfe7b2bce392e56cc33"
+
 [no_9_standoff]
 type = "clip"
 rig = "enemies/golem/no_9/rig"
@@ -1812,6 +1818,11 @@ symbol = "_gAkropolisHelicopterLandingPadDeparturePlayerAnimationSets"
 slot_1 = "rooms/akropolis/helicopter_landing_pad/player_helipad_report_escape"
 slot_2 = "rooms/akropolis/helicopter_landing_pad/player_helipad_detonator_talk"
 
+[lift_platform_binding]
+type = "binding"
+model = "rooms/akropolis/helicopter_landing_pad/lift_platform"
+textures = { lift = "rooms/akropolis/helicopter_landing_pad/lift.default" }
+
 [rupert_detonator_talk]
 type = "clip"
 rig = "characters/rupert/rig"
@@ -1859,14 +1870,3 @@ symbol = "gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip"
 type = "clip"
 rig = "characters/aya/rig"
 symbol = "gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip"
-
-[akropolis_helicopter_landing_pad_model_0547C]
-type = "model"
-slots = ["lift"]
-symbol = "gAkropolisHelicopterLandingPadAkropolisHelicopterLandingPadModel0547C"
-sha1 = "88e26b362ce7871a986f0dfe7b2bce392e56cc33"
-
-[akropolis_helicopter_landing_pad_model_0547C_binding]
-type = "binding"
-model = "rooms/akropolis/helicopter_landing_pad/akropolis_helicopter_landing_pad_model_0547C"
-textures = { lift = "rooms/akropolis/helicopter_landing_pad/lift.default" }

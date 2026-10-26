@@ -1,73 +1,46 @@
 #include "stages/akropolis/map.h"
 
-/// Square's map footprint in integer model X/Z coordinates, with Y zero.
-/// Three unlit quads' packed vertex byte offsets and white color, followed by two group ends and the stream end.
+/// Square's outline: three quads.
 #include "assets/rooms/akropolis/map/square.inc"
 
-/// East elevator hall's map footprint in integer model X/Z coordinates, with Y zero.
-/// Two unlit triangles and six quads with packed vertex byte offsets and white color, followed by two group ends and the stream end.
+/// East elevator hall's outline: two triangles and six quads.
 #include "assets/rooms/akropolis/map/east_elevator_hall.inc"
 
-/// Patio's map footprint in integer model X/Z coordinates, with Y zero.
-/// Two unlit triangles and three quads with packed vertex byte offsets and white color, followed by two group ends and the stream end.
+/// Patio's outline: two triangles and three quads.
 #include "assets/rooms/akropolis/map/patio.inc"
 
-/// Cafeteria's map footprint in integer model X/Z coordinates, with Y zero.
-/// Two unlit quads' packed vertex byte offsets and white color, followed by two group ends and the stream end.
+/// Cafeteria's outline: two quads.
 #include "assets/rooms/akropolis/map/cafeteria.inc"
 
-/// Security room's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit quad's packed vertex byte offsets and white color, followed by two group ends and the stream end.
+/// Security room's outline: one quad.
 #include "assets/rooms/akropolis/map/security_room.inc"
 
-/// Hallway's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit quad's packed vertex byte offsets and white color, followed by two group ends and the stream end.
+/// Hallway's outline: one quad.
 #include "assets/rooms/akropolis/map/hallway.inc"
 
-/// Fountain's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit triangle and four quads with packed vertex byte offsets and white color.
-///
-/// Two group ends and the stream end follow the faces; the map reads only the first group.
+/// Fountain's outline: one triangle and four quads.
 #include "assets/rooms/akropolis/map/fountain.inc"
 
-/// Forked road's map footprint in integer model X/Z coordinates, with Y zero.
-/// Two unlit triangles and two quads with packed vertex byte offsets and white color.
-///
-/// Two group ends and the stream end follow the faces; the map reads only the first group.
+/// Forked road's outline: two triangles and two quads.
 #include "assets/rooms/akropolis/map/forked_road.inc"
 
-/// Observatory's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit triangle and one quad with packed vertex byte offsets and white color.
-///
-/// Two group ends and the stream end follow the faces; the map reads only the first group.
+/// Observatory's outline: one triangle and one quad.
 #include "assets/rooms/akropolis/map/observatory.inc"
 
-/// Promenade's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit triangle and three quads with packed vertex byte offsets and white color.
-///
-/// Two group ends and the stream end follow the faces; the map reads only the first group.
+/// Promenade's outline: one triangle and three quads.
 #include "assets/rooms/akropolis/map/promenade.inc"
 
-/// Sanctuary's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit quad's packed vertex byte offsets and white color.
-///
-/// Two group ends and the stream end follow the face; the map reads only the first group.
+/// Sanctuary's outline: one quad.
 #include "assets/rooms/akropolis/map/sanctuary.inc"
 
-/// Roof garden's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit quad's packed vertex byte offsets and white color.
-///
-/// Two group ends and the stream end follow the face; the map reads only the first group.
+/// Roof garden's outline: one quad.
 #include "assets/rooms/akropolis/map/roof_garden.inc"
 
-/// Bridge's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit quad's packed vertex byte offsets and white color, then two group ends and the stream end.
+/// Bridge's outline: one quad.
 #include "assets/rooms/akropolis/map/bridge.inc"
 
-/// Fire escape's map footprint in integer model X/Z coordinates, with Y zero.
-/// One unlit quad's packed vertex byte offsets and white color, then two group ends and the stream end.
+/// Fire escape's outline: one quad.
 #include "assets/rooms/akropolis/map/fire_escape.inc"
 
-/// West elevator hall's map footprint in integer model X/Z coordinates, with Y zero.
-/// Two unlit triangles and six unlit quads, with packed vertex byte offsets and white color, then two group ends and the stream end.
+/// West elevator hall's outline: two triangles and six quads,.
 #include "assets/rooms/akropolis/map/west_elevator_hall.inc"

@@ -183,12 +183,12 @@ static inline s32 _areaHasMapMark(const GameLocationKey* key)
     return 0;
 }
 
-/// Initial Acropolis/M.I.S.T. map marks, ended by AREA_MAP_MARK_END.
+/// Initial Akropolis and MIST map marks, ended by AREA_MAP_MARK_END.
 ///
 /// True choices set the area's saved map-mark bit; false choices leave it
 /// unchanged. The final zero record after the terminator is unread and its
 /// purpose is unproven; retain it with the list's twenty-record extent.
-static _AreaMapMarkRec _gAreaAcropolisNewGameMapMarks[20] = {
+static _AreaMapMarkRec _gAreaAkropolisNewGameMapMarks[20] = {
     { GAME_AREA_AKROPOLIS_SQUARE, false },
     { GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, false },
     { GAME_AREA_AKROPOLIS_PATIO, true },
@@ -363,7 +363,7 @@ static inline void _areaApplyNewGameMapMarksForStage(s16 stageId, const _AreaMap
 
 void areaApplyNewGameMapMarks(void)
 {
-    _areaApplyNewGameMapMarksForStage(GAME_STAGE_AKROPOLIS, _gAreaAcropolisNewGameMapMarks);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_AKROPOLIS, _gAreaAkropolisNewGameMapMarks);
     _areaApplyNewGameMapMarksForStage(GAME_STAGE_DRYFIELD, _gAreaDryfieldNewGameMapMarks);
     _areaApplyNewGameMapMarksForStage(GAME_STAGE_MINE_SHELTER, _gAreaMineShelterNewGameMapMarks);
     _areaApplyNewGameMapMarksForStage(GAME_STAGE_SHELTER_NEO_ARK, _gAreaShelterNeoArkNewGameMapMarks);
@@ -482,7 +482,7 @@ static inline s16 _menuMapReadMarkerState(const u16* flagEntries, s16 markerInde
 s16 menuMapGetMarkerState(s16 markerIndex)
 {
     enum {
-        MENU_MAP_ACROPOLIS_MARKER_COUNT            = ARRAY_SIZE(gAkropolisStageMarkerFlags),
+        MENU_MAP_AKROPOLIS_MARKER_COUNT            = ARRAY_SIZE(gAkropolisStageMarkerFlags),
         MENU_MAP_DRYFIELD_MARKER_COUNT             = ARRAY_SIZE(gMapDryfieldMarkerFlags),
         MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT       = ARRAY_SIZE(gMapDryfieldFullMarkerFlags),
         MENU_MAP_SHELTER_MARKER_COUNT              = ARRAY_SIZE(gMapShelterMarkerFlags),
@@ -493,7 +493,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
 
     switch (gGameSession->location.stage) {
         case GAME_STAGE_AKROPOLIS:
-            if (markerIndex >= MENU_MAP_ACROPOLIS_MARKER_COUNT) {
+            if (markerIndex >= MENU_MAP_AKROPOLIS_MARKER_COUNT) {
                 break;
             }
             return _menuMapReadMarkerState(gAkropolisStageMarkerFlags, markerIndex);

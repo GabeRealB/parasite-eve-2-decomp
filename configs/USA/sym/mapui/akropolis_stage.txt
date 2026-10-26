@@ -155,7 +155,7 @@ gAkropolisFireEscapeSurfacePropertiesByClass = 0x80183020; // absolute:True owne
 akropolisHelicopterLandingPadLiftTask = 0x8017D964; // type:func absolute:True owner=akropolis_helicopter_landing_pad shared=rooms
 akropolisHelicopterLandingPadRoomTask = 0x8017EB00; // type:func absolute:True owner=akropolis_helicopter_landing_pad
 akropolisHelicopterLandingPadPickupModelTask = 0x801822B0; // type:func absolute:True owner=akropolis_helicopter_landing_pad
-gAkropolisHelicopterLandingPadAkropolisHelicopterLandingPadModel0547C = 0x801836EC; // absolute:True owner=akropolis_helicopter_landing_pad
+gAkropolisHelicopterLandingPadLiftModel = 0x801836EC; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadCollisionRoomResources = 0x80184F10; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadViewMaps = 0x80184F3C; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadViewCounts = 0x80184F40; // absolute:True owner=akropolis_helicopter_landing_pad shared=rooms

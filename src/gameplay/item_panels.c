@@ -365,15 +365,15 @@ const MenuMapAreaShape* const gMenuMapAreaShapeTables[MENU_MAP_STAGE_COUNT] __at
     gMapNeoArkAreaShapes,
 };
 
-/// Map recipe defaults and the isolated Acropolis/MIST navigation boundary.
+/// Map recipe defaults and the isolated Akropolis and MIST navigation boundary.
 enum {
-    MENU_MAP_ACROPOLIS_NAVIGATION_LAST_PAGE = 2,
+    MENU_MAP_AKROPOLIS_NAVIGATION_LAST_PAGE = 2,
     MENU_MAP_AREA_NAME_PANEL_UNTITLED_STYLE = 3,
     MENU_MAP_HELP_INITIAL_FILE_INDEX        = 1
 };
 
 const u8 gMenuMapNavigationLastPages[MENU_MAP_STAGE_COUNT] __attribute__((section(".data"))) = {
-    MENU_MAP_ACROPOLIS_NAVIGATION_LAST_PAGE,
+    MENU_MAP_AKROPOLIS_NAVIGATION_LAST_PAGE,
     MAP_DRYFIELD_PAGE_COUNT,
     MAP_DRYFIELD_FULL_PAGE_COUNT,
     MAP_SHELTER_PAGE_COUNT,

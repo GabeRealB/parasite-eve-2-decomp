@@ -5,23 +5,14 @@
 #include "types.h"
 
 #include "gameplay/area_flags.h"
-#include "gameplay/areaplace.h"
-#include "gameplay/battle_reward.h"
-#include "gameplay/direction.h"
 #include "gameplay/item_menu.h"
 #include "gameplay/items.h"
-#include "gameplay/map.h"
 #include "gameplay/object_task.h"
-#include "gameplay/room.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
 
 #include "main/areas.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
-#include "main/gameflag_ids.h"
-#include "main/gfx_types.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/session_types.h"
@@ -33,8 +24,6 @@
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/ui_types.h"
-
-#include "stages/akropolis/map.h"
 
 #include "stages/akropolis/rooms/bridge.h"
 
@@ -55,8 +44,6 @@
 #include "stages/akropolis/rooms/observatory.h"
 
 #include "stages/akropolis/rooms/patio.h"
-
-#include "stages/akropolis/rooms/plaza.h"
 
 #include "stages/akropolis/rooms/promenade.h"
 
@@ -80,137 +67,43 @@
 
 #include "assets/rooms/akropolis/declarations.inc"
 
-/* The Akropolis stage's map UI overlay (stage 1, Akropolis and MIST): its
- * stream setup, the key-item panel, and the per-stage tables gameplay and main
- * index by stage, most of which point into the stage's room packages or at the
- * map pictures' marker models.
+/* The Akropolis stage overlay (stage 1: Akropolis and the MIST), resident while any of its rooms is loaded: the
+ * per-stage tables gameplay and main index by stage (decoded data, rooms/akropolis/stage.toml, included below), the
+ * placed objects' spawn recipes and the rooms' tasks, the movie buffer layout per area and the MIST briefing's
+ * key-item menu.
  */
-
-/// Placement-entry keys matched against each selected room variant's resource list.
-///
-/// Keys identify recipes within that list, rather than actor-file numbers.
-/// UNUSED retains a record position without matching these variants' recipes.
-enum {
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_UNUSED            = 0,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_RAT               = 7,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_MOTH              = 8,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_STRANGER          = 10,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_MOSSBACK          = 11,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_MIND_SUCKLER      = 15,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SCAVENGER         = 16,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_ODD_STRANGER      = 18,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_GRINNING_STRANGER = 19,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_PAWN_GOLEM        = 20,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_KNIGHT_GOLEM      = 22,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_AMOEBA            = 24,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SCORPION          = 25,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_CATERPILLAR       = 26,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_NO9_GOLEM         = 27,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_BAT               = 37,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_BLACK_BEETLE      = 38,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_BRIDGE_ENEMY      = 41,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SUCKLERCEPH       = 46,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SKULL_STALKER     = 47,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_LARGE_MOSSBACK    = 49,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_MAGGOT            = 55,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SLOUCH            = 70,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_CREEPING_STRANGER = 72,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_RUPERT            = 102,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_VIEW_FIGURE       = 110,
-};
-
-/// Actor-specific placement modes and variant spawn selectors used below.
-///
-/// Crawlers use the decimal entrance suffix for leap/drop and variant 0..3
-/// for their entrance slot; the Pawn uses variant as patrol distance in thousands
-/// of world units. These constants retain the records' byte/halfword storage.
-enum {
-    AKROPOLIS_STAGE_PLACEMENT_CRAWLER_DORMANT                = 0,
-    AKROPOLIS_STAGE_PLACEMENT_CRAWLER_AIMED                  = 1,
-    AKROPOLIS_STAGE_PLACEMENT_CRAWLER_HANG_LEADER            = 2,
-    AKROPOLIS_STAGE_PLACEMENT_CRAWLER_HANG_FOLLOWER          = 3,
-    AKROPOLIS_STAGE_PLACEMENT_CRAWLER_LEAP_ENTRANCE          = 10,
-    AKROPOLIS_STAGE_PLACEMENT_CRAWLER_DROP_ENTRANCE          = 11,
-    AKROPOLIS_STAGE_PLACEMENT_SCORPION_ROAM                  = 0,
-    AKROPOLIS_STAGE_PLACEMENT_SCORPION_AMBUSH_LEADER         = 1,
-    AKROPOLIS_STAGE_PLACEMENT_BAT_PERCH_DROP                 = 0,
-    AKROPOLIS_STAGE_PLACEMENT_BAT_PERCH_BACK                 = 1,
-    AKROPOLIS_STAGE_PLACEMENT_BAT_WANDER                     = 2,
-    AKROPOLIS_STAGE_PLACEMENT_BAT_SCRIPTED_ENTRANCE          = 30,
-    AKROPOLIS_STAGE_PLACEMENT_AMOEBA_VARIANT_NORMAL          = 0,
-    AKROPOLIS_STAGE_PLACEMENT_AMOEBA_VARIANT_ALTERNATE       = 1,
-    AKROPOLIS_STAGE_PLACEMENT_BLACK_BEETLE_IDLE              = 0,
-    AKROPOLIS_STAGE_PLACEMENT_BLACK_BEETLE_WANDER            = 1,
-    AKROPOLIS_STAGE_PLACEMENT_MIND_SUCKLER_PERCH             = 1,
-    AKROPOLIS_STAGE_PLACEMENT_PAWN_GOLEM_PATROL              = 1,
-    AKROPOLIS_STAGE_PLACEMENT_STRANGER_SCRIPTED_DORMANT      = 4,
-    AKROPOLIS_STAGE_PLACEMENT_MOSSBACK_AWARENESS_NEAR        = 0,
-    AKROPOLIS_STAGE_PLACEMENT_MOSSBACK_AWARENESS_RUN_OR_NEAR = 1,
-};
-
-/// Additional resource-list keys used by the Acropolis actor layouts.
-///
-/// Keys select recipes within the paired variant, not actor file IDs. Entry 9
-/// has no recipe in Patio variant 10. Entry 110 selects a SWAT actor in the
-/// Security room, independently of the East elevator hall's view figure.
-enum {
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_PATIO_UNMATCHED = 9,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_BONE_SUCKLER    = 12,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_WOMAN           = 29,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_ROOK_GOLEM      = 57,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SWAT_MEMBER     = 107,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_OFFICER         = 108,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SERGEANT        = 109,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SECURITY_SWAT   = 110,
-};
-
-/// Spawn selectors interpreted by the actors used in these layouts.
-///
-/// Stranger behavior occupies the placement's variant byte. STALK combines
-/// with its low-nibble opening state. Boss movement tuning is in mode bits
-/// 4..7. Bone Suckler variant 1 starts idle; the Rook's mode bit 0 patrols and
-/// its variant measures patrol length in thousands of world units.
-enum {
-    AKROPOLIS_STAGE_PLACEMENT_STRANGER_TUNING_FIRST = 2,
-    AKROPOLIS_STAGE_PLACEMENT_ODD_STRANGER_STALK    = 0x10,
-    AKROPOLIS_STAGE_PLACEMENT_BOSS_HIDDEN_RESTORED  = 1,
-    AKROPOLIS_STAGE_PLACEMENT_BOSS_MOVEMENT_LARGEST = 0x20,
-    AKROPOLIS_STAGE_PLACEMENT_BONE_SUCKLER_PATROL   = 0,
-    AKROPOLIS_STAGE_PLACEMENT_BONE_SUCKLER_IDLE     = 1,
-    AKROPOLIS_STAGE_PLACEMENT_ROOK_GOLEM_PATROL     = 1,
-};
 
 static void _akropolisStageDrawKeyItemRow(UiList* list, UiObject* object);
 static void _akropolisStageKeyItemPanelTask(Task* task);
 static void _akropolisStageKeyItemMenuTask(Task* task);
 
-/// Catalog row count, task priority and panel spacing of the briefing menu.
+/// The briefing menu's rows and their height in pixels.
 enum {
-    AKROPOLIS_STAGE_BRIEFING_ITEM_COUNT        = 4,
-    AKROPOLIS_STAGE_KEY_ITEM_ROW_HEIGHT_PIXELS = 15,
+    BRIEFING_ITEM_COUNT = 4,
+    KEY_ITEM_ROW_HEIGHT = 15,
 };
 
 static const char   _gAkropolisStageKeyItemPanelTitle[12];
 static s32          _gAkropolisStageDryfieldMapOpened;
-static s32          _gAkropolisStageBriefingItemIds[AKROPOLIS_STAGE_BRIEFING_ITEM_COUNT];
+static s32          _gAkropolisStageBriefingItemIds[BRIEFING_ITEM_COUNT];
 static UiList       _gAkropolisStageKeyItemList;
 static UiObjectDesc _gAkropolisStageKeyItemPanelDescriptor;
 static TaskDesc     _gAkropolisStageKeyItemMenuTaskDescriptor;
 
 /// Movie ring byte extent and decoded-column staging origins in VRAM words/rows.
 enum {
-    AKROPOLIS_STAGE_MOVIE_RING_BYTES               = 0x10000,
-    AKROPOLIS_STAGE_MOVIE_PLAZA_STAGING_X_WORDS    = 704,
-    AKROPOLIS_STAGE_MOVIE_FOUNTAIN_STAGING_X_WORDS = 384,
-    AKROPOLIS_STAGE_MOVIE_FOUNTAIN_STAGING_Y_ROWS  = 256,
+    MOVIE_RING_BYTES         = 0x10000,
+    PLAZA_MOVIE_STAGING_X    = 704,
+    FOUNTAIN_MOVIE_STAGING_X = 384,
+    FOUNTAIN_MOVIE_STAGING_Y = 256,
 };
 
 /// Lifecycle steps and teardown delay of the key-item display-mode task.
 enum {
-    AKROPOLIS_STAGE_KEY_ITEM_MENU_START       = 0,
-    AKROPOLIS_STAGE_KEY_ITEM_MENU_ACTIVE      = 1,
-    AKROPOLIS_STAGE_KEY_ITEM_MENU_CLOSING     = 2,
-    AKROPOLIS_STAGE_KEY_ITEM_MENU_CLOSE_TICKS = 10,
+    KEY_ITEM_MENU_START       = 0,
+    KEY_ITEM_MENU_ACTIVE      = 1,
+    KEY_ITEM_MENU_CLOSING     = 2,
+    KEY_ITEM_MENU_CLOSE_TICKS = 10,
 };
 
 /// Places the VLC-expanded input buffers and two RGB16 decoded frames.
@@ -225,7 +118,7 @@ static inline void _akropolisStagePlaceMovieDecodeBuffers(size_t decodedFrameByt
 {
     u8* firstDecodedFrame;
 
-    gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + AKROPOLIS_STAGE_MOVIE_RING_BYTES);
+    gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MOVIE_RING_BYTES);
     gMdecMovieExpandedBuffers[1] = gStreamMovieWorkspace;
     firstDecodedFrame            = (u8*)gStreamMovieWorkspace + decodedFrameBytes;
     gMdecMovieOutputBuffers[0]   = (u_long*)firstDecodedFrame;
@@ -245,10 +138,10 @@ void akropolisStageSetupMovieBuffers(const GameLocationKey* location)
     switch (location->area) {
         case GAME_AREA_AKROPOLIS_PLAZA:
             queue->movieVramStaging        = 1;
-            queue->movieStagingX           = AKROPOLIS_STAGE_MOVIE_PLAZA_STAGING_X_WORDS;
+            queue->movieStagingX           = PLAZA_MOVIE_STAGING_X;
             gStreamMovieReleasePauseOnStop = false;
             queue->movieStagingY           = 0;
-            gMdecMovieExpandedBuffers[0]   = (u_long*)((u8*)gStreamMovieRingBuffer + AKROPOLIS_STAGE_MOVIE_RING_BYTES);
+            gMdecMovieExpandedBuffers[0]   = (u_long*)((u8*)gStreamMovieRingBuffer + MOVIE_RING_BYTES);
             gMdecMovieExpandedBuffers[1]   = gStreamMovieWorkspace;
             gMdecMovieOutputBuffers[1]     = (u_long*)((u8*)gStreamMovieWorkspace + gStreamMovieWidthPixels * gStreamMovieHeightRows);
             gMdecMovieOutputBuffers[0]     = gMdecMovieOutputBuffers[1];
@@ -258,12 +151,12 @@ void akropolisStageSetupMovieBuffers(const GameLocationKey* location)
             do {
                 stagingEnabled = 1;
             } while (0);
-            queue->movieStagingX           = AKROPOLIS_STAGE_MOVIE_FOUNTAIN_STAGING_X_WORDS;
-            queue->movieStagingY           = AKROPOLIS_STAGE_MOVIE_FOUNTAIN_STAGING_Y_ROWS;
+            queue->movieStagingX           = FOUNTAIN_MOVIE_STAGING_X;
+            queue->movieStagingY           = FOUNTAIN_MOVIE_STAGING_Y;
             gStreamMovieBackgroundPlayback = stagingEnabled;
             queue->movieVramStaging        = stagingEnabled;
             fountainFrameBytes             = gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
-            gMdecMovieExpandedBuffers[0]   = (u_long*)((u8*)gStreamMovieRingBuffer + AKROPOLIS_STAGE_MOVIE_RING_BYTES);
+            gMdecMovieExpandedBuffers[0]   = (u_long*)((u8*)gStreamMovieRingBuffer + MOVIE_RING_BYTES);
             gMdecMovieOutputBuffers[0]     = gStreamMovieWorkspace;
             gMdecMovieExpandedBuffers[1]   = (u_long*)((u8*)gMdecMovieExpandedBuffers[0] + fountainFrameBytes);
             gMdecMovieOutputBuffers[1]     = (u_long*)((u8*)gMdecMovieOutputBuffers[0] + fountainFrameBytes);
@@ -278,14 +171,14 @@ void akropolisStageSetupMovieBuffers(const GameLocationKey* location)
             break;
         case GAME_AREA_AKROPOLIS_PROMENADE:
             promenadePixelCount          = gStreamMovieWidthPixels * gStreamMovieHeightRows;
-            gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + AKROPOLIS_STAGE_MOVIE_RING_BYTES);
+            gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MOVIE_RING_BYTES);
             gMdecMovieExpandedBuffers[1] = gStreamMovieWorkspace;
             gMdecMovieOutputBuffers[0]   = (u_long*)((u8*)gStreamMovieWorkspace + promenadePixelCount * 3 / 2);
             gMdecMovieOutputBuffers[1]   = (u_long*)((u8*)gMdecMovieOutputBuffers[0] + promenadePixelCount * 2);
             break;
         case GAME_AREA_AKROPOLIS_BRIDGE:
             bridgePixelCount             = gStreamMovieWidthPixels * gStreamMovieHeightRows;
-            gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + AKROPOLIS_STAGE_MOVIE_RING_BYTES);
+            gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MOVIE_RING_BYTES);
             gMdecMovieOutputBuffers[0]   = gStreamMovieWorkspace;
             gMdecMovieExpandedBuffers[1] = (u_long*)((u8*)gMdecMovieExpandedBuffers[0] + bridgePixelCount * 3 / 2);
             gMdecMovieOutputBuffers[1]   = (u_long*)((u8*)gMdecMovieOutputBuffers[0] + bridgePixelCount * 2);
@@ -304,7 +197,7 @@ void akropolisStageSetupMovieBuffers(const GameLocationKey* location)
 /// immediately, before the detail child reports its result.
 static void _akropolisStageDrawKeyItemRow(UiList* list, UiObject* object)
 {
-    enum { AKROPOLIS_STAGE_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX = 45 };
+    enum { DETAIL_DESCRIPTOR_INDEX = 45 };
     s32 itemId;
     s32 inputEnabled;
 
@@ -319,7 +212,7 @@ static void _akropolisStageDrawKeyItemRow(UiList* list, UiObject* object)
     if (inputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&gItemMenuPanelDescriptors[AKROPOLIS_STAGE_KEY_ITEM_DETAIL_DESCRIPTOR_INDEX], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            uiSpawnObject(&gItemMenuPanelDescriptors[DETAIL_DESCRIPTOR_INDEX], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             if (itemId == INVENTORY_COLLECTION_ID_DRYFIELD_MAP) {
                 _gAkropolisStageDryfieldMapOpened = inputEnabled;
@@ -335,7 +228,7 @@ static void _akropolisStageDrawKeyItemRow(UiList* list, UiObject* object)
 /// resumes list input, while cancel propagates to the menu host.
 static void _akropolisStageKeyItemPanelTask(Task* task)
 {
-    enum { AKROPOLIS_STAGE_KEY_ITEM_PANEL_INITIALIZE = 0 };
+    enum { INITIALIZE = 0 };
     UiObject* object;
     UiList*   list;
     UiObject* detailObject;
@@ -345,7 +238,7 @@ static void _akropolisStageKeyItemPanelTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, _gAkropolisStageKeyItemPanelTitle);
-    if (task->state == AKROPOLIS_STAGE_KEY_ITEM_PANEL_INITIALIZE) {
+    if (task->state == INITIALIZE) {
         uiFitPanelToList(list, &object->panel);
         list->flags           = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         task->spawnArg1.value = -1;
@@ -380,7 +273,7 @@ static void _akropolisStageKeyItemMenuTask(Task* task)
     UiObject* object;
     s16       result;
 
-    if (task->state == AKROPOLIS_STAGE_KEY_ITEM_MENU_START) {
+    if (task->state == KEY_ITEM_MENU_START) {
         stageEnsureHeapTaskPrimitiveBuffer();
         itemMenuClearPreviewItems();
         object = uiSpawnObject(&_gAkropolisStageKeyItemPanelDescriptor, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
@@ -393,18 +286,18 @@ static void _akropolisStageKeyItemMenuTask(Task* task)
         task->state            += 1;
     }
 
-    if (task->state == AKROPOLIS_STAGE_KEY_ITEM_MENU_ACTIVE) {
+    if (task->state == KEY_ITEM_MENU_ACTIVE) {
         object = task->spawnArg2.pointer;
         result = object->result;
         if ((result == USER_INTERFACE_RESULT_CANCEL) || (result == USER_INTERFACE_RESULT_CONFIRM)) {
             uiStartTreeClosing(object, object->owner);
-            task->killCountdown = AKROPOLIS_STAGE_KEY_ITEM_MENU_CLOSE_TICKS;
-            task->state         = AKROPOLIS_STAGE_KEY_ITEM_MENU_CLOSING;
+            task->killCountdown = KEY_ITEM_MENU_CLOSE_TICKS;
+            task->state         = KEY_ITEM_MENU_CLOSING;
         }
     }
 
     // Keep the primitive storage until the UI closing animation has run.
-    if (task->state == AKROPOLIS_STAGE_KEY_ITEM_MENU_CLOSING) {
+    if (task->state == KEY_ITEM_MENU_CLOSING) {
         task->killCountdown -= 1;
         if (task->killCountdown <= 0) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
@@ -439,236 +332,92 @@ s32 akropolisStageWasDryfieldMapSelected(void)
     return _gAkropolisStageDryfieldMapOpened;
 }
 
-/// Page IDs used by the map records; MIST's page cannot navigate to Acropolis.
+/// Object kinds the spawn tables pair recipes with: an item's catalog id, or a room prop's key.
 enum {
-    AKROPOLIS_STAGE_PAGE_TOWER          = 1,
-    AKROPOLIS_STAGE_PAGE_LANDING_PAD    = 2,
-    AKROPOLIS_STAGE_PAGE_MIST           = 3,
-    AKROPOLIS_STAGE_PAGE_NAVIGATION_END = 0xFF,
+    KIND_STIM               = 0x4,
+    KIND_LANDING_PAD_PICKUP = 0xA4, // an empty catalog slot; no place selects it
+    KIND_LANDING_PAD_LIFT   = 0x204,
+    KIND_SECURITY_ROOM_LID  = 0x701,
+    KIND_SANCTUARY_LID      = 0x702,
 };
-
-/// Fixed icon picture and cafeteria objective number used by this map.
-enum {
-    AKROPOLIS_STAGE_ICON_KIND_FIXED_PICTURE = 0,
-    AKROPOLIS_STAGE_OBJECTIVE_CAFETERIA     = 2,
-};
-
-/// Initial saved object states used by this stage's placements.
-///
-/// Available objects can be collected; collected state suppresses pickup models.
-/// Replenishable ammunition grants a full stack and is not marked collected.
-enum {
-    AKROPOLIS_STAGE_STATE_AVAILABLE     = 1,
-    AKROPOLIS_STAGE_STATE_COLLECTED     = 2,
-    AKROPOLIS_STAGE_STATE_REPLENISHABLE = 3,
-};
-
-/// Catalog kinds and room-prop recipes in this stage's object tables.
-///
-/// The low-bank values are item catalog IDs. The additional landing-pad
-/// pickup kind selects an empty catalog slot and has no placement here.
-enum {
-    AKROPOLIS_STAGE_KIND_RECOVERY_1                    = 0x1,
-    AKROPOLIS_STAGE_KIND_RECOVERY_2                    = 0x2,
-    AKROPOLIS_STAGE_KIND_STIM                          = 0x4,
-    AKROPOLIS_STAGE_KIND_MP_BOOST_2                    = 0x7,
-    AKROPOLIS_STAGE_KIND_PENICILLIN                    = 0x8,
-    AKROPOLIS_STAGE_KIND_PROTEIN_CAPSULE               = 0x3C,
-    AKROPOLIS_STAGE_KIND_TACTICAL_VEST                 = 0x65,
-    AKROPOLIS_STAGE_KIND_GRENADE_PISTOL                = 0x8A,
-    AKROPOLIS_STAGE_KIND_MP5A5                         = 0x9D,
-    AKROPOLIS_STAGE_KIND_9MM_PARABELLUM                = 0xA0,
-    AKROPOLIS_STAGE_KIND_GRENADE                       = 0xA9,
-    AKROPOLIS_STAGE_KIND_MICRO_DEVICE                  = 0x102,
-    AKROPOLIS_STAGE_KIND_HELICOPTER_LANDING_PAD_LIFT   = 0x204,
-    AKROPOLIS_STAGE_KIND_SECURITY_ROOM_CONTAINER_LID   = 0x701,
-    AKROPOLIS_STAGE_KIND_SANCTUARY_CONTAINER_LID       = 0x702,
-    AKROPOLIS_STAGE_KIND_SQUARE_SAVE_POINT             = 0x801,
-    AKROPOLIS_STAGE_KIND_HELICOPTER_LANDING_PAD_PICKUP = 0xA4,
-};
-
-/// Indices of this stage's saved two-bit object states (sixteen per word).
-enum {
-    AKROPOLIS_STAGE_OBJECT_SLOT_SQUARE_AMMUNITION                = 0x1,
-    AKROPOLIS_STAGE_OBJECT_SLOT_SQUARE_FIRST_RECOVERY_2          = 0xA,
-    AKROPOLIS_STAGE_OBJECT_SLOT_SQUARE_SECOND_RECOVERY_2         = 0x17,
-    AKROPOLIS_STAGE_OBJECT_SLOT_SQUARE_RECOVERY_1                = 0x1B,
-    AKROPOLIS_STAGE_OBJECT_SLOT_SQUARE_SAVE_POINT                = 0x2E,
-    AKROPOLIS_STAGE_OBJECT_SLOT_EAST_ELEVATOR_HALL_PARTHENON_KEY = 0x2,
-    AKROPOLIS_STAGE_OBJECT_SLOT_CAFETERIA_MICRO_DEVICE           = 0x3,
-    AKROPOLIS_STAGE_OBJECT_SLOT_CAFETERIA_MENDEL_JOURNAL         = 0x4,
-    AKROPOLIS_STAGE_OBJECT_SLOT_CAFETERIA_STIM                   = 0x9,
-    AKROPOLIS_STAGE_OBJECT_SLOT_CAFETERIA_RECOVERY_1             = 0x16,
-    AKROPOLIS_STAGE_OBJECT_SLOT_HALLWAY_BLUE_KEY                 = 0xB,
-    AKROPOLIS_STAGE_OBJECT_SLOT_FOUNTAIN_PROTEIN_CAPSULE         = 0xC,
-    AKROPOLIS_STAGE_OBJECT_SLOT_FOUNTAIN_GRENADE_PISTOL          = 0xD,
-    AKROPOLIS_STAGE_OBJECT_SLOT_FOUNTAIN_MP_BOOST_2              = 0xE,
-    AKROPOLIS_STAGE_OBJECT_SLOT_FORKED_ROAD_PENICILLIN           = 0x18,
-    AKROPOLIS_STAGE_OBJECT_SLOT_OBSERVATORY_TACTICAL_VEST        = 0x10,
-    AKROPOLIS_STAGE_OBJECT_SLOT_PROMENADE_GRENADES               = 0x12,
-    AKROPOLIS_STAGE_OBJECT_SLOT_PROMENADE_MP5A5                  = 0x15,
-    AKROPOLIS_STAGE_OBJECT_SLOT_SANCTUARY_RED_KEY                = 0x1C,
-    AKROPOLIS_STAGE_OBJECT_SLOT_HELICOPTER_LANDING_PAD_LIFT      = 0x28,
-};
-
-/// Additional saved-state slots and object kinds for the Roof garden, Fire escape and MIST.
-///
-/// Slots index the Acropolis bank's four packed state words, in 0..63. Prize
-/// slots 0x20..0x24 correspond to shooting-gallery courses 0..4. Save-point kinds
-/// publish their full bank-8 key; bank 7 selects the parking item container.
-/// Bit 8 of the saved-state initializer is retained metadata with no reader.
-enum {
-    AKROPOLIS_STAGE_OBJECT_SLOT_ROOF_GARDEN_ARMORY_CARDKEY = 0x13,
-    AKROPOLIS_STAGE_OBJECT_SLOT_FIRE_ESCAPE_SAVE_POINT     = 0x2F,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_SAVE_POINT    = 0x2D,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_ITEM_BOX      = 0x1E,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_RECOVERY_3_1  = 0x1A,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_RECOVERY_3_2  = 0x1F,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_PRIZE_0       = 0x20,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_PRIZE_1       = 0x21,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_PRIZE_2       = 0x22,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_PRIZE_3       = 0x23,
-    AKROPOLIS_STAGE_OBJECT_SLOT_MIST_PARKING_PRIZE_4       = 0x24,
-    AKROPOLIS_STAGE_KIND_RECOVERY_3                        = 0x3,
-    AKROPOLIS_STAGE_KIND_LIPSTICK                          = 0xB,
-    AKROPOLIS_STAGE_KIND_RINGERS_SOLUTION                  = 0x3D,
-    AKROPOLIS_STAGE_KIND_HUNTER_GOGGLES                    = 0x3F,
-    AKROPOLIS_STAGE_KIND_SHOULDER_HOLSTER                  = 0x6C,
-    AKROPOLIS_STAGE_KIND_9MM_HYDRA                         = 0xA1,
-    AKROPOLIS_STAGE_KIND_MIST_PARKING_ITEM_BOX             = 0x703,
-    AKROPOLIS_STAGE_KIND_FIRE_ESCAPE_SAVE_POINT            = 0x802,
-    AKROPOLIS_STAGE_KIND_MIST_PARKING_SAVE_POINT           = 0x803,
-    AKROPOLIS_STAGE_OBJECT_STATE_UNREAD_BIT_8              = 0x100,
-};
-
-/// Execution priority of the placed-object model tasks.
 
 #include "assets/rooms/akropolis/memory.inc"
 #define ROOM_PART gAkropolisStagePageFlagIds
 #include "assets/rooms/akropolis/map.inc"
 
-/// Empty model-spawn list for the Square.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The square's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageSquareObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for the East elevator hall.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The east elevator hall's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageEastElevatorHallObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Stim and Mendel-journal model-spawn recipes for the Cafeteria.
-///
-/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
-/// its placement list. Callbacks and borrowed models require their room
-/// overlay to remain loaded for the spawned task.
+/// The cafeteria's object spawns: the Stim and Mendel's journal.
 static AreaObjectSpawn _gAkropolisStageCafeteriaObjectSpawns[3] = {
-    { AKROPOLIS_STAGE_KIND_STIM, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisCafeteriaStimPickupTask, { &gAkropolisCafeteriaStimPickupModel } } },
+    { KIND_STIM, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisCafeteriaStimPickupTask, { &gAkropolisCafeteriaStimPickupModel } } },
     { INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisCafeteriaMendelPickupTask, { &gAkropolisCafeteriaMendelJournalModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Container-lid model-spawn recipe for the Security room.
-///
-/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
-/// its placement list. Callbacks and borrowed models require their room
-/// overlay to remain loaded for the spawned task.
-/// The area's empty placement list selects none of these recipes.
+/// The security room's object spawns: the item box lid, which no place selects.
 static AreaObjectSpawn _gAkropolisStageSecurityRoomObjectSpawns[2] = {
-    { AKROPOLIS_STAGE_KIND_SECURITY_ROOM_CONTAINER_LID, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gAkropolisSecurityRoomItemBoxModel } } },
+    { KIND_SECURITY_ROOM_LID, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gAkropolisSecurityRoomItemBoxModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Blue-key model-spawn recipe for the Hallway.
-///
-/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
-/// its placement list. Callbacks and borrowed models require their room
-/// overlay to remain loaded for the spawned task.
+/// The hallway's object spawns: the blue key.
 static AreaObjectSpawn _gAkropolisStageHallwayObjectSpawns[2] = {
     { INVENTORY_COLLECTION_ID_BLUE_KEY, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, akropolisHallwayBlueKeyPickupTask, { &gAkropolisHallwayBlueKeyPickupModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for the Fountain.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The fountain's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageFountainObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for the Forked road.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The forked road's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageForkedRoadObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for the Observatory.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The observatory's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageObservatoryObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for the Promenade.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The promenade's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStagePromenadeObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Red-key and container-lid model-spawn recipes for the Sanctuary.
-///
-/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
-/// its placement list. Callbacks and borrowed models require their room
-/// overlay to remain loaded for the spawned task.
-/// Only the red key has a matching placement; the lid recipe is unselected.
+/// The sanctuary's object spawns: the red key, and the item box lid, which no place selects.
 static AreaObjectSpawn _gAkropolisStageSanctuaryObjectSpawns[3] = {
     { INVENTORY_COLLECTION_ID_RED_KEY, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisSanctuaryItemVisibilityTask, { &gAkropolisSanctuaryRedKeyPickupModel } } },
-    { AKROPOLIS_STAGE_KIND_SANCTUARY_CONTAINER_LID, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gAkropolisSanctuaryItemBoxModel } } },
+    { KIND_SANCTUARY_LID, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gAkropolisSanctuaryItemBoxModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Armory-cardkey model-spawn recipe for the Roof garden.
-///
-/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
-/// its placement list. Callbacks and borrowed models require their room
-/// overlay to remain loaded for the spawned task.
+/// The roof garden's object spawns: the armory cardkey.
 static AreaObjectSpawn _gAkropolisStageRoofGardenObjectSpawns[2] = {
     { INVENTORY_COLLECTION_ID_ARMORY_CARDKEY, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, akropolisRoofGardenPickupModelTask, { &gAkropolisRoofGardenArmoryCardkeyPickupModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for the Fire escape.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The fire escape's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageFireEscapeObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for the West elevator hall.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`; the paired placement list is also
-/// empty, so this area seeds no object state and instantiates no object model.
+/// The west elevator hall's object spawns: none, and no places.
 static AreaObjectSpawn _gAkropolisStageWestElevatorHallObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-/// Empty model-spawn list for MIST parking.
-///
-/// Contains only `AREA_OBJECT_SPAWN_END`. Its places still seed saved states
-/// and supply pickup metadata, but instantiate no model from this table.
+/// The MIST parking lot's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageMistParkingObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
@@ -676,19 +425,12 @@ static AreaObjectSpawn _gAkropolisStageMistParkingObjectSpawns[1] = {
 #define ROOM_PART _gAkropolisStageHelicopterLandingPadObjectPlaces
 #include "assets/rooms/akropolis/objects.inc"
 
-/// Lift and additional pickup model-spawn recipes for the Helicopter landing pad.
-///
-/// Ended by `AREA_OBJECT_SPAWN_END`; the owning area pairs this table with
-/// its placement list. Callbacks and borrowed models require their room
-/// overlay to remain loaded for the spawned task.
-/// Only the lift has a matching placement; the pickup recipe is unselected.
+/// The landing pad's object spawns: the lift, and the pickup, which no place selects.
 static AreaObjectSpawn _gAkropolisStageHelicopterLandingPadObjectSpawns[3] = {
-    { AKROPOLIS_STAGE_KIND_HELICOPTER_LANDING_PAD_LIFT, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, akropolisHelicopterLandingPadLiftTask, { &gAkropolisHelicopterLandingPadAkropolisHelicopterLandingPadModel0547C } } },
-    { AKROPOLIS_STAGE_KIND_HELICOPTER_LANDING_PAD_PICKUP, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisHelicopterLandingPadPickupModelTask, { &gAkropolisHelicopterLandingPadAmmunitionPickupModel } } },
+    { KIND_LANDING_PAD_LIFT, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, akropolisHelicopterLandingPadLiftTask, { &gAkropolisHelicopterLandingPadLiftModel } } },
+    { KIND_LANDING_PAD_PICKUP, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisHelicopterLandingPadPickupModelTask, { &gAkropolisHelicopterLandingPadAmmunitionPickupModel } } },
     { AREA_OBJECT_SPAWN_END },
 };
-
-/// Priority required by the room-controller descriptor search.
 
 #define ROOM_PART gAkropolisStageObjectRooms
 #include "assets/rooms/akropolis/objects.inc"
@@ -726,7 +468,7 @@ static s32 _gAkropolisStageDryfieldMapOpened = 0;
 /// Collection catalog IDs shown and granted by the MIST briefing menu.
 ///
 /// Row indices 0..3 select signed-word IDs; names come from the item catalog.
-static s32 _gAkropolisStageBriefingItemIds[AKROPOLIS_STAGE_BRIEFING_ITEM_COUNT] = {
+static s32 _gAkropolisStageBriefingItemIds[BRIEFING_ITEM_COUNT] = {
     INVENTORY_COLLECTION_ID_MIST_SEARCH_WARRANT,
     INVENTORY_COLLECTION_ID_NMC_PHOTO,
     INVENTORY_COLLECTION_ID_MANUAL,
@@ -748,7 +490,7 @@ static UiList _gAkropolisStageKeyItemList = {
     .itemCount       = ARRAY_SIZE(_gAkropolisStageBriefingItemIds),
     .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gAkropolisStageBriefingItemIds) },
     .wrapNavigation  = 1,
-    .rowHeight       = AKROPOLIS_STAGE_KEY_ITEM_ROW_HEIGHT_PIXELS,
+    .rowHeight       = KEY_ITEM_ROW_HEIGHT,
 };
 
 /// Panel recipe for the briefing's key-item list and its detail children.
@@ -757,7 +499,7 @@ static UiList _gAkropolisStageKeyItemList = {
 /// 192 and ordering-table tag base 60. Spawning reads this recipe synchronously.
 static UiObjectDesc _gAkropolisStageKeyItemPanelDescriptor = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
-    .bounds          = { -100, -40, 200, AKROPOLIS_STAGE_BRIEFING_ITEM_COUNT* AKROPOLIS_STAGE_KEY_ITEM_ROW_HEIGHT_PIXELS },
+    .bounds          = { -100, -40, 200, BRIEFING_ITEM_COUNT* KEY_ITEM_ROW_HEIGHT },
     .otIndexSeed     = 60,
     .taskFlags       = TASK_BODY_NONE,
     .taskPriority    = TASK_PRIORITY_CONTROL,
@@ -766,7 +508,7 @@ static UiObjectDesc _gAkropolisStageKeyItemPanelDescriptor = {
 
 /// Bodyless display-mode host for the briefing's key-item UI tree.
 ///
-/// Runs at priority `TASK_PRIORITY_CONTROL`; spawning copies this map-owned recipe.
+/// Runs at priority `TASK_PRIORITY_CONTROL`; spawning copies this recipe, which the stage overlay owns.
 static TaskDesc _gAkropolisStageKeyItemMenuTaskDescriptor = {
     .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _akropolisStageKeyItemMenuTask,
@@ -779,47 +521,6 @@ static TaskDesc _gAkropolisStageKeyItemMenuTaskDescriptor = {
 #include "assets/rooms/akropolis/objects.inc"
 #include "assets/rooms/akropolis/rewards.inc"
 #include "assets/rooms/akropolis/music.inc"
-
-/// Door-marker nibble IDs shared with the corresponding room warp endpoints.
-enum {
-    AKROPOLIS_STAGE_MARKER_FLAG_BRIDGE_FIRE_ESCAPE      = 0x1EA,
-    AKROPOLIS_STAGE_MARKER_FLAG_PROMENADE_BRIDGE        = 0x1EB,
-    AKROPOLIS_STAGE_MARKER_FLAG_SANCTUARY_ROOF_GARDEN   = 0x1EC,
-    AKROPOLIS_STAGE_MARKER_FLAG_PROMENADE_SANCTUARY     = 0x1ED,
-    AKROPOLIS_STAGE_MARKER_FLAG_FOUNTAIN_FORKED_ROAD    = 0x1EF,
-    AKROPOLIS_STAGE_MARKER_FLAG_PATIO_FOUNTAIN          = 0x1F0,
-    AKROPOLIS_STAGE_MARKER_FLAG_HALLWAY_FOUNTAIN        = 0x1F1,
-    AKROPOLIS_STAGE_MARKER_FLAG_HALLWAY_SECURITY_ROOM   = 0x1F2,
-    AKROPOLIS_STAGE_MARKER_FLAG_CAFETERIA_HALLWAY_VIEW3 = 0x1F3,
-    AKROPOLIS_STAGE_MARKER_FLAG_CAFETERIA_HALLWAY_VIEW2 = 0x1F4,
-    AKROPOLIS_STAGE_MARKER_FLAG_PATIO_CAFETERIA         = 0x1F5,
-};
-
-/// Resource-entry keys for the scene actors in these placement lists.
-///
-/// These select each room variant's recipe, independently of actor-file IDs.
-enum {
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_GALLERY_MOUNT    = 76,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_BALDWIN          = 105,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_JODIE            = 115,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_PIERCE           = 143,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_SCENE_RUPERT     = 144,
-    AKROPOLIS_STAGE_PLACEMENT_ENTRY_HELICOPTER       = 254,
-    AKROPOLIS_STAGE_PLACEMENT_GALLERY_SPAWN_REJECTED = 0xFF,
-};
-
-/// Additional item catalog IDs selected by the Acropolis battle reward lists.
-enum {
-    AKROPOLIS_STAGE_REWARD_ITEM_MP_BOOST_1   = 6,
-    AKROPOLIS_STAGE_REWARD_ITEM_MD_PLAYER    = 14,
-    AKROPOLIS_STAGE_REWARD_ITEM_FLARE        = 0x3A,
-    AKROPOLIS_STAGE_REWARD_ITEM_PEPPER_SPRAY = 0x3B,
-    AKROPOLIS_STAGE_REWARD_ITEM_COMBAT_LIGHT = 0x41,
-    AKROPOLIS_STAGE_REWARD_ITEM_P08          = 0x83,
-    AKROPOLIS_STAGE_REWARD_ITEM_9MM_SPARTAN  = 0xA2,
-    AKROPOLIS_STAGE_REWARD_ITEM_AIRBURST     = 0xAA,
-    AKROPOLIS_STAGE_REWARD_ITEM_RIOT         = 0xAB,
-};
 
 /// NUL-terminated title displayed above the briefing's key-item list.
 ///

@@ -114,7 +114,7 @@ static s8 _gAkropolisHelicopterLandingPadLiftVisibleByView[36] = {
 #define ROOM_PART _gAkropolisHelicopterLandingPadLiftLowerStopPlacement
 #include "assets/rooms/akropolis/helicopter_landing_pad/events.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/akropolis_helicopter_landing_pad_model_0547C.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/lift_platform.inc"
 
 /// Initializes the lift's model, lighting and message handling.
 static void _akropolisHelicopterLandingPadLiftInit(Task* task)

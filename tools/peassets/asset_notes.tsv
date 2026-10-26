@@ -35,7 +35,7 @@ akropolis_hallway_collision_00D98	Collision grid of the Akropolis hallway (two c
 rooms/akropolis/hallway/blue_key_pickup	Blue Key model, spawned in the Akropolis hallway as placed object 11 and drawn only during the examine close-up before pickup.	
 akropolis_hallway_model_023C0	No reached use found: a one-part 21-vertex model in the Akropolis hallway package that no code references.	
 akropolis_helicopter_landing_pad_collision_07A34	Collision grid of the Akropolis helicopter landing pad (6x6 cells); the golem enemies/golem/no_9/package_akropolis patches three faces into it while present.	
-rooms/akropolis/helicopter_landing_pad/akropolis_helicopter_landing_pad_model_0547C	Model of the helicopter landing pad's lift, spawned as a room object at its upper stop and raised or lowered by the ending and departure scenes.	
+rooms/akropolis/helicopter_landing_pad/lift_platform	Model of the helicopter landing pad's lift, spawned as a room object at its upper stop and raised or lowered by the ending and departure scenes.	
 akropolis_helicopter_landing_pad_model_0A8E8	No reached use found: a pickup model in the landing pad package whose akropolis_stage spawn descriptor (kind 0xA4) is selected by no place record.	
 akropolis_observatory_animation_0250C	Aya's scripted reaction clip in the Akropolis observatory, installed and played once on the player when she crosses the trigger that starts the bat battle.	
 akropolis_observatory_collision_02A2C	Collision grid of the Akropolis observatory, published identically for both room indices.	
