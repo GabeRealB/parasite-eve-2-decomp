@@ -207,8 +207,7 @@ TaskDesc gShootingGalleryPierceGalleryTaskDescs[SHOOTING_GALLERY_PIERCE_GALLERY_
 
 enum { GALLERY_MENU_BLEND_FRAMES = 6 };
 
-#define ROOM_PART _gShootingGalleryPierceGalleryPierceClip0Request
-#include "assets/rooms/mist/shooting_gallery/pierce/events.inc"
+#include "assets/rooms/mist/shooting_gallery/pierce/events_1.inc"
 
 #include "assets/rooms/mist/shooting_gallery/pierce_clips_2.inc"
 
@@ -217,8 +216,7 @@ enum { GALLERY_MENU_BLEND_FRAMES = 6 };
 
 enum { PIERCE_CONVERSATION_BLEND_FRAMES = 8 };
 
-#define ROOM_PART _gShootingGalleryPierceConversationPierceClip0Request
-#include "assets/rooms/mist/shooting_gallery/pierce/events.inc"
+#include "assets/rooms/mist/shooting_gallery/pierce/events_2.inc"
 
 #include "../../../../shared/room/cap_captions_settings.inc.c"
 

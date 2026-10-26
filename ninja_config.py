@@ -286,11 +286,32 @@ def shape_includes(version: str) -> list[tuple[str, Path, Path]]:
     return out
 
 
+def _include_module(file_name: str) -> str:
+    """The module a room include is a run of (`objects_2.inc`: objects), or `declarations` (room.include_module)."""
+    if file_name.startswith("declarations"):
+        return "declarations"
+    return re.fullmatch(r"(\w+?)(?:_\d+)?\.inc", file_name).group(1)
+
+
+def _source_asset_includes() -> dict[str, set[str]]:
+    """{asset directory: the include files the sources name in it}, `#include "assets/<dir>/<file>.inc"`."""
+    out: dict[str, set[str]] = {}
+    pattern = re.compile(r'^#include "assets/([\w/]+)/(\w+\.inc)"', re.M)
+    for path in Path("src").rglob("*"):
+        if path.suffix in (".c", ".h") or path.name.endswith(".inc.c"):
+            for d, f in pattern.findall(path.read_text(errors="replace")):
+                out.setdefault(d, set()).add(f)
+    return out
+
+
 def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
-    """(room, its instance, its includes) for every room and stage overlay (asset types `room`, `stage`):
-    gen_room_inc.py writes one include per module the instance holds, `assets/<group>/<module>.inc`, and
-    `assets/<group>/declarations.inc`."""
+    """(room, its instance, its includes) for every room, actor with events and stage overlay: gen_room_inc.py
+    writes one include per run of each module the instance holds (`assets/<group>/<module>.inc`, or
+    `<module>_<n>.inc` for a module of several runs) and its declarations (`declarations.inc`, or
+    `declarations_<unit>.inc` per unit); the ones declared here are those the overlay's sources include, so a source
+    naming a run that is not there fails the build."""
     data, _schema = asset_tables()
+    named = _source_asset_includes()
     out = []
     for key, rec in data.ASSETS.items():
         slot = str((rec.get("load") or {}).get("slot", "")) if rec.get("type") == "package" else ""
@@ -302,11 +323,13 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
         instance = ASSETS_DIR / version / own / ("stage.toml" if kind == "stage" else "room.toml")
         if not instance.exists():
             continue
-        modules = [k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict) and k != "entry"]
+        modules = {k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict) and k != "entry"}
         if (instance.parent / "events.evs").exists():
-            modules.append("events")
+            modules |= {"events", "updates"}
+        modules.add("declarations")
         outdir = BUILD_DIR / "include" / "assets" / own
-        out.append((key, instance, [outdir / f"{m}.inc" for m in dict.fromkeys(modules)] + [outdir / "declarations.inc"]))
+        files = sorted(f for f in named.get(own, ()) if _include_module(f) in modules)
+        out.append((key, instance, [outdir / f for f in files]))
     return out
 
 
@@ -1326,6 +1349,8 @@ def ninja_build(
                  str(CONFIG_DIR / version / "overlays.toml"),
                  *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
     for name, instance, incs in room_includes(version):
+        if not incs:                                      # its sources include none of its files (the MIST's r21)
+            continue
         for writer in asset_writers:
             evs = instance.parent / "events.evs"
             writer.build(outputs=[str(i) for i in incs], rule="room-inc", inputs=str(instance),

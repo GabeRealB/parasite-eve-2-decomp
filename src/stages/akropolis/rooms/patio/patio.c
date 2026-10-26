@@ -101,22 +101,18 @@ static TaskDesc _gAkropolisPatioSceneTaskDescs[] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-#define ROOM_PART _gAkropolisPatioFollowUpPlayerStartPlacement
-#include "assets/rooms/akropolis/patio/events.inc"
+#include "assets/rooms/akropolis/patio/events_1.inc"
 #include "assets/rooms/akropolis/patio/follow_up_player_bank.inc"
 
-#define ROOM_PART _gAkropolisPatioFollowUpPlayerAnimation47Request
-#include "assets/rooms/akropolis/patio/events.inc"
+#include "assets/rooms/akropolis/patio/events_2.inc"
 #include "assets/rooms/akropolis/patio/clips_2.inc"
 /// The player's animations in the follow-up and the ambush, copied into the equipped weapon's bank from slot 47.
 #include "assets/rooms/akropolis/patio/ambush_player_bank.inc"
 
-#define ROOM_PART _gAkropolisPatioAmbushPlayerBankCopyRequest
-#include "assets/rooms/akropolis/patio/events.inc"
+#include "assets/rooms/akropolis/patio/events_3.inc"
 /// The player's scripted half turn left.
 static TaskDesc _gAkropolisPatioPlayerTurnLeftTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPatioPlayerTurnLeftTask, { .value = 0 } };
-#define ROOM_PART _gAkropolisPatioAmbushScript
-#include "assets/rooms/akropolis/patio/events.inc"
+#include "assets/rooms/akropolis/patio/events_4.inc"
 #include "assets/rooms/akropolis/patio/markers.inc"
 #include "assets/rooms/akropolis/patio/view_masks.inc"
 #include "assets/rooms/akropolis/patio/header.inc"

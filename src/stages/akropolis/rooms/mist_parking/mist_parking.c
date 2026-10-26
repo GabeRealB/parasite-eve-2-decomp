@@ -54,8 +54,7 @@
 #include "rooms/shop_tier.h"
 #include "../../../../shared/room/room_cutscene.h"
 
-#define ROOM_PART declarations_mist_parking
-#include "assets/rooms/mist/parking/declarations.inc"
+#include "assets/rooms/mist/parking/declarations_mist_parking.inc"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -110,13 +109,11 @@ static TaskMessageEntry _gMistParkingRoomMessages[5] = {
 
 /// Single player clip installed at extension index zero for room command 1.
 
-#define ROOM_PART _gMistParkingRoom2PlayerPlacement
-#include "assets/rooms/mist/parking/events.inc"
+#include "assets/rooms/mist/parking/events_1.inc"
 
 #include "assets/rooms/mist/parking/command1_player_bank.inc"
 
-#define ROOM_PART _gMistParkingCommand1PlayerBankCopy
-#include "assets/rooms/mist/parking/events.inc"
+#include "assets/rooms/mist/parking/events_2.inc"
 #include "assets/rooms/mist/parking/hinged_panel.inc"
 
 #include "assets/rooms/mist/parking/clips_2.inc"

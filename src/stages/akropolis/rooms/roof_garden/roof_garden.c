@@ -130,14 +130,12 @@ static TaskDesc _gAkropolisRoofGardenSoundTaskDescriptors[4] = {
 
 /// Borrowed player clips for arrival opening, closing and dialogue, in that order.
 
-#define ROOM_PART _gAkropolisRoofGardenUnusedActorCommand
-#include "assets/rooms/akropolis/roof_garden/events.inc"
+#include "assets/rooms/akropolis/roof_garden/events_1.inc"
 #include "assets/rooms/akropolis/roof_garden/arrival_player_bank.inc"
 
 // Arrival waits count interpreter ticks; sound cues use type-3 bank 0x108.
 
-#define ROOM_PART _gAkropolisRoofGardenArrivalPlayerBankCopy
-#include "assets/rooms/akropolis/roof_garden/events.inc"
+#include "assets/rooms/akropolis/roof_garden/events_2.inc"
 
 /// Arrival-scene latch (0 unstarted, 1 attempted), reset by loading the overlay.
 static s32 _gAkropolisRoofGardenArrivalSceneStarted = 0;
@@ -147,8 +145,7 @@ static s32 _gAkropolisRoofGardenArrivalSceneStarted = 0;
 /// Player extension slots for the Maggot/Caterpillar entrance: empty, start, end.
 #include "assets/rooms/akropolis/roof_garden/entrance_player_bank.inc"
 
-#define ROOM_PART _gAkropolisRoofGardenEntrancePlayerBankCopy
-#include "assets/rooms/akropolis/roof_garden/events.inc"
+#include "assets/rooms/akropolis/roof_garden/events_3.inc"
 #include "assets/rooms/akropolis/roof_garden/markers.inc"
 #include "assets/rooms/akropolis/roof_garden/view_masks.inc"
 #include "assets/rooms/akropolis/roof_garden/samples.inc"

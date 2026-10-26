@@ -48,8 +48,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#define ROOM_PART declarations_helicopter_landing_pad_departure
-#include "assets/rooms/akropolis/helicopter_landing_pad/declarations.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/declarations_helicopter_landing_pad_departure.inc"
 
 static Task* _gAkropolisHelicopterLandingPadPlayerPitchTask;
 
@@ -70,8 +69,7 @@ static const TaskFuncTable3 _gAkropolisHelicopterLandingPadRoomTaskStates = {
 #include "assets/rooms/akropolis/helicopter_landing_pad/lights.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/sprites.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/cameras.inc"
-#define ROOM_PART gAkropolisHelicopterLandingPadLethalStrikeVibrationCommands
-#include "assets/rooms/akropolis/helicopter_landing_pad/vibrations.inc"
+#include "assets/rooms/akropolis/helicopter_landing_pad/vibrations_2.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/surfaces.inc"
 #include "assets/rooms/akropolis/helicopter_landing_pad/ammunition_pickup.inc"
 

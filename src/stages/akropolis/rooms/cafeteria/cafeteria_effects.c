@@ -60,8 +60,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/room/streamed_scene.h"
 
-#define ROOM_PART declarations_cafeteria_effects
-#include "assets/rooms/akropolis/cafeteria/declarations.inc"
+#include "assets/rooms/akropolis/cafeteria/declarations_cafeteria_effects.inc"
 
 /// Placed pickup state after collection, shared by this room's model hooks.
 enum { PICKUP_COLLECTED = 2 };
@@ -102,8 +101,7 @@ static SVECTOR _gAkropolisCafeteriaMendelJournalModelNormals[18];
 static TmdBone _gAkropolisCafeteriaMendelJournalModelSkeleton[1];
 static u32     _gAkropolisCafeteriaMendelJournalModelStream[112];
 
-#define ROOM_PART gAkropolisCafeteriaRoomLights
-#include "assets/rooms/akropolis/cafeteria/lights.inc"
+#include "assets/rooms/akropolis/cafeteria/lights_2.inc"
 #include "assets/rooms/akropolis/cafeteria/sprites.inc"
 #include "assets/rooms/akropolis/cafeteria/cameras.inc"
 #include "assets/rooms/akropolis/cafeteria/ambient.inc"

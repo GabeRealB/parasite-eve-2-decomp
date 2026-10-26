@@ -30,8 +30,7 @@
 #include "main/tmd_types.h"
 #include "../../../../shared/actor/actor_messages.h"
 
-#define ROOM_PART declarations_mist_parking_scenes
-#include "assets/rooms/mist/parking/declarations.inc"
+#include "assets/rooms/mist/parking/declarations_mist_parking_scenes.inc"
 
 static void _mistParkingPlayDepartureMovieTask(Task* task);
 static void _mistParkingStartDepartureMovieTask(Task* task);
@@ -41,8 +40,7 @@ TaskDesc gMistParkingDepartureMovieTaskDescs[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistParkingPlayDepartureMovieTask, { .value = 0 } },
 };
 
-#define ROOM_PART _gMistParkingCutsceneModelPlacement
-#include "assets/rooms/mist/parking/events.inc"
+#include "assets/rooms/mist/parking/events_6.inc"
 static SVECTOR _gMistParkingPierceCollisionPatchNormals[2] = {
 #include "assets/mist_parking_collision_126F8_normals.inc"
 };

@@ -59,8 +59,7 @@ s32 gMistShootingGalleryUnscaledBp;
 #include "../../../../shared/effects/sprite_quad.h"
 #include "../../../../shared/effects/beam_strip.h"
 
-#define ROOM_PART declarations_mist_shooting_gallery_courses
-#include "assets/rooms/mist/shooting_gallery/declarations.inc"
+#include "assets/rooms/mist/shooting_gallery/declarations_mist_shooting_gallery_courses.inc"
 
 /// Marker values of `_MistShootingGallerySpawn::frame`, above every frame the script clock can reach.
 enum {
@@ -159,8 +158,7 @@ static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse4WaveScriptRe
 
 // Keep the read-only table at its original position among the overlay's data.
 
-#define ROOM_PART _gMistShootingGalleryCollisionGridNormals
-#include "assets/rooms/mist/shooting_gallery/geometry.inc"
+#include "assets/rooms/mist/shooting_gallery/geometry_2.inc"
 #include "assets/rooms/mist/shooting_gallery/cameras.inc"
 #include "assets/rooms/mist/shooting_gallery/sprites.inc"
 #include "assets/rooms/mist/shooting_gallery/view_boundaries.inc"

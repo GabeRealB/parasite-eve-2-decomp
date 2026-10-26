@@ -128,8 +128,7 @@ static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#define ROOM_PART _gAkropolisSquareArrivalWeaponAnimation
-#include "assets/rooms/akropolis/square/events.inc"
+#include "assets/rooms/akropolis/square/events_1.inc"
 /// Room tasks: the telephone ring (0), the map board sequence (1, never spawned)
 /// and the scrolling backdrop (2).
 static TaskDesc _gAkropolisSquareSequenceTaskDescs[3] = {
@@ -150,8 +149,7 @@ enum {
     BACKDROP_ACTION_STOP  = 1,
 };
 
-#define ROOM_PART _gAkropolisSquareTelephoneSceneScript
-#include "assets/rooms/akropolis/square/events.inc"
+#include "assets/rooms/akropolis/square/events_2.inc"
 /// Sound scripts by room sound cue; cues 0 and 2..4 play nothing.
 static s32 _gAkropolisSquareSoundCueScripts[9] = {
     SOUND_SCRIPT_REQUEST_NO_OP,

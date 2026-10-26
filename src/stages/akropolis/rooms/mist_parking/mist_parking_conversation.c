@@ -36,8 +36,7 @@
 
 #include "rooms/room_common.h"
 
-#define ROOM_PART declarations_mist_parking_conversation
-#include "assets/rooms/mist/parking/declarations.inc"
+#include "assets/rooms/mist/parking/declarations_mist_parking_conversation.inc"
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _mistParkingWaitOptionDialogAnswer(Task* task);
@@ -171,8 +170,7 @@ static AnimationSet* _gMistParkingPlayerConversationAnimationSets[25] = {
     &gAyaIntroduceHerselfClip,
 };
 
-#define ROOM_PART gMistParkingPlayerConversationBankCopy
-#include "assets/rooms/mist/parking/events.inc"
+#include "assets/rooms/mist/parking/events_3.inc"
 s8 gMistParkingPlayerAnimationHeadAimFlags[28] = {
     PLAYER_ANIMATION_HEAD_AIM_OFF,
     PLAYER_ANIMATION_HEAD_AIM_ON,
@@ -204,8 +202,7 @@ s8 gMistParkingPlayerAnimationHeadAimFlags[28] = {
     PLAYER_ANIMATION_HEAD_AIM_OFF,
 };
 
-#define ROOM_PART _gMistParkingPlayerArrivalAndDepartureTransform
-#include "assets/rooms/mist/parking/events.inc"
+#include "assets/rooms/mist/parking/events_4.inc"
 /// Null-terminated Shift-JIS option label "まだよ (not yet)"; eight bytes of storage.
 static u8 _gMistParkingOptionNotYetLabel[8] = "\x82\xdc\x82\xbe\x82\xe6";
 
@@ -224,8 +221,7 @@ static u8* _gMistParkingOptionLabelPairs[2][2] = {
     { _gMistParkingOptionHaiLabel, _gMistParkingOptionNoLabel },
 };
 
-#define ROOM_PART gMistParkingArrivalConversationScript
-#include "assets/rooms/mist/parking/events.inc"
+#include "assets/rooms/mist/parking/events_5.inc"
 /// Item ids for shooting-gallery courses 0..4, paired with their quantities.
 static s32 _gMistParkingCoursePrizeItemIds[5] = {
     COURSE_PRIZE_9MM_HYDRA,

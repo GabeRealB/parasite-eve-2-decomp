@@ -201,8 +201,7 @@ static const TaskFuncTable3 _gAkropolisSanctuaryRoomTaskStates = {
     .funcs = { _akropolisSanctuaryInitializeRoomTask, _akropolisSanctuaryUpdateRoomProgress, taskKill },
 };
 
-#define ROOM_PART _gAkropolisSanctuaryMosaicOffset
-#include "assets/rooms/akropolis/sanctuary/markers.inc"
+#include "assets/rooms/akropolis/sanctuary/markers_1.inc"
 
 /// Resting flame gray for texture/palette variants 0..2.
 static const _FlameGray _gAkropolisSanctuaryFlameBaseGray = { { 0x60, 0x60, 0x10 } };
@@ -236,20 +235,17 @@ static TaskMessageEntry _gAkropolisSanctuaryRoomMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#define ROOM_PART _gAkropolisSanctuaryPlayerSceneStartPlacement
-#include "assets/rooms/akropolis/sanctuary/events.inc"
+#include "assets/rooms/akropolis/sanctuary/events_1.inc"
 /// Nine animation sets copied into the player's sanctuary scene bank extension.
 #include "assets/rooms/akropolis/sanctuary/player_scene_bank.inc"
 
-#define ROOM_PART _gAkropolisSanctuaryPlayerSceneBankExtensionRequest
-#include "assets/rooms/akropolis/sanctuary/events.inc"
+#include "assets/rooms/akropolis/sanctuary/events_2.inc"
 #include "assets/rooms/akropolis/sanctuary/clips_2.inc"
 
 /// Single-set table installed for the player's sanctuary departure cutscene.
 #include "assets/rooms/akropolis/sanctuary/cutscene_player_bank.inc"
 
-#define ROOM_PART _gAkropolisSanctuaryUnusedSceneKey2
-#include "assets/rooms/akropolis/sanctuary/events.inc"
+#include "assets/rooms/akropolis/sanctuary/events_3.inc"
 /// Bodyless task recipe for the first sanctuary room action 1.
 static TaskDesc _gAkropolisSanctuaryCutsceneTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
@@ -257,8 +253,7 @@ static TaskDesc _gAkropolisSanctuaryCutsceneTaskDesc = {
     .data     = { .value = 0 },
 };
 
-#define ROOM_PART _gAkropolisSanctuaryBlockerCollisionGridNormals
-#include "assets/rooms/akropolis/sanctuary/geometry.inc"
+#include "assets/rooms/akropolis/sanctuary/geometry_1.inc"
 
 /// Mosaic-start route borrowed by the sanctuary room-effect task.
 static TaskMessageEntry _gAkropolisSanctuaryRoomEffectMessages[] = {
@@ -386,12 +381,10 @@ static s16 _gAkropolisSanctuaryMosaicRepeatedTileIndices[] = {
 /// View-driven latch accelerating cleanup of mosaic debris outside view 16.
 static s32 _gAkropolisSanctuaryMosaicCleanupLatched = MOSAIC_CLEANUP_CLEAR;
 
-#define ROOM_PART _gAkropolisSanctuaryFlamePositions
-#include "assets/rooms/akropolis/sanctuary/markers.inc"
+#include "assets/rooms/akropolis/sanctuary/markers_2.inc"
 #include "assets/rooms/akropolis/sanctuary/view_masks.inc"
 #include "assets/rooms/akropolis/sanctuary/header.inc"
-#define ROOM_PART _gAkropolisSanctuaryCollisionGridNormals
-#include "assets/rooms/akropolis/sanctuary/geometry.inc"
+#include "assets/rooms/akropolis/sanctuary/geometry_2.inc"
 #include "assets/rooms/akropolis/sanctuary/view_boundaries.inc"
 #include "assets/rooms/akropolis/sanctuary/action_triggers.inc"
 #include "assets/rooms/akropolis/sanctuary/placements.inc"

@@ -76,8 +76,7 @@ TaskDesc gAkropolisObservatoryScriptedBattleTaskDesc = {
 #include "assets/rooms/akropolis/observatory/action_triggers.inc"
 #include "assets/rooms/akropolis/observatory/placements.inc"
 #include "assets/rooms/akropolis/observatory/lights.inc"
-#define ROOM_PART _gAkropolisObservatoryView1SpriteBatches
-#include "assets/rooms/akropolis/observatory/sprites.inc"
+#include "assets/rooms/akropolis/observatory/sprites_1.inc"
 /// Unreferenced; its role is unproven.
 u16 gAkropolisObservatoryUnusedHalfwords[4] = {
     256,
@@ -85,8 +84,7 @@ u16 gAkropolisObservatoryUnusedHalfwords[4] = {
     0,
     0,
 };
-#define ROOM_PART _gAkropolisObservatoryView4SpriteSources
-#include "assets/rooms/akropolis/observatory/sprites.inc"
+#include "assets/rooms/akropolis/observatory/sprites_2.inc"
 #include "assets/rooms/akropolis/observatory/cameras.inc"
 #include "assets/rooms/akropolis/observatory/vibrations.inc"
 #include "assets/rooms/akropolis/observatory/surfaces.inc"

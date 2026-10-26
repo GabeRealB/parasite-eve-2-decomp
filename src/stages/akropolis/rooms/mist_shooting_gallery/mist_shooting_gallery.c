@@ -69,8 +69,7 @@
 #include "../../../../shared/effects/glow_draw.h"
 #include "../../../../shared/room/jukebox.h"
 
-#define ROOM_PART declarations_mist_shooting_gallery
-#include "assets/rooms/mist/shooting_gallery/declarations.inc"
+#include "assets/rooms/mist/shooting_gallery/declarations_mist_shooting_gallery.inc"
 
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
 enum {
@@ -352,10 +351,8 @@ static TaskMessageEntry _gMistShootingGalleryRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#define ROOM_PART _gMistShootingGalleryStoryBarrierCollisionTemplateNormals
-#include "assets/rooms/mist/shooting_gallery/geometry.inc"
-#define ROOM_PART _gMistShootingGalleryJukeboxTrainingReplayTracks
-#include "assets/rooms/mist/shooting_gallery/jukebox.inc"
+#include "assets/rooms/mist/shooting_gallery/geometry_1.inc"
+#include "assets/rooms/mist/shooting_gallery/jukebox_2.inc"
 /// Single jukebox row handler; shared dispatch applies it to all three or four tracks.
 static UiListRowCallback _gMistShootingGalleryJukeboxRowCallbacks[1] = {
     _jukeboxDrawRow,
@@ -1635,8 +1632,7 @@ void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
     }
 }
 
-#define ROOM_PART _gJukeboxTrackLists
-#include "assets/rooms/mist/shooting_gallery/jukebox.inc"
+#include "assets/rooms/mist/shooting_gallery/jukebox_1.inc"
 /// SELECT title for the jukebox panel, ending at its first NUL.
 static const char _gMistShootingGalleryJukeboxTitle[8] = "SELECT\0\xE1";
 

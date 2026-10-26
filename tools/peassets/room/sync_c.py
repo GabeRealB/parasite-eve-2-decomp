@@ -2,13 +2,12 @@
 
 For each unit of the room:
 
-1. every module include (with its `ROOM_PART` selector), the declarations include, and every C definition of an
-   object the room's instance holds - with its doc comment, the cell-macro pair around a grid table, and its
+1. every run include, the declarations include, and every C definition of an object the room's instance holds - with its doc comment, the cell-macro pair around a grid table, and its
    forward declarations - are removed;
 2. what stays is located by address: the unit's C data definitions and the objects its includes define (generated
    models, clips and banks under build/include, and shared `.inc.c` sources), each in its section;
-3. each module part is included before the first thing that stays which follows it in address order, in its
-   section, or after the last one before it; parts at one place are in address order;
+3. each run is included before the first thing that stays which follows it in address order, in its section, or
+   after the last one before it; runs at one place are in address order;
 4. the declarations include goes after the last header include before the unit's first definition.
 
 An object that leaves the room's data has to be given back its C definition first: the tool never writes C data.
@@ -55,25 +54,20 @@ def _with_comment(s: str, start: int) -> int:
 
 def _sources(rec: dict) -> list[Path]:
     group, pkg = rec["group"], rec["package_name"]
-    if "entries" in rec and str((rec.get("load") or {}).get("slot", "")).startswith("actor_"):
+    slot = str((rec.get("load") or {}).get("slot", ""))
+    if "entries" in rec and slot.startswith("actor_"):
         return actor_sources(pkg)
-    return sorted(Path(p) for p in {*map(str, (ROOT / "src" / "rooms" / pkg).glob("*.c")),
-                                    *map(str, (ROOT / "src" / "mapui" / pkg).glob("*.c")),
-                                    *map(str, (ROOT / "src" / "stages").glob(f"*/rooms/{group.rsplit('/', 1)[1]}/*.c"))})
+    if rec.get("type") == "stage" or slot == "stage":    # a stage overlay: src/stages/<stage>/stage.c
+        return sorted((ROOT / "src" / "stages" / group.rsplit("/", 1)[1]).glob("stage.c"))
+    # a room's units: the sources that include its declarations (the MIST's are under mist_<room>/)
+    mark = f'#include "assets/{group}/declarations'
+    return sorted(p for p in {*(ROOT / "src" / "rooms" / pkg).glob("*.c"), *(ROOT / "src" / "stages").glob("*/rooms/*/*.c")}
+                  if mark in p.read_text(errors="replace") or p.parent.name == pkg)
 
 
-def _parts(files: dict[str, str]) -> list[tuple[str, str, bool]]:
-    """(first object, module, selected) of every module part."""
-    out = []
-    for f, text in files.items():
-        if f == "declarations.inc":
-            continue
-        firsts = re.findall(r"#define ROOM_IS_(\w+) 1", text)
-        if firsts:
-            out += [(first, f[:-4], True) for first in firsts]
-        else:
-            out.append((GENERATED_DEF.findall(text)[0], f[:-4], False))
-    return out
+def _runs(files: dict[str, str]) -> list[tuple[str, str]]:
+    """(first object, file stem) of every run include."""
+    return [(GENERATED_DEF.findall(text)[0], f[:-4]) for f, text in files.items() if not f.startswith("declarations")]
 
 
 def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: set[str]) -> list[str]:
@@ -84,15 +78,14 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
     objects = {s for objs in room["modules"].values() for s in objs}
     im, _area = images(name, assets, embedded, assets_root)
     files = c_files(name, assets, embedded, assets_root)
-    parts = _parts(files)
+    runs = _runs(files)
     units = _units(pkg)
 
     def where(a: int) -> tuple[str, str] | None:
         return next(((u, sec) for st, en, u, sec in units if st <= a - im.base < en), None)
 
-    decl_selected = "#define ROOM_IS_declarations_" in files["declarations.inc"]
-    module_include = re.compile(r'^(?:#define ROOM_PART \w+\n)?#include "assets/' + re.escape(own_dir(name, assets)) + r'/(' +
-                                "|".join(sorted(modules | {"declarations", "effects"})) + r')\.inc"\n', re.M)
+    module_include = re.compile(r'^#include "assets/' + re.escape(own_dir(name, assets)) + r'/((?:' +
+                                "|".join(sorted(modules | {"effects"})) + r')(?:_\d+)?|declarations(?:_\w+)?)\.inc"\n', re.M)
     included = re.compile(r'^#include "((?:assets/[\w/]+\.inc)|(?:[\w./]+\.inc\.c))"\n', re.M)
     problems = []
     for path in _sources(rec):
@@ -131,12 +124,12 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
             for n in set(GENERATED_DEF.findall(text)) | {d.group(2) for d in DEF.finditer(text)}:
                 if n in im.addresses and where(im.addresses[n]) and where(im.addresses[n])[0] == unit:
                     staying.append((im.addresses[n], where(im.addresses[n])[1], m.start(), m.end()))
-        mine = [p for p in parts if where(im.addresses[p[0]]) and where(im.addresses[p[0]])[0] == unit]
+        mine = [r for r in runs if where(im.addresses[r[0]]) and where(im.addresses[r[0]])[0] == unit]
         unit_objects = {n for n, a in im.addresses.items() if where(a) and where(a)[0] == unit and n in objects}
         if not mine and not unit_objects:
             continue
         inserts = []
-        for first, module, selected in mine:
+        for first, stem in mine:
             a = im.addresses[first]
             sec = where(a)[1]
             later = [(x, st) for x, sc, st, _en in staying if sc == sec and x > a]
@@ -147,7 +140,7 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
                 at = max(earlier)[1]
             else:
                 at = None
-            text = (f"#define ROOM_PART {first}\n" if selected else "") + f'#include "assets/{own_dir(name, assets)}/{module}.inc"\n'
+            text = f'#include "assets/{own_dir(name, assets)}/{stem}.inc"\n'
             inserts.append((at, a, text))
         if any(at is None for at, _a, _t in inserts):        # no datum stays in the section: where the first part was
             olds = [st for st, _en, _r in cut]
@@ -181,8 +174,8 @@ def sync(name: str, assets: dict, embedded: dict, assets_root: Path, modules: se
             incs = [m for m in re.finditer(r'^#include (?!"assets/)[^\n]*\n', s, re.M)
                     if not first or m.start() < first.start()]
             at = incs[-1].end()
-            sel = f"#define ROOM_PART declarations_{unit}\n" if decl_selected else ""
-            s = s[:at] + f'\n{sel}#include "assets/{own_dir(name, assets)}/declarations.inc"\n' + s[at:]
+            decl = "declarations.inc" if "declarations.inc" in files else f"declarations_{unit}.inc"
+            s = s[:at] + f'\n#include "assets/{own_dir(name, assets)}/{decl}"\n' + s[at:]
         s = re.sub(r"\n{3,}", "\n\n", s)
         path.write_text(s, encoding="utf-8")
     return problems

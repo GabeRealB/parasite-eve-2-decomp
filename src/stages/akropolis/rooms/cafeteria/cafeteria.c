@@ -57,8 +57,7 @@
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../../../shared/room/room_visual_effects.h"
 
-#define ROOM_PART declarations_cafeteria
-#include "assets/rooms/akropolis/cafeteria/declarations.inc"
+#include "assets/rooms/akropolis/cafeteria/declarations_cafeteria.inc"
 
 static void       _akropolisCafeteriaUpdatePlayerDebugDisplay(Task* unusedTask);
 static void       _akropolisCafeteriaInitializeRoomTask(Task* task);
@@ -124,20 +123,17 @@ TaskDesc gAkropolisCafeteriaSceneTasks[4] = {
     { .header = { .fields = { .flags = TASK_DESC_END, .priority = 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 
-#define ROOM_PART _gAkropolisCafeteriaPlayerAnimation1
-#include "assets/rooms/akropolis/cafeteria/events.inc"
+#include "assets/rooms/akropolis/cafeteria/events_1.inc"
 
 /// The player's clip in the opening, copied into the equipped weapon's bank at slot 47.
 #include "assets/rooms/akropolis/cafeteria/opening_player_bank.inc"
 
-#define ROOM_PART _gAkropolisCafeteriaOpeningPlayerBankCopy
-#include "assets/rooms/akropolis/cafeteria/events.inc"
+#include "assets/rooms/akropolis/cafeteria/events_2.inc"
 
 /// The player's clips in the follow-up, copied into the equipped weapon's bank from slot 47.
 #include "assets/rooms/akropolis/cafeteria/follow_up_player_bank.inc"
 
-#define ROOM_PART _gAkropolisCafeteriaFollowUpPlayerBankCopy
-#include "assets/rooms/akropolis/cafeteria/events.inc"
+#include "assets/rooms/akropolis/cafeteria/events_3.inc"
 
 /// The battle's progress in this visit.
 static s32 _gAkropolisCafeteriaSceneProgress = SCENE_NOT_STARTED;
@@ -187,8 +183,7 @@ s32 gAkropolisCafeteriaPuffEnabled = 0;
 #include "assets/rooms/akropolis/cafeteria/action_triggers.inc"
 #include "assets/rooms/akropolis/cafeteria/occluders.inc"
 #include "assets/rooms/akropolis/cafeteria/placements.inc"
-#define ROOM_PART gAkropolisCafeteriaPointLights
-#include "assets/rooms/akropolis/cafeteria/lights.inc"
+#include "assets/rooms/akropolis/cafeteria/lights_1.inc"
 
 STATIC_ASSERT(ARRAY_SIZE(_gAkropolisCafeteriaCollisionGridTable) == COLLISION_CELLS_X * COLLISION_CELLS_Z, cafeteriaCollisionCellTableSize);
 

@@ -342,8 +342,7 @@ enum {
 };
 
 #include "assets/rooms/akropolis/memory.inc"
-#define ROOM_PART gAkropolisStagePageFlagIds
-#include "assets/rooms/akropolis/map.inc"
+#include "assets/rooms/akropolis/map_1.inc"
 
 /// The square's object spawns: none; its places only seed object states.
 static AreaObjectSpawn _gAkropolisStageSquareObjectSpawns[1] = {
@@ -422,8 +421,7 @@ static AreaObjectSpawn _gAkropolisStageMistParkingObjectSpawns[1] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-#define ROOM_PART _gAkropolisStageHelicopterLandingPadObjectPlaces
-#include "assets/rooms/akropolis/objects.inc"
+#include "assets/rooms/akropolis/object_places_1.inc"
 
 /// The landing pad's object spawns: the lift, and the pickup, which no place selects.
 static AreaObjectSpawn _gAkropolisStageHelicopterLandingPadObjectSpawns[3] = {
@@ -432,7 +430,6 @@ static AreaObjectSpawn _gAkropolisStageHelicopterLandingPadObjectSpawns[3] = {
     { AREA_OBJECT_SPAWN_END },
 };
 
-#define ROOM_PART gAkropolisStageObjectRooms
 #include "assets/rooms/akropolis/objects.inc"
 
 TaskDesc gAkropolisStageRoomTaskDescriptors[21] = {
@@ -513,12 +510,10 @@ static TaskDesc _gAkropolisStageKeyItemMenuTaskDescriptor = {
     .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _akropolisStageKeyItemMenuTask,
 };
-#define ROOM_PART gAkropolisStageMarkerFlags
-#include "assets/rooms/akropolis/map.inc"
+#include "assets/rooms/akropolis/map_2.inc"
 #include "assets/rooms/akropolis/tables.inc"
 #include "assets/rooms/akropolis/placements.inc"
-#define ROOM_PART _gAkropolisStageSquareObjectPlaces
-#include "assets/rooms/akropolis/objects.inc"
+#include "assets/rooms/akropolis/object_places_2.inc"
 #include "assets/rooms/akropolis/rewards.inc"
 #include "assets/rooms/akropolis/music.inc"
 

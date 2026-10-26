@@ -465,7 +465,7 @@ for _layout, _size in (("AreaObjectRoom", 8), ("AreaObjectPlace", 16), ("MenuMap
 MODULE_OF.update({**{f"AreaTable{k}": "tables" for k in AREA_TABLES},
                   **{k: "tables" for k in ("WorldCollisionStageResources", "ViewIndexTable", "ViewCountTable",
                                            "ViewCameraTable", "SpriteAreaTable")},
-                  "AreaObjectRoom": "objects", "AreaObjectPlace": "objects",
+                  "AreaObjectRoom": "objects", "AreaObjectPlace": "object_places",
                   **{k: "map" for k in ("MenuMapArea", "MenuMapAreaShape", "MenuMapMarker", "MenuMapIcon", "MenuMapAreaName")},
                   "GfxImageSlot": "memory", "StageMusicEntry": "music", "InventoryBattleReward": "rewards"})
 

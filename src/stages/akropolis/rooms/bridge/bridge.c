@@ -519,10 +519,8 @@ enum {
     STREAK_PARTICLE  = 6
 };
 
-#define ROOM_PART _gAkropolisBridgeStarGlowOffsets
-#include "assets/rooms/akropolis/bridge/markers.inc"
-#define ROOM_PART _gAkropolisBridgeStarGlowViewMasks
-#include "assets/rooms/akropolis/bridge/view_masks.inc"
+#include "assets/rooms/akropolis/bridge/markers_1.inc"
+#include "assets/rooms/akropolis/bridge/view_masks_1.inc"
 /// Maps a one-based camera view to its framebuffer-streak family.
 static u16 _gAkropolisBridgeViewStreakStyles[16] = {
     STREAK_NONE,
@@ -543,12 +541,9 @@ static u16 _gAkropolisBridgeViewStreakStyles[16] = {
     0,
 };
 
-#define ROOM_PART _gAkropolisBridgeLampGlowViewMasks
-#include "assets/rooms/akropolis/bridge/view_masks.inc"
-#define ROOM_PART _gAkropolisBridgePlayerWaterPartPositions
-#include "assets/rooms/akropolis/bridge/markers.inc"
-#define ROOM_PART gAkropolisBridgeRoomCollisionResources
-#include "assets/rooms/akropolis/bridge/header.inc"
+#include "assets/rooms/akropolis/bridge/view_masks_2.inc"
+#include "assets/rooms/akropolis/bridge/markers_2.inc"
+#include "assets/rooms/akropolis/bridge/header_1.inc"
 
 u8 gAkropolisBridgeStairSurfaceRows[2][12] = {
     { 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4 },
@@ -560,8 +555,7 @@ enum {
     SURFACE_2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
 };
 
-#define ROOM_PART gAkropolisBridgeWarpEntries
-#include "assets/rooms/akropolis/bridge/header.inc"
+#include "assets/rooms/akropolis/bridge/header_2.inc"
 #include "assets/rooms/akropolis/bridge/geometry.inc"
 #include "assets/rooms/akropolis/bridge/view_boundaries.inc"
 #include "assets/rooms/akropolis/bridge/action_triggers.inc"
@@ -570,8 +564,7 @@ enum {
 #include "assets/rooms/akropolis/bridge/lights.inc"
 #include "assets/rooms/akropolis/bridge/cameras.inc"
 #include "assets/rooms/akropolis/bridge/vibrations.inc"
-#define ROOM_PART _gAkropolisBridgeSurface2FootstepSounds
-#include "assets/rooms/akropolis/bridge/surfaces.inc"
+#include "assets/rooms/akropolis/bridge/surfaces_1.inc"
 /// Unreferenced footstep requests; their role is unproven.
 static s32 _gAkropolisBridgeUnusedFootstepSounds[3] = {
     SURFACE_2_WALK_CUE,
@@ -582,8 +575,7 @@ static s32 _gAkropolisBridgeUnusedFootstepSounds[3] = {
 /// Victim reaction packed into the bridge enemy's category-4 contact key.
 enum { ENEMY_ATTACK_REACTION_POISON = 3 };
 
-#define ROOM_PART _gAkropolisBridgeBlockingSurfaceProperties
-#include "assets/rooms/akropolis/bridge/surfaces.inc"
+#include "assets/rooms/akropolis/bridge/surfaces_2.inc"
 /// Attack rows shared by all bridge enemies.
 static DamageAttack _gAkropolisBridgeEnemyAttacks[] = {
     { 18, ENEMY_ATTACK_REACTION_POISON },

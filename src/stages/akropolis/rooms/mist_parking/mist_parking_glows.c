@@ -29,8 +29,7 @@
 #include "../../../../shared/effects/glow_draw.h"
 #include "../../../../shared/room/room_cutscene.h"
 
-#define ROOM_PART declarations_mist_parking_glows
-#include "assets/rooms/mist/parking/declarations.inc"
+#include "assets/rooms/mist/parking/declarations_mist_parking_glows.inc"
 
 /// World-coordinate capsule endpoints and the separate pulsing point-glow center.
 typedef struct {
@@ -47,8 +46,7 @@ enum {
     SHOP_REPLY_END_UPDATES  = 30
 };
 
-#define ROOM_PART gMistParkingJodieShopTalkScript
-#include "assets/rooms/mist/parking/events.inc"
+#include "assets/rooms/mist/parking/events_10.inc"
 /// Authored parking glow positions in signed world-coordinate units.
 static _GlowWorldPoints _gMistParkingGlowWorldPoints = {
     .capsuleEndpoints = {

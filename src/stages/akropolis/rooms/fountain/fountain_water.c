@@ -90,8 +90,7 @@ static void _akropolisFountainClimbFinish(Task* task);
 static void _akropolisFountainWaterMovieTask(Task* task);
 static void _akropolisFountainStopWaterMovieTask(Task* task);
 
-#define ROOM_PART _gAkropolisFountainClimbTrigger
-#include "assets/rooms/akropolis/fountain/action_triggers.inc"
+#include "assets/rooms/akropolis/fountain/action_triggers_1.inc"
 #include "assets/rooms/akropolis/fountain/markers.inc"
 /// Persistent water-loop request latch (0 no applied request, 1 request applied).
 static s16 _gAkropolisFountainWaterLoopRequested = 0;
@@ -105,8 +104,7 @@ static TaskDesc _gAkropolisFountainWaterMovieTaskDescriptors[2] = {
 #include "assets/rooms/akropolis/fountain/header.inc"
 #include "assets/rooms/akropolis/fountain/geometry.inc"
 #include "assets/rooms/akropolis/fountain/view_boundaries.inc"
-#define ROOM_PART _gAkropolisFountainActionTriggers
-#include "assets/rooms/akropolis/fountain/action_triggers.inc"
+#include "assets/rooms/akropolis/fountain/action_triggers_2.inc"
 #include "assets/rooms/akropolis/fountain/placements.inc"
 #include "assets/rooms/akropolis/fountain/lights.inc"
 #include "assets/rooms/akropolis/fountain/sprites.inc"

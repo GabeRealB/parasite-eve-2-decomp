@@ -11,15 +11,15 @@ offset into the package. The instance holds every object reached, by module and 
 with the C types' fields, pointers by name (`name`, `name[k]`, 0 for NULL). Geometry is the collision asset's: its
 parts are named with their `count`. The instance encodes back into the package exactly (`check`).
 
-The build writes one include per module, `assets/<group>/<module>.inc`, defining the module's objects, and
-`assets/<group>/declarations.inc`, declaring them (gen_room_inc.py). A unit includes the declarations after its
-headers and each module where its block is; where a module's objects are split across units or by other data, the
-unit selects its part with `#define ROOM_PART <its first object>` (and its declarations with
-`#define ROOM_PART declarations_<unit>`) before the include.
+The build writes one include per run of a module, defining its objects, and the declarations (gen_room_inc.py). A
+run is the module's objects that follow each other in a unit, with nothing else between them: `<module>.inc` when the
+module is one run, `<module>_1.inc`, `<module>_2.inc`, ... in address order when other data or a unit boundary
+interrupts it. The declarations are `declarations.inc`, or `declarations_<unit>.inc` per unit of a room of several. A
+unit includes its declarations after its headers and each run where its block is.
 
-An actor package (`pe2pkg`) that states `entries` is decoded the same way: its events, reached from the scripts and
-payloads its record names, mapped at its slot's load address beside gameplay and its room (the room of its group),
-written to `<group>/<package>/events.evs` and built into `assets/<group>/<package>/events.inc` with its declarations.
+An actor package that states `entries` is decoded the same way: its events, reached from the scripts and payloads its
+record names, mapped at its slot's load address beside gameplay and the room it requires, written to
+`<group>/<package>/events.evs` and built into `assets/<group>/<package>/events.inc` with its declarations.
 
     python3 tools/peassets/room decode|check [--only NAME]
 """
@@ -554,8 +554,7 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
 
     others = sorted(a for a in im.names if im.in_room(a) and im.names[a] not in objects
                     and not any(at[s] < a < end[s] for s in objects))
-    header = [f"/* {name}: written from its room instance by tools/buildsteps/gen_room_inc.py. */",
-              "#define ROOM_CAT_(a, b) a##b", "#define ROOM_CAT(a, b) ROOM_CAT_(a, b)"]
+    header = [f"/* {name}: written from its room instance by tools/buildsteps/gen_room_inc.py. */"]
     files: dict[str, list] = {}
     units = _units(package)
     rodata = {s for s in objects for start, stop, _u, sec in units if sec == ".rodata" and start <= at[s] - im.base < stop}
@@ -581,35 +580,25 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
         uses["types"], uses["symbols"] = set(), set()
         return list(header) + ([""] + needed if needed else []) + lines
 
-    for module, runs in parts.items():
-        out = []
-        for run in runs:
-            body = [line for s in run for line in definition(s)]
-            if len(runs) == 1:
-                out += [""] + body
-            else:
-                out += ["", f"#define ROOM_IS_{run[0]} 1", f"#if ROOM_CAT(ROOM_IS_, ROOM_PART) == 1"] + body + \
-                       ["#endif", f"#undef ROOM_IS_{run[0]}"]
-        files[f"{module}.inc"] = with_includes(out + ([] if len(runs) == 1 else ["#undef ROOM_PART"]))
-    out = []
+    for module, runs in parts.items():                   # one file per run
+        for k, run in enumerate(runs, 1):
+            name_k = f"{module}.inc" if len(runs) == 1 else f"{module}_{k}.inc"
+            files[name_k] = with_includes([""] + [line for s in run for line in definition(s)])
     for unit, mine in decl.items():
-        lines = [f"{'extern ' if not s.startswith('_') else ''}{declarator(s)};" for s in mine]
-        if len(decl) == 1:
-            out += [""] + lines
-        else:
-            out += ["", f"#define ROOM_IS_declarations_{unit} 1", "#if ROOM_CAT(ROOM_IS_, ROOM_PART) == 1"] + lines + \
-                   ["#endif", f"#undef ROOM_IS_declarations_{unit}"]
-    files["declarations.inc"] = with_includes(out + ([] if len(decl) == 1 else ["#undef ROOM_PART"]))
+        name_u = "declarations.inc" if len(decl) == 1 else f"declarations_{unit}.inc"
+        files[name_u] = with_includes([""] + [f"{'extern ' if not s.startswith('_') else ''}{declarator(s)};" for s in mine])
     return {f: "\n".join(lines) + "\n" for f, lines in files.items()}
 
 
-def module_parts(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[str, list[str]]:
-    """Each module's parts by their first object (one part: included without a selector)."""
-    out: dict[str, list[str]] = {}
-    for f, text in c_files(name, assets, embedded, assets_root).items():
-        firsts = re.findall(r"#define ROOM_IS_(\w+) 1", text)
-        out[f[:-4]] = firsts
-    return out
+INCLUDE_FILE = re.compile(r"(\w+?)(?:_(\d+))?\.inc")
+
+
+def include_module(file_name: str) -> str:
+    """The module a generated include belongs to: `objects_2.inc` is objects', `declarations_square.inc` the
+    declarations'."""
+    if file_name.startswith("declarations"):
+        return "declarations"
+    return INCLUDE_FILE.fullmatch(file_name).group(1)
 
 
 def _is_rows(r: dict) -> bool:

@@ -352,12 +352,10 @@ static VECTOR3 _gAkropolisPlazaTraversalShotPositions[CAMERA_TRAVERSAL_FRAME_COU
 #include "assets/rooms/akropolis/plaza/clips.inc"
 #include "assets/rooms/akropolis/plaza/samples.inc"
 #include "assets/rooms/akropolis/plaza/markers.inc"
-#define ROOM_PART gAkropolisPlazaRoomCollisionResources
-#include "assets/rooms/akropolis/plaza/header.inc"
+#include "assets/rooms/akropolis/plaza/header_1.inc"
 #include "assets/rooms/akropolis/plaza/cameras.inc"
 #include "assets/rooms/akropolis/plaza/sprites.inc"
-#define ROOM_PART gAkropolisPlazaWarpEntries
-#include "assets/rooms/akropolis/plaza/header.inc"
+#include "assets/rooms/akropolis/plaza/header_2.inc"
 #include "assets/rooms/akropolis/plaza/geometry.inc"
 #include "assets/rooms/akropolis/plaza/action_triggers.inc"
 #include "assets/rooms/akropolis/plaza/placements.inc"
