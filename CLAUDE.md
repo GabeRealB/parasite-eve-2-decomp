@@ -652,18 +652,20 @@ binary embeds - data, rodata, bss, tables, strings - may be declared in C. The
 settled asset categories are **fonts** (glyph pixels *and* glyph metrics),
 **images**, **CLUTs**, **models**, **animations** and **collision geometry**.
 Collision geometry is a room's grid - normals, vertices, faces and per-cell face
-lists - which describes a shape the way a model does; the manifest cuts it out as
-a `collision` object with its `WorldCollisionGrid` header as a `collisionSource`.
-Where a C unit owns the grid (`in_c = true`), the arrays keep their C
-declarations but take their initializers from includes that
+lists - which describes a shape the way a model does. It is a `collision` asset
+placed by its package's `embedded` list: the placement covers the arrays, and the
+`WorldCollisionGrid` header that follows it is the room's data. The arrays keep
+their C declarations but take their initializers from includes that
 `tools/buildsteps/gen_collision_inc.py` writes from the package, after checking the grid's
 layout against its header. Non-NULL table entries call the including source's
-face-list binding with an element offset into its packed `s16` pool. The grid's
-`cell_face_list_macro` manifest setting selects that binding; unconfigured grids
+face-list binding with an element offset into its packed `s16` pool. The grid
+asset's `cell_face_list_macro` selects that binding; unconfigured grids
 use `GRID_CELL`. Each binding captures its grid's pool and yields a borrowed
 list-start pointer, with one argument evaluation. Headerless geometry
-that code copies into a live grid is a `collisionPatch`, declared by its
-`pieces`.
+that code copies into a live grid is a patch: a `collision` asset declared by its
+`pieces`. Stages not yet converted still declare both in the overlay manifest
+(`collision` and `collisionSource` objects, `collisionPatch`); they are moving to
+the assets (`local/asset_side_without_splat.md`), and the build reads both meanwhile.
 Camera views are not assets: a view is a matrix and a position, data like any
 placement. Like placements, they are a **room's data** (below), not C.
 
