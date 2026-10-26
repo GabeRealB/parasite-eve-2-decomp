@@ -1,4 +1,4 @@
-#include "mappic/mappic.h"
+#include "stages/akropolis/map.h"
 
 /// Square's map footprint in integer model X/Z coordinates, with Y zero.
 /// Three unlit quads' packed vertex byte offsets and white color, followed by two group ends and the stream end.

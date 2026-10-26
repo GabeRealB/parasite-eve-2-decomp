@@ -285,7 +285,7 @@ gActor800100AttackAllowancesByResourceVariant = 0x80167230; // absolute:True own
 gMapDryfieldFullMarkerFlags = 0x8017A738; // absolute:True owner=map_dryfield_full
 gMapDryfieldMarkerFlags = 0x8017A824; // absolute:True owner=map_dryfield
 gMapNeoArkMarkerFlags = 0x8017A9A0; // absolute:True owner=map_neo_ark
-gMapAkropolisMarkerFlags = 0x8017AA0C; // absolute:True owner=map_akropolis
+gMapAkropolisMarkerFlags = 0x8017AA0C; // absolute:True owner=akropolis_stage
 gMapShelterMarkerFlags = 0x8017AD88; // absolute:True owner=map_shelter
 gNmcNamesEnemyNameTable = 0x801D6484; // absolute:True
 func_807150F8 = 0x807150F8; // type:func absolute:True
@@ -329,90 +329,90 @@ gShelterB6NurseryModel07BAC = 0x801852D0; // absolute:True owner=shelter_b6_nurs
 gAkropolisCafeteriaWanderingCreatureModel = 0x80184E5C; // absolute:True owner=akropolis_cafeteria
 
 // Map UI tables selected by the resident gameplay map screen.
-gMapAkropolisAreaNames = 0x8017A3BC; // absolute:True owner=map_akropolis
+gMapAkropolisAreaNames = 0x8017A3BC; // absolute:True owner=akropolis_stage
 gMapDryfieldAreaNames = 0x8017A044; // absolute:True owner=map_dryfield
 gMapDryfieldFullAreaNames = 0x80179F4C; // absolute:True owner=map_dryfield_full
 gMapShelterAreaNames = 0x8017A268; // absolute:True owner=map_shelter
 gMapNeoArkAreaNames = 0x8017A28C; // absolute:True owner=map_neo_ark
-gMapAkropolisIcons = 0x8017A38C; // absolute:True owner=map_akropolis
+gMapAkropolisIcons = 0x8017A38C; // absolute:True owner=akropolis_stage
 gMapDryfieldIcons = 0x80179FEC; // absolute:True owner=map_dryfield
 gMapDryfieldFullIcons = 0x80179F04; // absolute:True owner=map_dryfield_full
 gMapShelterIcons = 0x8017A1F0; // absolute:True owner=map_shelter
 gMapNeoArkIcons = 0x8017A26C; // absolute:True owner=map_neo_ark
-gMapAkropolisMarkers = 0x8017A330; // absolute:True owner=map_akropolis
+gMapAkropolisMarkers = 0x8017A330; // absolute:True owner=akropolis_stage
 gMapDryfieldMarkers = 0x80179F38; // absolute:True owner=map_dryfield
 gMapDryfieldFullMarkers = 0x80179E48; // absolute:True owner=map_dryfield_full
 gMapShelterMarkers = 0x8017A134; // absolute:True owner=map_shelter
 gMapNeoArkMarkers = 0x8017A230; // absolute:True owner=map_neo_ark
-gMapAkropolisAreas = 0x8017A154; // absolute:True owner=map_akropolis
+gMapAkropolisAreas = 0x8017A154; // absolute:True owner=akropolis_stage
 gMapDryfieldAreas = 0x80179BD0; // absolute:True owner=map_dryfield
 gMapDryfieldFullAreas = 0x80179AE0; // absolute:True owner=map_dryfield_full
 gMapShelterAreas = 0x80179CD8; // absolute:True owner=map_shelter
 gMapNeoArkAreas = 0x80179F24; // absolute:True owner=map_neo_ark
-gMapAkropolisPageFlagIds = 0x8017A14C; // absolute:True owner=map_akropolis
+gMapAkropolisPageFlagIds = 0x8017A14C; // absolute:True owner=akropolis_stage
 gMapDryfieldPageFlagIds = 0x80179BCC; // absolute:True owner=map_dryfield
 gMapDryfieldFullPageFlagIds = 0x80179ADC; // absolute:True owner=map_dryfield_full
 gMapShelterPageFlagIds = 0x80179CD0; // absolute:True owner=map_shelter
 gMapNeoArkPageFlagIds = 0x80179F1C; // absolute:True owner=map_neo_ark
-gMapAkropolisAreaShapes = 0x8017A288; // absolute:True owner=map_akropolis
+gMapAkropolisAreaShapes = 0x8017A288; // absolute:True owner=akropolis_stage
 gMapDryfieldAreaShapes = 0x80179E00; // absolute:True owner=map_dryfield
 gMapDryfieldFullAreaShapes = 0x80179D10; // absolute:True owner=map_dryfield_full
 gMapShelterAreaShapes = 0x80179FA4; // absolute:True owner=map_shelter
 gMapNeoArkAreaShapes = 0x8017A110; // absolute:True owner=map_neo_ark
 uiUpdateOptionsAfterLoadTask = 0x80049A8C; // type:func absolute:True
-gMapAkropolisBattleRewards = 0x8017C0DC; // absolute:True owner=map_akropolis
+gMapAkropolisBattleRewards = 0x8017C0DC; // absolute:True owner=akropolis_stage
 gMapDryfieldBattleRewards = 0x8017BCE4; // absolute:True owner=map_dryfield
 gMapDryfieldFullBattleRewards = 0x8017D0B8; // absolute:True owner=map_dryfield_full
 gMapShelterBattleRewards = 0x8017BB58; // absolute:True owner=map_shelter
 gMapNeoArkBattleRewards = 0x8017C9B0; // absolute:True owner=map_neo_ark
-gMapAkropolisHardBattleRewards = 0x8017C16C; // absolute:True owner=map_akropolis
+gMapAkropolisHardBattleRewards = 0x8017C16C; // absolute:True owner=akropolis_stage
 gMapDryfieldHardBattleRewards = 0x8017BD80; // absolute:True owner=map_dryfield shared=mapui
 gMapDryfieldFullHardBattleRewards = 0x8017D1CC; // absolute:True owner=map_dryfield_full
 gMapShelterHardBattleRewards = 0x8017BD8C; // absolute:True owner=map_shelter shared=mapui
 gMapNeoArkHardBattleRewards = 0x8017CB0C; // absolute:True owner=map_neo_ark
 akropolisEastElevatorHallPointTileTask = 0x8017FAAC; // type:func absolute:True owner=akropolis_east_elevator_hall shared=rooms
 func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons effect-bank slots 0xBB/0xBD, owner unproven
-gMapAkropolisRoomTaskDescriptors = 0x8017A8AC; // absolute:True owner=map_akropolis
+gMapAkropolisRoomTaskDescriptors = 0x8017A8AC; // absolute:True owner=akropolis_stage
 gMapDryfieldRoomTaskDescriptors = 0x8017A6A4; // absolute:True owner=map_dryfield
 gMapDryfieldFullRoomTaskDescriptors = 0x8017A5AC; // absolute:True owner=map_dryfield_full
 gMapShelterRoomTaskDescriptors = 0x8017AB30; // absolute:True owner=map_shelter
 gMapNeoArkRoomTaskDescriptors = 0x8017A804; // absolute:True owner=map_neo_ark
-gMapAkropolisViewCameraTable = 0x8017AC14; // absolute:True owner=map_akropolis
+gMapAkropolisViewCameraTable = 0x8017AC14; // absolute:True owner=akropolis_stage
 gMapDryfieldViewCameraTable = 0x8017AB60; // absolute:True owner=map_dryfield
 gMapDryfieldFullViewCameraTable = 0x8017AA74; // absolute:True owner=map_dryfield_full
 gMapShelterViewCameraTable = 0x8017B480; // absolute:True owner=map_shelter
 gMapNeoArkViewCameraTable = 0x8017AD28; // absolute:True owner=map_neo_ark
-gMapAkropolisViewCountTable = 0x8017ABC0; // absolute:True owner=map_akropolis
+gMapAkropolisViewCountTable = 0x8017ABC0; // absolute:True owner=akropolis_stage
 gMapDryfieldViewCountTable = 0x8017AA28; // absolute:True owner=map_dryfield shared=mapui
 gMapDryfieldFullViewCountTable = 0x8017A93C; // absolute:True owner=map_dryfield_full
 gMapShelterViewCountTable = 0x8017B110; // absolute:True owner=map_shelter
 gMapNeoArkViewCountTable = 0x8017AB88; // absolute:True owner=map_neo_ark
-gMapAkropolisViewIndexTable = 0x8017AC68; // absolute:True owner=map_akropolis
+gMapAkropolisViewIndexTable = 0x8017AC68; // absolute:True owner=akropolis_stage
 gMapDryfieldViewIndexTable = 0x8017ABFC; // absolute:True owner=map_dryfield
 gMapDryfieldFullViewIndexTable = 0x8017AB10; // absolute:True owner=map_dryfield_full
 gMapShelterViewIndexTable = 0x8017B548; // absolute:True owner=map_shelter
 gMapNeoArkViewIndexTable = 0x8017ADB0; // absolute:True owner=map_neo_ark
-gMapAkropolisSpriteAreaTable = 0x8017AB1C; // absolute:True owner=map_akropolis
+gMapAkropolisSpriteAreaTable = 0x8017AB1C; // absolute:True owner=akropolis_stage
 gMapDryfieldSpriteAreaTable = 0x8017AC98; // absolute:True owner=map_dryfield
 gMapDryfieldFullSpriteAreaTable = 0x8017ABAC; // absolute:True owner=map_dryfield_full
 gMapShelterSpriteAreaTable = 0x8017B610; // absolute:True owner=map_shelter shared=mapui
 gMapNeoArkSpriteAreaTable = 0x8017AE38; // absolute:True owner=map_neo_ark
-gMapAkropolisWorldCollisionResources = 0x8017AAC8; // absolute:True owner=map_akropolis
+gMapAkropolisWorldCollisionResources = 0x8017AAC8; // absolute:True owner=akropolis_stage
 gMapDryfieldWorldCollisionResources = 0x8017AAC4; // absolute:True owner=map_dryfield
 gMapDryfieldFullWorldCollisionResources = 0x8017A9D8; // absolute:True owner=map_dryfield_full
 gMapShelterWorldCollisionResources = 0x8017B3B8; // absolute:True owner=map_shelter
 gMapNeoArkWorldCollisionResources = 0x8017ACA0; // absolute:True owner=map_neo_ark
-gMapAkropolisAreaWarpEntries = 0x8017AB20; // absolute:True owner=map_akropolis
+gMapAkropolisAreaWarpEntries = 0x8017AB20; // absolute:True owner=akropolis_stage
 gMapDryfieldAreaWarpEntries = 0x8017A8F8; // absolute:True owner=map_dryfield
 gMapDryfieldFullAreaWarpEntries = 0x8017A80C; // absolute:True owner=map_dryfield_full
 gMapShelterAreaWarpEntries = 0x8017AF88; // absolute:True owner=map_shelter
 gMapNeoArkAreaWarpEntries = 0x8017AA80; // absolute:True owner=map_neo_ark
-gMapAkropolisAreaRoomLightingTables = 0x8017AA28; // absolute:True owner=map_akropolis shared=mapui
+gMapAkropolisAreaRoomLightingTables = 0x8017AA28; // absolute:True owner=akropolis_stage shared=mapui
 gMapDryfieldRoomLightingTables = 0x8017A860; // absolute:True owner=map_dryfield
 gMapDryfieldFullRoomLightingTables = 0x8017A774; // absolute:True owner=map_dryfield_full
 gMapShelterRoomLightingTables = 0x8017AEC4; // absolute:True owner=map_shelter
 gMapNeoArkRoomLightingTables = 0x8017A9FC; // absolute:True owner=map_neo_ark
-gMapAkropolisSurfacePropertiesByArea = 0x8017AC6C; // absolute:True owner=map_akropolis
+gMapAkropolisSurfacePropertiesByArea = 0x8017AC6C; // absolute:True owner=akropolis_stage
 gMapDryfieldSurfacePropertiesByArea = 0x8017AC9C; // absolute:True owner=map_dryfield
 gMapDryfieldFullSurfacePropertiesByArea = 0x8017ABB0; // absolute:True owner=map_dryfield_full
 gMapShelterSurfacePropertiesByArea = 0x8017B614; // absolute:True owner=map_shelter
@@ -420,7 +420,7 @@ gMapNeoArkSurfacePropertiesByArea = 0x8017AE3C; // absolute:True owner=map_neo_a
 gAkropolisBridgePlacementVariants = 0x8019004C; // absolute:True owner=akropolis_bridge
 gMistParkingAreaVariants = 0x801951B4; // absolute:True owner=mist_parking
 gDryfieldNightGasStationAreaVariants = 0x80190624; // absolute:True owner=dryfield_night_gas_station
-gMapAkropolisObjectRooms = 0x8017A7FC; // absolute:True owner=map_akropolis
+gMapAkropolisObjectRooms = 0x8017A7FC; // absolute:True owner=akropolis_stage
 gMapDryfieldObjectRooms = 0x8017A564; // absolute:True owner=map_dryfield
 gMapDryfieldFullObjectRooms = 0x8017A46C; // absolute:True owner=map_dryfield_full
 gMapShelterObjectRooms = 0x8017A998; // absolute:True owner=map_shelter

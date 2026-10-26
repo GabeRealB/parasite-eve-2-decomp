@@ -1,4 +1,4 @@
-#include "mapui/map_akropolis.h"
+#include "stages/akropolis/stage.h"
 
 #include <psyq/sys/types.h>
 
@@ -34,7 +34,7 @@
 #include "main/ui.h"
 #include "main/ui_types.h"
 
-#include "mappic/mappic.h"
+#include "stages/akropolis/map.h"
 
 #include "stages/akropolis/rooms/bridge.h"
 

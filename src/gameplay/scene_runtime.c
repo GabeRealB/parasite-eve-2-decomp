@@ -56,7 +56,7 @@
 #include "aya/game_over.h"
 #include "aya/ending.h"
 
-#include "mapui/map_akropolis.h"
+#include "stages/akropolis/stage.h"
 
 #include "mapui/map_dryfield.h"
 

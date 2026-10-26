@@ -232,13 +232,15 @@ the carrier's scope: fragments keep their subsystem prefixes on everything.
 ### Source layout
 
 A source folder is one overlay: a room's several units share its folder
-because they link into one image, and nothing else does. Stage content lives
-under its stage - `src/stages/<stage>/rooms/<room>/`, and
+because they link into one image, and nothing else does. An overlay of one
+unit may instead be a loose file beside others: the stage overlay is
+`src/stages/<stage>/stage.c` and its map pages `src/stages/<stage>/map/<page>.c`.
+Stage content lives under its stage - `src/stages/<stage>/rooms/<room>/`, and
 `src/stages/<stage>/actors/<actor>/` for actors only that stage loads (their
 packages sit in a room's disc folder). General actors mirror their asset
 families: `src/enemies/<kind>/`, `src/encounters/<pair>/`,
 `src/characters/<character>/`, as `enemies/chaser/desert` → `src/enemies/chaser/desert/`.
-Public headers mirror the sources (`include/stages/akropolis/rooms/plaza.h`,
+Public headers mirror the sources (`include/stages/akropolis/stage.h`, `include/stages/akropolis/map.h`, `include/stages/akropolis/rooms/plaza.h`,
 `include/stages/akropolis/actors/police_officers.h`); the engine's actor API
 stays in `include/actors/`. The manifest family `actors` is a load-slot family,
 not a folder: an entry's `src` states where its source lives. Shared libraries

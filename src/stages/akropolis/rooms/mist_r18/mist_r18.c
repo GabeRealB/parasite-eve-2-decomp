@@ -31,7 +31,7 @@
 #include "main/text.h"
 #include "main/tmd_types.h"
 
-#include "mapui/map_akropolis.h"
+#include "stages/akropolis/stage.h"
 #include "../../../../shared/room/backdrop_crossfade.h"
 
 #include "assets/rooms/mist/r18/declarations.inc"

@@ -423,9 +423,14 @@ def object_subsegments(
                 raise SystemExit(f"{name}: variant unit {unit}, but the slot declares no `defines`")
         # A library unit's source is src/lib/, shared by every family.
         text = "libsrc" if lib else "c"
+        runs = dict(obj)
+        if src_dir and not lib and "text" not in runs:
+            # A data-only unit of an entry naming its own directory (the Akropolis map pages): a zero-length text
+            # run where its first section begins gives its .rodata and .data the sibling whose source is there.
+            runs["text"] = next(runs[k] for k in ("rodata", "data") if k in runs)
         for key, sect in (("rodata", ".rodata"), ("text", text), ("data", ".data")):
-            if key in obj:
-                at = int(str(obj[key]), 16)
+            if key in runs:
+                at = int(str(runs[key]), 16)
                 if (variant or (src_dir and not lib)) and key == "text":
                     # The source sits under the family by default; an entry that
                     # names its own directory (`src`, from the repository root)

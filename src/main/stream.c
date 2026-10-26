@@ -20,7 +20,7 @@
 #include "main/tmd.h"
 #include "main/gamemain.h"
 
-#include "mapui/map_akropolis.h"
+#include "stages/akropolis/stage.h"
 #include "mapui/map_dryfield.h"
 #include "mapui/map_neo_ark.h"
 

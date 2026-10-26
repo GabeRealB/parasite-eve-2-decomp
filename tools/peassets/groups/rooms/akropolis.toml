@@ -12,7 +12,7 @@ width = 256
 [stage]
 type = "package"
 load = { slot = "stage" }
-package_name = "map_akropolis"
+package_name = "akropolis_stage"
 required = true
 requires = ["gameplay"]
 slots = { map_page_1 = "rooms/akropolis/map/page_1", map_page_2 = "rooms/akropolis/map/page_2" }

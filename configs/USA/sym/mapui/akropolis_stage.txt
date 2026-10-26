@@ -1,4 +1,4 @@
-// Overlay-local symbols for map_akropolis (file 900000).
+// Overlay-local symbols for akropolis_stage (file 900000).
 // "Key Item" heading plus the blob that follows it; referenced by the matched
 // _mapAkropolisKeyItemPanelTask, so keep it out of that function's .s file.
 _gMapAkropolisKeyItemPanelTitle = 0x8017997C; // force_not_migration:True

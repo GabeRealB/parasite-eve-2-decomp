@@ -102,7 +102,7 @@ MAIN_LOAD = 0x80010000           # the executable: only its names are used (task
 # The stage's map overlay. Established by the directories themselves - every populated entry of stage N's camera
 # directory is an address inside one of stage N's room packages - and checked on every run against the package's
 # own id word (offset 0), which is 279 + stage for these five (overlays.toml ids 280-284).
-STAGE_MAPS = {1: "map_akropolis", 2: "map_dryfield", 3: "map_dryfield_full", 4: "map_shelter", 5: "map_neo_ark"}
+STAGE_MAPS = {1: "akropolis_stage", 2: "map_dryfield", 3: "map_dryfield_full", 4: "map_shelter", 5: "map_neo_ark"}
 STAGE_MAP_ID_BASE = 279
 
 # gameplay's per-stage tables: kind -> (address, bytes per stage, offset of the pointer in a stage's entry, stage of

@@ -88,7 +88,7 @@ modelLightingReserveStreamPrimG3 = 0x8009FC90; // type:func absolute:True
 // Code main calls in whichever overlay occupies a load slot at the time (the
 // map-UI, room, options and actor slots). No single overlay owns these
 // addresses, so they are declared here rather than in an overlay's map.
-mapAkropolisSetupMovieBuffers = 0x80179988; // type:func absolute:True owner=map_akropolis
+mapAkropolisSetupMovieBuffers = 0x80179988; // type:func absolute:True owner=akropolis_stage
 mapNeoArkSetupMovieBuffers = 0x801799BC; // type:func absolute:True owner=map_neo_ark
 mapNeoArkUpdateMusicVolume = 0x80179BE4; // type:func absolute:True owner=map_neo_ark
 optionsUpdateMenuTask = 0x801D4B64; // type:func absolute:True owner=options
@@ -279,20 +279,20 @@ gKyle800104HandRight = 0x8016C9E8; // absolute:True owner=kyle_800104 shared=kyl
 gKyle800104HandRight3 = 0x8016CED8; // absolute:True owner=kyle_800104 shared=kyle
 gKyle800104HandLeft2 = 0x8016D32C; // absolute:True owner=kyle_800104 shared=kyle
 gKyle800104HandLeft = 0x8016D81C; // absolute:True owner=kyle_800104 shared=kyle
-gMapAkropolisImageSlots = 0x8017A048; // absolute:True owner=map_akropolis
+gMapAkropolisImageSlots = 0x8017A048; // absolute:True owner=akropolis_stage
 gMapDryfieldImageSlots = 0x80179A14; // absolute:True owner=map_dryfield
 gMapDryfieldFullImageSlots = 0x801799A4; // absolute:True owner=map_dryfield_full
 gMapShelterImageSlotsByArea = 0x80179B40; // absolute:True owner=map_shelter
 gMapNeoArkImageSlotsByArea = 0x80179DB8; // absolute:True owner=map_neo_ark
-gMapAkropolisMovieWorkspaceBytesByArea = 0x8017A0F8; // absolute:True owner=map_akropolis
+gMapAkropolisMovieWorkspaceBytesByArea = 0x8017A0F8; // absolute:True owner=akropolis_stage
 gMapDryfieldMovieWorkspaceBytesByArea = 0x80179B4C; // absolute:True owner=map_dryfield
 gMapNeoArkMovieWorkspaceBytesByArea = 0x80179EC8; // absolute:True owner=map_neo_ark
-gMapAkropolisAreaMusicEntries = 0x8017C1B4; // absolute:True owner=map_akropolis
+gMapAkropolisAreaMusicEntries = 0x8017C1B4; // absolute:True owner=akropolis_stage
 gMapDryfieldAreaMusicEntries = 0x8017BDE0; // absolute:True owner=map_dryfield
 gMapDryfieldFullAreaMusicEntries = 0x8017D238; // absolute:True owner=map_dryfield_full
 gMapShelterAreaMusicEntries = 0x8017BE28; // absolute:True owner=map_shelter
 gMapNeoArkAreaMusicEntries = 0x8017CB54; // absolute:True owner=map_neo_ark
-gMapAkropolisCountdownMusicEntries = 0x8017C304; // absolute:True owner=map_akropolis
+gMapAkropolisCountdownMusicEntries = 0x8017C304; // absolute:True owner=akropolis_stage
 gMapDryfieldCountdownMusicEntries = 0x8017C004; // absolute:True owner=map_dryfield
 gMapDryfieldFullCountdownMusicEntries = 0x8017D594; // absolute:True owner=map_dryfield_full
 gMapShelterCountdownMusicEntries = 0x8017C2D8; // absolute:True owner=map_shelter

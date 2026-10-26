@@ -31,7 +31,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-#include "mapui/map_akropolis.h"
+#include "stages/akropolis/stage.h"
 
 #include "mapui/map_dryfield.h"
 

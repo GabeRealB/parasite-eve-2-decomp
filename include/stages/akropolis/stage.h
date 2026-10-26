@@ -1,5 +1,5 @@
-#ifndef INCLUDE_MAPUI_MAP_AKROPOLIS_H
-#define INCLUDE_MAPUI_MAP_AKROPOLIS_H
+#ifndef INCLUDE_STAGES_AKROPOLIS_STAGE_H
+#define INCLUDE_STAGES_AKROPOLIS_STAGE_H
 
 #include "types.h"
 
@@ -753,4 +753,4 @@ extern InventoryBattleReward gMapAkropolisBattleRewards[12];
 /// Keys exclude the room and view. Keep this overlay loaded during lookup.
 extern InventoryBattleReward gMapAkropolisHardBattleRewards[6];
 
-#endif // INCLUDE_MAPUI_MAP_AKROPOLIS_H
+#endif // INCLUDE_STAGES_AKROPOLIS_STAGE_H

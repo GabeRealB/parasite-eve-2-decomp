@@ -48,7 +48,7 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-#include "mapui/map_akropolis.h"
+#include "stages/akropolis/stage.h"
 
 #include "mapui/map_dryfield.h"
 

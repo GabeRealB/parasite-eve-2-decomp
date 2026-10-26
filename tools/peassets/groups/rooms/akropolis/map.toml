@@ -33,7 +33,7 @@ embedded = [
     { name = "west_elevator_hall", offset = 0x00AA0, size = 0x150, address = 0x8012F9D0 },
 ]
 load = { slot = "pe" }
-package_name = "mappic_s1_00"
+package_name = "akropolis_map"
 required = true
 requires = ["gameplay"]
 sha1 = "cb0ba1bfc0ee339511791bdbd4720c5e3eb8af7a"
@@ -60,7 +60,7 @@ type = "package"
 embedded = [{ name = "helicopter_landing_pad", offset = 0x00004, size = 0x90, address = 0x8012EF34 }]
 exports = { helicopter_landing_pad = { at = 0x00070, symbol = "gMappicS102HelicopterLandingPadShape" } }
 load = { slot = "pe" }
-package_name = "mappic_s1_02"
+package_name = "akropolis_helicopter_landing_pad_map"
 required = true
 requires = ["gameplay"]
 sha1 = "ab15de45cb7044e9e21112abaac6e71bcf32b8f7"

@@ -22,8 +22,8 @@ akropolis_cafeteria_model_07CA8	No reached use found: body of the cafeteria's lo
 akropolis_cafeteria_model_08638	No reached use found: second body of the cafeteria's loose-prop task (bank 7 slot 161); no spawn found.	
 akropolis_cafeteria_model_09090	No reached use found: third body of the cafeteria's loose-prop task (bank 7 slot 162); no spawn found.	
 akropolis_cafeteria_model_09A20	No reached use found: fourth body of the cafeteria's loose-prop task (bank 7 slot 163); no spawn found.	
-akropolis_cafeteria_model_0F7A4	Stim pickup model placed in the Akropolis cafeteria by map_akropolis's object table, drawn only in mapped view 9 until collected.	
-rooms/akropolis/cafeteria/mendel_journal	Mendel journal pickup model placed in the Akropolis cafeteria by map_akropolis's object table, hidden once collected.	
+akropolis_cafeteria_model_0F7A4	Stim pickup model placed in the Akropolis cafeteria by akropolis_stage's object table, drawn only in mapped view 9 until collected.	
+rooms/akropolis/cafeteria/mendel_journal	Mendel journal pickup model placed in the Akropolis cafeteria by akropolis_stage's object table, hidden once collected.	
 akropolis_east_elevator_hall_animation_026E8	Three scripted player clips of the east elevator hall's first-visit opening event (short entry, long conversation with the SWAT member, closing), installed and played by the event script.	
 akropolis_east_elevator_hall_collision_08DB8	Collision grid of the Akropolis east elevator hall, read by gameplay's world collision for the whole stay.	
 akropolis_fire_escape_collision_048B4	Collision grid of the Akropolis fire escape; its first normal, four vertices and face are overwritten by the placed Stranger enemies/stranger/lesser/package as a barrier and cleared when it dies.	
@@ -36,7 +36,7 @@ rooms/akropolis/hallway/blue_key_pickup	Blue Key model, spawned in the Akropolis
 akropolis_hallway_model_023C0	No reached use found: a one-part 21-vertex model in the Akropolis hallway package that no code references.	
 akropolis_helicopter_landing_pad_collision_07A34	Collision grid of the Akropolis helicopter landing pad (6x6 cells); the golem enemies/golem/no_9/package_akropolis patches three faces into it while present.	
 rooms/akropolis/helicopter_landing_pad/akropolis_helicopter_landing_pad_model_0547C	Model of the helicopter landing pad's lift, spawned as a room object at its upper stop and raised or lowered by the ending and departure scenes.	
-akropolis_helicopter_landing_pad_model_0A8E8	No reached use found: a pickup model in the landing pad package whose map_akropolis spawn descriptor (kind 0xA4) is selected by no place record.	
+akropolis_helicopter_landing_pad_model_0A8E8	No reached use found: a pickup model in the landing pad package whose akropolis_stage spawn descriptor (kind 0xA4) is selected by no place record.	
 akropolis_observatory_animation_0250C	Aya's scripted reaction clip in the Akropolis observatory, installed and played once on the player when she crosses the trigger that starts the bat battle.	
 akropolis_observatory_collision_02A2C	Collision grid of the Akropolis observatory, published identically for both room indices.	
 rooms/akropolis/observatory/forked_road_arrival_player_path	Per-movie-frame player path (300 samples) for arriving at the observatory from the forked road, copied into the player's root while the movie plays.	
@@ -58,13 +58,13 @@ rooms/akropolis/promenade/arrival_player_path	Per-movie-frame player path for th
 akropolis_roof_garden_animation_02C20	Three player clips of the Akropolis roof garden's arrival scene, installed as weapon-bank clips 47-49 and played in turn by the arrival script.	
 akropolis_roof_garden_animation_06D70	Two player clips of the roof garden's entrance script (variants 1 and 7), played as the creatures are released just before the battle engages.	
 akropolis_roof_garden_collision_0775C	Collision grid of the Akropolis roof garden, read by gameplay's world collision for the whole stay.	
-rooms/akropolis/roof_garden/armory_cardkey_pickup	Flat-quad pickup model in the roof garden (a sheet of paper by its texture), placed by map_akropolis and drawn only in mapped views 5-7 until collected.	
+rooms/akropolis/roof_garden/armory_cardkey_pickup	Flat-quad pickup model in the roof garden (a sheet of paper by its texture), placed by akropolis_stage and drawn only in mapped views 5-7 until collected.	
 akropolis_sanctuary_animation_02D88	One player clip the sanctuary's arrival scene plays in place of weapon clip 7 only when the equipped weapon index is 2.	
 akropolis_sanctuary_animation_0435C	Player clip installed and played by the sanctuary's room-action-1 cutscene after her equipment is removed; a second set of the same shape has no use found.	
 akropolis_sanctuary_collision_04C8C	Template of a four-sided collision box (4 faces) that the sanctuary copies into its live grid as the blocker, moved aside once the blocker is cleared.	
 akropolis_sanctuary_collision_052F4	Collision grid of the Akropolis sanctuary (3x3 cells, 85 faces); its leading records are zero placeholders the room overwrites with the blocker box.	
 akropolis_sanctuary_model_090F0	Three-part item container with a hinged lid, embedded in several room packages: spawned as a placed object in the Dryfield trailer coach and three Shelter rooms, never placed in the two Akropolis rooms.	
-rooms/akropolis/sanctuary/red_key_pickup	Red Key model, placed in the Akropolis sanctuary as object 28 by map_akropolis and hidden in two mapped views and once collected.	
+rooms/akropolis/sanctuary/red_key_pickup	Red Key model, placed in the Akropolis sanctuary as object 28 by akropolis_stage and hidden in two mapped views and once collected.	
 akropolis_security_room_clut_05358	Lit 256-colour palette of lamp picture 0 in the Akropolis security room, blended against black by the lamp's brightness and uploaded to VRAM row 270 by the monitor-feeds task.	
 akropolis_security_room_clut_05558	Lit 256-colour palette of lamp picture 1 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 271 by the monitor-feeds task.	
 akropolis_security_room_clut_05758	Lit 256-colour palette of lamp picture 2 in the Akropolis security room, blended against black by lamp brightness and uploaded to VRAM row 263 by the monitor-feeds task.	
@@ -1090,15 +1090,15 @@ enemies/chaser/mad/body	9-part body of the Mad Chaser enemy: placed in rooms suc
 enemies/chaser/mad/burst_arm	One-part Mad Chaser chunk thrown from body part 8 as the second flying body chunk on a lethal blast, one chance in two (otherwise the tail is thrown).	
 enemies/chaser/mad/burst_head	One-part Mad Chaser chunk always thrown from body part 6 as a flying body chunk when the enemy dies to a lethal blast.	
 enemies/chaser/mad/burst_tail	One-part Mad Chaser chunk thrown from body part 2 as the alternative second flying body chunk on a lethal blast, when the arm is not thrown.	
-mappic_s1_00	Fifteen flat area-outline model records of the stage 1 page 1 map picture package, drawn by gameplay's map menu over the picture as patterned, dimmed or tinted room shapes.	
-mappic_s1_00_model_00174	Face stream of the flat outline of akropolis_east_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00294	Face stream of the flat outline of akropolis_patio on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00564	Face stream of the flat outline of akropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00650	Face stream of the flat outline of akropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00718	Face stream of the flat outline of akropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_007E8	Face stream of the flat outline of akropolis_promenade on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_00_model_00B48	Face stream of the flat outline of akropolis_west_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
-mappic_s1_02	The single area-outline model record of the stage 1 page 2 map picture package, drawn by gameplay's map menu over that page's picture.	
+akropolis_map	Fifteen flat area-outline model records of the stage 1 page 1 map picture package, drawn by gameplay's map menu over the picture as patterned, dimmed or tinted room shapes.	
+rooms/akropolis/map/east_elevator_hall	Face stream of the flat outline of akropolis_east_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+rooms/akropolis/map/patio	Face stream of the flat outline of akropolis_patio on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+rooms/akropolis/map/fountain	Face stream of the flat outline of akropolis_fountain on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+rooms/akropolis/map/forked_road	Face stream of the flat outline of akropolis_forked_road on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+rooms/akropolis/map/observatory	Face stream of the flat outline of akropolis_observatory on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+rooms/akropolis/map/promenade	Face stream of the flat outline of akropolis_promenade on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+rooms/akropolis/map/west_elevator_hall	Face stream of the flat outline of akropolis_west_elevator_hall on stage 1 map page 1, drawn by the map menu as a patterned, dimmed or tinted shape.	
+akropolis_helicopter_landing_pad_map	The single area-outline model record of the stage 1 page 2 map picture package, drawn by gameplay's map menu over that page's picture.	
 mappic_s2_00	Five area-outline model records of the stage 2 (Dryfield day) page 1 map picture package, drawn by gameplay's map menu over that page's picture.	
 mappic_s2_00_model_0011C	Face stream of the flat map outline of the Dryfield motel balcony, drawn on page 1 of the day (stage 2) and night (stage 3) Dryfield maps.	
 mappic_s2_00_model_00344	Face stream of the flat map outline of the Dryfield water tank area, drawn on page 1 of the day (stage 2) and night (stage 3) Dryfield maps.	
@@ -4065,7 +4065,7 @@ pe2img_666	8-bit sheet of the 34 occluder sprites of dryfield_motel_balcony's ma
 pe2img_667	8-bit sheet of the 20 occluder sprites of dryfield_motel_balcony's mapped view 14.	
 pe2img_668	8-bit sheet of the 6 occluder sprites of dryfield_motel_balcony's mapped view 15.	
 pe2img_669	8-bit sheet of the 5 occluder sprites of dryfield_motel_balcony's mapped view 16.	
-key_items/mist_search_warrant/image	Item preview picture of key item 0x109, the MIST Search Warrant, drawn in gameplay's key-item menu list and in map_akropolis's MIST briefing key-item menu.	
+key_items/mist_search_warrant/image	Item preview picture of key item 0x109, the MIST Search Warrant, drawn in gameplay's key-item menu list and in akropolis_stage's MIST briefing key-item menu.	
 pe2img_670	8-bit sheet (two pages) of the 38 occluder sprites of dryfield_motel_balcony's mapped view 17.	
 pe2img_671	8-bit sheet (three pages) of the occluder sprites of dryfield_motel_balcony's mapped view 18.	
 pe2img_672	8-bit sheet of the 8 occluder sprites of dryfield_motel_balcony's mapped view 19.	
@@ -4076,7 +4076,7 @@ pe2img_676	8-bit sheet (two pages) of the occluder sprites of dryfield_motel_roo
 pe2img_677	8-bit sheet (two pages) of the occluder sprites of dryfield_motel_room_6's mapped view 5.	
 pe2img_678	8-bit sheet (three pages) of the 24 occluder sprites of dryfield_motel_room_6's mapped view 7.	
 pe2img_679	8-bit sheet (three pages) of the 147 occluder sprites of dryfield_motel_room_6's mapped view 8, the mirror view.	
-key_items/nmc_photo/image	Item preview picture of key item 0x10A, the NMC Photo, drawn in gameplay's key-item menu list and in map_akropolis's MIST briefing key-item menu.	
+key_items/nmc_photo/image	Item preview picture of key item 0x10A, the NMC Photo, drawn in gameplay's key-item menu list and in akropolis_stage's MIST briefing key-item menu.	
 pe2img_680	8-bit sheet of the 28 occluder sprites of dryfield_motel_room_6's mapped view 10, a view reached only by the Kyle scene's caption command.	
 dryfield_motel_loft_dialogue_0_atlas	4-bit caption glyph atlas of the motel loft's dialogue, shared by dryfield_motel_loft and dryfield_night_motel_loft.	
 pe2img_682	8-bit sheet of the 9 occluder sprites of dryfield_motel_loft's mapped view 4.	
@@ -4087,7 +4087,7 @@ dryfield_water_hole_dialogue_0_atlas	4-bit caption glyph atlas of the water hole
 pe2img_687	Shared 4-bit water effect sheet (ripple ring, rotated spray cells, upright splash cells) drawn additively by the water tasks of the water hole, Neo Ark and Shelter sewer rooms.	
 pe2img_688	8-bit sheet of the 21 occluder sprites of the water hole's file-3 view (logical view 3 in room indices 1 and 3), shared by the day and night rooms.	
 pe2img_689	8-bit sheet (two pages) of the 33 occluder sprites of the water hole's file-4 view (logical view 4 in room indices 1 and 3), shared by day and night rooms.	
-key_items/manual/image	Item preview picture of key item 0x10B, the Manual, drawn in gameplay's key-item menu list and in map_akropolis's MIST briefing key-item menu.	
+key_items/manual/image	Item preview picture of key item 0x10B, the Manual, drawn in gameplay's key-item menu list and in akropolis_stage's MIST briefing key-item menu.	
 pe2img_690	8-bit sheet of the 18 occluder sprites of the water hole's file-5 view (logical view 5 in room indices 1 and 3), shared by the day and night rooms.	
 pe2img_691	8-bit sheet of the 19 occluder sprites of the water hole's file-6 view (logical view 6 in room indices 1 and 3), shared by the day and night rooms.	
 pe2img_692	8-bit sheet of the 21 occluder sprites of the water hole's file-13 view (logical view 3 in room indices 2 and 4), shared by the day and night rooms.	
@@ -4099,7 +4099,7 @@ pe2img_697	8-bit sheet (two pages) of the 58 occluder sprites of the cellar's fi
 pe2img_698	8-bit sheet of the 49 occluder sprites of the cellar's file-3 view (room index 1, logical view 3), shared by the day and night cellar.	
 pe2img_699	8-bit sheet (two pages) of the 33 occluder sprites of the cellar's file-4 view (room index 1, logical view 4), shared by the day and night cellar.	
 weapons/m93r/image	4-bit 64x64 texture of the M93R weapon model, queued by gameplay's equipped-weapon loader and read by the model's faces whenever the weapon is drawn.	
-key_items/dryfield_map/image	Item preview picture of key item 0x10C, the Dryfield Map, drawn in gameplay's key-item menu list and in map_akropolis's MIST briefing key-item menu.	
+key_items/dryfield_map/image	Item preview picture of key item 0x10C, the Dryfield Map, drawn in gameplay's key-item menu list and in akropolis_stage's MIST briefing key-item menu.	
 pe2img_700	8-bit sheet of the 21 occluder sprites of the cellar's file-5 view (room index 1, logical view 5), shared by the day and night cellar.	
 pe2img_701	8-bit sheet (two pages) of the 58 occluder sprites of the cellar's file-7 view (room index 2, logical view 2), shared by the day and night cellar.	
 pe2img_702	8-bit sheet of the 49 occluder sprites of the cellar's file-8 view (room index 2, logical view 3), shared by the day and night cellar.	

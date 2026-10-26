@@ -1672,10 +1672,10 @@ healing	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	
 healing	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by healing of 0/file50122 at event 8246
 healing	main memory	trace-20261012-152043	session 1						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 14727
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 14727
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 15227
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 15227
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
@@ -1687,10 +1687,10 @@ healing	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 682
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 682
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 26711
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 26711
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
@@ -1699,20 +1699,20 @@ healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1	
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 20990
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 20990
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 9574
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 9574
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 20865
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 20865
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 19869
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 19869
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_02 of 0/mappic_s1_02 at event 40982
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_helicopter_landing_pad_map of 0/akropolis_map_page_2 at event 40982
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by necrosis of 0/file50110 at event 30424
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
@@ -1736,23 +1736,23 @@ healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 14638
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 14638
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 23589
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 23589
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 14370
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 14370
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
-healing	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by mappic_s1_00 of 0/file30101 at event 5600
+healing	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by akropolis_map of 0/akropolis_map_page_1 at event 5600
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
 healing	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
@@ -1810,107 +1810,107 @@ m93r	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		
 m93r	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1						0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1						0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
-map_akropolis	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 14736
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 15236
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 771
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by mappic_s1_02 of 0/mappic_s1_02 at event 690
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by mappic_s1_02 of 0/mappic_s1_02 at event 713
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 26736
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by mappic_s1_02 of 0/mappic_s1_02 at event 26719
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 20999
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 9581
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 20874
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 19876
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 40999
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 14647
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 23598
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 14379
-mappic_s1_00	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8012ef30-0x8012fb1f	0/file30101	0	0	0	one sector	overwritten by healing of 0/file50122 at event 5609
-mappic_s1_02	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012efc3	0/mappic_s1_02	0	0	0	one sector	overwritten by mappic_s1_00 of 0/file30101 at event 698
-mappic_s1_02	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012efc3	0/mappic_s1_02	0	0	0	one sector	overwritten by mappic_s1_00 of 0/file30101 at event 721
-mappic_s1_02	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012efc3	0/mappic_s1_02	0	0	0	one sector	overwritten by mappic_s1_00 of 0/file30101 at event 26727
-mappic_s1_02	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012efc3	0/mappic_s1_02	0	0	0	one sector	overwritten by mappic_s1_00 of 0/file30101 at event 40990
+akropolis_stage	main memory	trace-20261012-145054	session 1						0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1						0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_stage	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80179950-0x8017c32b	0/file900001	0	0	0		
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 14736
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 15236
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 771
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by akropolis_helicopter_landing_pad_map of 0/akropolis_map_page_2 at event 690
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by akropolis_helicopter_landing_pad_map of 0/akropolis_map_page_2 at event 713
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 26736
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by akropolis_helicopter_landing_pad_map of 0/akropolis_map_page_2 at event 26719
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 20999
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 9581
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 20874
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 19876
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 40999
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 14647
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 23598
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 14379
+akropolis_map	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8012ef30-0x8012fb1f	0/akropolis_map_page_1	0	0	0	one sector	overwritten by healing of 0/file50122 at event 5609
+akropolis_helicopter_landing_pad_map	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012efc3	0/akropolis_map_page_2	0	0	0	one sector	overwritten by akropolis_map of 0/akropolis_map_page_1 at event 698
+akropolis_helicopter_landing_pad_map	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x8012ef30-0x8012efc3	0/akropolis_map_page_2	0	0	0	one sector	overwritten by akropolis_map of 0/akropolis_map_page_1 at event 721
+akropolis_helicopter_landing_pad_map	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x8012ef30-0x8012efc3	0/akropolis_map_page_2	0	0	0	one sector	overwritten by akropolis_map of 0/akropolis_map_page_1 at event 26727
+akropolis_helicopter_landing_pad_map	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x8012ef30-0x8012efc3	0/akropolis_map_page_2	0	0	0	one sector	overwritten by akropolis_map of 0/akropolis_map_page_1 at event 40990
 mist_parking	main memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0x8017d5c0-0x80195353	1/mist_parking/file0	0	0	0		overwritten by akropolis_plaza of 1/akropolis_plaza/file0 at event 12751
 mist_parking	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8017d5c0-0x80195353	1/mist_parking/file0	0	0	0		
 mist_parking	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x8017d5c0-0x80195353	1/mist_parking/file0	0	0	0		
@@ -2132,7 +2132,7 @@ rooms/akropolis/fountain/view3_palette	main memory	trace-20261012-152043	session
 rooms/akropolis/fountain/view3_palette	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0x80183bc0-0x80183e86	1/akropolis_fountain/file0	0	0	0	palette	overwritten by akropolis_patio of 1/akropolis_patio/file0 at event 9624
 rooms/akropolis/fountain/view3_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1	3	0,255,256,6	bundle:rooms/akropolis/fountain/view3_palette	0	0	0		overwritten by rooms/akropolis/security_room/view16_palette of bundle:rooms/akropolis/security_room/view16_palette at event 8417
 rooms/akropolis/fountain/view3_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1	3	0,255,256,6	bundle:rooms/akropolis/fountain/view3_palette	0	0	0		overwritten by rooms/akropolis/security_room/view16_palette of bundle:rooms/akropolis/security_room/view16_palette at event 9788
-rooms/akropolis/fountain/view3_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1	3	0,255,256,6	bundle:rooms/akropolis/fountain/view3_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 9571
+rooms/akropolis/fountain/view3_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1	3	0,255,256,6	bundle:rooms/akropolis/fountain/view3_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 9571
 rooms/akropolis/security_room/view16_palette	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0x80183e90-0x8018418c	1/akropolis_fountain/file0	0	0	0	palette	overwritten by akropolis_forked_road of 1/akropolis_forked_road/file0 at event 10037
 rooms/akropolis/security_room/view16_palette	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80183e90-0x8018418c	1/akropolis_fountain/file0	0	0	0	palette	overwritten by akropolis_forked_road of 1/akropolis_forked_road/file0 at event 20950
 rooms/akropolis/security_room/view16_palette	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x80183e90-0x8018418c	1/akropolis_fountain/file0	0	0	0	palette	
@@ -2197,7 +2197,7 @@ rooms/akropolis/fountain/view12_palette	main memory	trace-20261012-152043	sessio
 rooms/akropolis/fountain/view12_palette	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0x80184f70-0x8018525a	1/akropolis_fountain/file0	0	0	0	palette	
 rooms/akropolis/fountain/view12_palette	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0x80184f70-0x8018525a	1/akropolis_fountain/file0	0	0	0	palette	overwritten by akropolis_patio of 1/akropolis_patio/file0 at event 9624
 rooms/akropolis/fountain/view12_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2	4	0,255,256,6	bundle:rooms/akropolis/fountain/view12_palette	0	0	0		overwritten by rooms/akropolis/fountain/view13_palette of bundle:rooms/akropolis/fountain/view13_palette at event 20886
-rooms/akropolis/fountain/view12_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2	4	0,255,256,6	bundle:rooms/akropolis/fountain/view12_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 20862
+rooms/akropolis/fountain/view12_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2	4	0,255,256,6	bundle:rooms/akropolis/fountain/view12_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 20862
 rooms/akropolis/fountain/view13_palette	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0x80185260-0x80185521	1/akropolis_fountain/file0	0	0	0	palette	overwritten by akropolis_forked_road of 1/akropolis_forked_road/file0 at event 10037
 rooms/akropolis/fountain/view13_palette	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80185260-0x80185521	1/akropolis_fountain/file0	0	0	0	palette	overwritten by akropolis_forked_road of 1/akropolis_forked_road/file0 at event 20950
 rooms/akropolis/fountain/view13_palette	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x80185260-0x80185521	1/akropolis_fountain/file0	0	0	0	palette	
@@ -2280,7 +2280,7 @@ rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	ses
 rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		
 rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		
 rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		overwritten by rooms/akropolis/forked_road/view5_palette of bundle:rooms/akropolis/forked_road/view5_palette at event 22258
-rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 20987
+rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 20987
 rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		
 rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		overwritten by rooms/akropolis/square/view5_palette of bundle:rooms/akropolis/square/view5_palette at event 1362
 rooms/akropolis/forked_road/view2_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	2	0,255,256,6	bundle:rooms/akropolis/forked_road/view2_palette	0	0	0		overwritten by rooms/akropolis/square/view5_palette of bundle:rooms/akropolis/square/view5_palette at event 17298
@@ -2563,9 +2563,9 @@ rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	sessi
 rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		
 rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		overwritten by rooms/akropolis/promenade/view3_palette of bundle:rooms/akropolis/promenade/view3_palette at event 15624
 rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		overwritten by rooms/akropolis/promenade/view9_palette of bundle:rooms/akropolis/promenade/view9_palette at event 14547
-rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 14635
+rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 14635
 rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		
-rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 23586
+rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 23586
 rooms/akropolis/promenade/view8_palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	4	0,255,256,6	bundle:rooms/akropolis/promenade/view8_palette	0	0	0		overwritten by rooms/akropolis/sanctuary/view2_palette of bundle:rooms/akropolis/sanctuary/view2_palette at event 23646
 rooms/akropolis/promenade/view9_palette	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80187bc0-0x80187ea2	1/akropolis_promenade/file0	0	0	0	palette	overwritten by akropolis_bridge of 1/akropolis_bridge/file0 at event 14693
 rooms/akropolis/promenade/view9_palette	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0x80187bc0-0x80187ea2	1/akropolis_promenade/file0	0	0	0	palette	overwritten by akropolis_bridge of 1/akropolis_bridge/file0 at event 24716
@@ -2671,7 +2671,7 @@ rooms/akropolis/sanctuary/view5_palette	main memory	trace-20261012-152043	sessio
 rooms/akropolis/sanctuary/view5_palette	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0x801875b0-0x801878bb	1/akropolis_sanctuary/file0	0	0	0	palette	
 rooms/akropolis/sanctuary/view5_palette	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x801875b0-0x801878bb	1/akropolis_sanctuary/file0	0	0	0	palette	
 rooms/akropolis/sanctuary/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	5	0,255,256,6	bundle:rooms/akropolis/sanctuary/view5_palette	0	0	0		overwritten by rooms/akropolis/sanctuary/view2_palette of bundle:rooms/akropolis/sanctuary/view2_palette at event 14397
-rooms/akropolis/sanctuary/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	5	0,255,256,6	bundle:rooms/akropolis/sanctuary/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 14367
+rooms/akropolis/sanctuary/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	5	0,255,256,6	bundle:rooms/akropolis/sanctuary/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 14367
 rooms/akropolis/sanctuary/view6_palette	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0x801878c0-0x80187b74	1/akropolis_sanctuary/file0	0	0	0	palette	
 rooms/akropolis/sanctuary/view6_palette	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x801878c0-0x80187b74	1/akropolis_sanctuary/file0	0	0	0	palette	
 rooms/akropolis/sanctuary/view6_palette	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x801878c0-0x80187b74	1/akropolis_sanctuary/file0	0	0	0	palette	
@@ -2926,7 +2926,7 @@ rooms/akropolis/bridge/view5_palette	main memory	trace-20261012-152043	session 1
 rooms/akropolis/bridge/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	0,255,256,6	bundle:rooms/akropolis/bridge/view5_palette	0	0	0		
 rooms/akropolis/bridge/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	0,255,256,6	bundle:rooms/akropolis/bridge/view5_palette	0	0	0		overwritten by rooms/akropolis/bridge/view4_palette of bundle:rooms/akropolis/bridge/view4_palette at event 15403
 rooms/akropolis/bridge/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	0,255,256,6	bundle:rooms/akropolis/bridge/view5_palette	0	0	0		overwritten by rooms/akropolis/bridge/view10_palette of bundle:rooms/akropolis/bridge/view10_palette at event 15257
-rooms/akropolis/bridge/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	0,255,256,6	bundle:rooms/akropolis/bridge/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 15224
+rooms/akropolis/bridge/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	0,255,256,6	bundle:rooms/akropolis/bridge/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 15224
 rooms/akropolis/bridge/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	2	0,255,256,6	bundle:rooms/akropolis/bridge/view5_palette	0	0	0		overwritten by rooms/akropolis/fire_escape/view3_palette of bundle:rooms/akropolis/fire_escape/view3_palette at event 25775
 rooms/akropolis/bridge/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3	2	0,255,256,6	bundle:rooms/akropolis/bridge/view5_palette	0	0	0		
 rooms/akropolis/bridge/view6_palette	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80192730-0x80192a39	1/akropolis_bridge/file0	0	0	0	palette	
@@ -2937,7 +2937,7 @@ rooms/akropolis/bridge/view6_palette	main memory	trace-20261012-152043	session 1
 rooms/akropolis/bridge/view6_palette	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80192730-0x80192a39	1/akropolis_bridge/file0	0	0	0	palette	overwritten by akropolis_promenade of 1/akropolis_promenade/file0 at event 15585
 rooms/akropolis/bridge/view6_palette	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x80192730-0x80192a39	1/akropolis_bridge/file0	0	0	0	palette	
 rooms/akropolis/bridge/view6_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1	6	0,255,256,6	bundle:rooms/akropolis/bridge/view6_palette	0	0	0		overwritten by rooms/akropolis/bridge/view8_palette of bundle:rooms/akropolis/bridge/view8_palette at event 14752
-rooms/akropolis/bridge/view6_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1	6	0,255,256,6	bundle:rooms/akropolis/bridge/view6_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 14724
+rooms/akropolis/bridge/view6_palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1	6	0,255,256,6	bundle:rooms/akropolis/bridge/view6_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 14724
 rooms/akropolis/bridge/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80192a40-0x80192d58	1/akropolis_bridge/file0	0	0	0	palette	
 rooms/akropolis/bridge/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80192a40-0x80192d58	1/akropolis_bridge/file0	0	0	0	palette	
 rooms/akropolis/bridge/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80192a40-0x80192d58	1/akropolis_bridge/file0	0	0	0	palette	
@@ -2980,7 +2980,7 @@ rooms/akropolis/fire_escape/view3_palette	video memory	trace-20261012-152043	ses
 rooms/akropolis/fire_escape/view5_palette	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80183340-0x801834f8	1/akropolis_fire_escape/file0	0	0	0	palette	
 rooms/akropolis/fire_escape/view5_palette	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80183340-0x801834f8	1/akropolis_fire_escape/file0	0	0	0	palette	overwritten by akropolis_helicopter_landing_pad of 1/akropolis_helicopter_landing_pad/file0 at event 27381
 rooms/akropolis/fire_escape/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	5	0,255,256,6	bundle:rooms/akropolis/fire_escape/view5_palette	0	0	0		
-rooms/akropolis/fire_escape/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	5	0,255,256,6	bundle:rooms/akropolis/fire_escape/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 26708
+rooms/akropolis/fire_escape/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	5	0,255,256,6	bundle:rooms/akropolis/fire_escape/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 26708
 rooms/akropolis/fire_escape/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	5	0,255,256,6	bundle:rooms/akropolis/fire_escape/view5_palette	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view2_palette of bundle:rooms/akropolis/helicopter_landing_pad/view2_palette at event 27400
 rooms/akropolis/fire_escape/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80183500-0x801836c6	1/akropolis_fire_escape/file0	0	0	0	palette	
 rooms/akropolis/fire_escape/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80183500-0x801836c6	1/akropolis_fire_escape/file0	0	0	0	palette	overwritten by akropolis_helicopter_landing_pad of 1/akropolis_helicopter_landing_pad/file0 at event 27381
@@ -3041,7 +3041,7 @@ rooms/akropolis/helicopter_landing_pad/view10_palette	main memory	trace-20261012
 rooms/akropolis/helicopter_landing_pad/view10_palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	0,255,256,6	bundle:rooms/akropolis/helicopter_landing_pad/view10_palette	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view9_palette of bundle:rooms/akropolis/helicopter_landing_pad/view9_palette at event 28646
 rooms/akropolis/helicopter_landing_pad/view10_palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	0,255,256,6	bundle:rooms/akropolis/helicopter_landing_pad/view10_palette	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view10_palette of bundle:rooms/akropolis/helicopter_landing_pad/view10_palette at event 40890
 rooms/akropolis/helicopter_landing_pad/view10_palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	0,255,256,6	bundle:rooms/akropolis/helicopter_landing_pad/view10_palette	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view18_palette of bundle:rooms/akropolis/helicopter_landing_pad/view18_palette at event 41183
-rooms/akropolis/helicopter_landing_pad/view10_palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	0,255,256,6	bundle:rooms/akropolis/helicopter_landing_pad/view10_palette	0	0	0		overwritten by pe2clut_184 of 0/mappic_s1_02 at event 40979
+rooms/akropolis/helicopter_landing_pad/view10_palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	0,255,256,6	bundle:rooms/akropolis/helicopter_landing_pad/view10_palette	0	0	0		overwritten by pe2clut_184 of 0/akropolis_map_page_2 at event 40979
 rooms/akropolis/helicopter_landing_pad/view15_palette	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80189610-0x80189835	1/akropolis_helicopter_landing_pad/file0	0	0	0	palette	
 rooms/akropolis/helicopter_landing_pad/view15_palette	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80189610-0x80189835	1/akropolis_helicopter_landing_pad/file0	0	0	0	palette	
 rooms/akropolis/helicopter_landing_pad/view15_palette	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80189610-0x80189835	1/akropolis_helicopter_landing_pad/file0	0	0	0	palette	overwritten by mist_r18 of 1/mist_r18/file0 at event 41288
@@ -3238,7 +3238,7 @@ rooms/mist/shooting_gallery/view8_palette	main memory	trace-20261012-145054	sess
 rooms/mist/shooting_gallery/view8_palette	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x8018e8e0-0x8018ebdb	1/mist_shooting_gallery/file0	0	0	0	palette	overwritten by mist_shooting_gallery of 1/mist_shooting_gallery/file0 at event 8505
 rooms/mist/shooting_gallery/view8_palette	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x8018e8e0-0x8018ebdb	1/mist_shooting_gallery/file0	0	0	0	palette	overwritten by mist_shooting_gallery of 1/mist_shooting_gallery/file0 at event 9816
 rooms/mist/shooting_gallery/view8_palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	8	0,255,256,6	bundle:rooms/mist/shooting_gallery/view8_palette	0	0	0		overwritten by rooms/mist/shooting_gallery/view7_palette of bundle:rooms/mist/shooting_gallery/view7_palette at event 8290
-rooms/mist/shooting_gallery/view8_palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	8	0,255,256,6	bundle:rooms/mist/shooting_gallery/view8_palette	0	0	0		overwritten by pe2clut_185 of 0/file30103 at event 8111
+rooms/mist/shooting_gallery/view8_palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	8	0,255,256,6	bundle:rooms/mist/shooting_gallery/view8_palette	0	0	0		overwritten by pe2clut_185 of 0/akropolis_map_page_3 at event 8111
 rooms/mist/shooting_gallery/view10_palette	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8018ebe0-0x8018ede8	1/mist_shooting_gallery/file0	0	0	0	palette	overwritten by mist_parking of 1/mist_parking/file0 at event 11739
 rooms/mist/shooting_gallery/view10_palette	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x8018ebe0-0x8018ede8	1/mist_shooting_gallery/file0	0	0	0	palette	
 rooms/mist/shooting_gallery/view10_palette	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x8018ebe0-0x8018ede8	1/mist_shooting_gallery/file0	0	0	0	palette	overwritten by mist_shooting_gallery of 1/mist_shooting_gallery/file0 at event 8505
@@ -3402,7 +3402,7 @@ rooms/akropolis/square/view5_palette	video memory	trace-20261012-152043	session 
 rooms/akropolis/square/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	0,255,256,6	bundle:rooms/akropolis/square/view5_palette	0	0	0		overwritten by rooms/akropolis/square/view6_palette of bundle:rooms/akropolis/square/view6_palette at event 17570
 rooms/akropolis/square/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	0,255,256,6	bundle:rooms/akropolis/square/view5_palette	0	0	0		overwritten by rooms/akropolis/square/view6_palette of bundle:rooms/akropolis/square/view6_palette at event 4754
 rooms/akropolis/square/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	0,255,256,6	bundle:rooms/akropolis/square/view5_palette	0	0	0		overwritten by rooms/akropolis/square/view6_palette of bundle:rooms/akropolis/square/view6_palette at event 491
-rooms/akropolis/square/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	0,255,256,6	bundle:rooms/akropolis/square/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 5597
+rooms/akropolis/square/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	0,255,256,6	bundle:rooms/akropolis/square/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 5597
 rooms/akropolis/square/view6_palette	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80189220-0x80189554	1/akropolis_square/file0	0	0	0	palette	
 rooms/akropolis/square/view6_palette	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x80189220-0x80189554	1/akropolis_square/file0	0	0	0	palette	
 rooms/akropolis/square/view6_palette	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x80189220-0x80189554	1/akropolis_square/file0	0	0	0	palette	
@@ -3541,7 +3541,7 @@ rooms/akropolis/east_elevator_hall/view5_palette	main memory	trace-20261012-1520
 rooms/akropolis/east_elevator_hall/view5_palette	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x801885a0-0x801888e8	1/akropolis_east_elevator_hall/file0	0	0	0	palette	
 rooms/akropolis/east_elevator_hall/view5_palette	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x801885a0-0x801888e8	1/akropolis_east_elevator_hall/file0	0	0	0	palette	overwritten by akropolis_square of 1/akropolis_square/file0 at event 907
 rooms/akropolis/east_elevator_hall/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1	5	0,255,256,6	bundle:rooms/akropolis/east_elevator_hall/view5_palette	0	0	0		overwritten by rooms/akropolis/east_elevator_hall/view2_palette of bundle:rooms/akropolis/east_elevator_hall/view2_palette at event 791
-rooms/akropolis/east_elevator_hall/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1	5	0,255,256,6	bundle:rooms/akropolis/east_elevator_hall/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 679
+rooms/akropolis/east_elevator_hall/view5_palette	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1	5	0,255,256,6	bundle:rooms/akropolis/east_elevator_hall/view5_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 679
 rooms/akropolis/east_elevator_hall/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x801888f0-0x80188af4	1/akropolis_east_elevator_hall/file0	0	0	0	palette	
 rooms/akropolis/east_elevator_hall/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x801888f0-0x80188af4	1/akropolis_east_elevator_hall/file0	0	0	0	palette	
 rooms/akropolis/east_elevator_hall/view7_palette	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x801888f0-0x80188af4	1/akropolis_east_elevator_hall/file0	0	0	0	palette	overwritten by akropolis_square of 1/akropolis_square/file0 at event 907
@@ -3882,7 +3882,7 @@ rooms/akropolis/cafeteria/view15_palette	video memory	trace-20261012-152043	sess
 rooms/akropolis/cafeteria/view15_palette	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4	5	0,255,256,6	bundle:rooms/akropolis/cafeteria/view15_palette	0	0	0		
 rooms/akropolis/cafeteria/view15_palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1	5	0,255,256,6	bundle:rooms/akropolis/cafeteria/view15_palette	0	0	0		
 rooms/akropolis/cafeteria/view15_palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3	5	0,255,256,6	bundle:rooms/akropolis/cafeteria/view15_palette	0	0	0		
-rooms/akropolis/cafeteria/view15_palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4	5	0,255,256,6	bundle:rooms/akropolis/cafeteria/view15_palette	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 19866
+rooms/akropolis/cafeteria/view15_palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4	5	0,255,256,6	bundle:rooms/akropolis/cafeteria/view15_palette	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 19866
 rooms/akropolis/cafeteria/view15_palette	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1	5	0,255,256,6	bundle:rooms/akropolis/cafeteria/view15_palette	0	0	0		overwritten by rooms/akropolis/security_room/view2_palette of bundle:rooms/akropolis/security_room/view2_palette at event 7475
 rooms/akropolis/cafeteria/view21_palette	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x8018ece0-0x8018f00e	1/akropolis_cafeteria/file0	0	0	0	palette	
 rooms/akropolis/cafeteria/view21_palette	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0x8018ece0-0x8018f00e	1/akropolis_cafeteria/file0	0	0	0	palette	
@@ -4559,31 +4559,31 @@ pe/antibody/level1_menu_palette	video memory	trace-20261012-152043	session 1	1	a
 pe/antibody/level1_menu_palette	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0,253,256,1	0/file20731	-8	-3	3		overwritten by pe/antibody/level1_menu_palette of 0/file20731 at event 19982
 pe/antibody/level1_menu_palette	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0,253,256,1	0/file20731	-8	-3	3		overwritten by key_items/armory_cardkey/palette of 0/file20205 at event 20100
 pe/antibody/level1_menu_palette	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0,253,256,1	0/file20731	-8	-3	3		
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/bridge/view6_palette of bundle:rooms/akropolis/bridge/view6_palette at event 14731
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/bridge/view5_palette of bundle:rooms/akropolis/bridge/view5_palette at event 15231
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/east_elevator_hall/view5_palette of bundle:rooms/akropolis/east_elevator_hall/view5_palette at event 767
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by pe2clut_184 of 0/mappic_s1_02 at event 687
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by pe2clut_184 of 0/mappic_s1_02 at event 710
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/fire_escape/view5_palette of bundle:rooms/akropolis/fire_escape/view5_palette at event 26731
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by pe2clut_184 of 0/mappic_s1_02 at event 26716
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/forked_road/view2_palette of bundle:rooms/akropolis/forked_road/view2_palette at event 20994
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0,255,256,6	0/file30101	0	0	0		
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/fountain/view12_palette of bundle:rooms/akropolis/fountain/view12_palette at event 20869
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,255,256,6	0/file30101	0	0	0		
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view10_palette of bundle:rooms/akropolis/helicopter_landing_pad/view10_palette at event 40994
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0,255,256,6	0/file30101	0	0	0		
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/patio/view6_palette of bundle:rooms/akropolis/patio/view6_palette at event 9650
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/promenade/view8_palette of bundle:rooms/akropolis/promenade/view8_palette at event 14642
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/promenade/view8_palette of bundle:rooms/akropolis/promenade/view8_palette at event 23593
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/sanctuary/view5_palette of bundle:rooms/akropolis/sanctuary/view5_palette at event 14374
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/security_room/view2_palette of bundle:rooms/akropolis/security_room/view2_palette at event 19939
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0,255,256,6	0/file30101	0	0	0		
-pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,255,256,6	0/file30101	0	0	0		overwritten by rooms/akropolis/square/view5_palette of bundle:rooms/akropolis/square/view5_palette at event 5604
-pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/mappic_s1_02	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 695
-pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/mappic_s1_02	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 718
-pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,255,256,6	0/mappic_s1_02	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 26724
-pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,255,256,6	0/mappic_s1_02	0	0	0		overwritten by pe2clut_183 of 0/file30101 at event 40987
-pe2clut_185	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,255,256,6	0/file30103	0	0	0		overwritten by rooms/mist/shooting_gallery/view8_palette of bundle:rooms/mist/shooting_gallery/view8_palette at event 8243
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/bridge/view6_palette of bundle:rooms/akropolis/bridge/view6_palette at event 14731
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/bridge/view5_palette of bundle:rooms/akropolis/bridge/view5_palette at event 15231
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/east_elevator_hall/view5_palette of bundle:rooms/akropolis/east_elevator_hall/view5_palette at event 767
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by pe2clut_184 of 0/akropolis_map_page_2 at event 687
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by pe2clut_184 of 0/akropolis_map_page_2 at event 710
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/fire_escape/view5_palette of bundle:rooms/akropolis/fire_escape/view5_palette at event 26731
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by pe2clut_184 of 0/akropolis_map_page_2 at event 26716
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/forked_road/view2_palette of bundle:rooms/akropolis/forked_road/view2_palette at event 20994
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/fountain/view12_palette of bundle:rooms/akropolis/fountain/view12_palette at event 20869
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,255,256,6	0/akropolis_map_page_1	0	0	0		
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view10_palette of bundle:rooms/akropolis/helicopter_landing_pad/view10_palette at event 40994
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/patio/view6_palette of bundle:rooms/akropolis/patio/view6_palette at event 9650
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/promenade/view8_palette of bundle:rooms/akropolis/promenade/view8_palette at event 14642
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/promenade/view8_palette of bundle:rooms/akropolis/promenade/view8_palette at event 23593
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/sanctuary/view5_palette of bundle:rooms/akropolis/sanctuary/view5_palette at event 14374
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/security_room/view2_palette of bundle:rooms/akropolis/security_room/view2_palette at event 19939
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0,255,256,6	0/akropolis_map_page_1	0	0	0		
+pe2clut_183	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,255,256,6	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/square/view5_palette of bundle:rooms/akropolis/square/view5_palette at event 5604
+pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/akropolis_map_page_2	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 695
+pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,255,256,6	0/akropolis_map_page_2	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 718
+pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,255,256,6	0/akropolis_map_page_2	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 26724
+pe2clut_184	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,255,256,6	0/akropolis_map_page_2	0	0	0		overwritten by pe2clut_183 of 0/akropolis_map_page_1 at event 40987
+pe2clut_185	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,255,256,6	0/akropolis_map_page_3	0	0	0		overwritten by rooms/mist/shooting_gallery/view8_palette of bundle:rooms/mist/shooting_gallery/view8_palette at event 8243
 title/chrome_palette	video memory	trace-20261012-145054	session 1						0,255,256,6	0/title_screen	0	0	0		overwritten by ui/caption_font/palette of 0/load_screen_detailed_caption at event 131
 title/chrome_palette	video memory	trace-20261012-152043	session 1						0,255,256,6	0/title_screen	0	0	0		overwritten by ui/caption_font/palette of 0/load_screen_acropolis_square at event 57
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0,249,256,2	0/file200700	2	4	0		
@@ -6327,37 +6327,37 @@ pe/antibody/level1_menu_image	video memory	trace-20261012-152043	session 1	1	akr
 pe/antibody/level1_menu_image	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		448,128,64,64	0/file20731	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe/antibody/level1_menu_image of 0/file20731 at event 19982
 pe/antibody/level1_menu_image	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		448,128,64,64	0/file20731	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by key_items/armory_cardkey/image of 0/file20205 at event 20100
 pe/antibody/level1_menu_image	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		448,128,64,64	0/file20731	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/bridge/view6_image of 1/akropolis_bridge/file6 at event 14710
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/bridge/view8_image of 1/akropolis_bridge/file8 at event 14750
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/bridge/view10_image_2 of 1/akropolis_bridge/file10 at event 15255
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by pe2img_190 of 0/mappic_s1_02 at event 687
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by pe2img_190 of 0/mappic_s1_02 at event 710
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/east_elevator_hall/view5_image of 1/akropolis_east_elevator_hall/file5 at event 773
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by pe2img_190 of 0/mappic_s1_02 at event 26716
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/story_calls_atlas of 1/akropolis_fire_escape/file9 at event 26922
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/fountain/view13_image of 1/akropolis_fountain/file13 at event 20884
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view18_image_2 of 1/akropolis_helicopter_landing_pad/file18 at event 41179
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/patio/view6_image of 1/akropolis_patio/file6 at event 9648
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/sanctuary/view2_image of 1/akropolis_sanctuary/file2 at event 14395
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/sanctuary/view2_image of 1/akropolis_sanctuary/file2 at event 23644
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/security_room/view2_image of 1/akropolis_security_room/file2 at event 19937
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		896,0,128,256	0/file30101	0	0	0		
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/square/view3_image of 1/akropolis_square/file3 at event 5649
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		896,0,128,256	0/file30101	0	0	0		overwritten by rooms/akropolis/square/view5_image of 1/akropolis_square/file5 at event 21905
-pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		896,0,128,256	0/file30101	0	0	0		
-pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/mappic_s1_02	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 695
-pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/mappic_s1_02	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 718
-pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		896,0,128,256	0/mappic_s1_02	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 26724
-pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		896,0,128,256	0/mappic_s1_02	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 40987
-pe2img_191	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		896,0,128,256	0/file30103	0	0	0		overwritten by items/9mm_pb/image of 0/file20401 at event 8195
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/bridge/view6_image of 1/akropolis_bridge/file6 at event 14710
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/bridge/view8_image of 1/akropolis_bridge/file8 at event 14750
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/bridge/view10_image_2 of 1/akropolis_bridge/file10 at event 15255
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by pe2img_190 of 0/akropolis_map_page_2 at event 687
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by pe2img_190 of 0/akropolis_map_page_2 at event 710
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/east_elevator_hall/view5_image of 1/akropolis_east_elevator_hall/file5 at event 773
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by pe2img_190 of 0/akropolis_map_page_2 at event 26716
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/story_calls_atlas of 1/akropolis_fire_escape/file9 at event 26922
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/fountain/view13_image of 1/akropolis_fountain/file13 at event 20884
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view18_image_2 of 1/akropolis_helicopter_landing_pad/file18 at event 41179
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/patio/view6_image of 1/akropolis_patio/file6 at event 9648
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/sanctuary/view2_image of 1/akropolis_sanctuary/file2 at event 14395
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/sanctuary/view2_image of 1/akropolis_sanctuary/file2 at event 23644
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/security_room/view2_image of 1/akropolis_security_room/file2 at event 19937
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/square/view3_image of 1/akropolis_square/file3 at event 5649
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		896,0,128,256	0/akropolis_map_page_1	0	0	0		overwritten by rooms/akropolis/square/view5_image of 1/akropolis_square/file5 at event 21905
+pe2img_189	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		896,0,128,256	0/akropolis_map_page_1	0	0	0		
+pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/akropolis_map_page_2	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 695
+pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		896,0,128,256	0/akropolis_map_page_2	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 718
+pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		896,0,128,256	0/akropolis_map_page_2	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 26724
+pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		896,0,128,256	0/akropolis_map_page_2	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 40987
+pe2img_191	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		896,0,128,256	0/akropolis_map_page_3	0	0	0		overwritten by items/9mm_pb/image of 0/file20401 at event 8195
 title/chrome_image	video memory	trace-20261012-145054	session 1						768,256,128,96	0/title_screen	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_4 of 0/file10500 at event 135
 title/chrome_image	video memory	trace-20261012-152043	session 1						768,256,128,96	0/title_screen	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_31 of 0/aya_10400 at event 61
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		512,256,128,256	0/file200700	2	4	0		
@@ -6955,7 +6955,7 @@ rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	
 rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2	5	960,0,64,256	1/akropolis_square/file5	0	0	0		
 rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	5	960,0,64,256	1/akropolis_square/file5	0	0	0		overwritten by rooms/akropolis/forked_road/view2_image of 1/akropolis_forked_road/file2 at event 22181
 rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	960,0,64,256	1/akropolis_square/file5	0	0	0		
-rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	960,0,64,256	1/akropolis_square/file5	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 5597
+rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	960,0,64,256	1/akropolis_square/file5	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 5597
 rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	960,0,64,256	1/akropolis_square/file5	0	0	0		overwritten by rooms/akropolis/square/view3_image of 1/akropolis_square/file3 at event 1477
 rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	960,0,64,256	1/akropolis_square/file5	0	0	0		overwritten by rooms/akropolis/square/view3_image of 1/akropolis_square/file3 at event 17413
 rooms/akropolis/square/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	5	960,0,64,256	1/akropolis_square/file5	0	0	0		overwritten by rooms/akropolis/square/view3_image of 1/akropolis_square/file3 at event 17721
@@ -7080,7 +7080,7 @@ rooms/akropolis/east_elevator_hall/view4_image	video memory	trace-20261012-15204
 rooms/akropolis/east_elevator_hall/view4_image	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1	4	960,0,64,256	1/akropolis_east_elevator_hall/file4	0	0	0		overwritten by rooms/akropolis/east_elevator_hall/view3_image of 1/akropolis_east_elevator_hall/file3 at event 564
 rooms/akropolis/east_elevator_hall/view4_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1	4	960,0,64,256	1/akropolis_east_elevator_hall/file4	0	0	0		
 rooms/akropolis/east_elevator_hall/view4_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	4	960,0,64,256	1/akropolis_east_elevator_hall/file4	0	0	0		overwritten by rooms/akropolis/square/view6_image of 1/akropolis_square/file6 at event 916
-rooms/akropolis/east_elevator_hall/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1	5	960,0,64,256	1/akropolis_east_elevator_hall/file5	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 679
+rooms/akropolis/east_elevator_hall/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1	5	960,0,64,256	1/akropolis_east_elevator_hall/file5	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 679
 rooms/akropolis/east_elevator_hall/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1	5	960,0,64,256	1/akropolis_east_elevator_hall/file5	0	0	4		overwritten by rooms/akropolis/east_elevator_hall/view2_image of 1/akropolis_east_elevator_hall/file2 at event 789
 rooms/akropolis/patio/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		384,0,64,64	1/akropolis_patio/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/cafeteria/dialogue_0_atlas of 1/akropolis_cafeteria/file0 at event 2310
 rooms/akropolis/patio/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		384,0,64,64	1/akropolis_patio/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/cafeteria/dialogue_0_atlas of 1/akropolis_cafeteria/file0 at event 6172
@@ -7312,7 +7312,7 @@ rooms/akropolis/cafeteria/view15_image	video memory	trace-20261012-152043	sessio
 rooms/akropolis/cafeteria/view15_image	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4	5	896,0,128,256	1/akropolis_cafeteria/file15	0	0	0		
 rooms/akropolis/cafeteria/view15_image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1	5	896,0,128,256	1/akropolis_cafeteria/file15	0	0	0		
 rooms/akropolis/cafeteria/view15_image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3	5	896,0,128,256	1/akropolis_cafeteria/file15	0	0	0		
-rooms/akropolis/cafeteria/view15_image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4	5	896,0,128,256	1/akropolis_cafeteria/file15	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 19866
+rooms/akropolis/cafeteria/view15_image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4	5	896,0,128,256	1/akropolis_cafeteria/file15	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 19866
 rooms/akropolis/cafeteria/view15_image	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1	5	896,0,128,256	1/akropolis_cafeteria/file15	0	0	0		overwritten by rooms/akropolis/security_room/view2_image of 1/akropolis_security_room/file2 at event 7473
 rooms/akropolis/cafeteria/view16_image	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1	16	704,0,64,256	1/akropolis_cafeteria/file16	0	0	0		
 rooms/akropolis/cafeteria/view16_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2	16	704,0,64,256	1/akropolis_cafeteria/file16	0	0	0		
@@ -7431,7 +7431,7 @@ rooms/akropolis/fountain/view7_image	video memory	trace-20261012-152043	session 
 rooms/akropolis/fountain/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1	8	832,0,192,256	1/akropolis_fountain/file8	0	0	0		overwritten by rooms/akropolis/fountain/view7_image of 1/akropolis_fountain/file7 at event 9296
 rooms/akropolis/fountain/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1	8	832,0,192,256	1/akropolis_fountain/file8	0	0	0		overwritten by rooms/akropolis/fountain/view8_image of 1/akropolis_fountain/file8 at event 9176
 rooms/akropolis/fountain/view11_image	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2	3	896,0,128,256	1/akropolis_fountain/file11	0	0	0		overwritten by rooms/akropolis/fountain/view12_image of 1/akropolis_fountain/file12 at event 20849
-rooms/akropolis/fountain/view12_image	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2	4	832,0,192,256	1/akropolis_fountain/file12	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 20862
+rooms/akropolis/fountain/view12_image	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2	4	832,0,192,256	1/akropolis_fountain/file12	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 20862
 rooms/akropolis/fountain/view13_image	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2	5	896,0,128,256	1/akropolis_fountain/file13	0	0	0		overwritten by rooms/akropolis/fountain/view14_image of 1/akropolis_fountain/file14 at event 20905
 rooms/akropolis/fountain/view14_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2	6	960,0,64,256	1/akropolis_fountain/file14	0	0	0		
 rooms/akropolis/fountain/view14_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	6	960,0,64,256	1/akropolis_fountain/file14	0	0	0		overwritten by rooms/akropolis/forked_road/view2_image of 1/akropolis_forked_road/file2 at event 20977
@@ -7470,7 +7470,7 @@ rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	sessi
 rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		overwritten by rooms/akropolis/forked_road/view3_image of 1/akropolis_forked_road/file3 at event 5153
 rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		overwritten by rooms/akropolis/forked_road/view5_image of 1/akropolis_forked_road/file5 at event 10102
 rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		
-rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 20987
+rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 20987
 rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		overwritten by rooms/akropolis/forked_road/view5_image of 1/akropolis_forked_road/file5 at event 22256
 rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		
 rooms/akropolis/forked_road/view2_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	2	896,0,128,256	1/akropolis_forked_road/file2	0	0	0		overwritten by rooms/akropolis/square/view5_image of 1/akropolis_square/file5 at event 1360
@@ -7563,11 +7563,11 @@ rooms/akropolis/promenade/view5_image	video memory	trace-20261012-152043	session
 rooms/akropolis/promenade/view7_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1	7	832,0,192,256	1/akropolis_promenade/file7	0	0	0		overwritten by a movie's workspace backup at event 11640
 rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		overwritten by rooms/akropolis/bridge/view3_image_2 of 1/akropolis_bridge/file3 at event 24733
 rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		
-rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 14635
+rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 14635
 rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		overwritten by rooms/akropolis/promenade/view3_image of 1/akropolis_promenade/file3 at event 15622
 rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		overwritten by rooms/akropolis/promenade/view9_image of 1/akropolis_promenade/file9 at event 14545
 rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		
-rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 23586
+rooms/akropolis/promenade/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3	4	896,0,128,256	1/akropolis_promenade/file8	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 23586
 rooms/akropolis/promenade/view9_image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2	5	832,0,192,256	1/akropolis_promenade/file9	0	0	0		overwritten by rooms/akropolis/promenade/view8_image of 1/akropolis_promenade/file8 at event 14603
 rooms/akropolis/sanctuary/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		384,0,64,64	1/akropolis_sanctuary/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
 rooms/akropolis/sanctuary/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		384,0,64,64	1/akropolis_sanctuary/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
@@ -7631,7 +7631,7 @@ rooms/akropolis/sanctuary/view3_image	video memory	trace-20261012-152043	session
 rooms/akropolis/sanctuary/view3_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	3	896,0,128,256	1/akropolis_sanctuary/file3	0	0	0		overwritten by rooms/akropolis/sanctuary/view4_image of 1/akropolis_sanctuary/file4 at event 14328
 rooms/akropolis/sanctuary/view3_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	3	896,0,128,256	1/akropolis_sanctuary/file3	0	0	0		overwritten by rooms/akropolis/sanctuary/view8_image of 1/akropolis_sanctuary/file8 at event 14278
 rooms/akropolis/sanctuary/view4_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	4	896,0,128,256	1/akropolis_sanctuary/file4	0	0	0		overwritten by rooms/akropolis/sanctuary/view5_image of 1/akropolis_sanctuary/file5 at event 14349
-rooms/akropolis/sanctuary/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	5	896,0,128,256	1/akropolis_sanctuary/file5	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 14367
+rooms/akropolis/sanctuary/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	5	896,0,128,256	1/akropolis_sanctuary/file5	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 14367
 rooms/akropolis/sanctuary/view6_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1	6	896,0,128,256	1/akropolis_sanctuary/file6	0	0	0		overwritten by rooms/akropolis/sanctuary/view7_image of 1/akropolis_sanctuary/file7 at event 13056
 rooms/akropolis/sanctuary/view6_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	6	896,0,128,256	1/akropolis_sanctuary/file6	0	0	0		overwritten by rooms/akropolis/sanctuary/view3_image of 1/akropolis_sanctuary/file3 at event 14249
 rooms/akropolis/sanctuary/view7_image	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1	7	896,0,128,256	1/akropolis_sanctuary/file7	0	0	0		overwritten by rooms/akropolis/roof_garden/view3_image of 1/akropolis_roof_garden/file3 at event 13130
@@ -7723,10 +7723,10 @@ rooms/akropolis/bridge/view5_image	video memory	trace-20261012-152043	session 1	
 rooms/akropolis/bridge/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	2	768,0,64,256	1/akropolis_bridge/file5	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/image of 1/akropolis_helicopter_landing_pad/file0 at event 27370
 rooms/akropolis/bridge/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3	2	768,0,64,256	1/akropolis_bridge/file5	0	0	0		
 rooms/akropolis/bridge/view5_image_2	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	832,0,192,256	1/akropolis_bridge/file5	0	0	0		
-rooms/akropolis/bridge/view5_image_2	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	832,0,192,256	1/akropolis_bridge/file5	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 15224
+rooms/akropolis/bridge/view5_image_2	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	832,0,192,256	1/akropolis_bridge/file5	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 15224
 rooms/akropolis/bridge/view5_image_2	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	2	832,0,192,256	1/akropolis_bridge/file5	0	0	0		overwritten by rooms/akropolis/bridge/view4_image_2 of 1/akropolis_bridge/file4 at event 15401
 rooms/akropolis/bridge/view5_image_2	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	2	832,0,192,256	1/akropolis_bridge/file5	0	0	0		overwritten by rooms/akropolis/fire_escape/view3_image of 1/akropolis_fire_escape/file3 at event 25773
-rooms/akropolis/bridge/view6_image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1	6	832,0,192,256	1/akropolis_bridge/file6	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 14724
+rooms/akropolis/bridge/view6_image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1	6	832,0,192,256	1/akropolis_bridge/file6	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 14724
 rooms/akropolis/bridge/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1	8	896,0,128,256	1/akropolis_bridge/file8	0	0	0		overwritten by a movie's workspace backup at event 14819
 rooms/akropolis/bridge/view10_image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	10	768,0,64,224	1/akropolis_bridge/file10	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/bridge/view5_image of 1/akropolis_bridge/file5 at event 15269
 rooms/akropolis/bridge/view10_image_2	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1	10	832,0,192,256	1/akropolis_bridge/file10	0	0	0		overwritten by rooms/akropolis/bridge/view5_image_2 of 1/akropolis_bridge/file5 at event 15269
@@ -7734,7 +7734,7 @@ rooms/akropolis/fire_escape/dialogue_0_atlas	video memory	trace-20261012-152043	
 rooms/akropolis/fire_escape/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		384,0,64,64	1/akropolis_fire_escape/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas of 1/akropolis_helicopter_landing_pad/file0 at event 27370
 rooms/akropolis/fire_escape/view3_image	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	3	896,0,128,256	1/akropolis_fire_escape/file3	0	0	0		overwritten by rooms/akropolis/fire_escape/view3_image of 1/akropolis_fire_escape/file3 at event 25911
 rooms/akropolis/fire_escape/view3_image	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	3	896,0,128,256	1/akropolis_fire_escape/file3	0	0	0		overwritten by rooms/akropolis/fire_escape/view5_image of 1/akropolis_fire_escape/file5 at event 26495
-rooms/akropolis/fire_escape/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	5	896,0,128,256	1/akropolis_fire_escape/file5	0	0	0		overwritten by pe2img_189 of 0/file30101 at event 26708
+rooms/akropolis/fire_escape/view5_image	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1	5	896,0,128,256	1/akropolis_fire_escape/file5	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 26708
 weapons/m4a1/preview_image	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		448,128,64,96	0/file20116	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by weapons/pa3/preview_image of 0/file20113 at event 12056
 rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		384,0,64,64	1/akropolis_helicopter_landing_pad/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
 rooms/akropolis/helicopter_landing_pad/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		384,0,64,64	1/akropolis_helicopter_landing_pad/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
@@ -7759,7 +7759,7 @@ rooms/akropolis/helicopter_landing_pad/view8_image	video memory	trace-20261012-1
 rooms/akropolis/helicopter_landing_pad/view9_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	9	896,0,128,256	1/akropolis_helicopter_landing_pad/file9	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view8_image of 1/akropolis_helicopter_landing_pad/file8 at event 28722
 rooms/akropolis/helicopter_landing_pad/view9_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	9	896,0,128,256	1/akropolis_helicopter_landing_pad/file9	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view10_image of 1/akropolis_helicopter_landing_pad/file10 at event 28272
 rooms/akropolis/helicopter_landing_pad/view9_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	9	896,0,128,256	1/akropolis_helicopter_landing_pad/file9	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view10_image of 1/akropolis_helicopter_landing_pad/file10 at event 36754
-rooms/akropolis/helicopter_landing_pad/view10_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	896,0,128,256	1/akropolis_helicopter_landing_pad/file10	0	0	0		overwritten by pe2img_190 of 0/mappic_s1_02 at event 40979
+rooms/akropolis/helicopter_landing_pad/view10_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	896,0,128,256	1/akropolis_helicopter_landing_pad/file10	0	0	0		overwritten by pe2img_190 of 0/akropolis_map_page_2 at event 40979
 rooms/akropolis/helicopter_landing_pad/view10_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	896,0,128,256	1/akropolis_helicopter_landing_pad/file10	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view9_image of 1/akropolis_helicopter_landing_pad/file9 at event 28644
 rooms/akropolis/helicopter_landing_pad/view10_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	10	896,0,128,256	1/akropolis_helicopter_landing_pad/file10	0	0	0		overwritten by rooms/akropolis/helicopter_landing_pad/view10_image of 1/akropolis_helicopter_landing_pad/file10 at event 40888
 rooms/akropolis/helicopter_landing_pad/view15_image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1	15	960,0,64,160	1/akropolis_helicopter_landing_pad/file15	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/helicopter_landing_pad/view4_image of 1/akropolis_helicopter_landing_pad/file4 at event 30344
@@ -7898,7 +7898,7 @@ rooms/mist/shooting_gallery/view4_image	video memory	trace-20261012-145054	sessi
 rooms/mist/shooting_gallery/view5_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	5	960,0,64,256	1/mist_shooting_gallery/file5	0	0	0		overwritten by rooms/mist/shooting_gallery/view4_image of 1/mist_shooting_gallery/file4 at event 9846
 rooms/mist/shooting_gallery/view5_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	5	960,0,64,256	1/mist_shooting_gallery/file5	0	0	0		overwritten by rooms/mist/shooting_gallery/view5_image of 1/mist_shooting_gallery/file5 at event 9441
 rooms/mist/shooting_gallery/view7_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	7	896,0,128,256	1/mist_shooting_gallery/file7	0	0	0		overwritten by rooms/mist/shooting_gallery/view5_image of 1/mist_shooting_gallery/file5 at event 8539
-rooms/mist/shooting_gallery/view8_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	8	896,0,128,256	1/mist_shooting_gallery/file8	0	0	0		overwritten by pe2img_191 of 0/file30103 at event 8111
+rooms/mist/shooting_gallery/view8_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	8	896,0,128,256	1/mist_shooting_gallery/file8	0	0	0		overwritten by pe2img_191 of 0/akropolis_map_page_3 at event 8111
 rooms/mist/shooting_gallery/view8_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	8	896,0,128,256	1/mist_shooting_gallery/file8	0	0	4		overwritten by rooms/mist/shooting_gallery/view7_image of 1/mist_shooting_gallery/file7 at event 8288
 rooms/mist/shooting_gallery/view14_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	14	960,0,64,256	1/mist_shooting_gallery/file14	0	0	0		overwritten by rooms/mist/shooting_gallery/view8_image of 1/mist_shooting_gallery/file8 at event 7758
 rooms/mist/shooting_gallery/view15_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	15	896,0,128,256	1/mist_shooting_gallery/file15	0	0	0		overwritten by a movie's workspace backup at event 719

@@ -24,7 +24,7 @@ GAMEPLAY_LOAD, STAGE_LOAD, ROOM_LOAD = 0x80093800, 0x80179950, 0x8017D5C0
 
 # Each game stage's overlay; gameplay points to its per-area tables, one table pointer per stage (from stage 1) for
 # each kind of table - five of them through a one-word wrapper in the overlay (ViewCameraTable and the like).
-STAGES = {1: ("map_akropolis",), 2: ("map_dryfield",), 3: ("map_dryfield_full",), 4: ("map_shelter",), 5: ("map_neo_ark",)}
+STAGES = {1: ("akropolis_stage",), 2: ("map_dryfield",), 3: ("map_dryfield_full",), 4: ("map_shelter",), 5: ("map_neo_ark",)}
 GAMEPLAY_TABLES = {  # gameplay symbol: (the layout an entry points to, wrapped)
     "gWorldCollisionStageResources": ("WorldCollisionRoomResources", True), "gViewIndexTables": ("ViewMapPtr", True),
     "gViewCountTables": ("ViewCount", True), "gWorldCoordRoomLightingTables": ("WorldCoordRoomLighting", False),

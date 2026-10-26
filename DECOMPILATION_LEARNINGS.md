@@ -60023,20 +60023,20 @@ worth 71.6% -> 97.5% here on its own.
 
 `configs/USA/overlays.toml` documents the `rodata` / `units` cut for a generated
 jump table, but the case that actually bites is the smallest one: a flat overlay
-whose `.rodata` is a single header word followed by the table. `map_akropolis`
-starts with `D_map_akropolis_80179950` at 0x0 and `jtbl_map_akropolis_80179954`
+whose `.rodata` is a single header word followed by the table. `akropolis_stage`
+starts with `D_akropolis_stage_80179950` at 0x0 and `jtbl_akropolis_stage_80179954`
 at 0x4, and while the function was `INCLUDE_ASM` the whole run sat in one
 `.rodata` subsegment owned by the C unit.
 
 Decompiling the function makes GCC emit its own table with `.align 3`. The
 object's `.rodata` then begins with the four bytes of `INCLUDE_RODATA(...,
-D_map_akropolis_80179950)`, the `.align 3` pads to eight, and every byte from
+D_akropolis_stage_80179950)`, the `.align 3` pads to eight, and every byte from
 0x80179954 on shifts by four — the overlay links and builds clean, and only the
 checksum fails. Give the header word its own subsegment and drop its
 `INCLUDE_RODATA` from the C file so the table starts the unit's `.rodata`:
 
 ```toml
-map_akropolis = { text = [0x38, 0x6F8], rodata_head = "0x4", note = "..." }
+akropolis_stage = { text = [0x38, 0x6F8], rodata_head = "0x4", note = "..." }
 ```
 
 `map_neo_ark` and `map_shelter` in the same family are already cut this way.
@@ -145559,7 +145559,7 @@ local-alloc ties each result to its dying operand and hands the nibble the
 first free register (`$a0`), both arms come out with identical registers, and
 jump2 merges their `or; sb` tails into what looks like a join block.
 
-## A 2-byte gap before a halfword-only array is the compiler's word alignment, not a pad object (map_akropolis, 2026-09-26)
+## A 2-byte gap before a halfword-only array is the compiler's word alignment, not a pad object (akropolis_stage, 2026-09-26)
 
 GCC's MIPS `DATA_ALIGNMENT` raises every static array, struct and union to at
 least word alignment, whatever its element type needs. So an array of 6-byte

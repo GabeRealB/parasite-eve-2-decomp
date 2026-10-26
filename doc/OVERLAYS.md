@@ -641,7 +641,7 @@ weapon ids are 32 packages, but the 7 aya ids are 6, the 5 Kyle ids are
 
 Packages that have been identified are **named** in the extractor
 (`tools/peassets/asset_data.py`), so they extract as `m93r.pe2pkg`,
-`map_akropolis.pe2pkg`, `nmc_names.pe2pkg` rather than `pe2pkg_2.pe2pkg`. That
+`akropolis_stage.pe2pkg`, `nmc_names.pe2pkg` rather than `pe2pkg_2.pe2pkg`. That
 name is the unit everything else keys on — the decomp manifest, the split
 config, the symbol prefix — so a package loaded under several ids is one thing
 with one name, and file ids stop appearing outside the extractor.
