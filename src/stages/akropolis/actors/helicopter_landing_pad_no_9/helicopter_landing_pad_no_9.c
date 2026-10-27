@@ -119,8 +119,8 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
     { 256, 270 },
 };
 
-#include "assets/enemies/golem/no_9/helipad/body_schema.h"
-#include "assets/enemies/golem/no_9/sounds_akropolis.h"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/body_schema.h"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/sounds.h"
 
 #include "assets/enemies/golem/no_9/body_akropolis.inc"
 
@@ -132,9 +132,9 @@ static const _SpritePalette _gHelicopterLandingPadNo9FireballFramePalettes[12] _
 
 #include "assets/enemies/golem/grenade.inc"
 
-#include "assets/enemies/golem/no_9/transformer_cable.inc"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/transformer_cable.inc"
 
-#include "assets/enemies/golem/no_9/package_akropolis_clips.inc"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/clips.inc"
 
 DamageAttack gHelicopterLandingPadNo9Attacks[6] = {
     { 14, GAME_ACTOR_REACTION_SPARK_AND_PUFFS },
@@ -1307,8 +1307,8 @@ void helicopterLandingPadNo9TickEvent(Enemy* enemy, Task* task)
     enum {
         FRAME       = 210,
         FRAMES      = 255,
-        START_SOUND = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_FIRE),
-        LOOP_SOUND  = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_EVENT_FLAME_LOOP),
+        START_SOUND = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_FIRE),
+        LOOP_SOUND  = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_EVENT_FLAME_LOOP),
     };
     GfxCoord*                    rootCoord;
     HelicopterLandingPadNo9Work* work;

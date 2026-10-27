@@ -379,7 +379,7 @@ enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80131e20-0x8013a92f	0/file105500	0	2	0		
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80131e20-0x8013a92f	0/file105500	0	2	0		overwritten by enemies/crawler/caterpillar/package_1 of 0/file105500 at event 22175
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x80131e20-0x8013a92f	0/file105500	0	2	0		
-enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x8013a92f	0/file105500	0	2	0		overwritten by enemies/golem/no_9/package_akropolis of 0/file510900 at event 27392
+enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x8013a92f	0/file105500	0	2	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/package of 0/file510900 at event 27392
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		0x80131e20-0x8013a92f	0/file105500	0	2	0		overwritten by enemies/bat/package_1 of 0/file103700 at event 22310
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80131e20-0x8013a92f	0/file105500	0	2	0		
 enemies/crawler/caterpillar/package_1	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80131e20-0x8013a92f	0/file105500	0	2	0		overwritten by enemies/crawler/caterpillar/package_1 of 0/file105500 at event 24636
@@ -445,7 +445,7 @@ encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0x80149e20-0x801513fb	0/file200700	2	4	0		
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80149e20-0x801513fb	0/file200700	2	4	0		
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80149e20-0x801513fb	0/file200700	2	4	0		overwritten by enemies/stranger/odd/package_b_4 of 0/file401000 at event 16570
-encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80149e20-0x801513fb	0/file200700	2	4	0		overwritten by enemies/golem/no_9/package_akropolis of 0/file510900 at event 27392
+encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80149e20-0x801513fb	0/file200700	2	4	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/package of 0/file510900 at event 27392
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80149e20-0x801513fb	0/file200700	2	4	0		
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80149e20-0x801513fb	0/file200700	2	4	0		
 encounters/rat_and_moth/package_2	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80149e20-0x801513fb	0/file200700	2	4	0		overwritten by encounters/rat_and_moth/package_2 of 0/file200700 at event 15594
@@ -583,7 +583,7 @@ actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road
 actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80161e20-0x801796e3	0/file310600	2	4	0		
 actor_310600	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80161e20-0x801796e3	0/file310600	2	4	0		overwritten by patio_leaping_strangers of 0/file317000 at event 3577
 enemies/stranger/lesser/package	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80161e20-0x80169343	0/file311500	0	2	0		
-enemies/stranger/lesser/package	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80161e20-0x80169343	0/file311500	0	2	0		overwritten by enemies/golem/no_9/package_akropolis of 0/file510900 at event 27392
+enemies/stranger/lesser/package	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80161e20-0x80169343	0/file311500	0	2	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/package of 0/file510900 at event 27392
 security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0x80161e20-0x8016f417	0/file311900	0	2	0		
 security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x80161e20-0x8016f417	0/file311900	0	2	0		
 security_monitors	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80161e20-0x8016f417	0/file311900	0	2	0		overwritten by encounters/rat_and_moth/package_3 of 0/file300700 at event 20230
@@ -633,7 +633,7 @@ enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akr
 enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80131e20-0x80155b0f	0/file401800	0	2	0		
 enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80131e20-0x80155b0f	0/file401800	0	2	0		
 enemies/stranger/odd/package_4	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80131e20-0x80155b0f	0/file401800	0	2	0		
-enemies/golem/no_9/package_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x80167d23	0/file510900	0	2	0		overwritten by helicopter_departure of 0/file511000 at event 41200
+stages/akropolis/actors/helicopter_landing_pad_no_9/package	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x80167d23	0/file510900	0	2	0		overwritten by helicopter_departure of 0/file511000 at event 41200
 helicopter_departure	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x801550cf	0/file511000	3	5	0		
 helicopter_departure	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		
 helicopter_departure	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		overwritten by mist_rupert of 0/file113000 at event 41298
@@ -4617,7 +4617,7 @@ encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	a
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0,249,256,2	0/file100700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,249,256,2	0/file300700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,249,256,2	0/file300700	2	4	0		overwritten by encounters/rat_and_moth/palette of 0/file300700 at event 19575
-encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,249,256,2	0/file200700	2	4	0		overwritten by enemies/golem/no_9/palette_akropolis_2 of 0/file510900 at event 27384
+encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,249,256,2	0/file200700	2	4	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2 of 0/file510900 at event 27384
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0,249,256,2	0/file100700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,249,256,2	0/file100700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,249,256,2	0/file200700	2	4	0		
@@ -4646,7 +4646,7 @@ encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	a
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0,249,256,2	0/file200700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0,249,256,2	0/file200700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0,249,256,2	0/file200700	2	4	0		overwritten by encounters/rat_and_moth/palette of 0/file200700 at event 23744
-encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,249,256,2	0/file100700	2	4	0		overwritten by enemies/golem/no_9/palette_akropolis_2 of 0/file110700 at event 12496
+encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,249,256,2	0/file100700	2	4	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2 of 0/file110700 at event 12496
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0,249,256,2	0/file200700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0,249,256,2	0/file200700	2	4	0		
 encounters/rat_and_moth/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0,249,256,2	0/file200700	2	4	0		
@@ -4671,7 +4671,7 @@ encounters/brute_and_mossback/palette	video memory	trace-20261012-152043	session
 encounters/brute_and_mossback/palette	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0,247,256,2	0/file301100	0	2	0		
 encounters/brute_and_mossback/palette	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,247,256,2	0/file101100	0	2	0		
 encounters/brute_and_mossback/palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0,247,256,2	0/file301100	0	2	0		
-encounters/brute_and_mossback/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,247,256,2	0/file301100	0	2	0		overwritten by enemies/golem/no_9/palette_akropolis of 0/file110700 at event 12496
+encounters/brute_and_mossback/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,247,256,2	0/file301100	0	2	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/palette of 0/file110700 at event 12496
 enemies/stranger/grinning/palette	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0,249,256,2	0/file101900	2	4	0		overwritten by characters/rupert/palette of 0/file310600 at event 2346
 enemies/stranger/grinning/palette	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0,251,256,2	0/file210600	4	6	0		
 enemies/stranger/grinning/palette	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0,247,256,2	0/file101900	0	2	0		
@@ -4873,24 +4873,24 @@ stages/akropolis/actors/cafeteria_boss_stranger/palette	video memory	trace-20261
 stages/akropolis/actors/cafeteria_boss_stranger/palette	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0,247,256,2	0/file110600	0	2	0		
 stages/akropolis/actors/cafeteria_boss_stranger/palette	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0,247,256,2	0/file110600	0	2	0		
 stages/akropolis/actors/cafeteria_boss_stranger/palette	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0,247,256,2	0/file110600	0	2	0		overwritten by enemies/stranger/grinning/palette of 0/file317000 at event 3574
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0,247,256,2	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0,247,256,2	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,247,256,2	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,247,256,2	0/file510900	0	2	0		overwritten by stages/akropolis/rooms/helicopter_landing_pad/views/view27_file_palette of 1/akropolis_helicopter_landing_pad/file27 at event 40861
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,247,256,2	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0,247,256,2	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0,247,256,2	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0,247,256,2	0/file110700	0	2	0		overwritten by characters/swat_member_2/palette of 0/file110800 at event 13112
-enemies/golem/no_9/palette_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,247,256,2	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0,249,256,1	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0,249,256,1	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,249,256,1	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,249,256,1	0/file510900	0	2	0		overwritten by stages/akropolis/rooms/helicopter_landing_pad/views/view27_file_palette_2 of 1/akropolis_helicopter_landing_pad/file27 at event 40861
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,249,256,1	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0,249,256,1	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0,249,256,1	0/file110700	0	2	0		
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0,249,256,1	0/file110700	0	2	0		overwritten by enemies/crawler/caterpillar/palette of 0/file205500 at event 13118
-enemies/golem/no_9/palette_akropolis_2	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,249,256,1	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0,247,256,2	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0,247,256,2	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,247,256,2	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,247,256,2	0/file510900	0	2	0		overwritten by stages/akropolis/rooms/helicopter_landing_pad/views/view27_file_palette of 1/akropolis_helicopter_landing_pad/file27 at event 40861
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,247,256,2	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0,247,256,2	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0,247,256,2	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0,247,256,2	0/file110700	0	2	0		overwritten by characters/swat_member_2/palette of 0/file110800 at event 13112
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,247,256,2	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0,249,256,1	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0,249,256,1	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,249,256,1	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,249,256,1	0/file510900	0	2	0		overwritten by stages/akropolis/rooms/helicopter_landing_pad/views/view27_file_palette_2 of 1/akropolis_helicopter_landing_pad/file27 at event 40861
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,249,256,1	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0,249,256,1	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0,249,256,1	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0,249,256,1	0/file110700	0	2	0		overwritten by enemies/crawler/caterpillar/palette of 0/file205500 at event 13118
+stages/akropolis/actors/helicopter_landing_pad_no_9/palette_2	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,249,256,1	0/file110700	0	2	0		
 enemies/stranger/odd/palette_2	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0,247,256,2	0/file111800	-1	2	0		
 enemies/stranger/odd/palette_2	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0,247,256,2	0/file111800	-1	2	0		
 characters/rupert/hurt_palette	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0,247,256,2	0/file113000	0	2	0		overwritten by characters/pierce/palette of 0/file113100 at event 41630
@@ -5000,7 +5000,7 @@ characters/rupert/mongoose_palette	video memory	trace-20261012-152043	session 1	
 characters/rupert/mongoose_palette	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,244,16,1	0/file511000	3	5	0		
 characters/rupert/mongoose_palette	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0,244,16,1	0/file511000	3	5	0		
 enemies/stranger/lesser/palette	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,247,256,2	0/file311500	0	2	0		
-enemies/stranger/lesser/palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,247,256,2	0/file311500	0	2	0		overwritten by enemies/golem/no_9/palette_akropolis of 0/file510900 at event 27384
+enemies/stranger/lesser/palette	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,247,256,2	0/file311500	0	2	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/palette of 0/file510900 at event 27384
 characters/swat_member_1/palette	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0,251,256,2	0/file312200	4	6	0		overwritten by characters/anmc_woman_2/palette of 0/file202900 at event 2340
 characters/swat_member_1/palette	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0,251,256,2	0/file312200	4	6	0		
 characters/swat_member_1/palette	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0,251,256,2	0/file312200	4	6	0		
@@ -6391,7 +6391,7 @@ encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akr
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		512,256,128,256	0/file100700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		512,256,128,256	0/file300700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		512,256,128,256	0/file300700	2	4	0		overwritten by encounters/rat_and_moth/image of 0/file300700 at event 19575
-encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		512,256,128,256	0/file200700	2	4	0		overwritten by enemies/golem/no_9/image_akropolis of 0/file510900 at event 27384
+encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		512,256,128,256	0/file200700	2	4	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/image of 0/file510900 at event 27384
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		512,256,128,256	0/file100700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		512,256,128,256	0/file100700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		512,256,128,256	0/file200700	2	4	0		
@@ -6420,7 +6420,7 @@ encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akr
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		512,256,128,256	0/file200700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		512,256,128,256	0/file200700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		512,256,128,256	0/file200700	2	4	0		overwritten by encounters/rat_and_moth/image of 0/file200700 at event 23744
-encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		512,256,128,256	0/file100700	2	4	0		overwritten by enemies/golem/no_9/image_akropolis of 0/file110700 at event 12496
+encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		512,256,128,256	0/file100700	2	4	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/image of 0/file110700 at event 12496
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		512,256,128,256	0/file200700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		512,256,128,256	0/file200700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		512,256,128,256	0/file200700	2	4	0		
@@ -6445,7 +6445,7 @@ encounters/brute_and_mossback/image	video memory	trace-20261012-152043	session 1
 encounters/brute_and_mossback/image	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		384,256,128,256	0/file301100	0	2	0		
 encounters/brute_and_mossback/image	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		384,256,128,256	0/file101100	0	2	0		
 encounters/brute_and_mossback/image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		384,256,128,256	0/file301100	0	2	0		
-encounters/brute_and_mossback/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		384,256,128,256	0/file301100	0	2	0		overwritten by enemies/golem/no_9/image_akropolis of 0/file110700 at event 12496
+encounters/brute_and_mossback/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		384,256,128,256	0/file301100	0	2	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/image of 0/file110700 at event 12496
 enemies/stranger/grinning/image	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		512,256,128,256	0/file101900	2	4	0		overwritten by characters/rupert/image of 0/file310600 at event 2346
 enemies/stranger/grinning/image	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		640,256,128,256	0/file210600	4	6	0		
 enemies/stranger/grinning/image	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		384,256,128,256	0/file101900	0	2	0		
@@ -6638,15 +6638,15 @@ stages/akropolis/actors/cafeteria_boss_stranger/image	video memory	trace-2026101
 stages/akropolis/actors/cafeteria_boss_stranger/image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		384,256,128,256	0/file110600	0	2	0		
 stages/akropolis/actors/cafeteria_boss_stranger/image	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		384,256,128,256	0/file110600	0	2	0		
 stages/akropolis/actors/cafeteria_boss_stranger/image	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		384,256,128,256	0/file110600	0	2	0		overwritten by enemies/stranger/grinning/image of 0/file317000 at event 3574
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		384,256,192,256	0/file110700	0	2	0		
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		384,256,192,256	0/file110700	0	2	0		
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		384,256,192,256	0/file110700	0	2	0		
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		384,256,192,256	0/file510900	0	2	0		overwritten by stages/akropolis/rooms/helicopter_landing_pad/views/view27_image of 1/akropolis_helicopter_landing_pad/file27 at event 40861
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		384,256,192,256	0/file110700	0	2	0		
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		384,256,192,256	0/file110700	0	2	0		
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		384,256,192,256	0/file110700	0	2	0		
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		384,256,192,256	0/file110700	0	2	0		overwritten by characters/swat_member_2/image of 0/file110800 at event 13112
-enemies/golem/no_9/image_akropolis	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		384,256,192,256	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		384,256,192,256	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		384,256,192,256	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		384,256,192,256	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		384,256,192,256	0/file510900	0	2	0		overwritten by stages/akropolis/rooms/helicopter_landing_pad/views/view27_image of 1/akropolis_helicopter_landing_pad/file27 at event 40861
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		384,256,192,256	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		384,256,192,256	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		384,256,192,256	0/file110700	0	2	0		
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		384,256,192,256	0/file110700	0	2	0		overwritten by characters/swat_member_2/image of 0/file110800 at event 13112
+stages/akropolis/actors/helicopter_landing_pad_no_9/image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		384,256,192,256	0/file110700	0	2	0		
 enemies/stranger/odd/image_2	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		320,256,128,256	0/file111800	-1	2	0		
 enemies/stranger/odd/image_2	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		320,256,128,256	0/file111800	-1	2	0		
 characters/rupert/hurt_image	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		384,256,128,256	0/file113000	0	2	0		overwritten by characters/pierce/image of 0/file113100 at event 41630
@@ -6755,7 +6755,7 @@ characters/rupert/mongoose_image	video memory	trace-20261012-152043	session 1	1	
 characters/rupert/mongoose_image	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,64,64,64	0/file511000	3	5	0		
 characters/rupert/mongoose_image	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		448,64,64,64	0/file511000	3	5	0		
 enemies/stranger/lesser/image	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		384,256,128,256	0/file311500	0	2	0		
-enemies/stranger/lesser/image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		384,256,128,256	0/file311500	0	2	0		overwritten by enemies/golem/no_9/image_akropolis of 0/file510900 at event 27384
+enemies/stranger/lesser/image	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		384,256,128,256	0/file311500	0	2	0		overwritten by stages/akropolis/actors/helicopter_landing_pad_no_9/image of 0/file510900 at event 27384
 characters/swat_member_1/image	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		640,256,128,256	0/file312200	4	6	0		overwritten by characters/anmc_woman_2/image of 0/file202900 at event 2340
 characters/swat_member_1/image	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		640,256,128,256	0/file312200	4	6	0		
 characters/swat_member_1/image	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		640,256,128,256	0/file312200	4	6	0		
@@ -8879,38 +8879,38 @@ spk_128_sample_01	played	trace-20261012-152043	session 1	1	akropolis_cafeteria	2
 spk_128_sample_03	played	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1			0/file110600	0	2	0	stages/akropolis/actors/cafeteria_boss_stranger/sounds entry 0x07	
 spk_128_sample_04	played	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1			0/file110600	0	2	0	stages/akropolis/actors/cafeteria_boss_stranger/sounds entry 0x06	
 spk_128_sample_04	played	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2			0/file110600	0	2	0	stages/akropolis/actors/cafeteria_boss_stranger/sounds entry 0x06	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x01	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x02	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x04	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x05	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x06	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x07	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x08	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x09	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0b	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0c	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0d	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0e	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0f	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x11	
-enemies/golem/no_9/sounds_akropolis	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x12	
-enemies/golem/no_9/sounds_akropolis	sound memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x3d010-0x4fccf	0/file510900	0	2	0	bank 0x4078 descriptor 4	freed by sndScriptResetForArea at event 41267
-enemies/golem/no_9/sounds_akropolis	sound memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x3d010-0x4fccf	0/file510900	0	2	0	bank 0x4078 descriptor 4	
-spk_143_sample_00	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x01	
-spk_143_sample_01	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x02	
-spk_143_sample_01	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x08	
-spk_143_sample_03	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x04	
-spk_143_sample_04	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x05	
-spk_143_sample_05	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x06	
-spk_143_sample_06	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x09	
-spk_143_sample_08	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x07	
-spk_143_sample_08	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x0b	
-spk_143_sample_08	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x0c	
-spk_143_sample_09	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x0d	
-spk_143_sample_09	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x11	
-spk_143_sample_10	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x0e	
-spk_143_sample_11	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x0f	
-spk_143_sample_13	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	enemies/golem/no_9/sounds_akropolis entry 0x12	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x01	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x02	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x04	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x05	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x06	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x07	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x08	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x09	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0b	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0c	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0d	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0e	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x0f	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x11	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	entry 0x12	
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x3d010-0x4fccf	0/file510900	0	2	0	bank 0x4078 descriptor 4	freed by sndScriptResetForArea at event 41267
+stages/akropolis/actors/helicopter_landing_pad_no_9/sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x3d010-0x4fccf	0/file510900	0	2	0	bank 0x4078 descriptor 4	
+spk_143_sample_00	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x01	
+spk_143_sample_01	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x02	
+spk_143_sample_01	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x08	
+spk_143_sample_03	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x04	
+spk_143_sample_04	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x05	
+spk_143_sample_05	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x06	
+spk_143_sample_06	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x09	
+spk_143_sample_08	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x07	
+spk_143_sample_08	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x0b	
+spk_143_sample_08	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x0c	
+spk_143_sample_09	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x0d	
+spk_143_sample_09	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x11	
+spk_143_sample_10	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x0e	
+spk_143_sample_11	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x0f	
+spk_143_sample_13	played	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1			0/file510900	0	2	0	stages/akropolis/actors/helicopter_landing_pad_no_9/sounds entry 0x12	
 stages/akropolis/rooms/square/sounds/bank_0	played	trace-20261012-145054	session 1	1	akropolis_square	1	1			1/akropolis_square/file0	0	0	0	entry 0x13	
 stages/akropolis/rooms/square/sounds/bank_0	played	trace-20261012-145054	session 1	1	akropolis_square	1	1			1/akropolis_square/file0	0	0	0	entry 0x14	
 stages/akropolis/rooms/square/sounds/bank_0	played	trace-20261012-145054	session 1	1	akropolis_square	7	2			1/akropolis_square/file0	0	0	0	entry 0x14	

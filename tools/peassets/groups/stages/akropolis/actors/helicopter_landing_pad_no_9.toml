@@ -1,0 +1,483 @@
+# The assets of the group stages/akropolis/actors/helicopter_landing_pad_no_9, each named stages/akropolis/actors/helicopter_landing_pad_no_9/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "cf9959f2952722bf78513b1393525cbec4f57018"
+
+[[file.contents.palettes]]
+texture = "enemies/golem/no_9/texture_akropolis_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "enemies/golem/no_9/texture_akropolis_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "2af25ad0cce4b9b82f813b5f13fd6f8067607e0b"
+
+[[file.contents.palettes]]
+texture = "enemies/golem/no_9/texture_akropolis_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "cac88a65c67965fbf6c3b79113936088db6d3d53"
+slots = 6
+
+[[file.contents.pages]]
+texture = "enemies/golem/no_9/texture_akropolis_page_1"
+region = "engine/vram/actor_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents.pages]]
+texture = "enemies/golem/no_9/texture_akropolis_page_2"
+region = "engine/vram/actor_sheet"
+offset = [0x00040, 0x00000]
+
+[[file.contents.pages]]
+texture = "enemies/golem/no_9/texture_akropolis_page_3"
+region = "engine/vram/actor_sheet"
+offset = [0x00080, 0x00000]
+
+[[file.contents]]
+asset = "stages/akropolis/actors/sanctuary_no_9/package"
+
+[fire]
+type = "sound"
+sha1 = "2042e2a5ad7839363d5791d158940b204f9d4211"
+
+[hurt]
+type = "sound"
+sha1 = "e6e9bac925ee324ed04b0b4479442e7f1acee68b"
+
+[walk]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadWalkClip"
+
+[death]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadDeathClip"
+
+[recoil]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadRecoilClip"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/footstep_a",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/footstep_b",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/shotgun_react",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/hurt",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/hurt_recoil",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/windup",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/spark_loop",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/slash_recover_sound",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/flame_strike",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/flame_loop",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/fire",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/dash_start",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/lethal_strike_sound",
+    "stages/akropolis/actors/helicopter_landing_pad_no_9/grenade_throw_sound",
+]
+sha1 = "ac041ca687e3f889ef86a959f8095810fb9cf24a"
+
+[sounds.sounds]
+footstep_a = 1
+footstep_b = 2
+shotgun_react = 3
+hurt = 4
+hurt_recoil = 5
+windup = 6
+flame_strike = 7
+backstep = 8
+spark_loop = 9
+slash_recover = 10
+slash = 11
+dash_strike = 12
+flame_loop = 13
+fire = 14
+dash_start = 15
+lethal_strike = 16
+event_flame_loop = 17
+grenade_throw = 18
+
+[windup]
+type = "sound"
+sha1 = "ba89cd71661440803e0ba73501a813f536b17ac1"
+
+[event_1]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent1Clip"
+
+[event_2]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent2Clip"
+
+[event_5]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent5Clip"
+
+[event_6]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadEvent6Clip"
+
+[package]
+type = "package"
+embedded = [
+    { asset = "enemies/golem/no_9/body_akropolis", offset = 0x0A69C, size = 0x56CC, address = 0x8013C4BC },
+    { asset = "enemies/golem/no_9/akropolis_sword", offset = 0x0FD68, size = 0x2A4, address = 0x80141B88 },
+    { asset = "enemies/golem/no_9/akropolis_prop", offset = 0x1000C, size = 0x31C, address = 0x80141E2C },
+    { asset = "enemies/golem/no_9/akropolis_chest_piece", offset = 0x10328, size = 0x35C, address = 0x80142148 },
+    { asset = "enemies/golem/grenade", offset = 0x10684, size = 0x32C, address = 0x801424A4 },
+    { name = "transformer_cable", offset = 0x109B0, size = 0x990, address = 0x801427D0 },
+    { name = "patrol_idle", offset = 0x11340, size = 0x9A8, address = 0x80143160 },
+    { name = "walk_start", offset = 0x11CE8, size = 0x2F8, address = 0x80143B08 },
+    { name = "walk", offset = 0x11FE0, size = 0x9F8, address = 0x80143E00 },
+    { name = "walk_fire", offset = 0x129D8, size = 0xED4, address = 0x801447F8 },
+    { name = "backstep", offset = 0x138AC, size = 0xA1C, address = 0x801456CC },
+    { asset = "enemies/golem/advance", offset = 0x142C8, size = 0xBAC, address = 0x801460E8 },
+    { name = "lethal_strike", offset = 0x14E74, size = 0x2490, address = 0x80146C94 },
+    { name = "slash_first", offset = 0x17304, size = 0x9DC, address = 0x80149124 },
+    { name = "slash_second", offset = 0x17CE0, size = 0xA28, address = 0x80149B00 },
+    { name = "slash_windup", offset = 0x18708, size = 0x47C, address = 0x8014A528 },
+    { asset = "enemies/golem/pawn/beam_sword/charge_windup", offset = 0x18B84, size = 0x16F4, address = 0x8014A9A4 },
+    { asset = "enemies/golem/pawn/beam_sword/charge_run", offset = 0x1A278, size = 0x744, address = 0x8014C098 },
+    { asset = "enemies/golem/pawn/beam_sword/charge_slash", offset = 0x1A9BC, size = 0x1614, address = 0x8014C7DC },
+    { name = "flame_windup", offset = 0x1BFD0, size = 0xC00, address = 0x8014DDF0 },
+    { name = "flame_lunge", offset = 0x1CBD0, size = 0xCC0, address = 0x8014E9F0 },
+    { name = "recoil", offset = 0x1D890, size = 0xD04, address = 0x8014F6B0 },
+    { asset = "enemies/golem/recoil_front", offset = 0x1E594, size = 0xA10, address = 0x801503B4 },
+    { name = "unused_1", offset = 0x1EFA4, size = 0x6EC, address = 0x80150DC4 },
+    { asset = "enemies/golem/scream_recover", offset = 0x1F690, size = 0xCF4, address = 0x801514B0 },
+    { asset = "enemies/golem/buildup", offset = 0x20384, size = 0x5E0, address = 0x801521A4 },
+    { asset = "enemies/golem/recoil_behind", offset = 0x20964, size = 0xAA8, address = 0x80152784 },
+    { name = "shotgun_response_start", offset = 0x2140C, size = 0x3C0, address = 0x8015322C },
+    { name = "shotgun_response_walk", offset = 0x217CC, size = 0x8D0, address = 0x801535EC },
+    { name = "shotgun_response_end", offset = 0x2209C, size = 0x384, address = 0x80153EBC },
+    { name = "death", offset = 0x22420, size = 0x1D30, address = 0x80154240 },
+    { name = "slash_recover", offset = 0x24150, size = 0xEC0, address = 0x80155F70 },
+    { name = "fight_start", offset = 0x25010, size = 0x17C0, address = 0x80156E30 },
+    { name = "grenade_throw", offset = 0x267D0, size = 0xC10, address = 0x801585F0 },
+    { name = "player_grenade_stun", offset = 0x273E0, size = 0x5DC, address = 0x80159200 },
+    { name = "player_grenade_recover", offset = 0x279BC, size = 0x648, address = 0x801597DC },
+    { name = "event_1", offset = 0x28004, size = 0x208C, address = 0x80159E24 },
+    { name = "event_2", offset = 0x2A090, size = 0x1798, address = 0x8015BEB0 },
+    { name = "prop_toss", offset = 0x2B828, size = 0x404, address = 0x8015D648 },
+    { name = "prop_reveal", offset = 0x2BC2C, size = 0x2DD8, address = 0x8015DA4C },
+    { name = "event_5", offset = 0x2EA04, size = 0x3AE4, address = 0x80160824 },
+    { name = "event_6", offset = 0x324E8, size = 0x2EEC, address = 0x80164308 },
+    { name = "cable_intact", offset = 0x353D4, size = 0xC8, address = 0x801671F4 },
+    { name = "cable_break", offset = 0x3549C, size = 0x6AC, address = 0x801672BC },
+    { name = "body_bank", offset = 0x35C84, size = 0x88, address = 0x80167AA4 },
+    { name = "player_grenade_bank", offset = 0x35D0C, size = 0xC, address = 0x80167B2C },
+    { name = "collision_patch", offset = 0x35DA4, size = 0xD0 },
+    { name = "cable_bank", offset = 0x35E8C, size = 0xC, address = 0x80167CAC },
+]
+exports = { tasks = { at = 0x35BF8, symbol = "gHelicopterLandingPadNo9TaskDescriptors" } }
+load = { slot = "actor_1" }
+package_name = "helicopter_landing_pad_no_9"
+parent = "stages/akropolis/rooms/helicopter_landing_pad/package"
+required = true
+requires = ["gameplay", "stages/akropolis/rooms/helicopter_landing_pad/package"]
+sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"
+
+[backstep]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadBackstepClip"
+
+[unused_1]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadUnused1Clip"
+
+[body_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/helicopter_landing_pad_no_9/body_schema"
+symbol = "gHelicopterLandingPadNo9BodyAnimationSets"
+
+[body_bank.clips]
+patrol_idle = "stages/akropolis/actors/helicopter_landing_pad_no_9/patrol_idle"
+walk_start = "stages/akropolis/actors/helicopter_landing_pad_no_9/walk_start"
+walk = "stages/akropolis/actors/helicopter_landing_pad_no_9/walk"
+walk_fire = "stages/akropolis/actors/helicopter_landing_pad_no_9/walk_fire"
+backstep = "stages/akropolis/actors/helicopter_landing_pad_no_9/backstep"
+catch_up = "enemies/golem/advance"
+lethal_strike = "stages/akropolis/actors/helicopter_landing_pad_no_9/lethal_strike"
+slash_first = "stages/akropolis/actors/helicopter_landing_pad_no_9/slash_first"
+slash_second = "stages/akropolis/actors/helicopter_landing_pad_no_9/slash_second"
+slash_windup = "stages/akropolis/actors/helicopter_landing_pad_no_9/slash_windup"
+dash_start = "enemies/golem/pawn/beam_sword/charge_windup"
+dash_run = "enemies/golem/pawn/beam_sword/charge_run"
+dash_strike = "enemies/golem/pawn/beam_sword/charge_slash"
+flame_windup = "stages/akropolis/actors/helicopter_landing_pad_no_9/flame_windup"
+flame_lunge = "stages/akropolis/actors/helicopter_landing_pad_no_9/flame_lunge"
+recoil = "stages/akropolis/actors/helicopter_landing_pad_no_9/recoil"
+flinch = "enemies/golem/recoil_front"
+spark_recoil = "enemies/golem/scream_recover"
+stun = "enemies/golem/buildup"
+stun_recover = "enemies/golem/recoil_behind"
+shotgun_response_start = "stages/akropolis/actors/helicopter_landing_pad_no_9/shotgun_response_start"
+shotgun_response_walk = "stages/akropolis/actors/helicopter_landing_pad_no_9/shotgun_response_walk"
+shotgun_response_end = "stages/akropolis/actors/helicopter_landing_pad_no_9/shotgun_response_end"
+death = "stages/akropolis/actors/helicopter_landing_pad_no_9/death"
+slash_recover = "stages/akropolis/actors/helicopter_landing_pad_no_9/slash_recover"
+fight_start = "stages/akropolis/actors/helicopter_landing_pad_no_9/fight_start"
+grenade_throw = "stages/akropolis/actors/helicopter_landing_pad_no_9/grenade_throw"
+event_1 = "stages/akropolis/actors/helicopter_landing_pad_no_9/event_1"
+event_2 = "stages/akropolis/actors/helicopter_landing_pad_no_9/event_2"
+prop_reveal = "stages/akropolis/actors/helicopter_landing_pad_no_9/prop_reveal"
+prop_toss = "stages/akropolis/actors/helicopter_landing_pad_no_9/prop_toss"
+event_5 = "stages/akropolis/actors/helicopter_landing_pad_no_9/event_5"
+event_6 = "stages/akropolis/actors/helicopter_landing_pad_no_9/event_6"
+
+[prop_toss]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadPropTossClip"
+
+[walk_fire]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadWalkFireClip"
+
+[cable_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/helicopter_landing_pad_no_9/cable_schema"
+symbol = "_gHelicopterLandingPadNo9TransformerCableAnimationSets"
+
+[cable_bank.clips]
+intact = "stages/akropolis/actors/helicopter_landing_pad_no_9/cable_intact"
+break = "stages/akropolis/actors/helicopter_landing_pad_no_9/cable_break"
+
+[dash_start]
+type = "sound"
+sha1 = "125c21a1e27cfbed362a977e8f67bbf0dd68c57e"
+
+[flame_loop]
+type = "sound"
+sha1 = "686f413ed66db8625399032b8aee806e77d2023d"
+
+[footstep_a]
+type = "sound"
+sha1 = "511dd2cdf16ff3735ca8f737969896cff304cefd"
+
+[footstep_b]
+type = "sound"
+sha1 = "83f76e3533ef9f42debffb44f747576259a221ae"
+
+[spark_loop]
+type = "sound"
+sha1 = "a45cfc89bd75caa3ba2674ea1a826297a5d1bc54"
+
+[walk_start]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadWalkStartClip"
+
+[body_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "patrol_idle",
+    "walk_start",
+    "walk",
+    "walk_fire",
+    "backstep",
+    "catch_up",
+    "lethal_strike",
+    "slash_first",
+    "slash_second",
+    "slash_windup",
+    "dash_start",
+    "dash_run",
+    "dash_strike",
+    "flame_windup",
+    "flame_lunge",
+    "recoil",
+    "flinch",
+    "spark_recoil",
+    "stun",
+    "stun_recover",
+    "shotgun_response_start",
+    "shotgun_response_walk",
+    "shotgun_response_end",
+    "death",
+    "slash_recover",
+    "fight_start",
+    "grenade_throw",
+    "event_1",
+    "event_2",
+    "prop_reveal",
+    "prop_toss",
+    "event_5",
+    "event_6",
+]
+
+[cable_break]
+type = "clip"
+rig = "enemies/golem/no_9/helipad/cable_rig"
+symbol = "gGolemNo9HelipadCableBreakClip"
+
+[fight_start]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadFightStartClip"
+
+[flame_lunge]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadFlameLungeClip"
+
+[hurt_recoil]
+type = "sound"
+sha1 = "863e3c2f8b4b9f13bfd626fbd53db9edc0cfbe55"
+
+[patrol_idle]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadPatrolIdleClip"
+
+[prop_reveal]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadPropRevealClip"
+
+[slash_first]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashFirstClip"
+
+[cable_intact]
+type = "clip"
+rig = "enemies/golem/no_9/helipad/cable_rig"
+symbol = "gGolemNo9HelipadCableIntactClip"
+
+[cable_schema]
+type = "animation_schema"
+slots = ["", "intact", "break"]
+
+[flame_strike]
+type = "sound"
+sha1 = "8c3435a3f9ec27c218cac4d044b4fe293f8d3cc9"
+
+[flame_windup]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadFlameWindupClip"
+
+[slash_second]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashSecondClip"
+
+[slash_windup]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashWindupClip"
+
+[grenade_throw]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadGrenadeThrowClip"
+
+[lethal_strike]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadLethalStrikeClip"
+
+[shotgun_react]
+type = "sound"
+sha1 = "25d31bf208b36277b586ad6f4e1782dd7f5539f0"
+
+[slash_recover]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadSlashRecoverClip"
+
+[collision_patch]
+type = "collision"
+pieces = ["vectors 3", "vectors 12", "faces 3", "vectors 1", "vectors 4", "faces 1"]
+sha1 = "3452e203e5839b17679894af30b5357c48b0a3ea"
+
+[transformer_cable]
+type = "model"
+rig = "enemies/golem/no_9/helipad/cable_rig"
+slots = ["cable"]
+symbol = "gHelicopterLandingPadNo9TransformerCableModel"
+sha1 = "b34d4177cba6ecaff1b8cfb4c50e2e50f927c362"
+
+[grenade_throw_sound]
+type = "sound"
+mode = "high"
+sha1 = "36ea986442e0955160505cd9ad221fb915c75413"
+
+[lethal_strike_sound]
+type = "sound"
+sha1 = "009e737d64301f70e689fa15690d666b68fbf595"
+
+[player_grenade_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/helicopter_landing_pad_no_9/player_grenade_schema"
+symbol = "_gHelicopterLandingPadNo9PlayerGrenadeAnimationSets"
+
+[player_grenade_bank.clips]
+stun = "stages/akropolis/actors/helicopter_landing_pad_no_9/player_grenade_stun"
+recover = "stages/akropolis/actors/helicopter_landing_pad_no_9/player_grenade_recover"
+
+[player_grenade_stun]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9HelipadPlayerGrenadeStunClip"
+
+[slash_recover_sound]
+type = "sound"
+sha1 = "7b25f6721d9c76d684334bfaed35199a996302e1"
+
+[shotgun_response_end]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadShotgunResponseEndClip"
+
+[player_grenade_schema]
+type = "animation_schema"
+slots = ["", "stun", "recover"]
+
+[shotgun_response_walk]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadShotgunResponseWalkClip"
+
+[player_grenade_recover]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gGolemNo9HelipadPlayerGrenadeRecoverClip"
+
+[shotgun_response_start]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+symbol = "gGolemNo9HelipadShotgunResponseStartClip"
+
+[transformer_cable_binding]
+type = "binding"
+model = "stages/akropolis/actors/helicopter_landing_pad_no_9/transformer_cable"
+textures = { cable = "stages/akropolis/rooms/helicopter_landing_pad/props/cable.default" }

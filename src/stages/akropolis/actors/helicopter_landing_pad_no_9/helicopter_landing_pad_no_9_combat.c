@@ -53,10 +53,10 @@
 #include "../../../../shared/actor/actor_messages.h"
 #include "../../event_flags.h"
 
-#include "assets/enemies/golem/no_9/helipad/body_schema.h"
-#include "assets/enemies/golem/no_9/sounds_akropolis.h"
-#include "assets/enemies/golem/no_9/helipad/cable_schema.h"
-#include "assets/enemies/golem/no_9/helipad/player_grenade_schema.h"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/body_schema.h"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/sounds.h"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/cable_schema.h"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/player_grenade_schema.h"
 
 static void _no9GolemAimHead(const Task* actor);
 static void _no9GolemDrawShadow(const Task* task);
@@ -112,20 +112,20 @@ enum {
 
 /// Script keys before the placement index is packed into bits 8..11.
 enum {
-    SOUND_STEP_CUE_2       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_FOOTSTEP_A),
-    SOUND_STEP_CUE_1       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_FOOTSTEP_B),
-    SOUND_SHOTGUN_RESPONSE = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_SHOTGUN_REACT),
-    SOUND_RECOIL           = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_HURT_RECOIL),
-    SOUND_WINDUP           = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_WINDUP),
-    SOUND_FLAME_STRIKE     = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_FLAME_STRIKE),
-    SOUND_BACKSTEP         = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_BACKSTEP),
-    SOUND_SPARK_LOOP       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_SPARK_LOOP),
-    SOUND_SLASH_RECOVER    = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_SLASH_RECOVER),
-    SOUND_SLASH            = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_SLASH),
-    SOUND_DASH_STRIKE      = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_DASH_STRIKE),
-    SOUND_FLAME_LOOP       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_FLAME_LOOP),
-    SOUND_FIRE             = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_FIRE),
-    SOUND_DASH_START       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_DASH_START),
+    SOUND_STEP_CUE_2       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_FOOTSTEP_A),
+    SOUND_STEP_CUE_1       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_FOOTSTEP_B),
+    SOUND_SHOTGUN_RESPONSE = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_SHOTGUN_REACT),
+    SOUND_RECOIL           = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_HURT_RECOIL),
+    SOUND_WINDUP           = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_WINDUP),
+    SOUND_FLAME_STRIKE     = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_STRIKE),
+    SOUND_BACKSTEP         = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_BACKSTEP),
+    SOUND_SPARK_LOOP       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_SPARK_LOOP),
+    SOUND_SLASH_RECOVER    = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH_RECOVER),
+    SOUND_SLASH            = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_SLASH),
+    SOUND_DASH_STRIKE      = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_DASH_STRIKE),
+    SOUND_FLAME_LOOP       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_FLAME_LOOP),
+    SOUND_FIRE             = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_FIRE),
+    SOUND_DASH_START       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_DASH_START),
 };
 
 /// Frame thresholds shared by the spark and buildup reactions.
@@ -498,11 +498,11 @@ TaskMessageEntry gHelicopterLandingPadNo9BodyMessages[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/enemies/golem/no_9/helipad/body_bank.inc"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/body_bank.inc"
 
 /// Player clips borrowed during the stun grenade's hold: 0 unused, 1 stunned, 2 recovery.
 /// The player plays from this bank while the grenade holds them, so the overlay must stay loaded until the hold ends.
-#include "assets/enemies/golem/no_9/helipad/player_grenade_bank.inc"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/player_grenade_bank.inc"
 
 /// Whole-frame transition durations indexed by the body's animation ID 0..33.
 static s16 _gHelicopterLandingPadNo9BodyAnimationBlendFrames[34] = {
@@ -622,7 +622,7 @@ static u16 _gHelicopterLandingPadNo9GrenadePitchStepsByRange[12] = {
 };
 
 /// Transformer-cable animation bank: 0 unused, 1 intact, 2 breaking.
-#include "assets/enemies/golem/no_9/helipad/cable_bank.inc"
+#include "assets/stages/akropolis/actors/helicopter_landing_pad_no_9/cable_bank.inc"
 
 /// Root positions of transformers 0..2, in room-coordinate units beneath `gGfxViewCoord`.
 static SVECTOR _gHelicopterLandingPadNo9TransformerPositions[3] = {
@@ -848,7 +848,7 @@ static void _helicopterLandingPadNo9ResolveBodyContacts(Task* task)
         HIT_RECOIL                      = 2,
         ATTACK_ATTRIBUTE_REDUCED_DAMAGE = 4,
         ATTACK_ATTRIBUTE_DOUBLE_DAMAGE  = 5,
-        SOUND_HIT_FLINCH                = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_HURT),
+        SOUND_HIT_FLINCH                = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_HURT),
         ATTACHMENT_KEY_BIT              = 0x8000,
     };
     s32                          lastEffectKey;
@@ -1636,7 +1636,7 @@ static void _helicopterLandingPadNo9TickGrenadeThrow(Task* task)
         GRENADE_DESCRIPTOR        = 4,
         GRENADE_DASH_MIN_DISTANCE = 3751,
         GRENADE_DASH_ROLL_LIMIT   = 12,
-        SOUND_GRENADE_THROW       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_GRENADE_THROW),
+        SOUND_GRENADE_THROW       = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_GRENADE_THROW),
     };
     HelicopterLandingPadNo9Work* work;
     Enemy*                       enemy;
@@ -1790,7 +1790,7 @@ static void _helicopterLandingPadNo9TickLethalAttack(Task* task)
         LETHAL_RESTART_DELAY       = 128,
         LETHAL_HIT_EFFECT_INTERVAL = 6,
         PLAYER_DEATH_SOUND_FILE    = 30,
-        SOUND_LETHAL_FLAME_STRIKE  = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, NO_9_AKROPOLIS_SOUND_LETHAL_STRIKE),
+        SOUND_LETHAL_FLAME_STRIKE  = SOUND_CHARACTER(SOUND_BANK_NO_9_AKROPOLIS, HELICOPTER_LANDING_PAD_NO_9_SOUND_LETHAL_STRIKE),
     };
     HelicopterLandingPadNo9Work* work;
     GfxCoord*                    bodyCoord;
