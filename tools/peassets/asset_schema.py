@@ -218,6 +218,10 @@ EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type",
 # older kinds the `package` type replaces).
 PACKAGE_TYPES = frozenset({"pe2pkg", "room", "stage", "package"})
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
+# The divisions of a stage's group tree (stages/<stage>/rooms/<room>/scenes/<scene>, .../actors/<actor>): words that
+# say where an asset is filed, not what it is. A name derived from an asset's path leaves them out.
+GROUP_DIVISIONS = frozenset({"stages", "rooms", "actors", "scenes", "views", "props", "sounds"})
+
 DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "memory_slot", "movie", "rig", "clip", "camera_path", "animation_schema",
                             "animation_bank", "sound_bank", "sound", "shaped", "room", "stage"})
 
