@@ -1,0 +1,166 @@
+# The assets of the group stages/akropolis/rooms/cafeteria/sounds, each named stages/akropolis/rooms/cafeteria/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "rooms/akropolis/fire_escape/unused_1",
+    "rooms/akropolis/fire_escape/unused_2",
+    "rooms/akropolis/square/walk_floor_1",
+    "rooms/akropolis/square/walk_floor_2",
+    "rooms/akropolis/patio/walk_floor_1",
+    "rooms/akropolis/patio/walk_floor_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_2",
+]
+sha1 = "bf92721d4e1ffff0b3979b80cf2f4e5e334de5cf"
+
+[bank_0.sounds]
+walk_surface_3_1 = 1
+walk_surface_3_2 = 2
+run_surface_3_1 = 3
+run_surface_3_2 = 4
+walk_surface_2_1 = 17
+walk_surface_2_2 = 18
+run_surface_2_1 = 19
+run_surface_2_2 = 20
+walk_surface_1_1 = 45
+walk_surface_1_2 = 46
+run_surface_1_1 = 47
+run_surface_1_2 = 48
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/cafeteria/sounds/woman_cue",
+    "stages/akropolis/rooms/cafeteria/sounds/woman_cue_2",
+    "stages/akropolis/rooms/cafeteria/sounds/post_battle_scene",
+    "stages/akropolis/rooms/cafeteria/sounds/post_battle_scene_2",
+    "stages/akropolis/rooms/cafeteria/sounds/post_battle_scene_3",
+    "stages/akropolis/rooms/cafeteria/sounds/post_battle_scene_4",
+    "stages/akropolis/rooms/cafeteria/sounds/post_battle_scene_5",
+    "stages/akropolis/rooms/cafeteria/sounds/post_battle_scene_6",
+    "stages/akropolis/rooms/cafeteria/sounds/patio_door_depart",
+    "stages/akropolis/rooms/cafeteria/sounds/patio_door_arrive",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_locked",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_depart",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_arrive",
+    "stages/akropolis/rooms/cafeteria/sounds/unused_1",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_a_depart",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_a_arrive",
+    "stages/akropolis/rooms/cafeteria/sounds/ampoule_container_open",
+    "stages/akropolis/rooms/cafeteria/sounds/unused_2",
+]
+sha1 = "b18cba4dd8f30ce0012f337c6033455cafafcf1c"
+
+[bank_1.sounds]
+patio_door_depart = 1
+patio_door_arrive = 2
+hallway_door_b_locked = 3
+hallway_door_b_depart = 4
+hallway_door_b_arrive = 5
+hallway_door_a_depart = 8
+hallway_door_a_arrive = 9
+ampoule_container_open = 10
+post_battle_scene = 12
+woman_cue = 13
+
+[unused_1]
+type = "sound"
+sha1 = "a2cf2c986665ab41fbb4161c26763b186c0f1fe9"
+
+[unused_2]
+type = "sound"
+sha1 = "5197b3538c40c9ed3da0ec52ce10308450459cbb"
+
+[woman_cue]
+type = "sound"
+sha1 = "70ec17f614d59bea372533411cc00473ced3905b"
+
+[woman_cue_2]
+type = "sound"
+sha1 = "96972f1287819c4853416590fbe8fb0d48173f18"
+
+[run_surface_3_1]
+type = "sound"
+sha1 = "85fef7c50dedd805c86faa806b010771d06c4daa"
+
+[run_surface_3_2]
+type = "sound"
+sha1 = "c52826f3cc8de542de94cb882eeb98c82bb4194c"
+
+[walk_surface_1_1]
+type = "sound"
+sha1 = "51e2d8dddf7caf5ce1c2a09ef43da14e3074e90c"
+
+[walk_surface_1_2]
+type = "sound"
+sha1 = "b26a4d3c625beaf1f6d7d428308725f301d9217e"
+
+[walk_surface_3_1]
+type = "sound"
+sha1 = "15a444faaa2327bc85075471ed0bbf847c972735"
+
+[walk_surface_3_2]
+type = "sound"
+sha1 = "ed1a6647fda0abbd47a0aae731484c73a1eb84fb"
+
+[patio_door_arrive]
+type = "sound"
+sha1 = "3c9b4bc5fa73ab90598d3b435e5ce1951fc39c11"
+
+[patio_door_depart]
+type = "sound"
+sha1 = "390e0b4996849db95f14b2252475802ea7628914"
+
+[post_battle_scene]
+type = "sound"
+sha1 = "85a15c2fbe622a81ece7b5a871925b802dca43d2"
+
+[post_battle_scene_2]
+type = "sound"
+sha1 = "f40d2089ae42a8e3574eb33dd56c732f7c0c5c09"
+
+[post_battle_scene_3]
+type = "sound"
+sha1 = "d374c4c73d66589e30f165833a873e7695cdbf02"
+
+[post_battle_scene_4]
+type = "sound"
+sha1 = "ffcd762dd17ae3df325084936d43ff8b08a4180b"
+
+[post_battle_scene_5]
+type = "sound"
+sha1 = "9be70d0862a70e88cdde2921f3824d922ca94bb4"
+
+[post_battle_scene_6]
+type = "sound"
+sha1 = "b2b275fb041d16738ddae4f2365bf2bea160c620"
+
+[hallway_door_a_arrive]
+type = "sound"
+sha1 = "fc6c8178fd9bed207c7f40bd4d2e911cc8151879"
+
+[hallway_door_a_depart]
+type = "sound"
+sha1 = "009258ae61edf1814d1ae33e901a2b70ab9cc53b"
+
+[hallway_door_b_arrive]
+type = "sound"
+sha1 = "c01abcce73dbe4dde9dac5866a19e9521b319168"
+
+[hallway_door_b_depart]
+type = "sound"
+sha1 = "feac85a15880ca46838fd84352a88f4c78f447ff"
+
+[hallway_door_b_locked]
+type = "sound"
+sha1 = "fe28fc34f2dab1e3e00d6dbe84e2274b6518a89e"
+
+[ampoule_container_open]
+type = "sound"
+sha1 = "0441da9156d55cac3423399929159766a5464a4a"

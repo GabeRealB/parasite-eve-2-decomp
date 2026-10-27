@@ -1,0 +1,60 @@
+# The assets of the group stages/akropolis/actors/cafeteria_rupert, each named stages/akropolis/actors/cafeteria_rupert/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/cafeteria_rupert/schema"
+symbol = "_gActor310600BodyAnimationSets"
+
+[bank.clips]
+shoot = "stages/akropolis/actors/cafeteria_rupert/shoot"
+arrive = "stages/akropolis/actors/cafeteria_rupert/arrive"
+reload = "stages/akropolis/actors/cafeteria_rupert/reload"
+depart = "stages/akropolis/actors/cafeteria_rupert/depart"
+
+[shoot]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[arrive]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[depart]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[reload]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "shoot", "arrive", "reload", "depart"]
+
+[package]
+type = "package"
+embedded = [
+    { name = "player_follow_up_start", offset = 0x00ED8, size = 0x3C2C, address = 0x80162CF8 },
+    { asset = "characters/rupert/body", offset = 0x04B04, size = 0x5EF8, address = 0x80166924 },
+    { asset = "characters/rupert/mongoose", offset = 0x0A9FC, size = 0x558, address = 0x8016C81C },
+    { name = "shoot", offset = 0x0AF54, size = 0x3784, address = 0x8016CD74 },
+    { name = "arrive", offset = 0x0E6D8, size = 0x4D4, address = 0x801704F8 },
+    { name = "reload", offset = 0x0EBAC, size = 0x6AE4, address = 0x801709CC },
+    { name = "depart", offset = 0x15690, size = 0x217C, address = 0x801774B0 },
+    { name = "bank", offset = 0x1780C, size = 0x14, address = 0x8017962C },
+]
+load = { slot = "actor_3" }
+package_name = "actor_310600"
+required = true
+requires = ["gameplay", "stages/akropolis/rooms/cafeteria/package"]
+sha1 = "6dc5ccea0c7b5f38c42bd34dbdcacadb368602c5"
+
+[package.exports]
+tasks = { at = 0x17884, symbol = "gActor310600RupertBroderickTasks" }
+player_follow_up_start = { at = 0x04ADC, symbol = "gAkropolisCafeteriaPlayerFollowUpStartClip" }
+
+[player_follow_up_start]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerFollowUpStartClip"

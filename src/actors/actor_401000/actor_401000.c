@@ -150,7 +150,7 @@ static ActorStrangerVariant _gActor401000StrangerVariants[3] = {
     { 0, 500, 12, 3000, { 0, 0, 0, 0 } },
 };
 
-#include "assets/rooms/akropolis/cafeteria/boss_stranger_body.inc"
+#include "assets/stages/akropolis/actors/cafeteria_boss_stranger/body.inc"
 
 /// Detached debris model spawned from body part 9 in both burst deaths.
 ///

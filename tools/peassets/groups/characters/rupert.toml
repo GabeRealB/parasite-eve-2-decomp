@@ -72,7 +72,7 @@ sha1 = "ad4daeeed4b3a4d7b93d1a9ccfeb840d4b050a04"
 pages = [{ texture = "mongoose_texture", region = "engine/vram/held_weapon_sheet" }]
 
 [[file.contents]]
-asset = "rooms/akropolis/cafeteria/rupert"
+asset = "stages/akropolis/actors/cafeteria_rupert/package"
 
 [walk]
 type = "clip"

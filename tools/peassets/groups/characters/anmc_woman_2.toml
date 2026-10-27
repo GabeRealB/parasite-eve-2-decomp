@@ -61,7 +61,7 @@ pages = [
 slots = 6
 
 [[file.contents]]
-asset = "rooms/akropolis/cafeteria/anmc_woman"
+asset = "stages/akropolis/actors/cafeteria_woman/package"
 
 [glasses]
 type = "model"

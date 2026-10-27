@@ -309,47 +309,210 @@ sha1 = "aad025de37e89ea86eb935d833da7e06be2b4ed2"
 
 [package_b_4]
 type = "package"
-embedded = [
-    { asset = "rooms/akropolis/cafeteria/boss_stranger_body", offset = 0x0C2B0, size = 0x5568, address = 0x8013E0D0 },
-    { asset = "enemies/stranger/burst_hand", offset = 0x11818, size = 0x8A0, address = 0x80143638 },
-    { name = "b_burst_leg", offset = 0x120B8, size = 0x97C, address = 0x80143ED8 },
-    { name = "b_burst_head", offset = 0x12A34, size = 0x116C, address = 0x80144854 },
-    { name = "b_burst_torso", offset = 0x13BA0, size = 0x7F4, address = 0x801459C0 },
-    { name = "b_walk", offset = 0x14394, size = 0xB24, address = 0x801461B4 },
-    { name = "b_run", offset = 0x14EB8, size = 0xA84, address = 0x80146CD8 },
-    { name = "slide", offset = 0x1593C, size = 0xA70, address = 0x8014775C },
-    { name = "flinch", offset = 0x163AC, size = 0x5E0, address = 0x801481CC },
-    { name = "down_front", offset = 0x1698C, size = 0x5E4, address = 0x801487AC },
-    { name = "dormant_fidget", offset = 0x16F70, size = 0xA54, address = 0x80148D90 },
-    { name = "b_rise_back", offset = 0x179C4, size = 0xD44, address = 0x801497E4 },
-    { name = "rise_front", offset = 0x18708, size = 0x870, address = 0x8014A528 },
-    { name = "refall_front", offset = 0x18F78, size = 0x390, address = 0x8014AD98 },
-    { name = "alert", offset = 0x19308, size = 0x838, address = 0x8014B128 },
-    { name = "back_off", offset = 0x19B40, size = 0x550, address = 0x8014B960 },
-    { name = "dormant", offset = 0x1A090, size = 0xF18, address = 0x8014BEB0 },
-    { name = "fall_back", offset = 0x1AFA8, size = 0x3A4, address = 0x8014CDC8 },
-    { asset = "enemies/stranger/down_back", offset = 0x1B34C, size = 0x3B4, address = 0x8014D16C },
-    { asset = "enemies/stranger/burst_collapse", offset = 0x1B700, size = 0x384, address = 0x8014D520 },
-    { name = "ambush", offset = 0x1BA84, size = 0x6F4, address = 0x8014D8A4 },
-    { name = "sidestep_negative", offset = 0x1C178, size = 0x864, address = 0x8014DF98 },
-    { name = "sidestep_positive", offset = 0x1C9DC, size = 0x878, address = 0x8014E7FC },
-    { name = "grab_pull", offset = 0x1D254, size = 0x650, address = 0x8014F074 },
-    { name = "grab_strike", offset = 0x1D8A4, size = 0x9D4, address = 0x8014F6C4 },
-    { name = "grab_release", offset = 0x1E278, size = 0xE78, address = 0x80150098 },
-    { name = "grab_reach", offset = 0x1F0F0, size = 0xF10, address = 0x80150F10 },
-    { name = "player_grab_hold", offset = 0x20000, size = 0x688, address = 0x80151E20 },
-    { name = "player_grab_strike", offset = 0x20688, size = 0x9F8, address = 0x801524A8 },
-    { name = "player_grab_release", offset = 0x21080, size = 0x960, address = 0x80152EA0 },
-    { name = "scripted_dormant", offset = 0x219E0, size = 0xE5C, address = 0x80153800 },
-    { name = "b_bank", offset = 0x23028, size = 0xB8, address = 0x80154E48 },
-    { name = "player_grab_bank", offset = 0x230E0, size = 0x1C, address = 0x80154F00 },
-]
 exports = { tasks = { at = 0x231E4, symbol = "gActor401000StrangerTaskDesc" } }
 load = { slot = "actor_1" }
 package_name = "actor_401000"
 required = true
 requires = ["gameplay"]
 sha1 = "cc6b40d227a82d1e02f95d4b77dde324a407df33"
+
+[[package_b_4.embedded]]
+asset = "stages/akropolis/actors/cafeteria_boss_stranger/body"
+offset = 0x0C2B0
+size = 0x5568
+address = 0x8013E0D0
+
+[[package_b_4.embedded]]
+asset = "enemies/stranger/burst_hand"
+offset = 0x11818
+size = 0x8A0
+address = 0x80143638
+
+[[package_b_4.embedded]]
+name = "b_burst_leg"
+offset = 0x120B8
+size = 0x97C
+address = 0x80143ED8
+
+[[package_b_4.embedded]]
+name = "b_burst_head"
+offset = 0x12A34
+size = 0x116C
+address = 0x80144854
+
+[[package_b_4.embedded]]
+name = "b_burst_torso"
+offset = 0x13BA0
+size = 0x7F4
+address = 0x801459C0
+
+[[package_b_4.embedded]]
+name = "b_walk"
+offset = 0x14394
+size = 0xB24
+address = 0x801461B4
+
+[[package_b_4.embedded]]
+name = "b_run"
+offset = 0x14EB8
+size = 0xA84
+address = 0x80146CD8
+
+[[package_b_4.embedded]]
+name = "slide"
+offset = 0x1593C
+size = 0xA70
+address = 0x8014775C
+
+[[package_b_4.embedded]]
+name = "flinch"
+offset = 0x163AC
+size = 0x5E0
+address = 0x801481CC
+
+[[package_b_4.embedded]]
+name = "down_front"
+offset = 0x1698C
+size = 0x5E4
+address = 0x801487AC
+
+[[package_b_4.embedded]]
+name = "dormant_fidget"
+offset = 0x16F70
+size = 0xA54
+address = 0x80148D90
+
+[[package_b_4.embedded]]
+name = "b_rise_back"
+offset = 0x179C4
+size = 0xD44
+address = 0x801497E4
+
+[[package_b_4.embedded]]
+name = "rise_front"
+offset = 0x18708
+size = 0x870
+address = 0x8014A528
+
+[[package_b_4.embedded]]
+name = "refall_front"
+offset = 0x18F78
+size = 0x390
+address = 0x8014AD98
+
+[[package_b_4.embedded]]
+name = "alert"
+offset = 0x19308
+size = 0x838
+address = 0x8014B128
+
+[[package_b_4.embedded]]
+name = "back_off"
+offset = 0x19B40
+size = 0x550
+address = 0x8014B960
+
+[[package_b_4.embedded]]
+name = "dormant"
+offset = 0x1A090
+size = 0xF18
+address = 0x8014BEB0
+
+[[package_b_4.embedded]]
+name = "fall_back"
+offset = 0x1AFA8
+size = 0x3A4
+address = 0x8014CDC8
+
+[[package_b_4.embedded]]
+asset = "enemies/stranger/down_back"
+offset = 0x1B34C
+size = 0x3B4
+address = 0x8014D16C
+
+[[package_b_4.embedded]]
+asset = "enemies/stranger/burst_collapse"
+offset = 0x1B700
+size = 0x384
+address = 0x8014D520
+
+[[package_b_4.embedded]]
+name = "ambush"
+offset = 0x1BA84
+size = 0x6F4
+address = 0x8014D8A4
+
+[[package_b_4.embedded]]
+name = "sidestep_negative"
+offset = 0x1C178
+size = 0x864
+address = 0x8014DF98
+
+[[package_b_4.embedded]]
+name = "sidestep_positive"
+offset = 0x1C9DC
+size = 0x878
+address = 0x8014E7FC
+
+[[package_b_4.embedded]]
+name = "grab_pull"
+offset = 0x1D254
+size = 0x650
+address = 0x8014F074
+
+[[package_b_4.embedded]]
+name = "grab_strike"
+offset = 0x1D8A4
+size = 0x9D4
+address = 0x8014F6C4
+
+[[package_b_4.embedded]]
+name = "grab_release"
+offset = 0x1E278
+size = 0xE78
+address = 0x80150098
+
+[[package_b_4.embedded]]
+name = "grab_reach"
+offset = 0x1F0F0
+size = 0xF10
+address = 0x80150F10
+
+[[package_b_4.embedded]]
+name = "player_grab_hold"
+offset = 0x20000
+size = 0x688
+address = 0x80151E20
+
+[[package_b_4.embedded]]
+name = "player_grab_strike"
+offset = 0x20688
+size = 0x9F8
+address = 0x801524A8
+
+[[package_b_4.embedded]]
+name = "player_grab_release"
+offset = 0x21080
+size = 0x960
+address = 0x80152EA0
+
+[[package_b_4.embedded]]
+name = "scripted_dormant"
+offset = 0x219E0
+size = 0xE5C
+address = 0x80153800
+
+[[package_b_4.embedded]]
+name = "b_bank"
+offset = 0x23028
+size = 0xB8
+address = 0x80154E48
+
+[[package_b_4.embedded]]
+name = "player_grab_bank"
+offset = 0x230E0
+size = 0x1C
+address = 0x80154F00
 
 [b_burst_head]
 type = "model"

@@ -1,0 +1,76 @@
+# The assets of the group stages/akropolis/actors/cafeteria_grinning_stranger, each named stages/akropolis/actors/cafeteria_grinning_stranger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+clips = { appear = "stages/akropolis/actors/cafeteria_grinning_stranger/appear" }
+schema = "stages/akropolis/actors/cafeteria_grinning_stranger/schema"
+symbol = "_gActor210600GrinningStrangerAnimationSets"
+
+[appear]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "appear"]
+
+[package]
+type = "package"
+embedded = [
+    { name = "player_rupert_talk", offset = 0x03108, size = 0x4E14, address = 0x8014CF28 },
+    { name = "player_follow_up_end", offset = 0x07F1C, size = 0x215C, address = 0x80151D3C },
+    { asset = "enemies/stranger/grinning/body", offset = 0x0A078, size = 0x5664, address = 0x80153E98 },
+    { name = "appear", offset = 0x0F6DC, size = 0xF9C, address = 0x801594FC },
+    { name = "bank", offset = 0x10694, size = 0x18, address = 0x8015A4B4 },
+    { name = "boss_stranger_collapse", offset = 0x106D8, size = 0x18AC, address = 0x8015A4F8 },
+    { asset = "enemies/stranger/lesser/idle", offset = 0x11F84, size = 0x2E8, address = 0x8015BDA4 },
+    { name = "boss_stranger_follow_up_3", offset = 0x1226C, size = 0x8EC, address = 0x8015C08C },
+    { name = "extra_anim_6", offset = 0x12B58, size = 0x5DC, address = 0x8015C978 },
+    { name = "extra_anim_7", offset = 0x13134, size = 0x3BC, address = 0x8015CF54 },
+]
+load = { slot = "actor_2" }
+package_name = "actor_210600"
+required = true
+requires = ["gameplay"]
+sha1 = "367774e983c09e4c9e372851335e0290d5505211"
+
+[package.exports]
+boss_stranger_collapse = { at = 0x11F5C, symbol = "gAkropolisCafeteriaBossStrangerCollapseClip" }
+stranger_lesser_idle = { at = 0x12244, symbol = "gStrangerLesserIdleClip" }
+boss_stranger_follow_up_3 = { at = 0x12B30, symbol = "gAkropolisCafeteriaBossStrangerFollowUp3Clip" }
+extra_anim_6 = { at = 0x1310C, symbol = "gAkropolisCafeteriaExtraAnim6Clip" }
+extra_anim_7 = { at = 0x134C8, symbol = "gAkropolisCafeteriaExtraAnim7Clip" }
+tasks = { at = 0x106CC, symbol = "gActor210600GrinningStrangerTaskDesc" }
+player_rupert_talk = { at = 0x07EF4, symbol = "gAkropolisCafeteriaPlayerRupertTalkClip" }
+player_follow_up_end = { at = 0x0A050, symbol = "gAkropolisCafeteriaPlayerFollowUpEndClip" }
+
+[extra_anim_6]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaExtraAnim6Clip"
+
+[extra_anim_7]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaExtraAnim7Clip"
+
+[player_rupert_talk]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerRupertTalkClip"
+
+[player_follow_up_end]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerFollowUpEndClip"
+
+[boss_stranger_collapse]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaBossStrangerCollapseClip"
+
+[boss_stranger_follow_up_3]
+type = "clip"
+rig = "enemies/stranger/rig"
+symbol = "gAkropolisCafeteriaBossStrangerFollowUp3Clip"

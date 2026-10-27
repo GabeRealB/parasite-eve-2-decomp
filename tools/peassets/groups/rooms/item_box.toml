@@ -10,4 +10,4 @@ sha1 = "ff340ca9dcf9192e4265bc41172a4fd9e4bfddde"
 [model_binding]
 type = "binding"
 model = "rooms/item_box/model"
-textures = { box = "rooms/akropolis/cafeteria/container.default" }
+textures = { box = "stages/akropolis/rooms/cafeteria/props/container.default" }

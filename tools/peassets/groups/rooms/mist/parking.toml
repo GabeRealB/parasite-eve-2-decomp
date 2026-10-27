@@ -427,8 +427,8 @@ type = "sound_bank"
 samples = [
     "rooms/akropolis/patio/walk_floor_1",
     "rooms/akropolis/patio/walk_floor_2",
-    "rooms/akropolis/cafeteria/walk_surface_3_1",
-    "rooms/akropolis/cafeteria/walk_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
 ]
 sounds = { walk_floor_1 = 17, walk_floor_2 = 18, run_floor_1 = 19, run_floor_2 = 20 }
 sha1 = "86f82c6b17237764b7b5e51cbd368ecd4507d138"

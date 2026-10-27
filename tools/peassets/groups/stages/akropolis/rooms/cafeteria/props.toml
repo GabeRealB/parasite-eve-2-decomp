@@ -1,0 +1,112 @@
+# The assets of the group stages/akropolis/rooms/cafeteria/props, each named stages/akropolis/rooms/cafeteria/props/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[puff]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default"]
+width = 256
+
+[puff.cells]
+puff_0 = [0, 0, 48, 48]
+puff_1 = [48, 0, 48, 48]
+puff_2 = [96, 0, 48, 48]
+puff_3 = [144, 0, 48, 48]
+puff_4 = [192, 0, 48, 48]
+puff_row_2_0 = [0, 48, 48, 48]
+puff_row_2_1 = [48, 48, 48, 48]
+puff_row_2_2 = [96, 48, 48, 48]
+puff_row_2_3 = [144, 48, 48, 48]
+puff_row_2_4 = [192, 48, 48, 48]
+
+[model]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default", "loose_prop"]
+width = 128
+
+[container]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default", "stim", "pain_reliever", "ammunition"]
+width = 256
+
+[stim_pickup]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaStimPickupModel"
+sha1 = "fbbeaad538775e565e8cc338ae5ea030c460042b"
+
+[loose_prop_1]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp1Model"
+sha1 = "c213b2bafe2920fcc4639defd0443336e7f9fe64"
+
+[loose_prop_2]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp2Model"
+sha1 = "56a76af06757aa9d933255d19d21029247e90fd3"
+
+[loose_prop_3]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp3Model"
+sha1 = "3057c541b0af97896974d1c83d7148894a5d8892"
+
+[loose_prop_4]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaLooseProp4Model"
+sha1 = "66a4cd2b07f9c5de87c2310b33a48859e2d00bc2"
+
+[mendel_journal]
+type = "model"
+slots = ["model"]
+symbol = "gAkropolisCafeteriaMendelJournalModel"
+sha1 = "477fb43fb413da624ac5ba84065755ccfa50fc5a"
+
+[wandering_creature]
+type = "model"
+slots = ["puff"]
+symbol = "gAkropolisCafeteriaWanderingCreatureModel"
+sha1 = "891eb5d56aaae937caa7a7b80a74f403cee8123d"
+
+[stim_pickup_binding]
+type = "binding"
+model = "stages/akropolis/rooms/cafeteria/props/stim_pickup"
+textures = { model = "stages/akropolis/rooms/cafeteria/props/container.stim" }
+
+[loose_prop_1_binding]
+type = "binding"
+model = "stages/akropolis/rooms/cafeteria/props/loose_prop_1"
+textures = { model = "stages/akropolis/rooms/cafeteria/props/model.loose_prop" }
+
+[loose_prop_2_binding]
+type = "binding"
+model = "stages/akropolis/rooms/cafeteria/props/loose_prop_2"
+textures = { model = "stages/akropolis/rooms/cafeteria/props/model.loose_prop" }
+
+[loose_prop_3_binding]
+type = "binding"
+model = "stages/akropolis/rooms/cafeteria/props/loose_prop_3"
+textures = { model = "stages/akropolis/rooms/cafeteria/props/model.loose_prop" }
+
+[loose_prop_4_binding]
+type = "binding"
+model = "stages/akropolis/rooms/cafeteria/props/loose_prop_4"
+textures = { model = "stages/akropolis/rooms/cafeteria/props/model.loose_prop" }
+
+[mendel_journal_binding]
+type = "binding"
+model = "stages/akropolis/rooms/cafeteria/props/mendel_journal"
+textures = { model = "stages/akropolis/rooms/cafeteria/props/model.default" }
+
+[wandering_creature_binding]
+type = "binding"
+model = "stages/akropolis/rooms/cafeteria/props/wandering_creature"
+textures = { puff = "stages/akropolis/rooms/cafeteria/props/puff.default" }

@@ -164,10 +164,10 @@ police_sergeant_turn_away = { at = 0x17C68, symbol = "gPoliceSergeantTurnAwayCli
 [sounds_0]
 type = "sound_bank"
 samples = [
-    "rooms/akropolis/cafeteria/run_surface_3_1",
-    "rooms/akropolis/cafeteria/run_surface_3_2",
-    "rooms/akropolis/cafeteria/walk_surface_1_1",
-    "rooms/akropolis/cafeteria/walk_surface_1_2",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_2",
     "rooms/akropolis/square/walk_floor_1",
     "rooms/akropolis/square/walk_floor_2",
 ]

@@ -233,7 +233,7 @@ samples = [
     "rooms/akropolis/sanctuary/roof_garden_door_close",
     "rooms/akropolis/roof_garden/ambience",
     "rooms/akropolis/roof_garden/ambience_2",
-    "rooms/akropolis/cafeteria/hallway_door_b_locked",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_locked",
 ]
 sha1 = "851fabed5af12d4425d7fb56a32d27e7504265ff"
 

@@ -60,7 +60,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/room/streamed_scene.h"
 
-#include "assets/rooms/akropolis/cafeteria/declarations_cafeteria_effects.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/declarations_cafeteria_effects.inc"
 
 /// Placed pickup state after collection, shared by this room's model hooks.
 enum { PICKUP_COLLECTED = 2 };
@@ -101,15 +101,15 @@ static SVECTOR _gAkropolisCafeteriaMendelJournalModelNormals[18];
 static TmdBone _gAkropolisCafeteriaMendelJournalModelSkeleton[1];
 static u32     _gAkropolisCafeteriaMendelJournalModelStream[112];
 
-#include "assets/rooms/akropolis/cafeteria/lights_2.inc"
-#include "assets/rooms/akropolis/cafeteria/sprites.inc"
-#include "assets/rooms/akropolis/cafeteria/cameras.inc"
-#include "assets/rooms/akropolis/cafeteria/ambient.inc"
-#include "assets/rooms/akropolis/cafeteria/updates.inc"
-#include "assets/rooms/akropolis/cafeteria/surfaces.inc"
-#include "assets/rooms/akropolis/cafeteria/stim_pickup.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/lights_2.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/sprites.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/cameras.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/ambient.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/updates.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/surfaces.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/props/stim_pickup.inc"
 
-#include "assets/rooms/akropolis/cafeteria/mendel_journal.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/props/mendel_journal.inc"
 
 /// Fixed light colors and ambient base for the Mendel pickup model.
 static MATRIX _gAkropolisCafeteriaMendelPickupColorMatrix = {

@@ -1,0 +1,248 @@
+# The assets of the group stages/akropolis/actors/cafeteria_boss_stranger, each named stages/akropolis/actors/cafeteria_boss_stranger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/cafeteria_boss_stranger/schema"
+symbol = "_gCafeteriaBossStrangerAnimationSets"
+
+[bank.clips]
+walk = "stages/akropolis/actors/cafeteria_boss_stranger/walk"
+enraged_attack = "enemies/stranger/strike"
+attack = "rooms/akropolis/patio/stranger_wait_1"
+slide = "enemies/stranger/odd/slide"
+hit_reaction = "enemies/stranger/odd/flinch"
+fall = "enemies/stranger/odd/down_front"
+slot_13 = "stages/akropolis/actors/cafeteria_boss_stranger/anim_13"
+rise_back = "enemies/stranger/odd/b_rise_back"
+rise = "enemies/stranger/odd/rise_front"
+command_9 = "stages/akropolis/actors/cafeteria_boss_stranger/command_9"
+slot_18 = "stages/akropolis/actors/cafeteria_boss_stranger/anim_18"
+alert = "enemies/stranger/odd/alert"
+thrash = "enemies/stranger/odd/back_off"
+slot_27 = "stages/akropolis/actors/cafeteria_boss_stranger/anim_27"
+fall_back = "enemies/stranger/odd/fall_back"
+fall_back_end = "enemies/stranger/down_back"
+slot_31 = "stages/akropolis/actors/cafeteria_boss_stranger/anim_31"
+slot_32 = "stages/akropolis/actors/cafeteria_boss_stranger/anim_32"
+scripted_0 = "stages/akropolis/actors/cafeteria_grinning_stranger/boss_stranger_collapse"
+scripted_1 = "enemies/stranger/lesser/idle"
+scripted_2 = "stages/akropolis/actors/cafeteria_grinning_stranger/boss_stranger_follow_up_3"
+scripted_3 = "stages/akropolis/actors/cafeteria_grinning_stranger/extra_anim_6"
+down_back = "enemies/stranger/down_back"
+refall_front = "enemies/stranger/odd/refall_front"
+scripted_4 = "stages/akropolis/actors/cafeteria_grinning_stranger/extra_anim_7"
+
+[body]
+type = "model"
+rig = "enemies/stranger/rig"
+slots = ["boss_stranger_texture_page_1", "boss_stranger_texture_page_2"]
+symbol = "_gAkropolisCafeteriaBossStrangerBody"
+sha1 = "a47f461618f043cd305a7776cb7faffab97fac1c"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "sounds"
+
+[[file.contents]]
+chunk = "image"
+sha1 = "20fda9324b6ebb7d72e4c01dc0e375545dfab8ec"
+pages = [
+    { texture = "texture_page_1", region = "engine/vram/actor_sheet", offset = [0x00000, 0x00000] },
+    { texture = "texture_page_2", region = "engine/vram/actor_sheet", offset = [0x00040, 0x00000] },
+]
+slots = 6
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "1b687438c0cbb5dac66a3bc06049cb81fbf152b8"
+
+[[file.contents.palettes]]
+texture = "texture_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "texture_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents]]
+chunk = "package"
+
+[hurt]
+type = "sound"
+sha1 = "34198f1b34ed2a631f97d6462d3295f8e71d0939"
+
+[walk]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[alert]
+type = "sound"
+sha1 = "d2a97ab93570e8da7e7e6f3446c757fc883ec3ce"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "walk",
+    "run",
+    "enraged_attack",
+    "attack",
+    "",
+    "",
+    "",
+    "",
+    "slide",
+    "hit_reaction",
+    "fall",
+    "slot_13",
+    "idle_variation",
+    "rise_back",
+    "rise",
+    "command_9",
+    "slot_18",
+    "",
+    "",
+    "alert",
+    "thrash",
+    "",
+    "idle",
+    "",
+    "",
+    "slot_27",
+    "",
+    "fall_back",
+    "fall_back_end",
+    "slot_31",
+    "slot_32",
+    "thrash_end",
+    "scripted_0",
+    "scripted_1",
+    "scripted_2",
+    "scripted_3",
+    "down_back",
+    "refall_front",
+    "scripted_4",
+    "",
+    "",
+    "",
+    "",
+    "",
+]
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "enemies/stranger/horned/walk_step_a",
+    "enemies/stranger/horned/walk_step_b",
+    "stages/akropolis/actors/cafeteria_boss_stranger/walk_step_a",
+    "stages/akropolis/actors/cafeteria_boss_stranger/walk_step_b",
+    "encounters/skull_stalker_and_creeping_stranger/attack_hit",
+    "stages/akropolis/actors/cafeteria_boss_stranger/hurt",
+    "stages/akropolis/actors/cafeteria_boss_stranger/alert",
+]
+sha1 = "c87a9c7ca4573862fbd753c6fe8e382bf94476df"
+
+[sounds.sounds]
+walk_step_a = 1
+walk_step_b = 2
+run_step_a = 3
+run_step_b = 4
+alert = 6
+hurt = 7
+strike = 12
+attack_hit = 13
+
+[anim_13]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[anim_18]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[anim_27]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[anim_31]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[anim_32]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[package]
+type = "package"
+embedded = [
+    { name = "body", offset = 0x07138, size = 0x5568, address = 0x80138F58 },
+    { asset = "enemies/stranger/strike", offset = 0x0C6A0, size = 0xFC4, address = 0x8013E4C0 },
+    { asset = "rooms/akropolis/patio/stranger_wait_1", offset = 0x0D664, size = 0x1028, address = 0x8013F484 },
+    { asset = "enemies/stranger/odd/slide", offset = 0x0E68C, size = 0xA70, address = 0x801404AC },
+    { asset = "enemies/stranger/odd/flinch", offset = 0x0F0FC, size = 0x5E0, address = 0x80140F1C },
+    { asset = "enemies/stranger/odd/down_front", offset = 0x0F6DC, size = 0x5E4, address = 0x801414FC },
+    { name = "anim_13", offset = 0x0FCC0, size = 0x5F8, address = 0x80141AE0 },
+    { asset = "enemies/stranger/odd/dormant_fidget", offset = 0x102B8, size = 0xA54, address = 0x801420D8 },
+    { asset = "enemies/stranger/odd/b_rise_back", offset = 0x10D0C, size = 0xD44, address = 0x80142B2C },
+    { asset = "enemies/stranger/odd/rise_front", offset = 0x11A50, size = 0x870, address = 0x80143870 },
+    { name = "command_9", offset = 0x122C0, size = 0x1DC, address = 0x801440E0 },
+    { name = "anim_18", offset = 0x1249C, size = 0x190, address = 0x801442BC },
+    { asset = "enemies/stranger/odd/refall_front", offset = 0x1262C, size = 0x390, address = 0x8014444C },
+    { asset = "enemies/stranger/odd/alert", offset = 0x129BC, size = 0x838, address = 0x801447DC },
+    { asset = "enemies/stranger/odd/back_off", offset = 0x131F4, size = 0x550, address = 0x80145014 },
+    { name = "anim_27", offset = 0x13744, size = 0x1E0, address = 0x80145564 },
+    { asset = "enemies/stranger/odd/fall_back", offset = 0x13924, size = 0x3A4, address = 0x80145744 },
+    { asset = "enemies/stranger/down_back", offset = 0x13CC8, size = 0x3B4, address = 0x80145AE8 },
+    { name = "anim_31", offset = 0x1407C, size = 0x250, address = 0x80145E9C },
+    { name = "anim_32", offset = 0x142CC, size = 0x25C, address = 0x801460EC },
+    { name = "walk", offset = 0x14528, size = 0x19D8, address = 0x80146348 },
+    { name = "bank", offset = 0x166EC, size = 0xB8, address = 0x8014850C },
+]
+exports = { tasks = { at = 0x16850, symbol = "gCafeteriaBossStrangerTaskDesc" } }
+load = { slot = "actor_1" }
+package_name = "cafeteria_boss_stranger"
+required = true
+requires = ["gameplay", "stages/akropolis/actors/cafeteria_grinning_stranger/package"]
+sha1 = "74f1ae3aafbb1b7d92790dc2afab1a15becb8a25"
+
+[command_9]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[walk_step_a]
+type = "sound"
+sha1 = "856dbbf094db9e628d08cdd4702d9ce6a3edbf01"
+
+[walk_step_b]
+type = "sound"
+sha1 = "8cee6bf15f7d107b918ffa28b721ccf070545cd9"
+
+[body_binding]
+type = "binding"
+model = "stages/akropolis/actors/cafeteria_boss_stranger/body"
+
+[body_binding.textures]
+boss_stranger_texture_page_1 = "stages/akropolis/actors/cafeteria_boss_stranger/texture_page_1.default"
+boss_stranger_texture_page_2 = "stages/akropolis/actors/cafeteria_boss_stranger/texture_page_2.default"
+
+[texture_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[texture_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128

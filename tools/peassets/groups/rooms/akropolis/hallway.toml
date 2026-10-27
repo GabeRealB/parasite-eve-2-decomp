@@ -68,8 +68,8 @@ type = "sound_bank"
 samples = [
     "rooms/akropolis/patio/walk_floor_1",
     "rooms/akropolis/patio/walk_floor_2",
-    "rooms/akropolis/cafeteria/walk_surface_3_1",
-    "rooms/akropolis/cafeteria/walk_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
 ]
 sounds = { walk_floor_1 = 9, walk_floor_2 = 10, run_floor_1 = 11, run_floor_2 = 12 }
 sha1 = "af58a083eeffe8423612678fefe099e41595e44e"
@@ -79,8 +79,8 @@ type = "sound_bank"
 samples = [
     "rooms/akropolis/security_room/door_depart",
     "rooms/akropolis/security_room/door_arrive",
-    "rooms/akropolis/cafeteria/hallway_door_b_depart",
-    "rooms/akropolis/cafeteria/hallway_door_b_arrive",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_depart",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_arrive",
     "rooms/akropolis/hallway/unused_1",
     "rooms/akropolis/hallway/key_box_open",
     "rooms/akropolis/hallway/key_box_close",
@@ -166,4 +166,4 @@ textures = { blue_key = "rooms/akropolis/hallway/blue_key.default" }
 [pain_reliever_pickup_binding]
 type = "binding"
 model = "rooms/akropolis/hallway/pain_reliever_pickup"
-textures = { pickup = "rooms/akropolis/cafeteria/container.pain_reliever" }
+textures = { pickup = "stages/akropolis/rooms/cafeteria/props/container.pain_reliever" }

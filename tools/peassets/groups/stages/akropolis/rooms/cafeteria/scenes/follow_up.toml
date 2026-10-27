@@ -1,0 +1,21 @@
+# The assets of the group stages/akropolis/rooms/cafeteria/scenes/follow_up, each named stages/akropolis/rooms/cafeteria/scenes/follow_up/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/rooms/cafeteria/scenes/follow_up/player_schema"
+symbol = "_gAkropolisCafeteriaFollowUpPlayerAnimationSets"
+
+[player_bank.clips]
+slot_0 = "stages/akropolis/actors/cafeteria_rupert/player_follow_up_start"
+slot_1 = "stages/akropolis/rooms/cafeteria/scenes/follow_up/player"
+slot_2 = "stages/akropolis/actors/cafeteria_grinning_stranger/player_rupert_talk"
+slot_3 = "stages/akropolis/actors/cafeteria_grinning_stranger/player_follow_up_end"
+
+[player_schema]
+type = "animation_schema"
+slots = ["slot_0", "slot_1", "slot_2", "slot_3"]

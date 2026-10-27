@@ -1,0 +1,473 @@
+# The assets of the group stages/akropolis/rooms/cafeteria, each named stages/akropolis/rooms/cafeteria/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/cafeteria/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/cafeteria/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "8185f05dc401ff3c20eefa98bb339ba00a7e3b56"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/cafeteria/props/model"
+variant = "loose_prop"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/cafeteria/props/container"
+variant = "pain_reliever"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/cafeteria/props/container"
+variant = "stim"
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_32"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_48"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_64"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_80"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00000]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/cafeteria/props/container"
+variant = "ammunition"
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_112"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_128"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_144"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_160"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00000]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/cafeteria/props/container"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_192"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_208"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_224"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_261_240"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_row_262"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "aee85f413feca9ecc33727ae76582e9d5b700129"
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/cafeteria/props/container"
+region = "engine/vram/room_model_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "de5513c70f6ba8a73f6469a139995047f6663e05"
+
+[[file.contents.palettes]]
+name = "unread_row_263"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/cafeteria/props/model"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents]]
+chunk = "palette_3"
+sha1 = "570751c4a804d31e27f8a420d36f66a04c185e28"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/cafeteria/props/puff"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_16"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_32"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_48"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_64"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_80"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_96"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_112"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_128"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_144"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_160"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_176"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_192"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_208"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_224"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_240"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_256"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_304"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x00009]
+
+[[file.contents.palettes]]
+name = "boss_stranger_copy"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_256"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_304"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x0000A]
+
+[[file.contents]]
+chunk = "image_2"
+sha1 = "a748b90c91fdc6bf290672c7076bcbd192702cb3"
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/cafeteria/props/puff"
+region = "engine/vram/effect_sheet"
+offset = [0x000C0, 0x00000]
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/cafeteria/props/model"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/cafeteria/views/view2_palette",
+    "stages/akropolis/rooms/cafeteria/views/view3_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/cafeteria/views/view6_palette",
+    "",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/cafeteria/views/view11_palette",
+    "stages/akropolis/rooms/cafeteria/views/view12_palette",
+    "",
+    "stages/akropolis/rooms/cafeteria/views/view14_palette",
+    "stages/akropolis/rooms/cafeteria/views/view15_palette",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/cafeteria/views/view21_palette",
+    "stages/akropolis/rooms/cafeteria/views/view14_palette",
+    "stages/akropolis/rooms/cafeteria/views/view23_palette",
+    "stages/akropolis/rooms/cafeteria/views/view24_palette",
+    "stages/akropolis/rooms/cafeteria/dialogue_0",
+]
+sha1 = "b7283539bb95856fe65b35796f55b891941cb839"
+
+[package]
+type = "package"
+load = { slot = "room" }
+package_name = "akropolis_cafeteria"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "0a43c68c82490299076973953db45213ed28437d"
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/scenes/opening/player_bank"
+offset = 0x05680
+size = 0x4
+address = 0x80182C40
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/scenes/follow_up/player_bank"
+offset = 0x056A0
+size = 0x10
+address = 0x80182C60
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/scenes/follow_up/player"
+offset = 0x06BDC
+size = 0xB50
+address = 0x8018419C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/props/wandering_creature"
+offset = 0x07740
+size = 0x180
+address = 0x80184D00
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/props/loose_prop_1"
+offset = 0x078D0
+size = 0xA58
+address = 0x80184E90
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/props/loose_prop_2"
+offset = 0x08328
+size = 0x998
+address = 0x801858E8
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/props/loose_prop_3"
+offset = 0x08CC0
+size = 0xA50
+address = 0x80186280
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/props/loose_prop_4"
+offset = 0x09710
+size = 0x86C
+address = 0x80186CD0
+
+[[package.embedded]]
+name = "collision"
+offset = 0x0A0CC
+size = 0x111C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/props/stim_pickup"
+offset = 0x0F48C
+size = 0x808
+address = 0x8018CA4C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/cafeteria/props/mendel_journal"
+offset = 0x0FC94
+size = 0x34C
+address = 0x8018D254
+
+[package.entries]
+actor_commands = [0x057E0, 0x057F8]
+animations = [0x0555C, 0x0566C]
+scene_keys = [0x0589C]
+scripts = [0x058B4, 0x05BFC, 0x05D4C, 0x05F14, 0x0607C, 0x067FC, 0x068EC, 0x0697C, 0x06B44]
+spare_batches = [0x0DDC4, 0x0ED28]
+transforms = [0x05654]
+updates = [0x0F414]
+
+[package.exports]
+scene_tasks = { at = 0x05518, symbol = "gAkropolisCafeteriaSceneTasks" }
+stim_pickup_task = { at = 0x052AC, symbol = "akropolisCafeteriaStimPickupTask" }
+stim_pickup_model = { at = 0x0FC70, symbol = "gAkropolisCafeteriaStimPickupModel" }
+mendel_pickup_task = { at = 0x05204, symbol = "akropolisCafeteriaMendelPickupTask" }
+mendel_journal_model = { at = 0x0FFBC, symbol = "gAkropolisCafeteriaMendelJournalModel" }
+
+[package.slots]
+golem_rook_grenade_launcher_1 = "enemies/golem/rook/grenade_launcher/package_1"
+stranger_odd_4 = "enemies/stranger/odd/package_4"
+suckler_bone_1 = "enemies/suckler/bone/package_1"
+anmc_woman = "stages/akropolis/actors/cafeteria_woman/package"
+boss_stranger = "stages/akropolis/actors/cafeteria_boss_stranger/package"
+rupert = "stages/akropolis/actors/cafeteria_rupert/package"
+stranger = "stages/akropolis/actors/cafeteria_grinning_stranger/package"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_CAFETERIA_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "86480839d6cde869cbc827e158db6766ee21e4d9"
+
+[dialogue_0]
+type = "cap"
+sha1 = "045f61cb187dbb805343579db87129d6141333a8"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/cafeteria/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "87a5562b992863c3184e193b91f1c01beff9633b"

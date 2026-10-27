@@ -167,19 +167,19 @@ static void      _actor310600BodyTask(Task* task);
 
 static s32 _actor310600WalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
 
-#include "assets/rooms/akropolis/cafeteria/rupert_clips_1.inc"
+#include "assets/stages/akropolis/actors/cafeteria_rupert/clips_1.inc"
 
 #include "assets/characters/rupert/body.inc"
 
 #include "assets/characters/rupert/mongoose.inc"
 
-#include "assets/rooms/akropolis/cafeteria/rupert_clips_2.inc"
+#include "assets/stages/akropolis/actors/cafeteria_rupert/clips_2.inc"
 
 /// Rupert's bank-0 clips: 1 shooting, 2 uncued, 3 reload, 4 uncued; 0 is NULL.
 ///
 /// Playback borrows this table and the loaded set data. Only clips 1..4 are
 /// usable; the retained walk's clips 12/13 are absent and must not be selected.
-#include "assets/rooms/akropolis/cafeteria/rupert_bank.inc"
+#include "assets/stages/akropolis/actors/cafeteria_rupert/bank.inc"
 
 /// Rupert's sole body animation bank, selected by bank index 0.
 ///

@@ -116,7 +116,7 @@ static TmdSource    _gAkropolisCafeteriaBossStrangerBody;
 static void         _lesserStrangerTask(Task* actorTask);
 static s32          _lesserStrangerIsPresentMessage(Task* actorTask, s32 messageId, s32 unusedArg, u32* presenceResult);
 
-#include "assets/rooms/akropolis/cafeteria/boss_stranger_body.inc"
+#include "assets/stages/akropolis/actors/cafeteria_boss_stranger/body.inc"
 
 #include "assets/enemies/stranger/lesser/clips.inc"
 

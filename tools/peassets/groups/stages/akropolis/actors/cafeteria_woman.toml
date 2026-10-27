@@ -1,0 +1,48 @@
+# The assets of the group stages/akropolis/actors/cafeteria_woman, each named stages/akropolis/actors/cafeteria_woman/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/cafeteria_woman/schema"
+symbol = "_gActor202900WomanAnimationSets"
+
+[bank.clips]
+opening = "stages/akropolis/actors/cafeteria_woman/opening"
+idle = "stages/akropolis/actors/cafeteria_woman/idle"
+
+[idle]
+type = "clip"
+rig = "characters/anmc_woman_2/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "opening", "", "", "idle"]
+
+[opening]
+type = "clip"
+rig = "characters/anmc_woman_2/rig"
+
+[package]
+type = "package"
+embedded = [
+    { name = "player_opening", offset = 0x0068C, size = 0x5A34, address = 0x8014A4AC },
+    { asset = "characters/anmc_woman_2/body", offset = 0x060C0, size = 0x5AEC, address = 0x8014FEE0 },
+    { asset = "characters/anmc_woman_2/glasses", offset = 0x0BBAC, size = 0x1A0, address = 0x801559CC },
+    { name = "opening", offset = 0x0BD4C, size = 0x1090, address = 0x80155B6C },
+    { name = "idle", offset = 0x0CDDC, size = 0x210, address = 0x80156BFC },
+    { name = "bank", offset = 0x0D01C, size = 0x18, address = 0x80156E3C },
+]
+load = { slot = "actor_2" }
+package_name = "actor_202900"
+required = true
+requires = ["gameplay"]
+sha1 = "50d3502915840cf76757c4f7abed9cc944321754"
+
+[package.exports]
+tasks = { at = 0x0D004, symbol = "gActor202900WomanTaskDescriptors" }
+player_opening = { at = 0x06098, symbol = "gAkropolisCafeteriaPlayerOpeningClip" }
+
+[player_opening]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisCafeteriaPlayerOpeningClip"

@@ -57,7 +57,7 @@
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../../../shared/room/room_visual_effects.h"
 
-#include "assets/rooms/akropolis/cafeteria/declarations_cafeteria.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/declarations_cafeteria.inc"
 
 static void       _akropolisCafeteriaUpdatePlayerDebugDisplay(Task* unusedTask);
 static void       _akropolisCafeteriaInitializeRoomTask(Task* task);
@@ -123,17 +123,17 @@ TaskDesc gAkropolisCafeteriaSceneTasks[4] = {
     { .header = { .fields = { .flags = TASK_DESC_END, .priority = 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 
-#include "assets/rooms/akropolis/cafeteria/events_1.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/events_1.inc"
 
 /// The player's clip in the opening, copied into the equipped weapon's bank at slot 47.
-#include "assets/rooms/akropolis/cafeteria/opening_player_bank.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/scenes/opening/player_bank.inc"
 
-#include "assets/rooms/akropolis/cafeteria/events_2.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/events_2.inc"
 
 /// The player's clips in the follow-up, copied into the equipped weapon's bank from slot 47.
-#include "assets/rooms/akropolis/cafeteria/follow_up_player_bank.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/scenes/follow_up/player_bank.inc"
 
-#include "assets/rooms/akropolis/cafeteria/events_3.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/events_3.inc"
 
 /// The battle's progress in this visit.
 static s32 _gAkropolisCafeteriaSceneProgress = SCENE_NOT_STARTED;
@@ -156,7 +156,7 @@ TaskDesc gAkropolisCafeteriaMovieTasks[AKROPOLIS_CAFETERIA_MOVIE_TASK_COUNT] = {
       .data     = { .value = 0 } },
 };
 
-#include "assets/rooms/akropolis/cafeteria/clips.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/clips.inc"
 
 TaskMessageEntry gAkropolisCafeteriaRoomEffectMessages[2] = {
     { AKROPOLIS_CAFETERIA_MESSAGE_SET_PUFF_ENABLED, akropolisCafeteriaSetPuffEnabled },
@@ -165,25 +165,25 @@ TaskMessageEntry gAkropolisCafeteriaRoomEffectMessages[2] = {
 
 s32 gAkropolisCafeteriaPuffEnabled = 0;
 
-#include "assets/rooms/akropolis/cafeteria/wandering_creature.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/props/wandering_creature.inc"
 
 #include "../../../../shared/room/room_visual_effects_trail_data.inc.c"
 #undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 
-#include "assets/rooms/akropolis/cafeteria/loose_prop_1.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/props/loose_prop_1.inc"
 
-#include "assets/rooms/akropolis/cafeteria/loose_prop_2.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/props/loose_prop_2.inc"
 
-#include "assets/rooms/akropolis/cafeteria/loose_prop_3.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/props/loose_prop_3.inc"
 
-#include "assets/rooms/akropolis/cafeteria/loose_prop_4.inc"
-#include "assets/rooms/akropolis/cafeteria/header.inc"
-#include "assets/rooms/akropolis/cafeteria/geometry.inc"
-#include "assets/rooms/akropolis/cafeteria/view_boundaries.inc"
-#include "assets/rooms/akropolis/cafeteria/action_triggers.inc"
-#include "assets/rooms/akropolis/cafeteria/occluders.inc"
-#include "assets/rooms/akropolis/cafeteria/placements.inc"
-#include "assets/rooms/akropolis/cafeteria/lights_1.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/props/loose_prop_4.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/header.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/geometry.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/occluders.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/placements.inc"
+#include "assets/stages/akropolis/rooms/cafeteria/lights_1.inc"
 
 STATIC_ASSERT(ARRAY_SIZE(_gAkropolisCafeteriaCollisionGridTable) == COLLISION_CELLS_X * COLLISION_CELLS_Z, cafeteriaCollisionCellTableSize);
 

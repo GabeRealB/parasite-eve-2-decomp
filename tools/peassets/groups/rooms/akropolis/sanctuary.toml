@@ -154,7 +154,7 @@ player_sanctuary_arrival_27 = { at = 0x067E8, symbol = "gAkropolisSanctuaryPlaye
 [package]
 type = "package"
 embedded = [
-    { asset = "rooms/akropolis/cafeteria/rupert_arrive", offset = 0x02D88, size = 0x4D4, address = 0x80180348 },
+    { asset = "stages/akropolis/actors/cafeteria_rupert/arrive", offset = 0x02D88, size = 0x4D4, address = 0x80180348 },
     { name = "player_scene_bank", offset = 0x03358, size = 0x24, address = 0x80180918 },
     { name = "cutscene_player_anim_00", offset = 0x0435C, size = 0x3D4, address = 0x8018191C },
     { name = "extra_anim", offset = 0x04730, size = 0x3F4, address = 0x80181CF0 },
@@ -189,10 +189,10 @@ item_box_model = { at = 0x09448, symbol = "gAkropolisSanctuaryItemBoxModel" }
 [sounds_0]
 type = "sound_bank"
 samples = [
-    "rooms/akropolis/cafeteria/run_surface_3_1",
-    "rooms/akropolis/cafeteria/run_surface_3_2",
-    "rooms/akropolis/cafeteria/walk_surface_1_1",
-    "rooms/akropolis/cafeteria/walk_surface_1_2",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_2",
     "rooms/akropolis/square/walk_floor_1",
     "rooms/akropolis/square/walk_floor_2",
 ]
@@ -1355,7 +1355,7 @@ slot_4 = "rooms/akropolis/sanctuary/player_sanctuary_reply"
 slot_5 = "rooms/akropolis/sanctuary/player_sanctuary_listen"
 slot_6 = "rooms/akropolis/sanctuary/player_sanctuary_arrival_26"
 slot_7 = "rooms/akropolis/sanctuary/player_sanctuary_arrival_27"
-slot_8 = "rooms/akropolis/cafeteria/rupert_arrive"
+slot_8 = "stages/akropolis/actors/cafeteria_rupert/arrive"
 
 [rupert_arrival_11]
 type = "clip"

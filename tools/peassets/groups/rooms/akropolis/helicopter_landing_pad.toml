@@ -1868,7 +1868,7 @@ sprites = [
 [ammunition_pickup_binding]
 type = "binding"
 model = "rooms/akropolis/helicopter_landing_pad/ammunition_pickup"
-textures = { pickup = "rooms/akropolis/cafeteria/container.ammunition" }
+textures = { pickup = "stages/akropolis/rooms/cafeteria/props/container.ammunition" }
 
 [player_helipad_report_escape]
 type = "clip"

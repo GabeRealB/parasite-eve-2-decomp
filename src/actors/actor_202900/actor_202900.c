@@ -78,13 +78,13 @@ static void      _actor202900CarriedModelTask(Task* task);
 static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId,
                                      const AnimationPlayRequest* request, s32 unusedArgument);
 
-#include "assets/rooms/akropolis/cafeteria/anmc_woman_clips_1.inc"
+#include "assets/stages/akropolis/actors/cafeteria_woman/clips_1.inc"
 
 #include "assets/characters/anmc_woman_2/body.inc"
 
 #include "assets/characters/anmc_woman_2/glasses.inc"
 
-#include "assets/rooms/akropolis/cafeteria/anmc_woman_clips_2.inc"
+#include "assets/stages/akropolis/actors/cafeteria_woman/clips_2.inc"
 
 /// Cafeteria woman's animation and paired-model visibility messages with an end sentinel.
 ///
@@ -117,7 +117,7 @@ TaskDesc gActor202900WomanTaskDescriptors[2] = {
 /// the sound cue. Direct-slot initialization maps request 0 to 1 and negatives
 /// to their magnitude, which must still select a loaded entry. The rig borrows
 /// this table and its clips while the overlay is loaded.
-#include "assets/rooms/akropolis/cafeteria/woman_bank.inc"
+#include "assets/stages/akropolis/actors/cafeteria_woman/bank.inc"
 
 /// Borrowed singleton work of the cafeteria woman's body and animation messages.
 ///

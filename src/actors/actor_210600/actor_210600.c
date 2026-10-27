@@ -99,11 +99,11 @@ static void      _actor210600Task(Task* task);
 
 #include "../../shared/actor/actor_contacts.h"
 
-#include "assets/rooms/akropolis/cafeteria/stranger_clips_1.inc"
+#include "assets/stages/akropolis/actors/cafeteria_grinning_stranger/clips_1.inc"
 
 #include "assets/enemies/stranger/grinning/body.inc"
 
-#include "assets/rooms/akropolis/cafeteria/stranger_clips_2.inc"
+#include "assets/stages/akropolis/actors/cafeteria_grinning_stranger/clips_2.inc"
 
 /// Transition blend durations in normal-rate frames, indexed [previous clip][requested clip].
 ///
@@ -115,7 +115,7 @@ static s8 _gActor210600AnimationBlendFrames[5][5] = { 0 };
 ///
 /// Slots 0 and 2..5 are empty. The body rig borrows this six-pointer table
 /// and its clip data for the task lifetime; the package must stay loaded.
-#include "assets/rooms/akropolis/cafeteria/grinning_stranger_bank.inc"
+#include "assets/stages/akropolis/actors/cafeteria_grinning_stranger/bank.inc"
 
 /// Grinning Stranger draw, placement and room-command message handlers.
 ///
@@ -135,7 +135,7 @@ TaskDesc gActor210600GrinningStrangerTaskDesc = {
     .data     = { .model = &_gStrangerGrinningBody },
 };
 
-#include "assets/rooms/akropolis/cafeteria/stranger_clips_3.inc"
+#include "assets/stages/akropolis/actors/cafeteria_grinning_stranger/clips_3.inc"
 
 static SVECTOR ActorContact_ScratchPosition;
 
