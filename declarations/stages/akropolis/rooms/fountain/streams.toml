@@ -1,0 +1,91 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[movie_3]
+uid = "uid://ndjtz3udlxur"
+kind = "movie"
+group = 1
+id = 3
+sub_id = 0
+vram_x = 640
+vram_y = 256
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 1
+
+[movie_3.from.USA]
+at = [{ stage = 1, folder = 801, stream = "movie_3" }]
+
+[movie_4]
+uid = "uid://qj24lvtb1ab5"
+kind = "movie"
+group = 1
+id = 4
+sub_id = 0
+vram_x = 77
+vram_y = 17
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_4.from.USA]
+at = [{ stage = 1, folder = 801, stream = "movie_4" }]
+
+[movie_5]
+uid = "uid://t3xrzfsmbrlo"
+kind = "movie"
+group = 1
+id = 5
+sub_id = 0
+vram_x = 640
+vram_y = 256
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 1
+
+[movie_5.from.USA]
+at = [{ stage = 1, folder = 801, stream = "movie_5" }]
+
+[movie_6]
+uid = "uid://szdewprrhcrr"
+kind = "movie"
+group = 1
+id = 6
+sub_id = 0
+vram_x = 0
+vram_y = 0
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_6.from.USA]
+at = [{ stage = 1, folder = 801, stream = "movie_6" }]
+
+[movie_7]
+uid = "uid://15thshgdcrkqh"
+kind = "movie"
+group = 1
+id = 7
+sub_id = 0
+vram_x = 0
+vram_y = 8
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_7.from.USA]
+at = [{ stage = 1, folder = 801, stream = "movie_7" }]

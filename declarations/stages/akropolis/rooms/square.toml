@@ -1,0 +1,27 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://tgptljvkw30m"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://kapt98s5iu5f", path = "res://stages/akropolis/rooms/square/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://98lrn5aaymqp", path = "res://stages/akropolis/rooms/square/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1qcrhappy4jav", path = "res://stages/akropolis/rooms/square/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://62x4v6uko6ya", path = "res://stages/akropolis/rooms/square/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://4u6cxdtv28y", path = "res://stages/akropolis/rooms/square/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1q3qnwfclcjop", path = "res://stages/akropolis/rooms/square/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://j2a9cbbo4si4", path = "res://stages/akropolis/rooms/square/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://13pnk9okh1do1", path = "res://stages/akropolis/rooms/square/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1872p4x6sgn3o", path = "res://stages/akropolis/rooms/square/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1ev57lffzurs", path = "res://stages/akropolis/rooms/square/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://14mksnzkcax2z", path = "res://stages/akropolis/rooms/square/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://1cdhmckhm84no", path = "res://stages/akropolis/rooms/square/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://xiog7f9lpk4z", path = "res://stages/akropolis/rooms/square/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://4nn0ik40veu3", path = "res://stages/akropolis/rooms/square/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://zucr9086p6gg", path = "res://stages/akropolis/rooms/square/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://v9u5e9vxrbrq", path = "res://stages/akropolis/rooms/square/files/view15.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 101 }]

@@ -1,0 +1,109 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://iija4lcnojyq"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 5, type = "palette" },
+    { index = 7, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 4201, file = 0 }]
+
+[view1]
+uid = "uid://lr6j4743yssb"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://cc7hkc2cpqie", path = "res://stages/mine_shelter/rooms/b3_elevator_hall/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 4201, file = 1 }]
+
+[view2]
+uid = "uid://1uvv0gkpuo57c"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://q0hpfd33pfm0", path = "res://stages/mine_shelter/rooms/b3_elevator_hall/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 4201, file = 2 }]
+
+[view3]
+uid = "uid://xb9uzn1e7fqe"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://19lq2fsg2yt2q", path = "res://stages/mine_shelter/rooms/b3_elevator_hall/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 4201, file = 3 }]
+
+[view4]
+uid = "uid://b8o9hmm78a01"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://y18lzlhueq6u", path = "res://stages/mine_shelter/rooms/b3_elevator_hall/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 4, folder = 4201, file = 4 }]
+
+[view5]
+uid = "uid://zt1cx2l8rz8a"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1007gxjl9w6d3", path = "res://stages/mine_shelter/rooms/b3_elevator_hall/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 4, folder = 4201, file = 5 }]
+
+[view6]
+uid = "uid://ouync4e87ufo"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1rkpa01reqd8u", path = "res://stages/mine_shelter/rooms/b3_elevator_hall/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 4, folder = 4201, file = 6 }]
+
+[view7]
+uid = "uid://1mmhq3iefo1mq"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://7v8kbmpwq83s", path = "res://stages/mine_shelter/rooms/b3_elevator_hall/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 4, folder = 4201, file = 7 }]

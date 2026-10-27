@@ -1,0 +1,28 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[glows]
+uid = "uid://1sgziyfahd36s"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [224, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "glow_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+    { name = "glow_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] },
+    { name = "glow_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
+    { name = "leaf", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 9] },
+    { name = "radio", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] },
+]
+cells = [
+    { name = "glow_0", rect = [0, 0, 40, 40], palette = "glow_0" },
+    { name = "glow_1", rect = [40, 0, 40, 40], palette = "glow_1" },
+    { name = "glow_2", rect = [80, 0, 40, 40], palette = "glow_2" },
+    { name = "leaf", rect = [0, 232, 8, 8], palette = "leaf" },
+    { name = "radio", rect = [128, 224, 92, 32], palette = "radio" },
+]
+
+[glows.from.USA]
+at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 0 }]
+sha1 = "49e6ac61316f66f9180abd24ab140f2c43e46c26"
+palettes = { glow_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", glow_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", glow_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", leaf = "47ef1fdc4ec12a7332ff1eae3a70a48323bce75a", radio = "782c7b13bc3fe36f35a6f0dde00a5f0c0121880e" }

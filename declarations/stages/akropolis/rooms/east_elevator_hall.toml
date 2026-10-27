@@ -1,0 +1,22 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1soqajtl9gb72"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_3", type = "scene_audio", asset = { uid = "uid://kvg34rbmzfa7", path = "res://stages/akropolis/rooms/east_elevator_hall/streams/scene_3.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://8nl0lyg5230l", path = "res://stages/akropolis/rooms/east_elevator_hall/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://87gb3j0o8877", path = "res://stages/akropolis/rooms/east_elevator_hall/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1kb14qbp7xsxq", path = "res://stages/akropolis/rooms/east_elevator_hall/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://12iov4jd1bsfy", path = "res://stages/akropolis/rooms/east_elevator_hall/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://6kjipjm5bbjy", path = "res://stages/akropolis/rooms/east_elevator_hall/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://10rpyfxjtkkm7", path = "res://stages/akropolis/rooms/east_elevator_hall/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1mwhrfl2dfjwf", path = "res://stages/akropolis/rooms/east_elevator_hall/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://zbw3w7n0w5nw", path = "res://stages/akropolis/rooms/east_elevator_hall/files/view7.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 201 }]

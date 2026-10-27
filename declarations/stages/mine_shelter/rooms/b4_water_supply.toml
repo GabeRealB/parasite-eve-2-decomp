@@ -1,0 +1,23 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1vg5zegf5z3lu"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://lkrd9geei2y6", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1que2sd4luwlf", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://iepp6qzpamtg", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://e79en5xkfgip", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1cxl6sq2e8sxn", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1vzyel1k58sng", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://13uftzy63va0i", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1fv2tm7sbcu1x", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1llq0gred11rw", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1gf9gxmu9jt08", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1dumiiv76moqf", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://173lf4wjfjnjg", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/view11.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 4601 }]

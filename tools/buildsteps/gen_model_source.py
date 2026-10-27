@@ -3,7 +3,7 @@
 
 A declared model (asset type `model`) is written from its native form: the bytes the extraction stored for it
 (`raw/model/<name>.model`), cut by their layout - skeleton, part vertex counts, vertices, normals, stream, record - into
-one include. The build reads native forms only (local/project_design.md, "Two tiers"): importing an edited USD is the
+one include. The build reads native forms only: importing an edited USD is the
 editor's, and the suite holds the declared encoder (tools/peassets/model/declared.py) to those same bytes.
 
 The record is named by the model's `symbol`, static when the name starts with an underscore (the project's TU-local

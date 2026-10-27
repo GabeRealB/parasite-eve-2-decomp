@@ -1,0 +1,25 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://m4imq6zcbgwk"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://1sa5pr4l8y67t", path = "res://stages/shelter_neo_ark/rooms/altar/streams/movie_100.asset" } },
+    { name = "movie_101", type = "movie", asset = { uid = "uid://ph8vg23td2gi", path = "res://stages/shelter_neo_ark/rooms/altar/streams/movie_101.asset" } },
+    { name = "movie_102", type = "movie", asset = { uid = "uid://1qwt06m0kuquh", path = "res://stages/shelter_neo_ark/rooms/altar/streams/movie_102.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://10pkkia441vwm", path = "res://stages/shelter_neo_ark/rooms/altar/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1xc5avhj6r5r9", path = "res://stages/shelter_neo_ark/rooms/altar/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://10s0ly9lixue", path = "res://stages/shelter_neo_ark/rooms/altar/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://19nhkcww8j68t", path = "res://stages/shelter_neo_ark/rooms/altar/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://16a76cxf06uib", path = "res://stages/shelter_neo_ark/rooms/altar/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://hqz4azmqkux3", path = "res://stages/shelter_neo_ark/rooms/altar/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://12ohk3gh5427h", path = "res://stages/shelter_neo_ark/rooms/altar/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1hdmcyirqini7", path = "res://stages/shelter_neo_ark/rooms/altar/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://bsn2ahbc0isv", path = "res://stages/shelter_neo_ark/rooms/altar/files/view8.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 2001 }]

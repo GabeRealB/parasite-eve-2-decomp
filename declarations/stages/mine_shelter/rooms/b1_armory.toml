@@ -1,0 +1,25 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://eqf89yyjrh21"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://106l11ff8lnd9", path = "res://stages/mine_shelter/rooms/b1_armory/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://igkxbyaq1i6n", path = "res://stages/mine_shelter/rooms/b1_armory/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1elr8aw17qvn4", path = "res://stages/mine_shelter/rooms/b1_armory/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://feinq0l0kcke", path = "res://stages/mine_shelter/rooms/b1_armory/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1g7tczcxqier4", path = "res://stages/mine_shelter/rooms/b1_armory/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1x5djfhxnlu5x", path = "res://stages/mine_shelter/rooms/b1_armory/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1051mznbogid", path = "res://stages/mine_shelter/rooms/b1_armory/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1s0nbo7f8hiy9", path = "res://stages/mine_shelter/rooms/b1_armory/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1rw0v8u0in86k", path = "res://stages/mine_shelter/rooms/b1_armory/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://gghtne3i49yz", path = "res://stages/mine_shelter/rooms/b1_armory/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://kx6kd5og12as", path = "res://stages/mine_shelter/rooms/b1_armory/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://1u3joiw0z495s", path = "res://stages/mine_shelter/rooms/b1_armory/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1axq1hvp9hyv3", path = "res://stages/mine_shelter/rooms/b1_armory/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1q7emxs4f8jqu", path = "res://stages/mine_shelter/rooms/b1_armory/files/view13.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 1301 }]

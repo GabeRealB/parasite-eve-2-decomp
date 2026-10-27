@@ -1,0 +1,71 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://156fcashtq11m"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "image"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 0, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 2401, file = 0 }]
+
+[view1]
+uid = "uid://15uog5tnx0yw2"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1i2znf34aeh5e", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 2401, file = 1 }]
+
+[view2]
+uid = "uid://u451tu8dka34"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://d6i3vvjkfsio", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 2401, file = 2 }]
+
+[view3]
+uid = "uid://15yr2owkzjq7v"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://19g7sn7s06bdf", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 2401, file = 3 }]
+
+[view4]
+uid = "uid://1usp13a6e7ocn"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://wpcvphnv711h", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 4, folder = 2401, file = 4 }]

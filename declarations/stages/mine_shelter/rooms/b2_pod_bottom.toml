@@ -1,0 +1,32 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://192fefxif2oap"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_11", type = "scene_audio", asset = { uid = "uid://ku6k1ndkrb9k", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/streams/scene_11.asset" } },
+    { name = "scene_12", type = "scene_audio", asset = { uid = "uid://bdl8tdxbrox1", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/streams/scene_12.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://cdqjbedfu450", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://alpjss14atsq", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1o5adv1xevsma", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1q9dktl34f58t", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1pjbkqf06n4po", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://jt1i7vg4wr9a", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://hca3vx63qf5c", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://g0gch395xkxb", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://s7z4gb7p47zx", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1gm29jil6at28", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1pp5bzeucr72p", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://kj79t2ymnwc8", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1kbtnd2vhr7gk", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://zo350s0c4rg7", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://c781tosfbav0", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://9ehs78b19yof", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://1nhzvmaoq8j0m", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/files/view16.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 2201 }]

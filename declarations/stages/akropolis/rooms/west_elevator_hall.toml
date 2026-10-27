@@ -1,0 +1,122 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[effect_atlas]
+uid = "uid://1oslcacgzc265"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [64, 0] }
+palettes = [
+    { name = "explosion_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 4] },
+    { name = "explosion_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 4] },
+    { name = "explosion_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 4] },
+    { name = "explosion_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 4] },
+    { name = "explosion_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 4] },
+    { name = "explosion_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 4] },
+    { name = "explosion_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 4] },
+    { name = "explosion_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 4] },
+    { name = "explosion_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 4] },
+    { name = "explosion_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 4] },
+    { name = "explosion_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [272, 4] },
+    { name = "explosion_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [288, 4] },
+    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 5] },
+    { name = "fireball_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 9] },
+    { name = "fireball_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 9] },
+    { name = "fireball_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 9] },
+    { name = "fireball_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 9] },
+    { name = "fireball_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 9] },
+    { name = "fireball_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 9] },
+    { name = "fireball_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 9] },
+    { name = "fireball_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 9] },
+    { name = "fireball_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 9] },
+    { name = "fireball_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 9] },
+    { name = "fireball_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 9] },
+    { name = "fireball_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 9] },
+]
+cells = [
+    { name = "explosion_0", rect = [0, 0, 40, 40], palette = "explosion_0" },
+    { name = "explosion_1", rect = [40, 0, 40, 40], palette = "explosion_1" },
+    { name = "explosion_2", rect = [80, 0, 40, 40], palette = "explosion_2" },
+    { name = "explosion_3", rect = [120, 0, 40, 40], palette = "explosion_3" },
+    { name = "explosion_4", rect = [160, 0, 40, 40], palette = "explosion_4" },
+    { name = "explosion_5", rect = [200, 0, 40, 40], palette = "explosion_5" },
+    { name = "explosion_6", rect = [0, 40, 40, 40], palette = "explosion_6" },
+    { name = "explosion_7", rect = [40, 40, 40, 40], palette = "explosion_7" },
+    { name = "explosion_8", rect = [80, 40, 40, 40], palette = "explosion_8" },
+    { name = "explosion_9", rect = [120, 40, 40, 40], palette = "explosion_9" },
+    { name = "explosion_10", rect = [160, 40, 40, 40], palette = "explosion_10" },
+    { name = "explosion_11", rect = [200, 40, 40, 40], palette = "explosion_11" },
+    { name = "flash_1", rect = [112, 200, 56, 56], palette = "default" },
+    { name = "flash_2", rect = [168, 200, 56, 56], palette = "default" },
+]
+
+[effect_atlas.from.USA]
+at = [{ stage = 0, file = 900000, slot = "image", page = 1 }, { stage = 0, file = 900001, slot = "image", page = 1 }, { stage = 0, file = 900002, slot = "image", page = 1 }, { stage = 0, file = 900003, slot = "image", page = 1 }, { stage = 0, file = 900004, slot = "image", page = 1 }, { stage = 0, file = 900005, slot = "image", page = 1 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 1 }]
+sha1 = "ace9f8184e59d88c148e967215b091fcae4055b4"
+palettes = { default = "d1b2af14ed3e1b0cecfbe5c3d6f2621f7fbcb1dc", explosion_0 = "93c756610e63aa340a5060ff63909767c7508377", explosion_1 = "30b15d490ec047d9e115951f71c52b0eef51d7c3", explosion_2 = "bd2e9661d5e45d264d25057a338405c469cab384", explosion_3 = "099a1144e2b460bdcf817c442704e05651d59b17", explosion_4 = "f0a2c5d6dbeec42f0e0d77e5b91ffc2c8046dc97", explosion_5 = "3459f26f14ab36d281b319a0b63c347fc1efab1d", explosion_6 = "481b0a9c2877b3a138a53fcaef153025bb0e2efa", explosion_7 = "b641eb679d157b329dbf005ef013d29df895dd06", explosion_8 = "22682ad86da5024b46e0cf6941ec0e6f628d09b5", explosion_9 = "8e1fef729d753ad4d9f6b25eb9d5d95239555a9c", explosion_10 = "5718b2b4c8753032ccad454ed21b772f79bca99e", explosion_11 = "dbe447f814cd3f03dd984d83b44cc82edbf96d83", fireball_0 = "dfee22f32dd1b325b6332acd476fffcfac8f7b09", fireball_1 = "dd062c2c2746588a52007f4bf280d3195b7180d4", fireball_2 = "805b98d302aab40524e92966fba9ce2584eda2d0", fireball_3 = "85fcc2b07fa14fa8b0bcd47c29809410000e4e29", fireball_4 = "ea3e4b22bcfe572500c88cf39640034868ac33f7", fireball_5 = "b89236eb9956bdd0bdfb05b456f2041a731c0a26", fireball_6 = "83b44e0dc3ddf6c40423ff65da4baed122e7c273", fireball_7 = "fb532904cbd7e925e176f6fa998140c948e7afe3", fireball_8 = "4c33e7be2a7a4a28a94a248ea85e90cfa4fd4d86", fireball_9 = "900ec1d22165b8d8b72d5f36384eaac138e9853a", fireball_10 = "96dc9c4249cad6c39560d3437067a379a424b43f", fireball_11 = "d1886f02910af775dfbf6ba930bee063edcd2940" }
+
+[folder]
+uid = "uid://mvo5lqho5q3c"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1io3bp0wz7rb0", path = "res://stages/akropolis/rooms/west_elevator_hall/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://avir2cjtjrk3", path = "res://stages/akropolis/rooms/west_elevator_hall/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://5y5mvf55ffjl", path = "res://stages/akropolis/rooms/west_elevator_hall/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1vkdxvagm6ov9", path = "res://stages/akropolis/rooms/west_elevator_hall/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1w1hf7rsq1mlb", path = "res://stages/akropolis/rooms/west_elevator_hall/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1spm7zlc6le5h", path = "res://stages/akropolis/rooms/west_elevator_hall/files/view5.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 1701 }]
+
+[glow]
+uid = "uid://124ufzod5epf0"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [88, 96]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "lit", executable = "stages/akropolis/rooms/west_elevator_hall/bay_lit_palette" },
+]
+
+[glow.from.USA]
+at = [{ stage = 1, folder = 1701, file = 0, slot = "image_1", page = 0 }]
+sha1 = "b7e21664afc9e7260522fe59f23c1fdef1af416b"
+
+[sparks_page_1]
+uid = "uid://mv7qhlr3zw7z"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "spark_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 5] },
+    { name = "spark_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 5] },
+]
+cells = [
+    { name = "spark_1", rect = [192, 56, 32, 32], palette = "spark_1" },
+    { name = "spark_2", rect = [224, 56, 32, 32], palette = "spark_2" },
+]
+
+[sparks_page_1.from.USA]
+at = [{ stage = 0, file = 900000, slot = "image", page = 0 }, { stage = 0, file = 900001, slot = "image", page = 0 }, { stage = 0, file = 900002, slot = "image", page = 0 }, { stage = 0, file = 900003, slot = "image", page = 0 }, { stage = 0, file = 900004, slot = "image", page = 0 }, { stage = 0, file = 900005, slot = "image", page = 0 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 0 }]
+sha1 = "29338eae67ced661edaa378baad701afb3218f27"
+palettes = { spark_1 = "565ef713f97c30b723b8a51c07eb674db3805f43", spark_2 = "e291fad6e01abaa00a00bf9059e27fef9ccc7aa7" }
+
+[sparks_page_3]
+uid = "uid://1qad21dtmpi7r"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [128, 0] }
+no_palette = true
+
+[sparks_page_3.from.USA]
+at = [{ stage = 0, file = 900000, slot = "image", page = 2 }, { stage = 0, file = 900001, slot = "image", page = 2 }, { stage = 0, file = 900002, slot = "image", page = 2 }, { stage = 0, file = 900003, slot = "image", page = 2 }, { stage = 0, file = 900004, slot = "image", page = 2 }, { stage = 0, file = 900005, slot = "image", page = 2 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 2 }]
+sha1 = "f2c65cd0e7df9c424b4815f2b3f2ea9747e1062f"

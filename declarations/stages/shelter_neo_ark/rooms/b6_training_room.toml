@@ -1,0 +1,23 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://2uoe4l62walk"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://xsym7tcwxh2t", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/streams/movie_100.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://8tf28f06yeav", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://149sgj9wpwdvt", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1bpt0rwmt2x1h", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://cw6jrw22s3tn", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://vd85kwi17r5m", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://bnvsar0r055n", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1ly5thiy08z7g", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://iw6vjjqlwapm", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://9d7t75bhzpuu", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/files/view8.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 2501 }]

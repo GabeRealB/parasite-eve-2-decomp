@@ -1,0 +1,18 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://85ybowqtc2gq"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://ubcme6gh78lo", path = "res://stages/mine_shelter/rooms/r49/streams/movie_100.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://2pxo6yi2hnam", path = "res://stages/mine_shelter/rooms/r49/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://7sca33smyrcm", path = "res://stages/mine_shelter/rooms/r49/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://14m2tgiiqsspr", path = "res://stages/mine_shelter/rooms/r49/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1e8qvpfqjdz67", path = "res://stages/mine_shelter/rooms/r49/files/view3.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 4901 }]

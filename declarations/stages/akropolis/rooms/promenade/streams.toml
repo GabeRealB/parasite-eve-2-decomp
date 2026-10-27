@@ -1,0 +1,19 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[movie_7]
+uid = "uid://udez6uyn5pol"
+kind = "movie"
+group = 0
+id = 7
+sub_id = 0
+vram_x = 92
+vram_y = 0
+frame_limit = 300
+loop_mode = 0
+view_stream = 1
+display_mode = 0
+volume_table_index = 28
+upload_mode = 0
+
+[movie_7.from.USA]
+at = [{ stage = 1, folder = 1101, stream = "movie_7" }]

@@ -1,0 +1,57 @@
+# Declarations: what every disc carries besides its stage containers and
+# movies: where each is on a release's discs (`at`: disc and slot, disc/<release>/disk<N>.toml) with its bytes'
+# sha1. The slots name them in turn, so a project made from the declarations has them filled.
+
+[license]                       # the system area's license data
+uid = "uid://vdx31ffeypvs"
+kind = "binary"
+format = "bin"
+
+[license.from.USA]
+at = [{ disc = "disk1", slot = "license" }, { disc = "disk2", slot = "license" }]
+sha1 = "bc19b9c6a8463cb234ab3255e3ce3885f6efa026"
+
+[system_config_1]               # SYSTEM.CNF: boots the disc's executable
+uid = "uid://8aay9n5xeqyy"
+kind = "text"
+format = "cnf"
+
+[system_config_1.from.USA]
+at = [{ disc = "disk1", slot = "SYSTEM.CNF" }]
+sha1 = "b5db59175ff8a14922186b3421ac44b48b850356"
+
+[system_config_2]
+uid = "uid://jqe4f7yh1mge"
+kind = "text"
+format = "cnf"
+
+[system_config_2.from.USA]
+at = [{ disc = "disk2", slot = "SYSTEM.CNF" }]
+sha1 = "130ac8c12567aef86a6eec5b537a8d62733ed2e6"
+
+[disc_marker]                   # PE_DISK.01 and .02: the same bytes on both discs, told apart by their names
+uid = "uid://1g0xo6rrbudqm"
+kind = "binary"
+format = "bin"
+
+[disc_marker.from.USA]
+at = [{ disc = "disk1", slot = "PE_DISK.01" }, { disc = "disk2", slot = "PE_DISK.02" }]
+sha1 = "62c423004572d669f8c7006db11a0dc33783b1a2"
+
+[init_image]                    # INIT.BS
+uid = "uid://1skpauej8oul1"
+kind = "image"
+format = "bs"
+
+[init_image.from.USA]
+at = [{ disc = "disk1", slot = "INIT.BS" }, { disc = "disk2", slot = "INIT.BS" }]
+sha1 = "3d4c30456d18d01307c029e46d25ada7b129f525"
+
+[dummy]                         # DUMMY.DMY
+uid = "uid://kz8sahthlcdt"
+kind = "binary"
+format = "bin"
+
+[dummy.from.USA]
+at = [{ disc = "disk1", slot = "DUMMY.DMY" }, { disc = "disk2", slot = "DUMMY.DMY" }]
+sha1 = "81f102b03ce5bf07dddfbf20275d9a0c367abbeb"

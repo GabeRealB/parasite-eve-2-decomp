@@ -1,0 +1,62 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[tentacle_texture]
+uid = "uid://1lfdz7osawvkz"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+]
+
+[tentacle_texture.from.USA]
+at = [{ stage = 0, file = 104500, slot = "tentacle_image", page = 0 }, { stage = 0, file = 135000, slot = "tentacle_image", page = 0 }, { stage = 0, file = 361100, slot = "tentacle_image", page = 0 }]
+sha1 = "573ccd0ba62a4d5d003782b25e9b0d45210eb5cb"
+palettes = { default = "4c024673f8ed86c05a9d8116d5a168f371afd8e0" }
+
+[texture]
+uid = "uid://2xhzgcx754dx"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [768, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+    { name = "default_4", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] },
+    { name = "default_5", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 4] },
+    { name = "default_6", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 5] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+    { name = "page_3", rect = [384, 0, 128, 256], palette = "default_4" },
+    { name = "page_4", rect = [512, 0, 128, 256], palette = "default_5" },
+    { name = "page_5", rect = [640, 0, 128, 256], palette = "default_6" },
+]
+
+[texture.from.USA]
+at = [{ stage = 0, file = 503500, slot = "image", page = 0 }]
+sha1 = "5531f82ac877f3443e62b50aedae1c1b9c9b616c"
+palettes = { default = "05fbdba110765ea088422d8cedaa54046d0fe3d8", default_2 = "e9fa3ca1837281d09a375d84709aa4c93960c9e2", default_3 = "058449e08c915cdce8caedae0aa70d5041c0d63f", default_4 = "450d971d06c3e6761ae64481b1dbaf2651606382", default_5 = "0471b9c233a17c1b05701c3d69981fc91021a1a2", default_6 = "7deffdae7cb05a49ecc75724128a223a44c8e088" }
+
+[texture_2]
+uid = "uid://13qasu9h06zf7"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [384, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 6] },
+]
+
+[texture_2.from.USA]
+at = [{ stage = 0, file = 503500, slot = "image_2", page = 0 }]
+sha1 = "f456981a3922598295f4209cbb6442540c1cd393"
+palettes = { default = "3b50b8c97a11bcbd32156f1ebd75016abb49e66a" }

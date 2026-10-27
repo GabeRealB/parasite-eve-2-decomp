@@ -1,0 +1,19 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1b0k8yngezm4t"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://11pt205q5flsd", path = "res://stages/dryfield/rooms/parking_lot/day/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://4swgbfdnij7u", path = "res://stages/dryfield/rooms/parking_lot/day/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://6sx24dd3bu8z", path = "res://stages/dryfield/rooms/parking_lot/day/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://17edkn4pddhgn", path = "res://stages/dryfield/rooms/parking_lot/day/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://2m949r1p2cv5", path = "res://stages/dryfield/rooms/parking_lot/day/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://14uxih0npz0dn", path = "res://stages/dryfield/rooms/parking_lot/day/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1n86lzaycsvvx", path = "res://stages/dryfield/rooms/parking_lot/day/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://vl5kx1z45qf0", path = "res://stages/dryfield/rooms/parking_lot/day/files/view7.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 2, folder = 1501 }]

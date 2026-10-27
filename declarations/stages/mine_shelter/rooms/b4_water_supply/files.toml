@@ -1,0 +1,155 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://lkrd9geei2y6"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "palette"
+type = "palette"
+
+[[base.slots]]
+name = "image"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 3, type = "palette" },
+    { index = 6, type = "palette" },
+    { index = 7, type = "palette" },
+    { index = 11, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 4601, file = 0 }]
+
+[view1]
+uid = "uid://1que2sd4luwlf"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://6qcmqgu1rcoc", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 4601, file = 1 }]
+
+[view2]
+uid = "uid://iepp6qzpamtg"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://bxvc1ejd48k1", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/views/view14_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 4601, file = 2 }]
+
+[view3]
+uid = "uid://e79en5xkfgip"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://tcamokkovvjw", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 4601, file = 3 }]
+
+[view4]
+uid = "uid://1cxl6sq2e8sxn"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1q4vb9lsao593", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 4, folder = 4601, file = 4 }]
+
+[view5]
+uid = "uid://1vzyel1k58sng"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://121rs1ns3jxnj", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 4, folder = 4601, file = 5 }]
+
+[view6]
+uid = "uid://13uftzy63va0i"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://eg131n5h4hhp", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 4, folder = 4601, file = 6 }]
+
+[view7]
+uid = "uid://1fv2tm7sbcu1x"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1i94c2i3hkqne", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 4, folder = 4601, file = 7 }]
+
+[view8]
+uid = "uid://1llq0gred11rw"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://vpyhhq3uv30y", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view8_background.asset" } },
+]
+
+[view8.from.USA]
+at = [{ stage = 4, folder = 4601, file = 8 }]
+
+[view9]
+uid = "uid://1gf9gxmu9jt08"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://a43ytqguriwm", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view9_background.asset" } },
+]
+
+[view9.from.USA]
+at = [{ stage = 4, folder = 4601, file = 9 }]
+
+[view10]
+uid = "uid://1dumiiv76moqf"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1ku4bhfqe0qbu", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view10_background.asset" } },
+]
+
+[view10.from.USA]
+at = [{ stage = 4, folder = 4601, file = 10 }]
+
+[view11]
+uid = "uid://173lf4wjfjnjg"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://12rjktdhji551", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view11_background.asset" } },
+]
+
+[view11.from.USA]
+at = [{ stage = 4, folder = 4601, file = 11 }]

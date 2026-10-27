@@ -1,0 +1,26 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[texture]
+uid = "uid://1l6dplphb0p95"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [512, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+    { name = "default_4", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+    { name = "page_3", rect = [384, 0, 128, 256], palette = "default_4" },
+]
+
+[texture.from.USA]
+at = [{ stage = 0, file = 403100, slot = "image", page = 0 }]
+sha1 = "7fa729ef3b3de76e58a3e0055cddbe3e88f179e5"
+palettes = { default = "9ed5cc73a80c458b175466e01ae3cd7a60f47e70", default_2 = "bff7311cd8b4503529e03dc05a57394812f35bc7", default_3 = "cf934855c439602580506f03b3509046cc097eb1", default_4 = "2336c631861a0dd6623b3ae31174cd542149523c" }

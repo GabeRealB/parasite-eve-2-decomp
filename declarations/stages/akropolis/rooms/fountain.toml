@@ -1,0 +1,41 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://66t819b3y1zr"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "movie_3", type = "movie", asset = { uid = "uid://ndjtz3udlxur", path = "res://stages/akropolis/rooms/fountain/streams/movie_3.asset" } },
+    { name = "movie_4", type = "movie", asset = { uid = "uid://qj24lvtb1ab5", path = "res://stages/akropolis/rooms/fountain/streams/movie_4.asset" } },
+    { name = "movie_5", type = "movie", asset = { uid = "uid://t3xrzfsmbrlo", path = "res://stages/akropolis/rooms/fountain/streams/movie_5.asset" } },
+    { name = "movie_6", type = "movie", asset = { uid = "uid://szdewprrhcrr", path = "res://stages/akropolis/rooms/fountain/streams/movie_6.asset" } },
+    { name = "movie_7", type = "movie", asset = { uid = "uid://15thshgdcrkqh", path = "res://stages/akropolis/rooms/fountain/streams/movie_7.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1pivia13qvxrq", path = "res://stages/akropolis/rooms/fountain/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://u3kttd7s9iwa", path = "res://stages/akropolis/rooms/fountain/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1uypfmco342oj", path = "res://stages/akropolis/rooms/fountain/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://wrzfwu23yz8a", path = "res://stages/akropolis/rooms/fountain/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1li6d3scbl0ia", path = "res://stages/akropolis/rooms/fountain/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://gk2h8952bejg", path = "res://stages/akropolis/rooms/fountain/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://244hpm4fmhgq", path = "res://stages/akropolis/rooms/fountain/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1bytiect0m22f", path = "res://stages/akropolis/rooms/fountain/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1nu9gthxcd5av", path = "res://stages/akropolis/rooms/fountain/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1rw00ft633e92", path = "res://stages/akropolis/rooms/fountain/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://g1nz98bir9sx", path = "res://stages/akropolis/rooms/fountain/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://18ihapqs4z310", path = "res://stages/akropolis/rooms/fountain/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1osdi2lbp58dn", path = "res://stages/akropolis/rooms/fountain/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://r8tz69jziv14", path = "res://stages/akropolis/rooms/fountain/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://mjjn93bb7bg4", path = "res://stages/akropolis/rooms/fountain/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://1vb7hkjk0aeku", path = "res://stages/akropolis/rooms/fountain/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://1xaiper30m5v2", path = "res://stages/akropolis/rooms/fountain/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1fxflcvfklrup", path = "res://stages/akropolis/rooms/fountain/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://1q7yavznbyxn6", path = "res://stages/akropolis/rooms/fountain/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://xgr9itsi6vds", path = "res://stages/akropolis/rooms/fountain/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://rvxk4xk0mb8e", path = "res://stages/akropolis/rooms/fountain/files/view20.asset" } },
+    { name = "view21", id = 21, asset = { uid = "uid://1it07lr02azgw", path = "res://stages/akropolis/rooms/fountain/files/view21.asset" } },
+    { name = "view22", id = 22, asset = { uid = "uid://cai3vhjzgemj", path = "res://stages/akropolis/rooms/fountain/files/view22.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 801 }]

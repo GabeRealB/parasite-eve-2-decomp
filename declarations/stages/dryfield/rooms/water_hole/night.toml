@@ -1,0 +1,37 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://uxsj6cya2kk8"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1vq14olahds02", path = "res://stages/dryfield/rooms/water_hole/night/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1xa814hdlyxng", path = "res://stages/dryfield/rooms/water_hole/night/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://pg5gl8432gzm", path = "res://stages/dryfield/rooms/water_hole/night/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1smmqzrlpqtde", path = "res://stages/dryfield/rooms/water_hole/night/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1tyaaxdrx1c4f", path = "res://stages/dryfield/rooms/water_hole/night/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://12ehjv3h66rod", path = "res://stages/dryfield/rooms/water_hole/night/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://171sinjvf078v", path = "res://stages/dryfield/rooms/water_hole/night/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://4gio2j9fkyv3", path = "res://stages/dryfield/rooms/water_hole/night/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://na949za0tnxv", path = "res://stages/dryfield/rooms/water_hole/night/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://m1zxpbyagd2p", path = "res://stages/dryfield/rooms/water_hole/night/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://ppm3gpxxt8kc", path = "res://stages/dryfield/rooms/water_hole/night/files/view10.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://2sj6yl145g61", path = "res://stages/dryfield/rooms/water_hole/night/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1f0rizan5pn5x", path = "res://stages/dryfield/rooms/water_hole/night/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://12tuwbn0n5glh", path = "res://stages/dryfield/rooms/water_hole/night/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://1wufyeywg3psh", path = "res://stages/dryfield/rooms/water_hole/night/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://1gj991i63otjo", path = "res://stages/dryfield/rooms/water_hole/night/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1olcgpkbpntsh", path = "res://stages/dryfield/rooms/water_hole/night/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://1joqxhw34gcnr", path = "res://stages/dryfield/rooms/water_hole/night/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://wrhr6jgsea0e", path = "res://stages/dryfield/rooms/water_hole/night/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://11urnetd4xfb3", path = "res://stages/dryfield/rooms/water_hole/night/files/view20.asset" } },
+    { name = "view21", id = 21, asset = { uid = "uid://18j3hkvseu0i1", path = "res://stages/dryfield/rooms/water_hole/night/files/view21.asset" } },
+    { name = "view22", id = 22, asset = { uid = "uid://877eh8kn83m2", path = "res://stages/dryfield/rooms/water_hole/night/files/view22.asset" } },
+    { name = "view23", id = 23, asset = { uid = "uid://1b0mu2d40ujie", path = "res://stages/dryfield/rooms/water_hole/night/files/view23.asset" } },
+    { name = "view24", id = 24, asset = { uid = "uid://napeugz2v5l7", path = "res://stages/dryfield/rooms/water_hole/night/files/view24.asset" } },
+    { name = "view25", id = 25, asset = { uid = "uid://14h6b9t40qil1", path = "res://stages/dryfield/rooms/water_hole/night/files/view25.asset" } },
+    { name = "view26", id = 26, asset = { uid = "uid://swgbk0ndz41e", path = "res://stages/dryfield/rooms/water_hole/night/files/view26.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 3, folder = 3201 }]

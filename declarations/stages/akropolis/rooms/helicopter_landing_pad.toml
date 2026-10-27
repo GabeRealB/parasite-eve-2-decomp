@@ -1,0 +1,128 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1p5yx2slqhz49"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://1r0fwln7zoerx", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/movie_100.asset" } },
+    { name = "scene_9_11", type = "scene_audio", asset = { uid = "uid://jqcdyknxcx6h", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/scene_9_11.asset" } },
+    { name = "scene_9_21", type = "scene_audio", asset = { uid = "uid://m3v9452wbdi7", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/scene_9_21.asset" } },
+    { name = "scene_10", type = "scene_audio", asset = { uid = "uid://1ik932jiyhsf1", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/scene_10.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://kjomhrzsxzpp", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://x8pd1xtiaxnu", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1widqt1xh3b7d", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://19e1ue69almw1", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://kywtmzty9fbw", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://72xa3upxbwv0", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://vgq1qh0bf7zm", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1oo7njvzp87iy", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://f77z1rv6v8vv", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1gdeo6i1j6a3q", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://vr3dsn9rgi3p", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://oe5wlea9h623", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://iw89glahwjfc", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1q5w1mlo4nohy", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://1arv94o11phyn", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://8g1973i0awzm", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://szt1vw4r45h5", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://2xmh2kl3vhsx", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://giy26vuxeo4c", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://12shzt1fagv34", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://17hv9c5o6haet", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view20.asset" } },
+    { name = "view21", id = 21, asset = { uid = "uid://135jnem2mhwv3", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view21.asset" } },
+    { name = "view22", id = 22, asset = { uid = "uid://gc5ue84veu2z", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view22.asset" } },
+    { name = "view23", id = 23, asset = { uid = "uid://q6eimdt21jrv", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view23.asset" } },
+    { name = "view24", id = 24, asset = { uid = "uid://1jxviwnn8o27e", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view24.asset" } },
+    { name = "view25", id = 25, asset = { uid = "uid://d8mdg8lgy53j", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view25.asset" } },
+    { name = "view26", id = 26, asset = { uid = "uid://170ucmrhybmpa", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view26.asset" } },
+    { name = "view27", id = 27, asset = { uid = "uid://1u0kn89q37ffx", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view27.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 1601 }]
+
+[sparks]
+uid = "uid://1uir2qalcp0e8"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "sparkle", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+    { name = "smudge", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
+    { name = "ember", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] },
+    { name = "lens_flare", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] },
+    { name = "tongue_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] },
+    { name = "tongue_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 10] },
+    { name = "tongue_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 10] },
+    { name = "tongue_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 10] },
+    { name = "tongue_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 10] },
+    { name = "tongue_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 10] },
+    { name = "tongue_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 10] },
+    { name = "tongue_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 10] },
+    { name = "burning_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 10] },
+    { name = "burning_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 10] },
+    { name = "burning_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 10] },
+    { name = "burning_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 10] },
+    { name = "burning_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 10] },
+    { name = "burning_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 10] },
+    { name = "burning_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 10] },
+    { name = "burning_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 10] },
+    { name = "burning_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] },
+    { name = "burning_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [272, 10] },
+    { name = "burning_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [288, 10] },
+    { name = "burning_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] },
+]
+cells = [
+    { name = "burning_0", rect = [0, 160, 32, 48], palette = "burning_0" },
+    { name = "burning_1", rect = [32, 160, 32, 48], palette = "burning_1" },
+    { name = "burning_2", rect = [64, 160, 32, 48], palette = "burning_2" },
+    { name = "burning_3", rect = [96, 160, 32, 48], palette = "burning_3" },
+    { name = "burning_4", rect = [128, 160, 32, 48], palette = "burning_4" },
+    { name = "burning_5", rect = [160, 160, 32, 48], palette = "burning_5" },
+    { name = "burning_6", rect = [192, 160, 32, 48], palette = "burning_6" },
+    { name = "burning_7", rect = [224, 160, 32, 48], palette = "burning_7" },
+    { name = "burning_8", rect = [0, 208, 32, 48], palette = "burning_8" },
+    { name = "burning_9", rect = [32, 208, 32, 48], palette = "burning_9" },
+    { name = "burning_10", rect = [64, 208, 32, 48], palette = "burning_10" },
+    { name = "burning_11", rect = [96, 208, 32, 48], palette = "burning_11" },
+    { name = "ember_0", rect = [32, 40, 32, 32], palette = "ember" },
+    { name = "ember_1", rect = [64, 40, 32, 32], palette = "ember" },
+    { name = "ember_2", rect = [96, 40, 32, 32], palette = "ember" },
+    { name = "ember_3", rect = [128, 40, 32, 32], palette = "ember" },
+    { name = "ember_4", rect = [160, 40, 32, 32], palette = "ember" },
+    { name = "ember_5", rect = [192, 40, 32, 32], palette = "ember" },
+    { name = "flame_0", rect = [0, 0, 32, 40], palette = "sparkle" },
+    { name = "flame_1", rect = [32, 0, 32, 40], palette = "sparkle" },
+    { name = "flame_2", rect = [64, 0, 32, 40], palette = "sparkle" },
+    { name = "flame_3", rect = [96, 0, 32, 40], palette = "sparkle" },
+    { name = "flame_4", rect = [128, 0, 32, 40], palette = "sparkle" },
+    { name = "flame_5", rect = [160, 0, 32, 40], palette = "sparkle" },
+    { name = "flash_0", rect = [0, 72, 40, 40], palette = "sparkle" },
+    { name = "flash_1", rect = [40, 72, 40, 40], palette = "sparkle" },
+    { name = "flash_2", rect = [80, 72, 40, 40], palette = "sparkle" },
+    { name = "flash_3", rect = [120, 72, 40, 40], palette = "sparkle" },
+    { name = "flash_4", rect = [160, 72, 40, 40], palette = "sparkle" },
+    { name = "flash_5", rect = [200, 72, 40, 40], palette = "sparkle" },
+    { name = "smudge_0", rect = [128, 208, 32, 32], palette = "smudge" },
+    { name = "smudge_1", rect = [160, 208, 32, 32], palette = "smudge" },
+    { name = "smudge_2", rect = [192, 208, 32, 32], palette = "smudge" },
+    { name = "smudge_3", rect = [224, 208, 32, 32], palette = "smudge" },
+    { name = "tongue_0", rect = [0, 112, 32, 48], palette = "tongue_0" },
+    { name = "tongue_1", rect = [32, 112, 32, 48], palette = "tongue_1" },
+    { name = "tongue_2", rect = [64, 112, 32, 48], palette = "tongue_2" },
+    { name = "tongue_3", rect = [96, 112, 32, 48], palette = "tongue_3" },
+    { name = "tongue_4", rect = [128, 112, 32, 48], palette = "tongue_4" },
+    { name = "tongue_5", rect = [160, 112, 32, 48], palette = "tongue_5" },
+    { name = "tongue_6", rect = [192, 112, 32, 48], palette = "tongue_6" },
+    { name = "tongue_7", rect = [224, 112, 32, 48], palette = "tongue_7" },
+]
+
+[sparks.from.USA]
+at = [{ stage = 1, folder = 1601, file = 0, slot = "image", page = 0 }]
+sha1 = "240b26524ccb5029e8482aaab220334c5dfcadba"
+palettes = { sparkle = "04ec55cda3e14c68a22081337f1d4763e953113c", ember = "16451db101bf4ca69cdfa0dca5851cda4bfb3dd2", lens_flare = "ab496902e6f9fd6e9b0ad8538ac38d0daf6ec825", smudge = "f44970ff498d1560e1092707251692da616603e9", tongue_0 = "a3b2063c708d76a50d7328011fb717353f343367", tongue_1 = "02951e9868dff1e25d83089f3273ace463e91402", tongue_2 = "6075bb23e544bfd2c875c3097f9fd219253fb59d", tongue_3 = "c42b3bfe71fdd325ad071781d98450cae6854141", tongue_4 = "d026fa518636b10df0a0a75a5fc55a5ad6e6da87", tongue_5 = "2777f41ba0685bcd0d619f8b93ee328dea24f2c5", tongue_6 = "862826db5081a4cfc9db66bdb0ed7ec00a562d52", tongue_7 = "ddb82979d8d04656ac0fa5162976f76aff33324c", burning_0 = "5324c4ead90f333b85ef21b5f9d8da69d2b7e369", burning_1 = "9c46c70e4ba2efae65d5566e3919f11d9593e850", burning_2 = "9a1ad4300a1aafb326f700a7a9cab508d3a9d248", burning_3 = "9a1ad4300a1aafb326f700a7a9cab508d3a9d248", burning_4 = "9a1ad4300a1aafb326f700a7a9cab508d3a9d248", burning_5 = "4ee963826b24ded6f5f54fabd761eb250c9c7b4c", burning_6 = "4ee963826b24ded6f5f54fabd761eb250c9c7b4c", burning_7 = "0b1b0ef792e37f6be1bd4140ae917e1615600300", burning_8 = "0670962502fbb767aebf507de0bbb9e68307093c", burning_9 = "4e1fcea5428d9efd1ca76af04c974356dccef138", burning_10 = "f8905c5510511d31cdbc05779dfedbbd06d5f315", burning_11 = "25ea5dd6da00ffa386ad88eff1a6fccf566c7268" }

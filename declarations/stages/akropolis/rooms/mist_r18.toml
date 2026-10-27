@@ -1,0 +1,39 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[caption]
+uid = "uid://1wh2ktul18fq9"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 96]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [16, 5] },
+]
+
+[caption.from.USA]
+at = [{ stage = 1, folder = 1801, file = 0, slot = "image", page = 0 }]
+sha1 = "e2bf6ab668d329e761c007bbd33975ca088ef106"
+palettes = { default = "e3be4acc023ee949988e9cf9dd29c1a9df817c64" }
+
+[folder]
+uid = "uid://402azc6jtrj0"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_30", type = "scene_audio", asset = { uid = "uid://ek35awqdr9ac", path = "res://stages/akropolis/rooms/mist_r18/streams/scene_30.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://3pdojlrt6r0a", path = "res://stages/akropolis/rooms/mist_r18/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://nghtr5yrluu5", path = "res://stages/akropolis/rooms/mist_r18/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://5v0xflyhy9fd", path = "res://stages/akropolis/rooms/mist_r18/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1qgxmkqdsatce", path = "res://stages/akropolis/rooms/mist_r18/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1razqbo4lnu17", path = "res://stages/akropolis/rooms/mist_r18/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://14zzdha0psemt", path = "res://stages/akropolis/rooms/mist_r18/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1hbxmae5wbloq", path = "res://stages/akropolis/rooms/mist_r18/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://6oa2kjdlity0", path = "res://stages/akropolis/rooms/mist_r18/files/view7.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1bq7dwexvquk1", path = "res://stages/akropolis/rooms/mist_r18/files/view10.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 1801 }]

@@ -1,0 +1,81 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[view1_background]
+uid = "uid://13k88mm9vl8x5"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view1_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 1, slot = "background" }]
+sha1 = "ab30d83ab8070def9eaf8ee026b35181831e6ad3"
+
+[view2_background]
+uid = "uid://wsi7a6n4ntq1"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view2_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 2, slot = "background" }]
+sha1 = "8df137a6ce2bdf17802526999082a928ccb9b2f0"
+
+[view3_background]
+uid = "uid://9wmfmugbkuqb"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view3_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 3, slot = "background" }]
+sha1 = "44f86f78e7132686ff81d30d49551354117ff9db"
+
+[view4_background]
+uid = "uid://1m3s6caxw2cs7"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view4_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 4, slot = "background" }]
+sha1 = "917a2644d8f350a7064e37cae930ef0748611054"
+
+[view5_background]
+uid = "uid://dkp6k82hyyx9"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view5_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 5, slot = "background" }]
+sha1 = "3ed5aaaee69ec52b3cf1bc38da91c38deadf92ee"
+
+[view6_background]
+uid = "uid://1p6i5j14ntjs2"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view6_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 6, slot = "background" }]
+sha1 = "d9d7bddf486770538cd733f3462549aaacc14ee9"
+
+[view7_background]
+uid = "uid://1ai8jmkx43e20"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view7_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 7, slot = "background" }]
+sha1 = "2c6afd8b6624e02823fb505d4c2af89ef2dab80a"
+
+[view8_background]
+uid = "uid://6rotb1ra8wz"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view8_background.from.USA]
+at = [{ stage = 4, folder = 3001, file = 8, slot = "background" }]
+sha1 = "ff288dc3517622a41253a37b20d25f372d4221bc"

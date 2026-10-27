@@ -1,0 +1,859 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[desert_chaser_package]
+uid = "uid://kpnom5m11s27"
+kind = "file"
+
+[[desert_chaser_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[desert_chaser_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" } },
+]
+page_slots = 6
+
+[[desert_chaser_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" }, palette = "default_2" },
+]
+
+[[desert_chaser_package.slots]]
+name = "package"
+type = "package"
+
+[desert_chaser_package.from.USA]
+at = [{ stage = 0, file = 400100 }]
+chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
+
+[gray_stalker_package]
+uid = "uid://fyw3aix9g9qc"
+kind = "file"
+
+[[gray_stalker_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[gray_stalker_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1socdsrx1a8lu", path = "res://enemies/stalker/gray/texture.asset" } },
+]
+page_slots = 6
+
+[[gray_stalker_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1socdsrx1a8lu", path = "res://enemies/stalker/gray/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[gray_stalker_package.slots]]
+name = "package"
+type = "package"
+
+[gray_stalker_package.from.USA]
+at = [{ stage = 0, file = 400500 }]
+chunks = { image = "f0b3b0600b959d4c6026d89118cc8507563d09b0", palette = "72bbc17f0c68af1b8748595316ceeac9e0c809d8" }
+
+[zebra_stalker_package]
+uid = "uid://1pluknuy6kk95"
+kind = "file"
+
+[[zebra_stalker_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.asset" } },
+]
+page_slots = 6
+
+[[zebra_stalker_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.asset" }, palette = "default_2" },
+]
+
+[[zebra_stalker_package.slots]]
+name = "package"
+type = "package"
+
+[zebra_stalker_package.from.USA]
+at = [{ stage = 0, file = 400600 }]
+chunks = { image = "02e9f978db1472ee2783d434dcbd1a516298b3a2", palette = "5a5c95e2ed6e16c5125f9a79c10858322bbc59fa" }
+
+[zebra_stalker_sounds_1]
+uid = "uid://1gxvjk5f291sb"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[zebra_stalker_sounds_1.from.USA]
+at = [{ stage = 0, file = 400601 }]
+
+[zebra_stalker_sounds_2]
+uid = "uid://1f37uq23s8rn2"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[zebra_stalker_sounds_2.from.USA]
+at = [{ stage = 0, file = 400602 }]
+
+[odd_stranger_package_b]
+uid = "uid://1kvppyer5ncbx"
+kind = "file"
+
+[[odd_stranger_package_b.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[odd_stranger_package_b.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset" } },
+]
+page_slots = 6
+
+[[odd_stranger_package_b.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset" }, palette = "default" },
+    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset" }, palette = "row_1" },
+]
+
+[[odd_stranger_package_b.slots]]
+name = "package"
+type = "package"
+
+[odd_stranger_package_b.from.USA]
+at = [{ stage = 0, file = 401000 }]
+chunks = { image = "df80e66ff9cd19441469dbeb450f5229fd6b4be9", palette = "7bb032df3ac96d82e3ef0046e963099fa4092512" }
+
+[horned_stranger_package]
+uid = "uid://1ui6lyyvx8oig"
+kind = "file"
+
+[[horned_stranger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[horned_stranger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset" } },
+]
+page_slots = 6
+
+[[horned_stranger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset" }, palette = "default_2" },
+]
+
+[[horned_stranger_package.slots]]
+name = "package"
+type = "package"
+
+[horned_stranger_package.from.USA]
+at = [{ stage = 0, file = 401300 }]
+chunks = { image = "8de5c40e312b871e142303a328240231bd3144dd", palette = "bbc1f852723073e83de2be33403bb70976f51242" }
+
+[odd_stranger_package]
+uid = "uid://1c7iym05k8jtf"
+kind = "file"
+
+[[odd_stranger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[odd_stranger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.asset" } },
+]
+page_slots = 6
+
+[[odd_stranger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.asset" }, palette = "default" },
+    { image = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.asset" }, palette = "default_2" },
+]
+
+[[odd_stranger_package.slots]]
+name = "package"
+type = "package"
+
+[odd_stranger_package.from.USA]
+at = [{ stage = 0, file = 401800 }]
+chunks = { image = "99a3b24594b5df76caf843667092cbfc09063ec8", palette = "a238f0c149b53f3aac2dd044c72c4f17b9e24f78" }
+
+[knight_golem_package]
+uid = "uid://haghun1tl0nw"
+kind = "file"
+
+[[knight_golem_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://omnexf7002h3", path = "res://enemies/golem/knight/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[knight_golem_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://omnexf7002h3", path = "res://enemies/golem/knight/texture.asset" } },
+]
+page_slots = 6
+
+[[knight_golem_package.slots]]
+name = "package"
+type = "package"
+
+[knight_golem_package.from.USA]
+at = [{ stage = 0, file = 402200 }]
+chunks = { palette = "4bd5907e2e0e193436fcbc15df2851175abe8c7d", image = "2f4932892c683d47dde5d105b818d9ff9a2c3cbe" }
+
+[knight_golem_sounds_1]
+uid = "uid://njitana9p7n5"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[knight_golem_sounds_1.from.USA]
+at = [{ stage = 0, file = 402201 }]
+
+[knight_golem_sounds_2]
+uid = "uid://1hy02j0w6u2on"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[knight_golem_sounds_2.from.USA]
+at = [{ stage = 0, file = 402202 }]
+
+[knight_golem_sounds_3]
+uid = "uid://1q3x57x2fpawf"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[knight_golem_sounds_3.from.USA]
+at = [{ stage = 0, file = 402203 }]
+
+[knight_golem_sounds_4]
+uid = "uid://9xxz5krtxr8v"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[knight_golem_sounds_4.from.USA]
+at = [{ stage = 0, file = 402204 }]
+
+[mine_cavern_blizzard_chasers]
+uid = "uid://4pps9yihplae"
+kind = "file"
+
+[[mine_cavern_blizzard_chasers.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[mine_cavern_blizzard_chasers.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset" } },
+]
+page_slots = 6
+
+[[mine_cavern_blizzard_chasers.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset" }, palette = "default" },
+    { image = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset" }, palette = "default_2" },
+]
+
+[[mine_cavern_blizzard_chasers.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset" }, palette = "default_3" },
+]
+
+[[mine_cavern_blizzard_chasers.slots]]
+name = "palette_3"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset" }, palette = "default_4" },
+]
+upload = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3], size = [256, 2] }
+
+[[mine_cavern_blizzard_chasers.slots]]
+name = "package"
+type = "package"
+
+[mine_cavern_blizzard_chasers.from.USA]
+at = [{ stage = 0, file = 403000 }]
+chunks = { image = "a30efed5547eba03ea0fd813752ba44f792b0b0f", palette = "7ef71aa347549761a9f6138464d014f1debedfb3", palette_2 = "f987843645954df64d154a3bdc73622f66bed619", palette_3 = "64351ccfb599ad0ec108c825a77a07da67dc0143" }
+
+[burner_package]
+uid = "uid://23sn48o4mrhu"
+kind = "file"
+
+[[burner_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[burner_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset" } },
+]
+page_slots = 6
+
+[[burner_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset" }, palette = "default_2" },
+]
+
+[[burner_package.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset" }, palette = "default_3" },
+]
+
+[[burner_package.slots]]
+name = "palette_3"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset" }, palette = "default_4" },
+]
+upload = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3], size = [256, 2] }
+
+[[burner_package.slots]]
+name = "package"
+type = "package"
+
+[burner_package.from.USA]
+at = [{ stage = 0, file = 403100 }]
+chunks = { image = "652c1741c31eb0bb2671d95b96220c1836409803", palette = "69430b3709ead59e85cf0f577d79e08fb46d5247", palette_2 = "da468b81a5e93d57d32d46529d44375a0b0b4095", palette_3 = "e5b2c852b15912133c906b6007b77cb1e390b831" }
+
+[shelter_b3_dumping_hole_gluttons]
+uid = "uid://zdea6icqnk0u"
+kind = "file"
+
+[[shelter_b3_dumping_hole_gluttons.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[shelter_b3_dumping_hole_gluttons.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" } },
+]
+page_slots = 6
+
+[[shelter_b3_dumping_hole_gluttons.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_2" },
+]
+
+[[shelter_b3_dumping_hole_gluttons.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_3" },
+]
+
+[[shelter_b3_dumping_hole_gluttons.slots]]
+name = "palette_3"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_4" },
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_5" },
+]
+
+[[shelter_b3_dumping_hole_gluttons.slots]]
+name = "package"
+type = "package"
+
+[shelter_b3_dumping_hole_gluttons.from.USA]
+at = [{ stage = 0, file = 403200 }]
+chunks = { image = "43fa8e4cdc34bc1863994a1286c1c9a5bf55709d", palette = "8cbaa7c1176c953ce0013e253ff370a5069fdeec", palette_2 = "f18363c53f250a4bf541b187cf08b7ca9626f6ad", palette_3 = "39753c62696296216b393793a3ed0bebdd088d8c" }
+
+[shelter_b2_pod_bottom_eves]
+uid = "uid://gcg0evrp88rn"
+kind = "file"
+slots = [
+    { name = "package", type = "package" },
+]
+
+[shelter_b2_pod_bottom_eves.from.USA]
+at = [{ stage = 0, file = 403600 }]
+
+[bishop_golem_package]
+uid = "uid://1xny2o4iv052u"
+kind = "file"
+
+[[bishop_golem_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://19pep4b10f5dh", path = "res://enemies/golem/bishop/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[bishop_golem_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://19pep4b10f5dh", path = "res://enemies/golem/bishop/texture.asset" } },
+]
+page_slots = 6
+
+[[bishop_golem_package.slots]]
+name = "package"
+type = "package"
+
+[bishop_golem_package.from.USA]
+at = [{ stage = 0, file = 403900 }]
+chunks = { palette = "3f85058469abee319a45892d98a675b08a3dd185", image = "23dd0e8b469473a22840b83298e1d28cf34c5a94" }
+
+[bishop_golem_sounds_1]
+uid = "uid://p9mapngfz1ok"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[bishop_golem_sounds_1.from.USA]
+at = [{ stage = 0, file = 403901 }]
+
+[bishop_golem_sounds_2]
+uid = "uid://10cdyatfwc6ca"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[bishop_golem_sounds_2.from.USA]
+at = [{ stage = 0, file = 403902 }]
+
+[bishop_golem_sounds_3]
+uid = "uid://1h8k37stvn4k2"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[bishop_golem_sounds_3.from.USA]
+at = [{ stage = 0, file = 403903 }]
+
+[bishop_golem_sounds_4]
+uid = "uid://12my035l70tsw"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+]
+
+[bishop_golem_sounds_4.from.USA]
+at = [{ stage = 0, file = 403904 }]
+
+[ivory_stalker_package]
+uid = "uid://1od8ffj1zdt8k"
+kind = "file"
+
+[[ivory_stalker_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[ivory_stalker_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1sjs0stigagp7", path = "res://enemies/stalker/ivory/texture.asset" } },
+]
+page_slots = 6
+
+[[ivory_stalker_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1sjs0stigagp7", path = "res://enemies/stalker/ivory/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[ivory_stalker_package.slots]]
+name = "package"
+type = "package"
+
+[ivory_stalker_package.from.USA]
+at = [{ stage = 0, file = 405800 }]
+chunks = { image = "03a3016792feacf963039f0dd5e04e52604576a9", palette = "656d585224dd4c650d5f62a7b7109efd463fab8b" }
+
+[desert_chaser_garage_package]
+uid = "uid://fig0fm80udlc"
+kind = "file"
+
+[[desert_chaser_garage_package.slots]]
+name = "desert_chaser_sounds"
+type = "sound_bank"
+
+[[desert_chaser_garage_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" } },
+]
+page_slots = 6
+
+[[desert_chaser_garage_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" }, palette = "default_2" },
+]
+
+[[desert_chaser_garage_package.slots]]
+name = "package"
+type = "package"
+
+[desert_chaser_garage_package.from.USA]
+at = [{ stage = 0, file = 407500 }]
+chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
+
+[gary_palette]
+uid = "uid://1bnmboymi7kn0"
+kind = "file"
+
+[[gary_palette.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.asset" }, palette = "default_2" },
+]
+
+[[gary_palette.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.asset" } },
+]
+page_slots = 6
+
+[[gary_palette.slots]]
+name = "shotgun_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://diyxigzws0xx", path = "res://characters/gary/shotgun_texture.asset" }, palette = "default" },
+]
+
+[[gary_palette.slots]]
+name = "shotgun_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://diyxigzws0xx", path = "res://characters/gary/shotgun_texture.asset" } },
+]
+
+[[gary_palette.slots]]
+name = "gary"
+type = "package"
+
+[gary_palette.from.USA]
+at = [{ stage = 0, file = 420700 }]
+chunks = { shotgun_palette = "007900c7447f49e1e37889eebfad46fc875ab172", shotgun_image = "999260d17d71c6ed7fe81cce6121e5bff9638981", palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
+
+[dryfield_water_tower_desert_chaser]
+uid = "uid://1afwwni6curr8"
+kind = "file"
+
+[[dryfield_water_tower_desert_chaser.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[dryfield_water_tower_desert_chaser.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" } },
+]
+page_slots = 6
+
+[[dryfield_water_tower_desert_chaser.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" }, palette = "default_2" },
+]
+
+[[dryfield_water_tower_desert_chaser.slots]]
+name = "package"
+type = "package"
+
+[dryfield_water_tower_desert_chaser.from.USA]
+at = [{ stage = 0, file = 421600 }]
+chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
+
+[shelter_r47_pierce]
+uid = "uid://1nvr7lyrjcu8h"
+kind = "file"
+
+[[shelter_r47_pierce.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset" }, palette = "default_2" },
+]
+
+[[shelter_r47_pierce.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset" } },
+]
+page_slots = 6
+
+[[shelter_r47_pierce.slots]]
+name = "package"
+type = "package"
+
+[shelter_r47_pierce.from.USA]
+at = [{ stage = 0, file = 443500 }]
+chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
+
+[shelter_b3_garbage_incinerator_gluttons]
+uid = "uid://cod14x3clihv"
+kind = "file"
+
+[[shelter_b3_garbage_incinerator_gluttons.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[shelter_b3_garbage_incinerator_gluttons.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" } },
+]
+page_slots = 6
+
+[[shelter_b3_garbage_incinerator_gluttons.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_2" },
+]
+
+[[shelter_b3_garbage_incinerator_gluttons.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_3" },
+]
+
+[[shelter_b3_garbage_incinerator_gluttons.slots]]
+name = "palette_3"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_4" },
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" }, palette = "default_5" },
+]
+
+[[shelter_b3_garbage_incinerator_gluttons.slots]]
+name = "package"
+type = "package"
+
+[shelter_b3_garbage_incinerator_gluttons.from.USA]
+at = [{ stage = 0, file = 444000 }]
+chunks = { image = "43fa8e4cdc34bc1863994a1286c1c9a5bf55709d", palette = "8cbaa7c1176c953ce0013e253ff370a5069fdeec", palette_2 = "f18363c53f250a4bf541b187cf08b7ca9626f6ad", palette_3 = "39753c62696296216b393793a3ed0bebdd088d8c" }
+
+[neo_ark_observatory_kyle]
+uid = "uid://m1n8ojg4an4r"
+kind = "file"
+
+[[neo_ark_observatory_kyle.slots]]
+name = "dome_backdrops_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.asset" }, palette = "outgoing" },
+    { image = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.asset" }, palette = "incoming" },
+]
+
+[[neo_ark_observatory_kyle.slots]]
+name = "dome_backdrops"
+type = "image"
+pages = [
+    { image = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.asset" } },
+]
+page_slots = 6
+
+[[neo_ark_observatory_kyle.slots]]
+name = "package"
+type = "package"
+
+[neo_ark_observatory_kyle.from.USA]
+at = [{ stage = 0, file = 450200 }]
+chunks = { dome_backdrops_palette = "cac9208d1c160fb92fdf62189c232f0bec0f8a8f", dome_backdrops = "adf6d618668261d0258b86a7f8eb675ac6b6a24a" }
+
+[shelter_b6_nursery_kyle]
+uid = "uid://76nf40ln532e"
+kind = "file"
+
+[[shelter_b6_nursery_kyle.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+]
+
+[[shelter_b6_nursery_kyle.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+]
+page_slots = 6
+
+[[shelter_b6_nursery_kyle.slots]]
+name = "package"
+type = "package"
+
+[shelter_b6_nursery_kyle.from.USA]
+at = [{ stage = 0, file = 450800 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }
+
+[shelter_b6_growth_room_eve_distress]
+uid = "uid://1fbzrifbpnw67"
+kind = "file"
+slots = [
+    { name = "package", type = "package" },
+]
+
+[shelter_b6_growth_room_eve_distress.from.USA]
+at = [{ stage = 0, file = 450900 }]
+
+[neo_ark_submarine_tunnel_eve_and_no_9]
+uid = "uid://180o8yunvym9u"
+kind = "file"
+
+[[neo_ark_submarine_tunnel_eve_and_no_9.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" }, palette = "default_2" },
+]
+
+[[neo_ark_submarine_tunnel_eve_and_no_9.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" } },
+]
+page_slots = 6
+
+[[neo_ark_submarine_tunnel_eve_and_no_9.slots]]
+name = "package"
+type = "package"
+
+[neo_ark_submarine_tunnel_eve_and_no_9.from.USA]
+at = [{ stage = 0, file = 451100 }]
+chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
+
+[shelter_1f_tent_soldiers]
+uid = "uid://147k72yz4c3oy"
+kind = "file"
+
+[[shelter_1f_tent_soldiers.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.asset" }, palette = "default_2" },
+]
+
+[[shelter_1f_tent_soldiers.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.asset" } },
+]
+page_slots = 6
+
+[[shelter_1f_tent_soldiers.slots]]
+name = "package"
+type = "package"
+
+[shelter_1f_tent_soldiers.from.USA]
+at = [{ stage = 0, file = 460200 }]
+chunks = { palette = "6dad79df4719e2a8e4b591de30591ca2ee9274e1", image = "e66e769ca49fbd190905b16615e2515ad16118c1" }
+
+[neo_ark_r31_kyle_and_eve]
+uid = "uid://e9skvkevvh1x"
+kind = "file"
+
+[[neo_ark_r31_kyle_and_eve.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+]
+
+[[neo_ark_r31_kyle_and_eve.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+]
+page_slots = 6
+
+[[neo_ark_r31_kyle_and_eve.slots]]
+name = "package"
+type = "package"
+
+[neo_ark_r31_kyle_and_eve.from.USA]
+at = [{ stage = 0, file = 461800 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }

@@ -1,0 +1,1244 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[brain_stinger_package]
+uid = "uid://1cyfzfm63qxgw"
+kind = "file"
+
+[[brain_stinger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[brain_stinger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1jqyfsiz5z1pg", path = "res://enemies/stinger/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1jqyfsiz5z1pg", path = "res://enemies/stinger/texture.asset" }, palette = "default_2" },
+]
+
+[[brain_stinger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1jqyfsiz5z1pg", path = "res://enemies/stinger/texture.asset" } },
+]
+page_slots = 6
+
+[[brain_stinger_package.slots]]
+name = "package"
+type = "package"
+
+[brain_stinger_package.from.USA]
+at = [{ stage = 0, file = 200300 }]
+chunks = { palette = "08d4b12e9582ba84d25a8c07cfbdd88870828a8c", image = "1caf054fb2971fea6f9f896a6b667a2654c8d722" }
+
+[bog_diver_package]
+uid = "uid://irvx9o4svlad"
+kind = "file"
+
+[[bog_diver_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[bog_diver_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://jt07ifkroqz0", path = "res://enemies/diver/bog/texture.asset" } },
+]
+page_slots = 6
+
+[[bog_diver_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://jt07ifkroqz0", path = "res://enemies/diver/bog/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://jt07ifkroqz0", path = "res://enemies/diver/bog/texture.asset" }, palette = "default_2" },
+]
+
+[[bog_diver_package.slots]]
+name = "package"
+type = "package"
+
+[bog_diver_package.from.USA]
+at = [{ stage = 0, file = 200400 }]
+chunks = { image = "8d469690f741c924f8da63c5c4c9b63f9c9f8164", palette = "8f97aac9128ea5cd3985e21425e69b396eaafe97" }
+
+[rat_and_moth_package]
+uid = "uid://kk2gbzdw7w55"
+kind = "file"
+
+[[rat_and_moth_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[rat_and_moth_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://7u281xxhlgn7", path = "res://encounters/rat_and_moth/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://7u281xxhlgn7", path = "res://encounters/rat_and_moth/texture.asset" }, palette = "default_2" },
+]
+
+[[rat_and_moth_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://7u281xxhlgn7", path = "res://encounters/rat_and_moth/texture.asset" } },
+]
+page_slots = 6
+
+[[rat_and_moth_package.slots]]
+name = "package"
+type = "package"
+
+[rat_and_moth_package.from.USA]
+at = [{ stage = 0, file = 200700 }]
+chunks = { palette = "469560ea3f8c2c4e40cbec65ea6e5359d6dfe45a", image = "491d4b82cf59ac5fefc926ceea813c070847998a" }
+
+[odd_stranger_package_b]
+uid = "uid://scvxxnoe3gy2"
+kind = "file"
+
+[[odd_stranger_package_b.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[odd_stranger_package_b.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset" } },
+]
+page_slots = 6
+
+[[odd_stranger_package_b.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset" }, palette = "default" },
+    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset" }, palette = "row_1" },
+]
+
+[[odd_stranger_package_b.slots]]
+name = "package"
+type = "package"
+
+[odd_stranger_package_b.from.USA]
+at = [{ stage = 0, file = 201000 }]
+chunks = { image = "df80e66ff9cd19441469dbeb450f5229fd6b4be9", palette = "7bb032df3ac96d82e3ef0046e963099fa4092512" }
+
+[brute_and_mossback_package]
+uid = "uid://bihsag53s8w4"
+kind = "file"
+
+[[brute_and_mossback_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://3syccco5bm9b", path = "res://encounters/brute_and_mossback/texture.asset" } },
+]
+page_slots = 6
+
+[[brute_and_mossback_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://3syccco5bm9b", path = "res://encounters/brute_and_mossback/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://3syccco5bm9b", path = "res://encounters/brute_and_mossback/texture.asset" }, palette = "default_2" },
+]
+
+[[brute_and_mossback_package.slots]]
+name = "package"
+type = "package"
+
+[brute_and_mossback_package.from.USA]
+at = [{ stage = 0, file = 201100 }]
+chunks = { image = "e043e14585b93c4bbf962c8d5a8a515c5a0b20b7", palette = "73b0329e03eb54304cce3fc21f8947e9b0edf849" }
+
+[bone_suckler_package]
+uid = "uid://o3hzdnco13fj"
+kind = "file"
+
+[[bone_suckler_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[bone_suckler_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://9wg5tb7kdnl9", path = "res://enemies/suckler/bone/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[bone_suckler_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://9wg5tb7kdnl9", path = "res://enemies/suckler/bone/texture.asset" } },
+]
+page_slots = 6
+
+[[bone_suckler_package.slots]]
+name = "package"
+type = "package"
+
+[bone_suckler_package.from.USA]
+at = [{ stage = 0, file = 201200 }]
+chunks = { image = "a266eb18ebc85eeb477fda2106711c6e27c31462", palette = "1ca0bfb1705227271c3b7c37670f238de109a363" }
+
+[horned_stranger_package]
+uid = "uid://1pdzdqb0kfwr3"
+kind = "file"
+
+[[horned_stranger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[horned_stranger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset" } },
+]
+page_slots = 6
+
+[[horned_stranger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset" }, palette = "default_2" },
+]
+
+[[horned_stranger_package.slots]]
+name = "package"
+type = "package"
+
+[horned_stranger_package.from.USA]
+at = [{ stage = 0, file = 201300 }]
+chunks = { image = "8de5c40e312b871e142303a328240231bd3144dd", palette = "bbc1f852723073e83de2be33403bb70976f51242" }
+
+[mind_suckler_package]
+uid = "uid://pdrj6y10j244"
+kind = "file"
+
+[[mind_suckler_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[mind_suckler_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1609cjm1bodrm", path = "res://enemies/suckler/mind/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[mind_suckler_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1609cjm1bodrm", path = "res://enemies/suckler/mind/texture.asset" } },
+]
+page_slots = 6
+
+[[mind_suckler_package.slots]]
+name = "package"
+type = "package"
+
+[mind_suckler_package.from.USA]
+at = [{ stage = 0, file = 201500 }]
+chunks = { palette = "77d22ff86f4c3605827849ccdb4ade56164a8f7b", image = "ab5c0f94f0625a9eec65da6f76baa1a0a97ca267" }
+
+[scavenger_package]
+uid = "uid://z5qxhx779tn0"
+kind = "file"
+
+[[scavenger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[scavenger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://rkt9u5ylch0s", path = "res://enemies/scavenger/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[scavenger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://rkt9u5ylch0s", path = "res://enemies/scavenger/texture.asset" } },
+]
+page_slots = 6
+
+[[scavenger_package.slots]]
+name = "package"
+type = "package"
+
+[scavenger_package.from.USA]
+at = [{ stage = 0, file = 201600 }]
+chunks = { palette = "90b4f12eb5003da40c1ffbae46fc1dd251bea82f", image = "36c2d1f058a8013ec5235a598a7c5c724f35f19e" }
+
+[odd_stranger_package]
+uid = "uid://1ir4i9v1wlhus"
+kind = "file"
+
+[[odd_stranger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[odd_stranger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1salza082n7bs", path = "res://enemies/stranger/odd/texture_2.asset" } },
+]
+page_slots = 6
+
+[[odd_stranger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1salza082n7bs", path = "res://enemies/stranger/odd/texture_2.asset" }, palette = "default" },
+    { image = { uid = "uid://1salza082n7bs", path = "res://enemies/stranger/odd/texture_2.asset" }, palette = "default_2" },
+]
+
+[[odd_stranger_package.slots]]
+name = "package"
+type = "package"
+
+[odd_stranger_package.from.USA]
+at = [{ stage = 0, file = 201800 }]
+chunks = { image = "d9cac39e687af20cfbb9686c10cad9748590f93e", palette = "934a7fa2c1238cfcc9d1de043489517da1b5342e" }
+
+[grinning_stranger_package]
+uid = "uid://12xmy5r21uehz"
+kind = "file"
+
+[[grinning_stranger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[grinning_stranger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1muzxb2zuxgce", path = "res://enemies/stranger/grinning/texture.asset" } },
+]
+page_slots = 6
+
+[[grinning_stranger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1muzxb2zuxgce", path = "res://enemies/stranger/grinning/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1muzxb2zuxgce", path = "res://enemies/stranger/grinning/texture.asset" }, palette = "default_2" },
+]
+
+[[grinning_stranger_package.slots]]
+name = "package"
+type = "package"
+
+[grinning_stranger_package.from.USA]
+at = [{ stage = 0, file = 201900 }]
+chunks = { image = "833d890dcdcdd1183253a282063b77fc9797dfb5", palette = "601689df7e4f653f7ae7956f3a5a9448cd392b63" }
+
+[pawn_golem_beam_sword_package]
+uid = "uid://4xhmqv7b2mew"
+kind = "file"
+
+[[pawn_golem_beam_sword_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default_2" },
+]
+
+[[pawn_golem_beam_sword_package.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default_3" },
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default_3" },
+]
+
+[[pawn_golem_beam_sword_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" } },
+]
+page_slots = 6
+
+[[pawn_golem_beam_sword_package.slots]]
+name = "package"
+type = "package"
+
+[pawn_golem_beam_sword_package.from.USA]
+at = [{ stage = 0, file = 202000 }]
+chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", image = "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a" }
+
+[watcher_package]
+uid = "uid://1a8df6tztphz2"
+kind = "file"
+
+[[watcher_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[watcher_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://3wqlgn4il6nb", path = "res://enemies/watcher/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[watcher_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://3wqlgn4il6nb", path = "res://enemies/watcher/texture.asset" } },
+]
+page_slots = 6
+
+[[watcher_package.slots]]
+name = "package"
+type = "package"
+
+[watcher_package.from.USA]
+at = [{ stage = 0, file = 202100 }]
+chunks = { palette = "5a5eb02dcda169ac3d1e9015d64697808eecd3fc", image = "93d7f4da0ea28e7f230f4b2adb8b491da5e1e966" }
+
+[rook_golem_beam_sword_package]
+uid = "uid://6pilqau9hujk"
+kind = "file"
+
+[[rook_golem_beam_sword_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default_2" },
+]
+
+[[rook_golem_beam_sword_package.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default_3" },
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default_3" },
+]
+
+[[rook_golem_beam_sword_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" } },
+]
+page_slots = 6
+
+[[rook_golem_beam_sword_package.slots]]
+name = "package"
+type = "package"
+
+[rook_golem_beam_sword_package.from.USA]
+at = [{ stage = 0, file = 202300 }]
+chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "ded0a140f19a63360285cc120672783458b2a5fb", image = "c11006938812c87bbfaaee1a746701dbc129b15a" }
+
+[green_and_red_amoeba_package]
+uid = "uid://1i0hfh7n860q0"
+kind = "file"
+
+[[green_and_red_amoeba_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[green_and_red_amoeba_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://7ay8my1zylpz", path = "res://encounters/green_and_red_amoeba/texture.asset" }, palette = "default" },
+    { name = "unread_row_2", entries = 256, slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+]
+
+[[green_and_red_amoeba_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://7ay8my1zylpz", path = "res://encounters/green_and_red_amoeba/texture.asset" } },
+]
+page_slots = 6
+
+[[green_and_red_amoeba_package.slots]]
+name = "package"
+type = "package"
+
+[green_and_red_amoeba_package.from.USA]
+at = [{ stage = 0, file = 202400 }]
+chunks = { palette = "b22d25ea63b0221035d826c1226e6578d7eb9a75", image = "b71bcfbc1990a00ded45d14d5609043ba00655ef" }
+
+[scorpion_package]
+uid = "uid://68t86aissxyc"
+kind = "file"
+
+[[scorpion_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[scorpion_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ljmnig3fupao", path = "res://enemies/scorpion/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[scorpion_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ljmnig3fupao", path = "res://enemies/scorpion/texture.asset" } },
+]
+page_slots = 6
+
+[[scorpion_package.slots]]
+name = "package"
+type = "package"
+
+[scorpion_package.from.USA]
+at = [{ stage = 0, file = 202500 }]
+chunks = { palette = "ea63ddeefafdd98381734adb91da4bc3303f9246", image = "8928dbe34948fdbb797c85c9c067ff4fb1acbbf5" }
+
+[maggot_package]
+uid = "uid://ka6hx9c3w9q0"
+kind = "file"
+
+[[maggot_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[maggot_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ufvo2z9zkm3w", path = "res://enemies/crawler/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[maggot_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ufvo2z9zkm3w", path = "res://enemies/crawler/texture.asset" } },
+]
+page_slots = 6
+
+[[maggot_package.slots]]
+name = "package"
+type = "package"
+
+[maggot_package.from.USA]
+at = [{ stage = 0, file = 202600 }]
+chunks = { palette = "58c356d989ddd4c5ef6d03f7df979ba425f8d0cd", image = "788e398e271d8faa31772d774219331477452ac9" }
+
+[akropolis_cafeteria_anmc_woman]
+uid = "uid://eb4jr8jegct2"
+kind = "file"
+
+[[akropolis_cafeteria_anmc_woman.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://3dyfcf7dlhll", path = "res://characters/anmc_woman_2/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://3dyfcf7dlhll", path = "res://characters/anmc_woman_2/texture.asset" }, palette = "default_2" },
+]
+
+[[akropolis_cafeteria_anmc_woman.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://3dyfcf7dlhll", path = "res://characters/anmc_woman_2/texture.asset" } },
+]
+page_slots = 6
+
+[[akropolis_cafeteria_anmc_woman.slots]]
+name = "package"
+type = "package"
+
+[akropolis_cafeteria_anmc_woman.from.USA]
+at = [{ stage = 0, file = 202900 }]
+chunks = { palette = "3b0a5b7a3969b6310c375e6f7875635a416bde5b", image = "60f87980634d3cec0f47c58482503e040d0aa2e9" }
+
+[bat_package]
+uid = "uid://1iknl9fmdt3ua"
+kind = "file"
+
+[[bat_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[bat_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1k0ztf5figx6m", path = "res://enemies/bat/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[bat_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1k0ztf5figx6m", path = "res://enemies/bat/texture.asset" } },
+]
+page_slots = 6
+
+[[bat_package.slots]]
+name = "package"
+type = "package"
+
+[bat_package.from.USA]
+at = [{ stage = 0, file = 203700 }]
+chunks = { palette = "bd8e9ef3d60f7c5b15c9d5874bfdd9ce04b138f0", image = "8f587def2a0108a90874c0c6c908b4834b3df90c" }
+
+[black_beetle_package]
+uid = "uid://1q2ncvnzf6q7z"
+kind = "file"
+
+[[black_beetle_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[black_beetle_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://qohvwakj8cdj", path = "res://enemies/black_beetle/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[black_beetle_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://qohvwakj8cdj", path = "res://enemies/black_beetle/texture.asset" } },
+]
+page_slots = 6
+
+[[black_beetle_package.slots]]
+name = "package"
+type = "package"
+
+[black_beetle_package.from.USA]
+at = [{ stage = 0, file = 203800 }]
+chunks = { palette = "4230a6af3f81868fb0447839b5ab3c2e87f1b7c6", image = "5448c02fea766933ddc0fd0336d73ca31c30c7f9" }
+
+[blood_suckler_package]
+uid = "uid://el108pjtw77f"
+kind = "file"
+
+[[blood_suckler_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[blood_suckler_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1wxim8d9738mt", path = "res://enemies/suckler/blood/texture.asset" } },
+]
+page_slots = 6
+
+[[blood_suckler_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1wxim8d9738mt", path = "res://enemies/suckler/blood/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[blood_suckler_package.slots]]
+name = "package"
+type = "package"
+
+[blood_suckler_package.from.USA]
+at = [{ stage = 0, file = 204000 }]
+chunks = { image = "bb930db912821ff1ed889d1e1f2fa8e462f9a27f", palette = "d193fc2d2ad8965982dc2b12f91de74694968249" }
+
+[bass_sounds]
+uid = "uid://17itzjq2zm4c8"
+kind = "file"
+
+[[bass_sounds.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[bass_sounds.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://n07jubtlkyz6", path = "res://enemies/bass/texture.asset" } },
+]
+page_slots = 6
+
+[[bass_sounds.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://n07jubtlkyz6", path = "res://enemies/bass/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[bass_sounds.slots]]
+name = "package"
+type = "package"
+
+[bass_sounds.from.USA]
+at = [{ stage = 0, file = 204100 }]
+chunks = { image = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e", palette = "852234bb3d2a63cbd07314a10ddf7622513fee52" }
+
+[mad_chaser_package]
+uid = "uid://1idzsowfsgsu5"
+kind = "file"
+
+[[mad_chaser_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1iqdg9uiu6ahk", path = "res://enemies/chaser/mad/texture.asset" } },
+]
+page_slots = 6
+
+[[mad_chaser_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1iqdg9uiu6ahk", path = "res://enemies/chaser/mad/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1iqdg9uiu6ahk", path = "res://enemies/chaser/mad/texture.asset" }, palette = "default_2" },
+]
+
+[[mad_chaser_package.slots]]
+name = "package"
+type = "package"
+
+[mad_chaser_package.from.USA]
+at = [{ stage = 0, file = 204400 }]
+chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a207608986d6ac5c3c98dc5e2bfacce652128" }
+
+[akropolis_forked_road_sucklerceph_and_skull_stalker]
+uid = "uid://6qfjizeikdzo"
+kind = "file"
+
+[[akropolis_forked_road_sucklerceph_and_skull_stalker.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[akropolis_forked_road_sucklerceph_and_skull_stalker.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1e1qae1e1j7za", path = "res://encounters/sucklerceph_and_skull_stalker/texture_1.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[akropolis_forked_road_sucklerceph_and_skull_stalker.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1e1qae1e1j7za", path = "res://encounters/sucklerceph_and_skull_stalker/texture_1.asset" } },
+]
+page_slots = 6
+
+[[akropolis_forked_road_sucklerceph_and_skull_stalker.slots]]
+name = "package"
+type = "package"
+
+[akropolis_forked_road_sucklerceph_and_skull_stalker.from.USA]
+at = [{ stage = 0, file = 204600 }]
+chunks = { palette = "77e262d392f75995eb0ee5021a47ca414bb75e7a", image = "3e5fc257cc4abdafdc758065e284ddde3d107754" }
+
+[brute_and_mossback_recolor_package]
+uid = "uid://1kzvtiyvi4uk3"
+kind = "file"
+
+[[brute_and_mossback_recolor_package.slots]]
+name = "sounds_1"
+type = "sound_bank"
+
+[[brute_and_mossback_recolor_package.slots]]
+name = "recolor_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1sd7o7kdm85dh", path = "res://encounters/brute_and_mossback/recolor_texture.asset" } },
+]
+page_slots = 6
+
+[[brute_and_mossback_recolor_package.slots]]
+name = "recolor_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1sd7o7kdm85dh", path = "res://encounters/brute_and_mossback/recolor_texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1sd7o7kdm85dh", path = "res://encounters/brute_and_mossback/recolor_texture.asset" }, palette = "default_2" },
+]
+
+[[brute_and_mossback_recolor_package.slots]]
+name = "package"
+type = "package"
+
+[brute_and_mossback_recolor_package.from.USA]
+at = [{ stage = 0, file = 204900 }]
+chunks = { recolor_image = "fb5fd0b04c67cd310335286dbaf81fe307859c4b", recolor_palette = "3bcd3a6d7e8ab6d8825cd29821118dd3e1798863" }
+
+[eve_helmet_package]
+uid = "uid://gnef9o2njj4i"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+    { name = "package", type = "package" },
+]
+
+[eve_helmet_package.from.USA]
+at = [{ stage = 0, file = 205200 }]
+
+[caterpillar_package]
+uid = "uid://7y6dvihxdny8"
+kind = "file"
+
+[[caterpillar_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[caterpillar_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://12iizaqzqbfke", path = "res://enemies/crawler/caterpillar/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[caterpillar_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://12iizaqzqbfke", path = "res://enemies/crawler/caterpillar/texture.asset" } },
+]
+page_slots = 6
+
+[[caterpillar_package.slots]]
+name = "package"
+type = "package"
+
+[caterpillar_package.from.USA]
+at = [{ stage = 0, file = 205500 }]
+chunks = { palette = "e72c1cf19726fb72865a1959f75e4129637426fe", image = "6d3b8dcd002dddf9537fb7a22f5c64511a6a5aad" }
+
+[pawn_golem_grenade_launcher_package]
+uid = "uid://6hd03zyt1y0e"
+kind = "file"
+
+[[pawn_golem_grenade_launcher_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default_2" },
+]
+
+[[pawn_golem_grenade_launcher_package.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default_3" },
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default_3" },
+]
+
+[[pawn_golem_grenade_launcher_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" } },
+]
+page_slots = 6
+
+[[pawn_golem_grenade_launcher_package.slots]]
+name = "package"
+type = "package"
+
+[pawn_golem_grenade_launcher_package.from.USA]
+at = [{ stage = 0, file = 205600 }]
+chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", image = "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a" }
+
+[rook_golem_grenade_launcher_package]
+uid = "uid://1xlbpcv5rf6fz"
+kind = "file"
+
+[[rook_golem_grenade_launcher_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default_2" },
+]
+
+[[rook_golem_grenade_launcher_package.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ehnqae93y99d", path = "res://enemies/golem/pawn/texture.asset" }, palette = "default_3" },
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" }, palette = "default_3" },
+]
+
+[[rook_golem_grenade_launcher_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://bjnrctykk5po", path = "res://enemies/golem/rook/texture.asset" } },
+]
+page_slots = 6
+
+[[rook_golem_grenade_launcher_package.slots]]
+name = "package"
+type = "package"
+
+[rook_golem_grenade_launcher_package.from.USA]
+at = [{ stage = 0, file = 205700 }]
+chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "ded0a140f19a63360285cc120672783458b2a5fb", image = "c11006938812c87bbfaaee1a746701dbc129b15a" }
+
+[sea_diver_package]
+uid = "uid://1hl507ptn6pa7"
+kind = "file"
+
+[[sea_diver_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[sea_diver_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1gf0adyexxcd3", path = "res://enemies/diver/sea/texture.asset" } },
+]
+page_slots = 6
+
+[[sea_diver_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1gf0adyexxcd3", path = "res://enemies/diver/sea/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1gf0adyexxcd3", path = "res://enemies/diver/sea/texture.asset" }, palette = "default_2" },
+]
+
+[[sea_diver_package.slots]]
+name = "package"
+type = "package"
+
+[sea_diver_package.from.USA]
+at = [{ stage = 0, file = 206100 }]
+chunks = { image = "c7ad22fc615a05f42e7b731ecd09383b6d0ee138", palette = "a70602054418ac955bfd352add51ce56c72e1707" }
+
+[sucklerceph_and_slouch_package]
+uid = "uid://1r4sr3ldrounr"
+kind = "file"
+
+[[sucklerceph_and_slouch_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[sucklerceph_and_slouch_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://10fabj732c5uk", path = "res://encounters/sucklerceph_and_slouch/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://10fabj732c5uk", path = "res://encounters/sucklerceph_and_slouch/texture.asset" }, palette = "default_2" },
+]
+
+[[sucklerceph_and_slouch_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://10fabj732c5uk", path = "res://encounters/sucklerceph_and_slouch/texture.asset" } },
+]
+page_slots = 6
+
+[[sucklerceph_and_slouch_package.slots]]
+name = "package"
+type = "package"
+
+[sucklerceph_and_slouch_package.from.USA]
+at = [{ stage = 0, file = 207000 }]
+chunks = { palette = "50b8eff0cc658a7a33a2745cbc6f2c0adb45d208", image = "3c0e4847f13b41d027b6748c84ba916b5dd6b3ac" }
+
+[skull_stalker_and_creeping_stranger_package]
+uid = "uid://u1enysyrje1k"
+kind = "file"
+
+[[skull_stalker_and_creeping_stranger_package.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[skull_stalker_and_creeping_stranger_package.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1oq9z6n9m7h0r", path = "res://encounters/skull_stalker_and_creeping_stranger/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1oq9z6n9m7h0r", path = "res://encounters/skull_stalker_and_creeping_stranger/texture.asset" }, palette = "default_2" },
+]
+
+[[skull_stalker_and_creeping_stranger_package.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1oq9z6n9m7h0r", path = "res://encounters/skull_stalker_and_creeping_stranger/texture.asset" } },
+]
+page_slots = 6
+
+[[skull_stalker_and_creeping_stranger_package.slots]]
+name = "package"
+type = "package"
+
+[skull_stalker_and_creeping_stranger_package.from.USA]
+at = [{ stage = 0, file = 207200 }]
+chunks = { palette = "e38155b119b7aad70d96339be2f981f2019ed2df", image = "be60a73f4f6afa512d41164b0fad6b96bcb73fbb" }
+
+[akropolis_cafeteria_stranger]
+uid = "uid://1n7qvrzr6b7xf"
+kind = "file"
+
+[[akropolis_cafeteria_stranger.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1muzxb2zuxgce", path = "res://enemies/stranger/grinning/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1muzxb2zuxgce", path = "res://enemies/stranger/grinning/texture.asset" }, palette = "default_2" },
+]
+
+[[akropolis_cafeteria_stranger.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1muzxb2zuxgce", path = "res://enemies/stranger/grinning/texture.asset" } },
+]
+page_slots = 6
+
+[[akropolis_cafeteria_stranger.slots]]
+name = "package"
+type = "package"
+
+[akropolis_cafeteria_stranger.from.USA]
+at = [{ stage = 0, file = 210600 }]
+chunks = { image = "833d890dcdcdd1183253a282063b77fc9797dfb5", palette = "601689df7e4f653f7ae7956f3a5a9448cd392b63" }
+
+[akropolis_sanctuary_rupert]
+uid = "uid://ldvqil4m3lhi"
+kind = "file"
+
+[[akropolis_sanctuary_rupert.slots]]
+name = "bloodied_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://bra2qtgfsf8a", path = "res://characters/rupert/bloodied_texture.asset" }, palette = "default" },
+    { image = { uid = "uid://bra2qtgfsf8a", path = "res://characters/rupert/bloodied_texture.asset" }, palette = "default_2" },
+]
+
+[[akropolis_sanctuary_rupert.slots]]
+name = "bloodied_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://bra2qtgfsf8a", path = "res://characters/rupert/bloodied_texture.asset" } },
+]
+page_slots = 6
+
+[[akropolis_sanctuary_rupert.slots]]
+name = "package"
+type = "package"
+
+[akropolis_sanctuary_rupert.from.USA]
+at = [{ stage = 0, file = 210700 }]
+chunks = { bloodied_palette = "f204981b9e88c3f37270d0f3c97480bada0e97a4", bloodied_image = "fce42cdf1e6d9352880eedc51205251b10684fb1" }
+
+[mist_r18_eric]
+uid = "uid://1jhic7c6u7lgo"
+kind = "file"
+
+[[mist_r18_eric.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://x4fw5kvkb2jf", path = "res://characters/eric/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://x4fw5kvkb2jf", path = "res://characters/eric/texture.asset" }, palette = "default_2" },
+]
+
+[[mist_r18_eric.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://x4fw5kvkb2jf", path = "res://characters/eric/texture.asset" } },
+]
+page_slots = 6
+
+[[mist_r18_eric.slots]]
+name = "package"
+type = "package"
+
+[mist_r18_eric.from.USA]
+at = [{ stage = 0, file = 213000 }]
+chunks = { palette = "4b9015239665f0c0a227a3936dc7e42f9362a3c2", image = "6d1b677c53acb48a7376ff2323554155248deec0" }
+
+[mist_parking_jodie]
+uid = "uid://ltxt0hmwvm0j"
+kind = "file"
+
+[[mist_parking_jodie.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://6vmihioutm0p", path = "res://characters/jodie/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://6vmihioutm0p", path = "res://characters/jodie/texture.asset" }, palette = "default_2" },
+]
+
+[[mist_parking_jodie.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://6vmihioutm0p", path = "res://characters/jodie/texture.asset" } },
+]
+page_slots = 7
+
+[[mist_parking_jodie.slots]]
+name = "package"
+type = "package"
+
+[mist_parking_jodie.from.USA]
+at = [{ stage = 0, file = 213100 }]
+chunks = { palette = "aa3446602e6707f1b9fdcc248eb89744ba0200bd", image = "7eccbc3f301c80c8407dae4d32223ddfd1f7854c" }
+
+[mist_shooting_gallery_pierce]
+uid = "uid://o0c4psad7v1w"
+kind = "file"
+
+[[mist_shooting_gallery_pierce.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset" }, palette = "default_2" },
+]
+
+[[mist_shooting_gallery_pierce.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset" } },
+]
+page_slots = 6
+
+[[mist_shooting_gallery_pierce.slots]]
+name = "package"
+type = "package"
+
+[mist_shooting_gallery_pierce.from.USA]
+at = [{ stage = 0, file = 215100 }]
+chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
+
+[dryfield_general_store_blood_suckler]
+uid = "uid://155gorqju17pf"
+kind = "file"
+
+[[dryfield_general_store_blood_suckler.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[dryfield_general_store_blood_suckler.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1wxim8d9738mt", path = "res://enemies/suckler/blood/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[dryfield_general_store_blood_suckler.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1wxim8d9738mt", path = "res://enemies/suckler/blood/texture.asset" } },
+]
+page_slots = 6
+
+[[dryfield_general_store_blood_suckler.slots]]
+name = "package"
+type = "package"
+
+[dryfield_general_store_blood_suckler.from.USA]
+at = [{ stage = 0, file = 223600 }]
+chunks = { image = "bb930db912821ff1ed889d1e1f2fa8e462f9a27f", palette = "d193fc2d2ad8965982dc2b12f91de74694968249" }
+
+[shelter_1f_heliport_rupert]
+uid = "uid://1smwzhjegnieu"
+kind = "file"
+
+[[shelter_1f_heliport_rupert.slots]]
+name = "hurt_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://vrrfxkda77b5", path = "res://characters/rupert/hurt_texture.asset" }, palette = "default" },
+    { image = { uid = "uid://vrrfxkda77b5", path = "res://characters/rupert/hurt_texture.asset" }, palette = "default_2" },
+]
+
+[[shelter_1f_heliport_rupert.slots]]
+name = "hurt_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://vrrfxkda77b5", path = "res://characters/rupert/hurt_texture.asset" } },
+]
+page_slots = 6
+
+[[shelter_1f_heliport_rupert.slots]]
+name = "image"
+type = "image"
+
+[[shelter_1f_heliport_rupert.slots]]
+name = "package"
+type = "package"
+
+[shelter_1f_heliport_rupert.from.USA]
+at = [{ stage = 0, file = 260400 }]
+chunks = { hurt_palette = "eb1fa3378993d003b53559608e6c73ebaac55445", hurt_image = "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0" }
+
+[shelter_1f_heliport_jodie]
+uid = "uid://nckgrms4990v"
+kind = "file"
+
+[[shelter_1f_heliport_jodie.slots]]
+name = "palette_2"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1x4ye7a51pm6i", path = "res://characters/jodie/texture_2.asset" }, palette = "default" },
+    { image = { uid = "uid://1x4ye7a51pm6i", path = "res://characters/jodie/texture_2.asset" }, palette = "default_2" },
+]
+
+[[shelter_1f_heliport_jodie.slots]]
+name = "image_2"
+type = "image"
+pages = [
+    { image = { uid = "uid://1x4ye7a51pm6i", path = "res://characters/jodie/texture_2.asset" } },
+]
+page_slots = 6
+
+[[shelter_1f_heliport_jodie.slots]]
+name = "image"
+type = "image"
+
+[[shelter_1f_heliport_jodie.slots]]
+name = "package"
+type = "package"
+
+[shelter_1f_heliport_jodie.from.USA]
+at = [{ stage = 0, file = 260500 }]
+chunks = { palette_2 = "f0bf329a2719c0b4771a803858b11255285dd78f", image_2 = "04d83a04288dab6c521fa4690b1761ac45f208c7" }

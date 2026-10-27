@@ -1,0 +1,119 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://mmtyfdvdf59w"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 8, type = "dialogue" },
+    { index = 9, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 4101, file = 0 }]
+
+[view1]
+uid = "uid://u3abp147iz4m"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1j6mzgmhglcn9", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 4101, file = 1 }]
+
+[view2]
+uid = "uid://12nafoicixzqt"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1jri8zo7wvsf2", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 4101, file = 2 }]
+
+[view3]
+uid = "uid://1cnf0qbq0du99"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://10qcaxn7m8v66", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 4101, file = 3 }]
+
+[view4]
+uid = "uid://1607kd9wqjjdo"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://3bkkow7uvxwp", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 4, folder = 4101, file = 4 }]
+
+[view5]
+uid = "uid://m6mhcs6gg4kc"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1qhcfcgumrgyk", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 4, folder = 4101, file = 5 }]
+
+[view6]
+uid = "uid://134s3sv925hos"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://88t9tht3kixb", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 4, folder = 4101, file = 6 }]
+
+[view7]
+uid = "uid://10lw1vp580bqv"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://2ineby2308v8", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 4, folder = 4101, file = 7 }]
+
+[view8]
+uid = "uid://1ge8s8myepp99"
+kind = "file"
+slots = [
+    { name = "dryfield_night_motel_lobby_dialogue_2_atlas", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://4098suxjpaod", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view8_background.asset" } },
+]
+
+[view8.from.USA]
+at = [{ stage = 4, folder = 4101, file = 8 }]

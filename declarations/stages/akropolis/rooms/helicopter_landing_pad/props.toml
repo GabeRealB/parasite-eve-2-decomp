@@ -1,0 +1,41 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[lift_page]
+uid = "uid://1uimpwyaq8b9b"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "lift", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
+    { name = "cable", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
+]
+cells = [
+    { name = "lift", rect = [0, 0, 128, 192], palette = "lift", bpp = 8 },
+    { name = "cable", rect = [0, 248, 24, 8], palette = "cable" },
+]
+
+[lift_page.from.USA]
+at = [{ stage = 1, folder = 1601, file = 0, slot = "image", page = 1 }]
+sha1 = "7a807ca1db914d0beb8624d4b1bd2b1bc44b55b2"
+palettes = { lift = "a2431ebdaa9ec7d90aeb70c0cf26f2348ff3de7f", cable = "e9023b6d0ddeea9c47f7ffa8ac23fc71d9cdd015" }
+
+[radio]
+uid = "uid://17l7x5n7ilkb6"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [224, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] },
+]
+cells = [
+    { name = "radio", rect = [128, 224, 92, 32], palette = "default" },
+]
+
+[radio.from.USA]
+at = [{ stage = 1, folder = 1601, file = 18, slot = "image_0", page = 0 }]
+sha1 = "6ecb80afeab2bc9cbb22d59559d89c3ce792e495"
+palettes = { default = "54cb940e5a72a6e048f0554fedd4fc3bb85c00a6" }

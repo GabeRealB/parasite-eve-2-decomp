@@ -1,0 +1,23 @@
+# A declaration: the disc layout and its slots, no game data.
+
+uid = "uid://2d68ucbje3g9"
+kind = "disc"
+image = { name = "SLUS-01042.bin", cue = "SLUS-01042.cue", size = 588978432, sha1 = "e8c7e3c93ea2a0e7d73a170af646fd132ac5b984" }
+track = { type = "data", xa_edc = true, new_type = false }
+identifiers = { system = "PLAYSTATION", application = "PLAYSTATION", creation_date = "0000050212500000+36" }
+default_attributes = { gmt_offs = 36, xa_attrib = 32, xa_perm = 1365, xa_gid = 0, xa_uid = 0 }
+dummy_sectors = 150
+slots = [
+    { name = "license", type = "license", asset = { uid = "uid://vdx31ffeypvs", path = "res://disc/license.asset" } },
+    { name = "SYSTEM.CNF", type = "data", asset = { uid = "uid://8aay9n5xeqyy", path = "res://disc/system_config_1.asset" } },
+    { name = "PE_DISK.01", type = "data", asset = { uid = "uid://1g0xo6rrbudqm", path = "res://disc/disc_marker.asset" } },
+    { name = "SLUS_010.42", type = "data", asset = { uid = "uid://ke96sngcku4f", path = "res://main/executable.asset" } },
+    { name = "INIT.BS", type = "data", asset = { uid = "uid://1skpauej8oul1", path = "res://disc/init_image.asset" } },
+    { name = "STAGE0.HED", type = "data", asset = { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.asset" } },
+    { name = "STAGE0.CDF", type = "data", asset = { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.asset" } },
+    { name = "STAGE1.CDF", type = "data", asset = { uid = "uid://1tqt929f2t16d", path = "res://disc/USA/stage1.asset" } },
+    { name = "STAGE2.CDF", type = "data", asset = { uid = "uid://zygbezs8hr4g", path = "res://disc/USA/stage2.asset" } },
+    { name = "STAGE3.CDF", type = "data", asset = { uid = "uid://1wcpm47vl56d1", path = "res://disc/USA/stage3.asset" } },
+    { name = "INTER0.STR", type = "mixed", asset = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset" } },
+    { name = "DUMMY.DMY", type = "data", asset = { uid = "uid://kz8sahthlcdt", path = "res://disc/dummy.asset" } },
+]

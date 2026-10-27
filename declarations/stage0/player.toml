@@ -1,0 +1,1249 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[aya_10200]
+uid = "uid://18186pikpmwr6"
+kind = "file"
+
+[[aya_10200.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" }, palette = "default_2" },
+]
+
+[[aya_10200.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" } },
+]
+page_slots = 6
+
+[[aya_10200.slots]]
+name = "package"
+type = "package"
+
+[aya_10200.from.USA]
+at = [{ stage = 0, file = 10200 }]
+chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
+
+[aya_10300]
+uid = "uid://sjomc8qdhlrz"
+kind = "file"
+
+[[aya_10300.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset" }, palette = "default_2" },
+]
+
+[[aya_10300.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset" } },
+]
+page_slots = 6
+
+[[aya_10300.slots]]
+name = "package"
+type = "package"
+
+[aya_10300.from.USA]
+at = [{ stage = 0, file = 10300 }]
+chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2" }
+
+[p08_snail]
+uid = "uid://qo94o02aiidk"
+kind = "file"
+
+[[p08_snail.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" }, palette = "default" },
+]
+
+[[p08_snail.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+]
+
+[[p08_snail.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[p08_snail.slots]]
+name = "package"
+type = "package"
+
+[p08_snail.from.USA]
+at = [{ stage = 0, file = 10301 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
+[m93r]
+uid = "uid://13l72aniqazqw"
+kind = "file"
+
+[[m93r.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://syn84z2fmjcr", path = "res://weapons/m93r/texture.asset" }, palette = "default" },
+]
+
+[[m93r.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://syn84z2fmjcr", path = "res://weapons/m93r/texture.asset" } },
+]
+
+[[m93r.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m93r.slots]]
+name = "package"
+type = "package"
+
+[m93r.from.USA]
+at = [{ stage = 0, file = 10302 }]
+chunks = { palette = "cbdb817ed582b80cf2ddc81dd4acce7625598ab3", image = "4d34d0b2ad6a3202548d3e3880aaa1063a48fc99" }
+
+[m950]
+uid = "uid://5mijeayle2e8"
+kind = "file"
+
+[[m950.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1mcmcori39oln", path = "res://weapons/m950/texture.asset" }, palette = "default" },
+]
+
+[[m950.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1mcmcori39oln", path = "res://weapons/m950/texture.asset" } },
+]
+
+[[m950.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m950.slots]]
+name = "package"
+type = "package"
+
+[m950.from.USA]
+at = [{ stage = 0, file = 10303 }]
+chunks = { palette = "7af0e4f61272c9120136d8a6dbf7ef9737795554", image = "7ef774a59f634b849c01b16e4b48a2f49f53f25d" }
+
+[p08]
+uid = "uid://1ax2nb1f4t4qx"
+kind = "file"
+
+[[p08.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" }, palette = "default" },
+]
+
+[[p08.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+]
+
+[[p08.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[p08.slots]]
+name = "package"
+type = "package"
+
+[p08.from.USA]
+at = [{ stage = 0, file = 10304 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
+[p229]
+uid = "uid://l0kfqaio753o"
+kind = "file"
+
+[[p229.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.asset" }, palette = "default" },
+]
+
+[[p229.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.asset" } },
+]
+
+[[p229.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[p229.slots]]
+name = "package"
+type = "package"
+
+[p229.from.USA]
+at = [{ stage = 0, file = 10305 }]
+chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "cd04b81c03e2cb7eeaa5758bbfd7e4ba17096e98" }
+
+[unused_85]
+uid = "uid://12l46ignzxpbr"
+kind = "file"
+
+[[unused_85.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.asset" }, palette = "default" },
+]
+
+[[unused_85.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.asset" } },
+]
+
+[[unused_85.slots]]
+name = "package"
+type = "package"
+
+[unused_85.from.USA]
+at = [{ stage = 0, file = 10306 }]
+chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "9722b11c74e6bb2a707b3afbd40144ec7b3100f1" }
+
+[unused_86]
+uid = "uid://rcmoo12y9bd8"
+kind = "file"
+
+[[unused_86.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1j22069xl66hn", path = "res://weapons/unused_86/texture.asset" }, palette = "default" },
+]
+
+[[unused_86.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1j22069xl66hn", path = "res://weapons/unused_86/texture.asset" } },
+]
+
+[[unused_86.slots]]
+name = "package"
+type = "package"
+
+[unused_86.from.USA]
+at = [{ stage = 0, file = 10307 }]
+chunks = { palette = "da2d8baa91983a79dac70ca357f83df96839a4a4", image = "c56adfa9e01e9fe8ae95d726f7b4f05c3ead6846" }
+
+[unused_87]
+uid = "uid://1rzs9jypp1l3r"
+kind = "file"
+
+[[unused_87.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://v5qhplmk88gu", path = "res://weapons/unused_86/unused_87_texture.asset" }, palette = "default" },
+]
+
+[[unused_87.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://v5qhplmk88gu", path = "res://weapons/unused_86/unused_87_texture.asset" } },
+]
+
+[[unused_87.slots]]
+name = "package"
+type = "package"
+
+[unused_87.from.USA]
+at = [{ stage = 0, file = 10308 }]
+chunks = { palette = "b66536429b67b7481f2427b7d0714eac904fc384", image = "a475f85da7ce020e04b3ea5b93f5a52ba96bc692" }
+
+[mongoose]
+uid = "uid://as1hls566fqr"
+kind = "file"
+
+[[mongoose.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://pgm5vz11u2z2", path = "res://weapons/mongoose/texture.asset" }, palette = "default" },
+]
+
+[[mongoose.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://pgm5vz11u2z2", path = "res://weapons/mongoose/texture.asset" } },
+]
+
+[[mongoose.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[mongoose.slots]]
+name = "package"
+type = "package"
+
+[mongoose.from.USA]
+at = [{ stage = 0, file = 10309 }]
+chunks = { palette = "349ba8d02d31996f3cb94ad56586f7a65acb742b", image = "b27b2b70e25672659629ee739e34866eb1d2f985" }
+
+[unused_89]
+uid = "uid://1eq2c32g2p215"
+kind = "file"
+
+[[unused_89.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i0gfx2or0dox", path = "res://weapons/unused_86/unused_89_texture.asset" }, palette = "default" },
+]
+
+[[unused_89.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i0gfx2or0dox", path = "res://weapons/unused_86/unused_89_texture.asset" } },
+]
+
+[[unused_89.slots]]
+name = "package"
+type = "package"
+
+[unused_89.from.USA]
+at = [{ stage = 0, file = 10310 }]
+chunks = { palette = "94542d61f068d9992653f5736789bbb59f565cda", image = "d715dcdb2a9198357caa919f8137104318248642" }
+
+[grenade_pistol]
+uid = "uid://1t7hxpup8zmjn"
+kind = "file"
+
+[[grenade_pistol.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.asset" }, palette = "default" },
+]
+
+[[grenade_pistol.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.asset" } },
+]
+
+[[grenade_pistol.slots]]
+name = "package"
+type = "package"
+
+[grenade_pistol.from.USA]
+at = [{ stage = 0, file = 10311 }]
+chunks = { palette = "436620fc4e182be25cd7249f0674e4b7ea0469ec", image = "ac6c6dbf227c68a2576431832567b886ffc449d8" }
+
+[mm1]
+uid = "uid://ke88m76kgukg"
+kind = "file"
+
+[[mm1.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://7gmlhblwc2a7", path = "res://weapons/mm1/texture.asset" }, palette = "default" },
+]
+
+[[mm1.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://7gmlhblwc2a7", path = "res://weapons/mm1/texture.asset" } },
+]
+
+[[mm1.slots]]
+name = "package"
+type = "package"
+
+[mm1.from.USA]
+at = [{ stage = 0, file = 10312 }]
+chunks = { palette = "88f4446b3d3c6e68056d4ca07bedd163c168626f", image = "e1c242525f4ca2c0eb4d5e7bd901dce7924dfabb" }
+
+[pa3]
+uid = "uid://xytnvrd0rcp0"
+kind = "file"
+
+[[pa3.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://3wocbnkcxwgv", path = "res://weapons/pa3/texture.asset" }, palette = "default" },
+]
+
+[[pa3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://3wocbnkcxwgv", path = "res://weapons/pa3/texture.asset" } },
+]
+
+[[pa3.slots]]
+name = "package"
+type = "package"
+
+[pa3.from.USA]
+at = [{ stage = 0, file = 10313 }]
+chunks = { palette = "4472c8b45388ed0feb13847e91c1d00702f644f4", image = "877cd824c3988c6ac19016388f6c766f0772c854" }
+
+[sp12]
+uid = "uid://dlyukd5ee45h"
+kind = "file"
+
+[[sp12.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://m4x6qkrzrxqq", path = "res://weapons/sp12/texture.asset" }, palette = "default" },
+]
+
+[[sp12.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://m4x6qkrzrxqq", path = "res://weapons/sp12/texture.asset" } },
+]
+
+[[sp12.slots]]
+name = "package"
+type = "package"
+
+[sp12.from.USA]
+at = [{ stage = 0, file = 10314 }]
+chunks = { palette = "8a22dd0b6e15cd2f6dd89444da42860347f0157e", image = "f07fc4a875b1f08e2be894d4619ad7f4609a1498" }
+
+[as12]
+uid = "uid://j13fyfjn1x9m"
+kind = "file"
+
+[[as12.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://12pbg2pydikyo", path = "res://weapons/as12/texture.asset" }, palette = "default" },
+]
+
+[[as12.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://12pbg2pydikyo", path = "res://weapons/as12/texture.asset" } },
+]
+
+[[as12.slots]]
+name = "package"
+type = "package"
+
+[as12.from.USA]
+at = [{ stage = 0, file = 10315 }]
+chunks = { palette = "86d70a4d4b75b8d9e5093fb849e1ca54b960f380", image = "c225e1581436768fdb835c4c2d64e9f766f9a3f2" }
+
+[m4a1]
+uid = "uid://b18yotfjvjxh"
+kind = "file"
+
+[[m4a1.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset" }, palette = "default" },
+]
+
+[[m4a1.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" } },
+]
+
+[[m4a1.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m4a1.slots]]
+name = "package"
+type = "package"
+
+[m4a1.from.USA]
+at = [{ stage = 0, file = 10316 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
+
+[m249]
+uid = "uid://5xpkwrn34ymk"
+kind = "file"
+
+[[m249.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1s7jnk65j60j9", path = "res://weapons/m249/texture.asset" }, palette = "default" },
+]
+
+[[m249.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1s7jnk65j60j9", path = "res://weapons/m249/texture.asset" } },
+]
+
+[[m249.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m249.slots]]
+name = "package"
+type = "package"
+
+[m249.from.USA]
+at = [{ stage = 0, file = 10317 }]
+chunks = { palette = "cc3e3d112d0a653fea5af28c7fac85fa0c13f9a4", image = "34049fe39e246ac356a6dfcad3a38224cd40166f" }
+
+[unused_91]
+uid = "uid://naxnuo2ox9x9"
+kind = "file"
+
+[[unused_91.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" }, palette = "default" },
+]
+
+[[unused_91.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+]
+
+[[unused_91.slots]]
+name = "package"
+type = "package"
+
+[unused_91.from.USA]
+at = [{ stage = 0, file = 10318 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
+[tonfa_baton]
+uid = "uid://4ixhow4emghz"
+kind = "file"
+
+[[tonfa_baton.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1nyrxddjckc44", path = "res://weapons/tonfa_baton/texture.asset" }, palette = "default" },
+]
+
+[[tonfa_baton.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1nyrxddjckc44", path = "res://weapons/tonfa_baton/texture.asset" } },
+]
+
+[[tonfa_baton.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[tonfa_baton.slots]]
+name = "package"
+type = "package"
+
+[tonfa_baton.from.USA]
+at = [{ stage = 0, file = 10319 }]
+chunks = { palette = "87358b9d4309237fd64ae8a52f475f2f0f3463ba", image = "4f133d590448bfe752593b8385b3accab668228a" }
+
+[m4a1_p1]
+uid = "uid://1e8awrbkiilro"
+kind = "file"
+
+[[m4a1_p1.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset" }, palette = "default" },
+]
+
+[[m4a1_p1.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" } },
+]
+
+[[m4a1_p1.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m4a1_p1.slots]]
+name = "package"
+type = "package"
+
+[m4a1_p1.from.USA]
+at = [{ stage = 0, file = 10320 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
+
+[m4a1_p2]
+uid = "uid://m6qtarjsz5a8"
+kind = "file"
+
+[[m4a1_p2.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset" }, palette = "default" },
+]
+
+[[m4a1_p2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" } },
+]
+
+[[m4a1_p2.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m4a1_p2.slots]]
+name = "package"
+type = "package"
+
+[m4a1_p2.from.USA]
+at = [{ stage = 0, file = 10321 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
+
+[hypervelocity]
+uid = "uid://1jxu0k8181mvb"
+kind = "file"
+
+[[hypervelocity.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.asset" }, palette = "default" },
+]
+
+[[hypervelocity.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.asset" } },
+]
+
+[[hypervelocity.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[hypervelocity.slots]]
+name = "package"
+type = "package"
+
+[hypervelocity.from.USA]
+at = [{ stage = 0, file = 10322 }]
+chunks = { palette = "0dc2885eb39aca4f61c421c41c175e2a05fb3312", image = "76025d77dc8e1c651cd624b5797adcda9e3e8108" }
+
+[gunblade]
+uid = "uid://1dro29mkga3aw"
+kind = "file"
+
+[[gunblade.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://shn32m7e3l3z", path = "res://weapons/gunblade/texture.asset" }, palette = "default" },
+]
+
+[[gunblade.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://shn32m7e3l3z", path = "res://weapons/gunblade/texture.asset" } },
+]
+
+[[gunblade.slots]]
+name = "package"
+type = "package"
+
+[gunblade.from.USA]
+at = [{ stage = 0, file = 10323 }]
+chunks = { palette = "3222ddbed8bd982d2a97697358c03aa7126149f9", image = "f788b0886719afb2a9883282496d01e421a63614" }
+
+[unused_97]
+uid = "uid://hioxi0kf7lvv"
+kind = "file"
+
+[[unused_97.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" }, palette = "default" },
+]
+
+[[unused_97.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+]
+
+[[unused_97.slots]]
+name = "package"
+type = "package"
+
+[unused_97.from.USA]
+at = [{ stage = 0, file = 10324 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
+[m4a1_hammer]
+uid = "uid://vsw4uqrx0ue8"
+kind = "file"
+
+[[m4a1_hammer.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1thc0xio15tpz", path = "res://weapons/m4a1_hammer/texture.asset" }, palette = "default" },
+]
+
+[[m4a1_hammer.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1thc0xio15tpz", path = "res://weapons/m4a1_hammer/texture.asset" } },
+]
+
+[[m4a1_hammer.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m4a1_hammer.slots]]
+name = "package"
+type = "package"
+
+[m4a1_hammer.from.USA]
+at = [{ stage = 0, file = 10325 }]
+chunks = { palette = "038b8dccbe9b54b8854cbf4f9c77d06d6c5097ec", image = "6b3ae70448e7a13b7ce42cc2881f39fc09c0aa1d" }
+
+[m4a1_bayonet]
+uid = "uid://1j3a4wmkkw0a0"
+kind = "file"
+
+[[m4a1_bayonet.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset" }, palette = "default" },
+]
+
+[[m4a1_bayonet.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset" } },
+]
+
+[[m4a1_bayonet.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m4a1_bayonet.slots]]
+name = "package"
+type = "package"
+
+[m4a1_bayonet.from.USA]
+at = [{ stage = 0, file = 10326 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3c3484964979b56edb9d0dbaa84c87697d261f62" }
+
+[m4a1_grenade]
+uid = "uid://gvwrw649t787"
+kind = "file"
+
+[[m4a1_grenade.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://9hmyayz043l9", path = "res://weapons/m4a1_grenade/texture.asset" }, palette = "default" },
+]
+
+[[m4a1_grenade.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://9hmyayz043l9", path = "res://weapons/m4a1_grenade/texture.asset" } },
+]
+
+[[m4a1_grenade.slots]]
+name = "package"
+type = "package"
+
+[m4a1_grenade.from.USA]
+at = [{ stage = 0, file = 10327 }]
+chunks = { palette = "49482dc80bc9171707325c233e007cd9f0c8ca77", image = "c35c68593db14bf9bb522313c0c36761148af7f1" }
+
+[m4a1_pyke]
+uid = "uid://j89d499rqjfa"
+kind = "file"
+
+[[m4a1_pyke.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://11xizcvgfpstc", path = "res://weapons/m4a1_pyke/texture.asset" }, palette = "default" },
+]
+
+[[m4a1_pyke.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://11xizcvgfpstc", path = "res://weapons/m4a1_pyke/texture.asset" } },
+]
+
+[[m4a1_pyke.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m4a1_pyke.slots]]
+name = "package"
+type = "package"
+
+[m4a1_pyke.from.USA]
+at = [{ stage = 0, file = 10328 }]
+chunks = { palette = "acf6a4054ccde8e3966ac16536b8f5601bfb627d", image = "d0ba123ce7f142ec1874d8ee52533ef13b2161f3" }
+
+[m4a1_javelin]
+uid = "uid://1iyw2dtyf2o2z"
+kind = "file"
+
+[[m4a1_javelin.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hrsm4u7pwwtu", path = "res://weapons/m4a1_javelin/texture.asset" }, palette = "default" },
+]
+
+[[m4a1_javelin.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://hrsm4u7pwwtu", path = "res://weapons/m4a1_javelin/texture.asset" } },
+]
+
+[[m4a1_javelin.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[m4a1_javelin.slots]]
+name = "package"
+type = "package"
+
+[m4a1_javelin.from.USA]
+at = [{ stage = 0, file = 10329 }]
+chunks = { palette = "0e2a3313836605cd6d047f6fb89dfeb61f946e8a", image = "fd15cf39294b4adbed239aa4e3b1062ac8100c0a" }
+
+[mp5a5]
+uid = "uid://kogi2su73kev"
+kind = "file"
+
+[[mp5a5.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" }, palette = "default" },
+]
+
+[[mp5a5.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" } },
+]
+
+[[mp5a5.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[mp5a5.slots]]
+name = "package"
+type = "package"
+
+[mp5a5.from.USA]
+at = [{ stage = 0, file = 10330 }]
+chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
+
+[mp5a5_p1]
+uid = "uid://1cjjwyrgwd85z"
+kind = "file"
+
+[[mp5a5_p1.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" }, palette = "default" },
+]
+
+[[mp5a5_p1.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" } },
+]
+
+[[mp5a5_p1.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[mp5a5_p1.slots]]
+name = "package"
+type = "package"
+
+[mp5a5_p1.from.USA]
+at = [{ stage = 0, file = 10331 }]
+chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
+
+[mp5a5_p2]
+uid = "uid://xsvhp1z0ustu"
+kind = "file"
+
+[[mp5a5_p2.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" }, palette = "default" },
+]
+
+[[mp5a5_p2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" } },
+]
+
+[[mp5a5_p2.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[mp5a5_p2.slots]]
+name = "package"
+type = "package"
+
+[mp5a5_p2.from.USA]
+at = [{ stage = 0, file = 10332 }]
+chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
+
+[aya_10400]
+uid = "uid://1teumqyjo551d"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image" },
+    { name = "package", type = "package" },
+]
+
+[aya_10400.from.USA]
+at = [{ stage = 0, file = 10400 }]
+
+[aya_10500]
+uid = "uid://12p2cb5hbm5yz"
+kind = "file"
+
+[[aya_10500.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" }, palette = "default_2" },
+]
+
+[[aya_10500.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" } },
+]
+page_slots = 6
+
+[[aya_10500.slots]]
+name = "aya_10500"
+type = "package"
+
+[aya_10500.from.USA]
+at = [{ stage = 0, file = 10500 }]
+chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
+
+[aya_10600]
+uid = "uid://1pvs9smoxrzj0"
+kind = "file"
+
+[[aya_10600.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" }, palette = "default_2" },
+]
+
+[[aya_10600.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" } },
+]
+page_slots = 6
+
+[[aya_10600.slots]]
+name = "aya_10500"
+type = "package"
+
+[aya_10600.from.USA]
+at = [{ stage = 0, file = 10600 }]
+chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
+
+[grenade_pistol_fragmentation_sounds]
+uid = "uid://2evjom07asuv"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[grenade_pistol_fragmentation_sounds.from.USA]
+at = [{ stage = 0, file = 11000 }, { stage = 0, file = 11001 }]
+
+[grenade_pistol_airburst_sounds]
+uid = "uid://16tzst50vkfrw"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[grenade_pistol_airburst_sounds.from.USA]
+at = [{ stage = 0, file = 11002 }]
+
+[grenade_pistol_riot_sounds]
+uid = "uid://625hl4kgofp4"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[grenade_pistol_riot_sounds.from.USA]
+at = [{ stage = 0, file = 11003 }]
+
+[mm1_fragmentation_sounds]
+uid = "uid://d75ewu21mi29"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[mm1_fragmentation_sounds.from.USA]
+at = [{ stage = 0, file = 11004 }]
+
+[mm1_airburst_sounds]
+uid = "uid://cms69puu8hhe"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[mm1_airburst_sounds.from.USA]
+at = [{ stage = 0, file = 11005 }]
+
+[mm1_riot_sounds]
+uid = "uid://1xjo8tahw9fd4"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[mm1_riot_sounds.from.USA]
+at = [{ stage = 0, file = 11006 }]
+
+[pa3_buckshot_sounds]
+uid = "uid://9i6ue7hev2pn"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[pa3_buckshot_sounds.from.USA]
+at = [{ stage = 0, file = 11007 }]
+
+[pa3_firefly_sounds]
+uid = "uid://13nyvidc44qk6"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[pa3_firefly_sounds.from.USA]
+at = [{ stage = 0, file = 11008 }]
+
+[pa3_rifled_slug_sounds]
+uid = "uid://w0r9o749nvio"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[pa3_rifled_slug_sounds.from.USA]
+at = [{ stage = 0, file = 11009 }]
+
+[sp12_buckshot_sounds]
+uid = "uid://162cxniobwq68"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[sp12_buckshot_sounds.from.USA]
+at = [{ stage = 0, file = 11010 }]
+
+[sp12_firefly_sounds]
+uid = "uid://1pxtkso2dglln"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[sp12_firefly_sounds.from.USA]
+at = [{ stage = 0, file = 11011 }]
+
+[sp12_rifled_slug_sounds]
+uid = "uid://2od11f8uc0lf"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[sp12_rifled_slug_sounds.from.USA]
+at = [{ stage = 0, file = 11012 }]
+
+[as12_buckshot_sounds]
+uid = "uid://gm8f3y7ehujc"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[as12_buckshot_sounds.from.USA]
+at = [{ stage = 0, file = 11013 }]
+
+[as12_firefly_sounds]
+uid = "uid://3xsj2dffkcxb"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[as12_firefly_sounds.from.USA]
+at = [{ stage = 0, file = 11014 }]
+
+[as12_rifled_slug_sounds]
+uid = "uid://1xx5kk13ydeim"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[as12_rifled_slug_sounds.from.USA]
+at = [{ stage = 0, file = 11015 }]
+
+[m4a1_grenade_fragmentation_sounds]
+uid = "uid://14mmv5vs7973d"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[m4a1_grenade_fragmentation_sounds.from.USA]
+at = [{ stage = 0, file = 11016 }]
+
+[m4a1_grenade_airburst_sounds]
+uid = "uid://111zv5uy091jo"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[m4a1_grenade_airburst_sounds.from.USA]
+at = [{ stage = 0, file = 11017 }]
+
+[m4a1_grenade_riot_sounds]
+uid = "uid://d27z4j5faptg"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[m4a1_grenade_riot_sounds.from.USA]
+at = [{ stage = 0, file = 11018 }]
+
+[gunblade_buckshot_sounds]
+uid = "uid://1lrkjomv66i8e"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[gunblade_buckshot_sounds.from.USA]
+at = [{ stage = 0, file = 11019 }]
+
+[gunblade_firefly_sounds]
+uid = "uid://uj7j24zp5vv5"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[gunblade_firefly_sounds.from.USA]
+at = [{ stage = 0, file = 11020 }]
+
+[gunblade_rifled_slug_sounds]
+uid = "uid://y1ddrztci22u"
+kind = "file"
+slots = [
+    { name = "sound_bank", type = "sound_bank" },
+]
+
+[gunblade_rifled_slug_sounds.from.USA]
+at = [{ stage = 0, file = 11021 }]

@@ -1,0 +1,17 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[armory_cardkey]
+uid = "uid://rvnaoruv7dbq"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [48, 40]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
+]
+
+[armory_cardkey.from.USA]
+at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 1 }]
+sha1 = "9ce197ff109902f988caf7b77cf7f574277aa891"
+palettes = { default = "1f285756ac2f8ad9b328256cc2b9595223767605" }

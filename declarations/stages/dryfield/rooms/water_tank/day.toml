@@ -1,0 +1,25 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://18q6d4y4m9ys"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://18na8aqoqvj4", path = "res://stages/dryfield/rooms/water_tank/day/streams/movie_100.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1uh9497wwyhc0", path = "res://stages/dryfield/rooms/water_tank/day/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://ozzd9luf7lda", path = "res://stages/dryfield/rooms/water_tank/day/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://dv9ejc5mr22u", path = "res://stages/dryfield/rooms/water_tank/day/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://3g5edvbmoiq9", path = "res://stages/dryfield/rooms/water_tank/day/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://6ugl82uazmr9", path = "res://stages/dryfield/rooms/water_tank/day/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1vmv1z9jlq8ee", path = "res://stages/dryfield/rooms/water_tank/day/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1e0ly3hcjztni", path = "res://stages/dryfield/rooms/water_tank/day/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://13717f2gko18a", path = "res://stages/dryfield/rooms/water_tank/day/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://fyzawfdlacz4", path = "res://stages/dryfield/rooms/water_tank/day/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://g84boft5d1yh", path = "res://stages/dryfield/rooms/water_tank/day/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://16l8wzct3fn51", path = "res://stages/dryfield/rooms/water_tank/day/files/view10.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 2, folder = 2101 }]

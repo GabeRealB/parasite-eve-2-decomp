@@ -1,0 +1,11 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[splash]
+uid = "uid://10m6n69uui9ek"
+kind = "image"
+role = "background"
+format = "bs"
+
+[splash.from.USA]
+at = [{ stage = 0, file = 42, slot = "splash" }]
+sha1 = "abdc1c51e7fc59c544dc473d06f1561d0ed688e5"

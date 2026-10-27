@@ -1,0 +1,91 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[movie_100]
+uid = "uid://xb4jutk52wnw"
+kind = "movie"
+group = 0
+id = 100
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 1191
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 13
+upload_mode = 0
+
+[movie_100.from.USA]
+at = [{ stage = 4, folder = 2301, stream = "movie_100" }]
+
+[scene_8_11]
+uid = "uid://x4c1fbdzzol1"
+kind = "scene_audio"
+group = 6
+id = 8
+sub_id = 11
+sub_id2 = 0
+volume_index = 96
+timing_buffer_kind = 1
+decode_buffer_bytes = 32768
+sound_bank_mask = 0xF
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 4436
+
+[scene_8_11.from.USA]
+at = [{ stage = 4, folder = 2301, stream = "scene_8_11" }]
+
+[scene_8_21]
+uid = "uid://6f1am76hb486"
+kind = "scene_audio"
+group = 6
+id = 8
+sub_id = 21
+sub_id2 = 0
+volume_index = 104
+timing_buffer_kind = 0
+decode_buffer_bytes = 30720
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
+[scene_8_21.from.USA]
+at = [{ stage = 4, folder = 2301, stream = "scene_8_21" }]
+
+[scene_8_31]
+uid = "uid://f3o9mf5w5ttw"
+kind = "scene_audio"
+group = 6
+id = 8
+sub_id = 31
+sub_id2 = 0
+volume_index = 105
+timing_buffer_kind = 0
+decode_buffer_bytes = 34816
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
+[scene_8_31.from.USA]
+at = [{ stage = 4, folder = 2301, stream = "scene_8_31" }]
+
+[scene_9]
+uid = "uid://dx7uxtzch9oc"
+kind = "scene_audio"
+group = 6
+id = 9
+sub_id = 11
+sub_id2 = 0
+volume_index = 97
+timing_buffer_kind = 1
+decode_buffer_bytes = 55296
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 9708
+
+[scene_9.from.USA]
+at = [{ stage = 4, folder = 2301, stream = "scene_9" }]

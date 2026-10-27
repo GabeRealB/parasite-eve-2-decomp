@@ -1,0 +1,18 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://hb4l8t65hyei"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1bpegjza5zaeo", path = "res://stages/mine_shelter/rooms/tunnel_entrance/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://7tmj2p8ajvaf", path = "res://stages/mine_shelter/rooms/tunnel_entrance/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1g6hahzdm4x63", path = "res://stages/mine_shelter/rooms/tunnel_entrance/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://s9aaan63e86s", path = "res://stages/mine_shelter/rooms/tunnel_entrance/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://bfuasny34d66", path = "res://stages/mine_shelter/rooms/tunnel_entrance/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1mbp9lj6pqfx6", path = "res://stages/mine_shelter/rooms/tunnel_entrance/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://622vnb5cd7lc", path = "res://stages/mine_shelter/rooms/tunnel_entrance/files/view6.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 301 }]

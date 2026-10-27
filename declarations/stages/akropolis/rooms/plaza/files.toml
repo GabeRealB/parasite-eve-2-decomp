@@ -1,0 +1,48 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://1jplau75nov80"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://f324lztforcz", path = "res://stages/akropolis/rooms/plaza/radio.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 8], size = [320, 3] }
+
+[[base.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://f324lztforcz", path = "res://stages/akropolis/rooms/plaza/radio.asset" } },
+]
+page_slots = 3
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 0, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 1, folder = 501, file = 0 }]
+chunks = { palette = "e0fba54081099a907d06dfe2ab043ecee25cecb7", image = "a6db9ab1ac9e357ee4f7fd31e010dc18296fef03" }

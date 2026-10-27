@@ -1,0 +1,11 @@
+# Declarations: the main executable, src/main's image - the same bytes on
+# both discs under each disc's name.
+
+[executable]
+uid = "uid://ke96sngcku4f"
+kind = "executable"
+format = "exe"
+
+[executable.from.USA]
+at = [{ disc = "disk1", slot = "SLUS_010.42" }, { disc = "disk2", slot = "SLUS_010.55" }]
+sha1 = "e2599d1aad77c08f6e145765b0ef04aba850d258"

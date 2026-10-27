@@ -1,0 +1,17 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://12i49sm1ezd4k"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1tsars73rxg6s", path = "res://stages/shelter_neo_ark/rooms/b6_corridor/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1k47fihv97zqx", path = "res://stages/shelter_neo_ark/rooms/b6_corridor/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://l17pq6aspiwh", path = "res://stages/shelter_neo_ark/rooms/b6_corridor/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://o7d914yalac1", path = "res://stages/shelter_neo_ark/rooms/b6_corridor/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://p5bmdevf9104", path = "res://stages/shelter_neo_ark/rooms/b6_corridor/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1nqnw6nadozjh", path = "res://stages/shelter_neo_ark/rooms/b6_corridor/files/view5.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 2401 }]

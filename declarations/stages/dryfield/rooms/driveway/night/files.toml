@@ -1,0 +1,143 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://mig9zairpnkv"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dryfield_driveway_dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 1, type = "palette" },
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 8, type = "palette" },
+    { index = 9, type = "palette" },
+    { index = 10, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 3, folder = 2501, file = 0 }]
+
+[view1]
+uid = "uid://9clgnu0hqedm"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://r9k016istsig", path = "res://stages/dryfield/rooms/driveway/night/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 3, folder = 2501, file = 1 }]
+
+[view2]
+uid = "uid://1qlt3fdc9532n"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://19nlbvo5zsr37", path = "res://stages/dryfield/rooms/driveway/night/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 3, folder = 2501, file = 2 }]
+
+[view3]
+uid = "uid://sd2jqpij1x6f"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://6rc9q3wd789s", path = "res://stages/dryfield/rooms/driveway/night/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 3, folder = 2501, file = 3 }]
+
+[view4]
+uid = "uid://15akp44usl6ip"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://10f4dd6koc9ui", path = "res://stages/dryfield/rooms/driveway/night/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 3, folder = 2501, file = 4 }]
+
+[view5]
+uid = "uid://1qrqwcwlovnyw"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://y31dsgzcr3ce", path = "res://stages/dryfield/rooms/driveway/night/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 3, folder = 2501, file = 5 }]
+
+[view6]
+uid = "uid://yysjuond4d6"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1dlnkgt5e1h5l", path = "res://stages/dryfield/rooms/driveway/night/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 3, folder = 2501, file = 6 }]
+
+[view7]
+uid = "uid://nzn33j01vk2k"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://qho7pwtbnfde", path = "res://stages/dryfield/rooms/driveway/night/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 3, folder = 2501, file = 7 }]
+
+[view8]
+uid = "uid://13t7j1d8pxqpw"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1ho8kldjowxab", path = "res://stages/dryfield/rooms/driveway/night/views/view8_background.asset" } },
+]
+
+[view8.from.USA]
+at = [{ stage = 3, folder = 2501, file = 8 }]
+
+[view9]
+uid = "uid://l5nos6dkovhx"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1tlreayb7t3ni", path = "res://stages/dryfield/rooms/driveway/night/views/view9_background.asset" } },
+]
+
+[view9.from.USA]
+at = [{ stage = 3, folder = 2501, file = 9 }]
+
+[view10]
+uid = "uid://dyn77llilw29"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://15rnn2m2pz66h", path = "res://stages/dryfield/rooms/driveway/night/views/view10_background.asset" } },
+]
+
+[view10.from.USA]
+at = [{ stage = 3, folder = 2501, file = 10 }]

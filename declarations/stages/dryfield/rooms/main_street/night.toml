@@ -1,0 +1,36 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://146kdjlo6h2ah"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://174lok4rtjr5u", path = "res://stages/dryfield/rooms/main_street/night/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1juxk4jtfgrla", path = "res://stages/dryfield/rooms/main_street/night/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1uu9m615jvneb", path = "res://stages/dryfield/rooms/main_street/night/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://vaikr4x0nbsx", path = "res://stages/dryfield/rooms/main_street/night/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://xj0f2mugphhk", path = "res://stages/dryfield/rooms/main_street/night/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://9ut1ahs02si1", path = "res://stages/dryfield/rooms/main_street/night/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://t2tcudf7b36y", path = "res://stages/dryfield/rooms/main_street/night/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1lny2xitm76gh", path = "res://stages/dryfield/rooms/main_street/night/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://dj2sd65n9o0", path = "res://stages/dryfield/rooms/main_street/night/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://43jw4ye7wtzs", path = "res://stages/dryfield/rooms/main_street/night/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://4rhlehwj0fg9", path = "res://stages/dryfield/rooms/main_street/night/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://1rda94fu4v3d5", path = "res://stages/dryfield/rooms/main_street/night/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://6c1s65wsoabn", path = "res://stages/dryfield/rooms/main_street/night/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://11euzettgjfty", path = "res://stages/dryfield/rooms/main_street/night/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://4x97d3czs5qy", path = "res://stages/dryfield/rooms/main_street/night/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://100ntf0pkia7t", path = "res://stages/dryfield/rooms/main_street/night/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://1paoiwzhrj97o", path = "res://stages/dryfield/rooms/main_street/night/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://w0emyji78x29", path = "res://stages/dryfield/rooms/main_street/night/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://1gt15n65m6nxg", path = "res://stages/dryfield/rooms/main_street/night/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://1qyipkxz7z3mh", path = "res://stages/dryfield/rooms/main_street/night/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://1v51ane1b7034", path = "res://stages/dryfield/rooms/main_street/night/files/view20.asset" } },
+    { name = "view21", id = 21, asset = { uid = "uid://1vznz4kpzc1gx", path = "res://stages/dryfield/rooms/main_street/night/files/view21.asset" } },
+    { name = "view22", id = 22, asset = { uid = "uid://1botmtbr49lai", path = "res://stages/dryfield/rooms/main_street/night/files/view22.asset" } },
+    { name = "view23", id = 23, asset = { uid = "uid://1mt6atcdnbztw", path = "res://stages/dryfield/rooms/main_street/night/files/view23.asset" } },
+    { name = "view24", id = 24, asset = { uid = "uid://3zqp6x6w4q4t", path = "res://stages/dryfield/rooms/main_street/night/files/view24.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 3, folder = 201 }]

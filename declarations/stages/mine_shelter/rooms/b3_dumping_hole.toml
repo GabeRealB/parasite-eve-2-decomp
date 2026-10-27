@@ -1,0 +1,53 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://197o80ybvatzx"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_17", type = "scene_audio", asset = { uid = "uid://6w4zqafbsyl5", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/streams/scene_17.asset" } },
+    { name = "scene_18", type = "scene_audio", asset = { uid = "uid://vwuf5g03o9kf", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/streams/scene_18.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1q8rd6n6ztjr3", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://936oxwkvgl99", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1vyykp3nbojbc", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://xlmw4dixbkhw", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://4298owwr84rm", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://17fs2fdkk28ob", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://op0a0lb0tsyo", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://jtc2mt7ce7u8", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://qjsdgoqd4za0", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://velv47xmg6fx", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1fbs51tuz631p", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://1fg1duav3308c", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1e2tp8eqnj2m6", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://vmz94a80i0m4", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://3kglbyn3fum4", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://r2dlr3bqv67l", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://wv5fyhiql8qn", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1vj1919tmm2fn", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://hqe1tm8h95fq", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://1p2synhns8h4", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://vnaoiuqo0u8y", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view20.asset" } },
+    { name = "view21", id = 21, asset = { uid = "uid://odfb1ck9sw8n", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view21.asset" } },
+    { name = "view22", id = 22, asset = { uid = "uid://1ik5chl265q4z", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view22.asset" } },
+    { name = "view23", id = 23, asset = { uid = "uid://4levr6nacsis", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view23.asset" } },
+    { name = "view24", id = 24, asset = { uid = "uid://vaibg2uufiiy", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view24.asset" } },
+    { name = "view25", id = 25, asset = { uid = "uid://u8yxncudax98", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view25.asset" } },
+    { name = "view26", id = 26, asset = { uid = "uid://187gul264a67r", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view26.asset" } },
+    { name = "view27", id = 27, asset = { uid = "uid://1ltcs4rqmpcgv", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view27.asset" } },
+    { name = "view28", id = 28, asset = { uid = "uid://9zlvptaeyo87", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view28.asset" } },
+    { name = "view29", id = 29, asset = { uid = "uid://u0i2ysc007fu", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view29.asset" } },
+    { name = "view30", id = 30, asset = { uid = "uid://7mfktx8s2wxs", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view30.asset" } },
+    { name = "view31", id = 31, asset = { uid = "uid://1h7ompez5l0qy", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view31.asset" } },
+    { name = "view32", id = 32, asset = { uid = "uid://w11nukr69k7b", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view32.asset" } },
+    { name = "view33", id = 33, asset = { uid = "uid://1jul9kb7kbh2k", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view33.asset" } },
+    { name = "view34", id = 34, asset = { uid = "uid://vsth0udlvedk", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view34.asset" } },
+    { name = "view35", id = 35, asset = { uid = "uid://1mq9vahagszgo", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view35.asset" } },
+    { name = "view36", id = 36, asset = { uid = "uid://dgtpfwkal98m", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view36.asset" } },
+    { name = "view37", id = 37, asset = { uid = "uid://932gurpal66z", path = "res://stages/mine_shelter/rooms/b3_dumping_hole/files/view37.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 3901 }]

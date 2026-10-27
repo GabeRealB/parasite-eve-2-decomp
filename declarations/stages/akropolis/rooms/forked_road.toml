@@ -1,0 +1,53 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://cll4p5ptupr1"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_7", type = "movie", asset = { uid = "uid://g9jpt38upy9u", path = "res://stages/akropolis/rooms/forked_road/streams/movie_7.asset" } },
+    { name = "movie_8", type = "movie", asset = { uid = "uid://1pc0d0h3j8c9m", path = "res://stages/akropolis/rooms/forked_road/streams/movie_8.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://2p409q7k05k8", path = "res://stages/akropolis/rooms/forked_road/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1qinh99iekd0s", path = "res://stages/akropolis/rooms/forked_road/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://9mbzu87a9eln", path = "res://stages/akropolis/rooms/forked_road/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://t7hsa3b2rxec", path = "res://stages/akropolis/rooms/forked_road/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1wjxs76oabsb4", path = "res://stages/akropolis/rooms/forked_road/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1k6jz0ymkao7m", path = "res://stages/akropolis/rooms/forked_road/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1wl099fnzfo9s", path = "res://stages/akropolis/rooms/forked_road/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1xa88jzpgpqp1", path = "res://stages/akropolis/rooms/forked_road/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://72kvsf8n7bef", path = "res://stages/akropolis/rooms/forked_road/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://j9vktmdlu4b2", path = "res://stages/akropolis/rooms/forked_road/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1dnjyqbgqcan8", path = "res://stages/akropolis/rooms/forked_road/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://wg4cvofgl73e", path = "res://stages/akropolis/rooms/forked_road/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1wa9wo5dgpm64", path = "res://stages/akropolis/rooms/forked_road/files/view12.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 901 }]
+
+[lamps]
+uid = "uid://1uik5d8ab7onh"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [120, 240]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "lamp_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+    { name = "lamp_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] },
+    { name = "lamp_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
+    { name = "leaf", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 9] },
+]
+cells = [
+    { name = "lamp_0", rect = [0, 0, 40, 40], palette = "lamp_0" },
+    { name = "lamp_1", rect = [40, 0, 40, 40], palette = "lamp_1" },
+    { name = "lamp_2", rect = [80, 0, 40, 40], palette = "lamp_2" },
+    { name = "leaf", rect = [0, 232, 8, 8], palette = "leaf" },
+]
+
+[lamps.from.USA]
+at = [{ stage = 1, folder = 901, file = 0, slot = "image", page = 0 }]
+sha1 = "805d02ff56842ed6754441f3ab62d6ba156ab18b"
+palettes = { lamp_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", lamp_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", lamp_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", leaf = "47ef1fdc4ec12a7332ff1eae3a70a48323bce75a" }

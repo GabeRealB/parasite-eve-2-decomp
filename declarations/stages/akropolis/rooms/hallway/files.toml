@@ -1,0 +1,98 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://3tq8shh2pyff"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://13hdsk4fhk395", path = "res://stages/akropolis/rooms/hallway/props/blue_key.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2], size = [256, 2] }
+
+[[base.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://13hdsk4fhk395", path = "res://stages/akropolis/rooms/hallway/props/blue_key.asset" } },
+]
+page_slots = 3
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 0, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 1, folder = 701, file = 0 }]
+chunks = { palette = "6d96de9e86f6d5fd5f017b444405edf9087daeeb", image = "9a59e0fd256fb6840cf1431891b7b4aa2e53283b" }
+
+[view1]
+uid = "uid://xnhgv6vcoz1a"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://ii4bxdmb7m3s", path = "res://stages/akropolis/rooms/hallway/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 1, folder = 701, file = 1 }]
+
+[view2]
+uid = "uid://1uxihjkmsv84e"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1u2ugf61hr7o1", path = "res://stages/akropolis/rooms/hallway/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 1, folder = 701, file = 2 }]
+
+[view3]
+uid = "uid://f93z6ow5re2h"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://qin7chk7zy4f", path = "res://stages/akropolis/rooms/hallway/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 1, folder = 701, file = 3 }]
+
+[view4]
+uid = "uid://1p2efxx61er98"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1c5ktqgylnjbq", path = "res://stages/akropolis/rooms/hallway/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 1, folder = 701, file = 4 }]
+
+[view5]
+uid = "uid://18q4921ku9a0r"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://ve50ldy0jrpw", path = "res://stages/akropolis/rooms/hallway/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 1, folder = 701, file = 5 }]

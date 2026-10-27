@@ -1,0 +1,87 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://hcdl9nubut6t"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 5, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 5, folder = 501, file = 0 }]
+
+[view1]
+uid = "uid://s10om57nl4ry"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1eaw72dln3wb6", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 5, folder = 501, file = 1 }]
+
+[view2]
+uid = "uid://1qukfuklbve0v"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1rabicgdz43qm", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 5, folder = 501, file = 2 }]
+
+[view3]
+uid = "uid://19nqwr095ox3i"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://zn2a9q49ke4v", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 5, folder = 501, file = 3 }]
+
+[view4]
+uid = "uid://1fzley9zcey9d"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://qqa4882lsxfy", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 5, folder = 501, file = 4 }]
+
+[view5]
+uid = "uid://s41rtth1ul8n"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1hzxzn25nq792", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 5, folder = 501, file = 5 }]

@@ -1,0 +1,23 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1iae9so0x5x4k"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_13", type = "scene_audio", asset = { uid = "uid://1nzsk79nxkmqk", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/streams/scene_13.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://o4eh11d9xu9m", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://t04m6lmwsm23", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://m7qndgt6rycy", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1ozice6ih31rr", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://19heep4m8ki9l", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://n7cem6l36vzl", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1kuu6amkx23p1", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://xn82ztaxlteg", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1wqf1ng467jh3", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/files/view8.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 3001 }]

@@ -1,0 +1,26 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1doz5od6oxhmf"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://11i4nyq2cnesr", path = "res://stages/mine_shelter/rooms/r36/streams/movie_100.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://kwm7i2c039rf", path = "res://stages/mine_shelter/rooms/r36/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://jrqj7u6772ss", path = "res://stages/mine_shelter/rooms/r36/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://95x4gn8nk7vd", path = "res://stages/mine_shelter/rooms/r36/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://wa0b7xdzv6ah", path = "res://stages/mine_shelter/rooms/r36/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://a4f0ggf8gbot", path = "res://stages/mine_shelter/rooms/r36/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1hpxspzsyqxim", path = "res://stages/mine_shelter/rooms/r36/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://pjo0v38fnjmr", path = "res://stages/mine_shelter/rooms/r36/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://4wohdxhva3hs", path = "res://stages/mine_shelter/rooms/r36/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://172lldyvm6cyd", path = "res://stages/mine_shelter/rooms/r36/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1x4kewwhdkcvj", path = "res://stages/mine_shelter/rooms/r36/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://w0u9scdrnlm2", path = "res://stages/mine_shelter/rooms/r36/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://n2ymhsbb3o1m", path = "res://stages/mine_shelter/rooms/r36/files/view11.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 3601 }]

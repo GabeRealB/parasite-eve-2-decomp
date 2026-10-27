@@ -1,0 +1,47 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://14dum0egcsemx"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_6", type = "movie", asset = { uid = "uid://1p6fl0ky2kb7y", path = "res://stages/akropolis/rooms/observatory/streams/movie_6.asset" } },
+    { name = "movie_7", type = "movie", asset = { uid = "uid://1ixs4yngl5mph", path = "res://stages/akropolis/rooms/observatory/streams/movie_7.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://19l6jrlyzf73c", path = "res://stages/akropolis/rooms/observatory/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://x1b1zfzqu9r9", path = "res://stages/akropolis/rooms/observatory/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://qc9uxrysgu4n", path = "res://stages/akropolis/rooms/observatory/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://klos0x26gkx", path = "res://stages/akropolis/rooms/observatory/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://iqukl5n5kjr7", path = "res://stages/akropolis/rooms/observatory/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1t8ipu8wxvj99", path = "res://stages/akropolis/rooms/observatory/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1luw7bncwbjyg", path = "res://stages/akropolis/rooms/observatory/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1r7nexaefe3r8", path = "res://stages/akropolis/rooms/observatory/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://xtqhg89csd3l", path = "res://stages/akropolis/rooms/observatory/files/view8.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 1001 }]
+
+[glow]
+uid = "uid://24awbpmti07e"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [32, 192]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "frame_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 10] },
+    { name = "frame_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 10] },
+]
+cells = [
+    { name = "glow", rect = [0, 160, 32, 32], palette = "frame_0" },
+]
+variants = [
+    { name = "frame_1", palettes = { glow = "frame_1" } },
+]
+
+[glow.from.USA]
+at = [{ stage = 1, folder = 1001, file = 0, slot = "image", page = 0 }]
+sha1 = "fbfd2422a1f83c6b844347ff3788a9cb3cf22519"
+palettes = { frame_0 = "151ad4afa66aaf5272f5aaf5f1c700b914b85cdb", frame_1 = "b0fcbddd3d537ae35a872e4e6e822a33c9f15db0" }

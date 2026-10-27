@@ -1,0 +1,31 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1vvq0a9ou1hyl"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://mu4vxl9d2lry", path = "res://stages/dryfield/rooms/factory/day/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://16pqryx4hithj", path = "res://stages/dryfield/rooms/factory/day/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://huubtwzn5x6m", path = "res://stages/dryfield/rooms/factory/day/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://45mq8aiin7e8", path = "res://stages/dryfield/rooms/factory/day/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1hi6jtfr1j8e0", path = "res://stages/dryfield/rooms/factory/day/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://banuayazxjud", path = "res://stages/dryfield/rooms/factory/day/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://pr6o5tpuxygu", path = "res://stages/dryfield/rooms/factory/day/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://anpep2gw07eg", path = "res://stages/dryfield/rooms/factory/day/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://c8zee8dox6ow", path = "res://stages/dryfield/rooms/factory/day/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1msylcndyxtfi", path = "res://stages/dryfield/rooms/factory/day/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1gxjyuj00p3bm", path = "res://stages/dryfield/rooms/factory/day/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://dfi9caml6iz3", path = "res://stages/dryfield/rooms/factory/day/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1ps315bhr216l", path = "res://stages/dryfield/rooms/factory/day/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://h1os80fmokx1", path = "res://stages/dryfield/rooms/factory/day/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://sv7xj5xotz3o", path = "res://stages/dryfield/rooms/factory/day/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://1d2e2z3v38bjl", path = "res://stages/dryfield/rooms/factory/day/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://1lqg5xtznvkpz", path = "res://stages/dryfield/rooms/factory/day/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1tkutkkpnwgb7", path = "res://stages/dryfield/rooms/factory/day/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://hyw1tlu4o5ld", path = "res://stages/dryfield/rooms/factory/day/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://u9dhjl43em2s", path = "res://stages/dryfield/rooms/factory/day/files/view19.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 2, folder = 2301 }]

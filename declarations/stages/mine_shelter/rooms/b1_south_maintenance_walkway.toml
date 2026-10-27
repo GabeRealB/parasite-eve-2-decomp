@@ -1,0 +1,17 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://pcl3z3hxfcrm"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1t74jrg6v6y56", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://ybs52nopryga", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://n5bm0sfef1cf", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://oabvucx8cgj8", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://briyri3m1y1r", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://g8z470ptj1w0", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/files/view5.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 1001 }]

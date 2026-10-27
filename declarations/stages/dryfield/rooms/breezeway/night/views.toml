@@ -1,0 +1,61 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[view1_background]
+uid = "uid://cmmiokhlu545"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view1_background.from.USA]
+at = [{ stage = 3, folder = 2201, file = 1, slot = "background" }]
+sha1 = "76a6bc70bb8e7da974b1bcc9e7e34a405e793bef"
+
+[view2_background]
+uid = "uid://1pfhhlfmj9jt7"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view2_background.from.USA]
+at = [{ stage = 3, folder = 2201, file = 2, slot = "background" }]
+sha1 = "4215368f8c1a74dd2810898d22095e468d1dd364"
+
+[view3_background]
+uid = "uid://fvn7tffv787a"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view3_background.from.USA]
+at = [{ stage = 3, folder = 2201, file = 3, slot = "background" }]
+sha1 = "57626970c3c04ff894a208333967d5654f2543ca"
+
+[view4_background]
+uid = "uid://c604q2v1571t"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view4_background.from.USA]
+at = [{ stage = 3, folder = 2201, file = 4, slot = "background" }]
+sha1 = "b640e7902b10dd690a182e04f2498733a864b568"
+
+[view5_background]
+uid = "uid://jtb4h4bolbue"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view5_background.from.USA]
+at = [{ stage = 3, folder = 2201, file = 5, slot = "background" }]
+sha1 = "5559ea81a3a2430ee87a53274ead1542f9ae2315"
+
+[view6_background]
+uid = "uid://htzxa7cv4v8k"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view6_background.from.USA]
+at = [{ stage = 3, folder = 2201, file = 6, slot = "background" }]
+sha1 = "2ee6cd460f45aa0bbc59866ab71424225f5d8485"

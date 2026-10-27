@@ -1,0 +1,41 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[view1_background]
+uid = "uid://1gnwsh8rlh0mq"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view1_background.from.USA]
+at = [{ stage = 5, folder = 1801, file = 1, slot = "background" }]
+sha1 = "9686914ab687fe9de920a53c96d211917d6074d8"
+
+[view2_background]
+uid = "uid://zlirby91abo"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view2_background.from.USA]
+at = [{ stage = 5, folder = 1801, file = 2, slot = "background" }]
+sha1 = "3a09e5f53e511a213e94ddefe2c396745fd094a2"
+
+[view3_background]
+uid = "uid://10hp7os7t4r26"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view3_background.from.USA]
+at = [{ stage = 5, folder = 1801, file = 3, slot = "background" }]
+sha1 = "3165b5ec36ff6572ec9f1086cbb47d9036179eaf"
+
+[view4_background]
+uid = "uid://1sekza5trkb26"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view4_background.from.USA]
+at = [{ stage = 5, folder = 1801, file = 4, slot = "background" }]
+sha1 = "a84b84ca51386e946b1c476de1afaa340c8e20f0"

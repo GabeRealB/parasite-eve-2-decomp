@@ -1,0 +1,91 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[movie_100]
+uid = "uid://1cgs4kzugjgcc"
+kind = "movie"
+group = 0
+id = 100
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 64
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 20
+upload_mode = 0
+
+[movie_100.from.USA]
+at = [{ stage = 3, folder = 2401, stream = "movie_100" }]
+
+[movie_101]
+uid = "uid://1beljg4l7v1b4"
+kind = "movie"
+group = 0
+id = 101
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 64
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 21
+upload_mode = 0
+
+[movie_101.from.USA]
+at = [{ stage = 3, folder = 2401, stream = "movie_101" }]
+
+[movie_102]
+uid = "uid://1rtsg1c15iu73"
+kind = "movie"
+group = 0
+id = 102
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 295
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 33
+upload_mode = 0
+
+[movie_102.from.USA]
+at = [{ stage = 3, folder = 2401, stream = "movie_102" }]
+
+[movie_103]
+uid = "uid://9yeag9ncualf"
+kind = "movie"
+group = 0
+id = 103
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 295
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 34
+upload_mode = 0
+
+[movie_103.from.USA]
+at = [{ stage = 3, folder = 2401, stream = "movie_103" }]
+
+[scene_55]
+uid = "uid://yvf9v4dvss6b"
+kind = "scene_audio"
+group = 3
+id = 55
+sub_id = 11
+sub_id2 = 0
+volume_index = 50
+timing_buffer_kind = 0
+decode_buffer_bytes = 38912
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
+[scene_55.from.USA]
+at = [{ stage = 3, folder = 2401, stream = "scene_55" }]

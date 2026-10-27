@@ -1,0 +1,37 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[scene_17]
+uid = "uid://6w4zqafbsyl5"
+kind = "scene_audio"
+group = 4
+id = 17
+sub_id = 11
+sub_id2 = 0
+volume_index = 67
+timing_buffer_kind = 1
+decode_buffer_bytes = 34816
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[scene_17.from.USA]
+at = [{ stage = 4, folder = 3901, stream = "scene_17" }]
+
+[scene_18]
+uid = "uid://vwuf5g03o9kf"
+kind = "scene_audio"
+group = 4
+id = 18
+sub_id = 11
+sub_id2 = 0
+volume_index = 71
+timing_buffer_kind = 1
+decode_buffer_bytes = 55296
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[scene_18.from.USA]
+at = [{ stage = 4, folder = 3901, stream = "scene_18" }]

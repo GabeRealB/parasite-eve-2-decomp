@@ -1,0 +1,127 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[movie_100]
+uid = "uid://jy5eamher1iu"
+kind = "movie"
+group = 0
+id = 100
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 857
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 16
+upload_mode = 0
+
+[movie_100.from.USA]
+at = [{ stage = 3, folder = 2901, stream = "movie_100" }]
+
+[movie_101]
+uid = "uid://e0vfkcma4cv1"
+kind = "movie"
+group = 0
+id = 101
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 988
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 18
+upload_mode = 0
+
+[movie_101.from.USA]
+at = [{ stage = 3, folder = 2901, stream = "movie_101" }]
+
+[movie_102]
+uid = "uid://eyap8y8pfmax"
+kind = "movie"
+group = 0
+id = 102
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 857
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 16
+upload_mode = 0
+
+[movie_102.from.USA]
+at = [{ stage = 3, folder = 2901, stream = "movie_102" }]
+
+[movie_103]
+uid = "uid://12orax1tke6ap"
+kind = "movie"
+group = 0
+id = 103
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 988
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 18
+upload_mode = 0
+
+[movie_103.from.USA]
+at = [{ stage = 3, folder = 2901, stream = "movie_103" }]
+
+[scene_58]
+uid = "uid://1kowswnqm9z6c"
+kind = "scene_audio"
+group = 3
+id = 58
+sub_id = 11
+sub_id2 = 0
+volume_index = 51
+timing_buffer_kind = 1
+decode_buffer_bytes = 77824
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[scene_58.from.USA]
+at = [{ stage = 3, folder = 2901, stream = "scene_58" }]
+
+[scene_59]
+uid = "uid://s6hro3q0j8j2"
+kind = "scene_audio"
+group = 3
+id = 59
+sub_id = 11
+sub_id2 = 0
+volume_index = 52
+timing_buffer_kind = 1
+decode_buffer_bytes = 57344
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[scene_59.from.USA]
+at = [{ stage = 3, folder = 2901, stream = "scene_59" }]
+
+[scene_60]
+uid = "uid://1xxa4y116tu15"
+kind = "scene_audio"
+group = 3
+id = 60
+sub_id = 11
+sub_id2 = 0
+volume_index = 53
+timing_buffer_kind = 1
+decode_buffer_bytes = 57344
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[scene_60.from.USA]
+at = [{ stage = 3, folder = 2901, stream = "scene_60" }]

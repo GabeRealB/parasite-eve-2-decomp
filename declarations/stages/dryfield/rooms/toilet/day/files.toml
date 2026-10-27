@@ -1,0 +1,157 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://133oom6waecdd"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "palette"
+type = "palette"
+
+[[base.slots]]
+name = "image"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 1, type = "palette" },
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 11, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 2, folder = 1601, file = 0 }]
+
+[view1]
+uid = "uid://1sggur2lg3f4k"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://n67e3ml0ufka", path = "res://stages/dryfield/rooms/toilet/night/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 2, folder = 1601, file = 1 }]
+
+[view2]
+uid = "uid://89f148ab24bm"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1k5tnigeh6os2", path = "res://stages/dryfield/rooms/toilet/day/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 2, folder = 1601, file = 2 }]
+
+[view3]
+uid = "uid://qn5agbiqutpw"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1wuqyh7dxu2wr", path = "res://stages/dryfield/rooms/toilet/day/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 2, folder = 1601, file = 3 }]
+
+[view4]
+uid = "uid://1cd3lwpkegivz"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1dtcyasa9kxfl", path = "res://stages/dryfield/rooms/toilet/day/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 2, folder = 1601, file = 4 }]
+
+[view5]
+uid = "uid://glwuey05qx3w"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://hg79m33l7i8y", path = "res://stages/dryfield/rooms/toilet/day/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 2, folder = 1601, file = 5 }]
+
+[view6]
+uid = "uid://y7b4xwvn23cp"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://tuk8svmqvvjs", path = "res://stages/dryfield/rooms/toilet/day/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 2, folder = 1601, file = 6 }]
+
+[view7]
+uid = "uid://1i5xr0sp0twxf"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1v4gb36ioi2v7", path = "res://stages/dryfield/rooms/toilet/day/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 2, folder = 1601, file = 7 }]
+
+[view8]
+uid = "uid://fjnxj8gxsrwy"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://hz42n4236hcn", path = "res://stages/dryfield/rooms/toilet/day/views/view8_background.asset" } },
+]
+
+[view8.from.USA]
+at = [{ stage = 2, folder = 1601, file = 8 }]
+
+[view9]
+uid = "uid://4eilm6qspt0c"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://11lv3qkf9oho0", path = "res://stages/dryfield/rooms/toilet/day/views/view9_background.asset" } },
+]
+
+[view9.from.USA]
+at = [{ stage = 2, folder = 1601, file = 9 }]
+
+[view10]
+uid = "uid://1m7aehrhisxs2"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://fvs66w9a2zi5", path = "res://stages/dryfield/rooms/toilet/day/views/view10_background.asset" } },
+]
+
+[view10.from.USA]
+at = [{ stage = 2, folder = 1601, file = 10 }]
+
+[view11]
+uid = "uid://yuiddxn450am"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://rfqndxb6mal4", path = "res://stages/dryfield/rooms/toilet/day/views/view11_background.asset" } },
+]
+
+[view11.from.USA]
+at = [{ stage = 2, folder = 1601, file = 11 }]

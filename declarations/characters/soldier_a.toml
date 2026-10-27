@@ -1,0 +1,22 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[texture]
+uid = "uid://9fucuy6vlo0"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [256, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+]
+
+[texture.from.USA]
+at = [{ stage = 0, file = 160600, slot = "image", page = 0 }, { stage = 0, file = 660300, slot = "image", page = 0 }]
+sha1 = "b2c4988e973a40103108ff2ac267fd3169d6e4e8"
+palettes = { default = "bec3219ad4d5fd2122bfac20a91fb38b64314a26", default_2 = "65697f3e268f041b2272faf97f06eeb9c12c506b" }

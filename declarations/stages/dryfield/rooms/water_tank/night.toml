@@ -1,0 +1,18 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1fjalgzvqr5pt"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://5wggvp1l2ir9", path = "res://stages/dryfield/rooms/water_tank/night/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://4d7f18oje5pz", path = "res://stages/dryfield/rooms/water_tank/night/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://138ml4kp9deb4", path = "res://stages/dryfield/rooms/water_tank/night/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://4s47ezgb682g", path = "res://stages/dryfield/rooms/water_tank/night/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://2fd4wxm9ii4w", path = "res://stages/dryfield/rooms/water_tank/night/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1xqtuqmmxaki1", path = "res://stages/dryfield/rooms/water_tank/night/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://153uuc8l10q05", path = "res://stages/dryfield/rooms/water_tank/night/files/view6.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 3, folder = 2101 }]

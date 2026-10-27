@@ -1,0 +1,44 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://16pa6ew5sknh5"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1girzmuq8s4hp", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://2k36gqs6e3ua", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://58ulbv1pvju9", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1u59qf3a9iuki", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://uc8lj5uvl8z5", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://k13azxr6o9y8", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://11ctg9oiy5vfz", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://fy92sziuem25", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1849q72ddaicz", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://17ipelnntboxo", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/files/view9.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 1701 }]
+
+[proto_generator_texture]
+uid = "uid://pfgpe6vje9yo"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [384, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+]
+
+[proto_generator_texture.from.USA]
+at = [{ stage = 0, file = 105400, slot = "image", page = 0 }]
+sha1 = "3098a3cf7d8df44ce9a4ede17750c5c0aea13b50"
+palettes = { default = "623fbeba36b2558b4af4a010f0f64e8bb3c08e89", default_2 = "cbd2e369774a2a075f2332627654aca7ef0e6e5e", default_3 = "ebfeb2fb147a5efb46791b7ee6b09516a818181e" }

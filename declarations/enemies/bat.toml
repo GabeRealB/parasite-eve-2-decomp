@@ -1,0 +1,33 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[preview]
+uid = "uid://1b1948i62oxwu"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 97]
+page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
+]
+
+[preview.from.USA]
+at = [{ stage = 0, file = 20604, slot = "preview_image", page = 0 }]
+sha1 = "94eeff32908d9093c19e725c0f2e34c8a4566404"
+palettes = { default = "22f2c83df42d4fbb74e2b031d5772d7e69c83fe8" }
+
+[texture]
+uid = "uid://1k0ztf5figx6m"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 128]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+]
+
+[texture.from.USA]
+at = [{ stage = 0, file = 103700, slot = "image", page = 0 }, { stage = 0, file = 203700, slot = "image", page = 0 }, { stage = 0, file = 303700, slot = "image", page = 0 }]
+sha1 = "5b0cdc00612c4fa46514655a4404ba6ab5376c9a"
+palettes = { default = "37ba82435971488cbf4d57b2286353865faba8a1" }

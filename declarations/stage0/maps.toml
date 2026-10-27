@@ -1,0 +1,240 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[akropolis_map_page_0]
+uid = "uid://of33rfid7m23"
+kind = "file"
+slots = [
+    { name = "image", type = "image", sector_len = 0x600 },
+    { name = "palette", type = "palette" },
+    { name = "package", type = "package", sector_len = 0x600 },
+]
+
+[akropolis_map_page_0.from.USA]
+at = [{ stage = 0, file = 30100 }, { stage = 0, file = 30101 }]
+
+[akropolis_map_page_2]
+uid = "uid://1hv8nikgw4m9n"
+kind = "file"
+slots = [
+    { name = "image", type = "image", sector_len = 0x600 },
+    { name = "palette", type = "palette" },
+    { name = "package", type = "package", sector_len = 0x600 },
+]
+
+[akropolis_map_page_2.from.USA]
+at = [{ stage = 0, file = 30102 }]
+
+[akropolis_map_page_3]
+uid = "uid://1b2vgyj6q6720"
+kind = "file"
+slots = [
+    { name = "image", type = "image", sector_len = 0x600 },
+    { name = "palette", type = "palette" },
+]
+
+[akropolis_map_page_3.from.USA]
+at = [{ stage = 0, file = 30103 }]
+
+[mappic_s2_00]
+uid = "uid://1ec46dg9yp4xv"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "mappic_s2_00", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s2_00.from.USA]
+at = [{ stage = 0, file = 30200 }, { stage = 0, file = 30201 }]
+
+[mappic_s2_02]
+uid = "uid://1im982y3kv6pg"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s2_02.from.USA]
+at = [{ stage = 0, file = 30202 }]
+
+[mappic_s2_03]
+uid = "uid://154ft9wggs5pz"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s2_03.from.USA]
+at = [{ stage = 0, file = 30203 }]
+
+[mappic_s3_00]
+uid = "uid://5fznfzrjn44f"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "mappic_s3_00", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s3_00.from.USA]
+at = [{ stage = 0, file = 30300 }, { stage = 0, file = 30301 }]
+
+[mappic_s3_02]
+uid = "uid://8qnaemzmivvq"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s3_02.from.USA]
+at = [{ stage = 0, file = 30302 }]
+
+[mappic_s3_03]
+uid = "uid://d6ioit378r66"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s3_03.from.USA]
+at = [{ stage = 0, file = 30303 }]
+
+[mappic_s4_00]
+uid = "uid://w17mlbvgjv9q"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "mappic_s4_00", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s4_00.from.USA]
+at = [{ stage = 0, file = 30400 }, { stage = 0, file = 30401 }]
+
+[mappic_s4_02]
+uid = "uid://1xbw2lt7lbct5"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s4_02.from.USA]
+at = [{ stage = 0, file = 30402 }]
+
+[mappic_s4_03]
+uid = "uid://1i4xxvkygl5ma"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s4_03.from.USA]
+at = [{ stage = 0, file = 30403 }]
+
+[mappic_s4_04]
+uid = "uid://672b37ca0lt2"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s4_04.from.USA]
+at = [{ stage = 0, file = 30404 }]
+
+[mappic_s4_05]
+uid = "uid://19hav1m75sbd1"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s4_05.from.USA]
+at = [{ stage = 0, file = 30405 }]
+
+[mappic_s4_06]
+uid = "uid://1xxjmf0zvu8nx"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "mappic_s4_06", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s4_06.from.USA]
+at = [{ stage = 0, file = 30406 }]
+
+[mappic_s4_07]
+uid = "uid://1mgcgnllc6fgj"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "mappic_s4_06", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s4_07.from.USA]
+at = [{ stage = 0, file = 30407 }]
+
+[mappic_s5_00]
+uid = "uid://9ydiesnijbtx"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "mappic_s5_00", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s5_00.from.USA]
+at = [{ stage = 0, file = 30500 }, { stage = 0, file = 30501 }]
+
+[mappic_s5_02]
+uid = "uid://iqn0m91jf9tm"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s5_02.from.USA]
+at = [{ stage = 0, file = 30502 }]
+
+[mappic_s5_03]
+uid = "uid://rv1ykrr98dli"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "package", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s5_03.from.USA]
+at = [{ stage = 0, file = 30503 }]
+
+[mappic_s5_04]
+uid = "uid://u58s3w3ug3zo"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image", sector_len = 0x500 },
+    { name = "mappic_s5_00", type = "package", sector_len = 0x500 },
+]
+
+[mappic_s5_04.from.USA]
+at = [{ stage = 0, file = 30504 }]

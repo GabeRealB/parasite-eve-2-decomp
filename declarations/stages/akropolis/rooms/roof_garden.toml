@@ -1,0 +1,19 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://cu87ijnjz4iw"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://19ly3goyng79s", path = "res://stages/akropolis/rooms/roof_garden/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://2weuswyv6ueb", path = "res://stages/akropolis/rooms/roof_garden/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://2hfc5dx4sbbp", path = "res://stages/akropolis/rooms/roof_garden/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://vdplvelnt671", path = "res://stages/akropolis/rooms/roof_garden/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1e5jj41xpw49f", path = "res://stages/akropolis/rooms/roof_garden/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://2boxyp90je8r", path = "res://stages/akropolis/rooms/roof_garden/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1n0yesjw8gzsh", path = "res://stages/akropolis/rooms/roof_garden/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://hfu4xa5wy3r9", path = "res://stages/akropolis/rooms/roof_garden/files/view7.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 1301 }]

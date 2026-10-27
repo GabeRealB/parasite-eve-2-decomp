@@ -1,0 +1,345 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://136f7box8mfi2"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+sector_len = 0x600
+
+[[base.slots]]
+name = "palette_0"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://173a9t5sbpims", path = "res://stages/akropolis/rooms/promenade/plane.asset" }, palette = "default" },
+    { image = { uid = "uid://6qyhsr9khwza", path = "res://stages/akropolis/rooms/bridge/props/bridge.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2], size = [256, 2] }
+
+[[base.slots]]
+name = "palette_1"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1glm0e7kq90ww", path = "res://stages/akropolis/rooms/promenade/stars.asset" }, palette = "star_core" },
+    { image = { uid = "uid://1glm0e7kq90ww", path = "res://stages/akropolis/rooms/promenade/stars.asset" }, palette = "star_flare" },
+    { image = { uid = "uid://1glm0e7kq90ww", path = "res://stages/akropolis/rooms/promenade/stars.asset" }, palette = "lamp_0" },
+    { image = { uid = "uid://1glm0e7kq90ww", path = "res://stages/akropolis/rooms/promenade/stars.asset" }, palette = "lamp_1" },
+    { image = { uid = "uid://1glm0e7kq90ww", path = "res://stages/akropolis/rooms/promenade/stars.asset" }, palette = "lamp_2" },
+]
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9], size = [320, 2] }
+
+[[base.slots]]
+name = "image"
+type = "image"
+sector_len = 0x600
+pages = [
+    { image = { uid = "uid://1glm0e7kq90ww", path = "res://stages/akropolis/rooms/promenade/stars.asset" } },
+    { image = { uid = "uid://173a9t5sbpims", path = "res://stages/akropolis/rooms/promenade/plane.asset" } },
+]
+
+[[base.slots]]
+name = "package"
+type = "package"
+sector_len = 0x600
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1vdrydds1cgd2", path = "res://stages/akropolis/rooms/promenade/views/view2.asset" }, palette = "row_0" },
+    { image = { uid = "uid://1vdrydds1cgd2", path = "res://stages/akropolis/rooms/promenade/views/view2.asset" }, palette = "row_1" },
+    { image = { uid = "uid://1vdrydds1cgd2", path = "res://stages/akropolis/rooms/promenade/views/view2.asset" }, palette = "row_2" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://todw0m3vvwky", path = "res://stages/akropolis/rooms/promenade/views/view3.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "palette"
+palettes = [
+    { image = { uid = "uid://19pz203gxss4q", path = "res://stages/akropolis/rooms/promenade/views/view4.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 4
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ezmrkiincotj", path = "res://stages/akropolis/rooms/promenade/views/view5.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 5
+type = "palette"
+palettes = [
+    { image = { uid = "uid://5jnowd45kuob", path = "res://stages/akropolis/rooms/promenade/views/view6.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 6
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ew0451mnu7k1", path = "res://stages/akropolis/rooms/promenade/views/view7.asset" }, palette = "row_0" },
+    { image = { uid = "uid://1ew0451mnu7k1", path = "res://stages/akropolis/rooms/promenade/views/view7.asset" }, palette = "row_1" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 7
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ukkonyxtpe0r", path = "res://stages/akropolis/rooms/promenade/views/view8.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 8
+type = "palette"
+palettes = [
+    { image = { uid = "uid://3brtmsforkn9", path = "res://stages/akropolis/rooms/promenade/views/view9.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 13
+type = "dialogue"
+
+[base.from.USA]
+at = [{ stage = 1, folder = 1101, file = 0 }]
+chunks = { palette_0 = "82bbdfc9a19bd207c929469cdaf0de47ea916795", palette_1 = "96bdd981f3259a93340d2021a3211d937d1f1fc2", image = "4d9ee6443127c23bcde92e24e77454bc70313e02" }
+
+[view1]
+uid = "uid://xw10dvymfk01"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://avzy0x67b0sx", path = "res://stages/akropolis/rooms/promenade/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 1, folder = 1101, file = 1 }]
+
+[view2]
+uid = "uid://162rgw8q3d659"
+kind = "file"
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1vdrydds1cgd2", path = "res://stages/akropolis/rooms/promenade/views/view2.asset" }, truncated = [0, 1, 2] },
+]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://15xyvvfu416rv", path = "res://stages/akropolis/rooms/promenade/views/view2_background.asset" }
+
+[view2.from.USA]
+at = [{ stage = 1, folder = 1101, file = 2 }]
+chunks = { image = "129f74f632fca77cbcb627f5eeaff9f7cfb02c9b" }
+
+[view3]
+uid = "uid://odphqoxx6z78"
+kind = "file"
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://todw0m3vvwky", path = "res://stages/akropolis/rooms/promenade/views/view3.asset" }, truncated = [0, 1] },
+]
+page_slots = 3
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://cdshu3tyj2xc", path = "res://stages/akropolis/rooms/promenade/views/view3_background.asset" }
+
+[view3.from.USA]
+at = [{ stage = 1, folder = 1101, file = 3 }]
+chunks = { image = "bfe7ec4b8fcc0760abc9cb82fa3d455435166fe7" }
+
+[view4]
+uid = "uid://t0sb2eiugxrg"
+kind = "file"
+
+[[view4.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://19pz203gxss4q", path = "res://stages/akropolis/rooms/promenade/views/view4.asset" }, truncated = [0, 1] },
+]
+page_slots = 3
+
+[[view4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://7edwlq4ua1pq", path = "res://stages/akropolis/rooms/promenade/views/view4_background.asset" }
+
+[view4.from.USA]
+at = [{ stage = 1, folder = 1101, file = 4 }]
+chunks = { image = "1bbefb9b71ed9db4c3c6d4ff9576c58e543e103d" }
+
+[view5]
+uid = "uid://1tyupmthfuco"
+kind = "file"
+
+[[view5.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ezmrkiincotj", path = "res://stages/akropolis/rooms/promenade/views/view5.asset" }, truncated = [0, 1, 2] },
+]
+
+[[view5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://q0uzuqqnqqbv", path = "res://stages/akropolis/rooms/promenade/views/view5_background.asset" }
+
+[view5.from.USA]
+at = [{ stage = 1, folder = 1101, file = 5 }]
+chunks = { image = "dbece69fe68eab60de2b3a122a70fed64f403704" }
+
+[view6]
+uid = "uid://1rqkawzilfckb"
+kind = "file"
+
+[[view6.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://5jnowd45kuob", path = "res://stages/akropolis/rooms/promenade/views/view6.asset" } },
+]
+
+[[view6.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://3rglqyn4j9h", path = "res://stages/akropolis/rooms/promenade/views/view6_background.asset" }
+
+[view6.from.USA]
+at = [{ stage = 1, folder = 1101, file = 6 }]
+chunks = { image = "24241cf9ccad9d744399c16bff049997a84a8b18" }
+
+[view7]
+uid = "uid://1ohzh1uqwewd2"
+kind = "file"
+
+[[view7.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ew0451mnu7k1", path = "res://stages/akropolis/rooms/promenade/views/view7.asset" } },
+]
+
+[[view7.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://hfu4on0462tc", path = "res://stages/akropolis/rooms/promenade/views/view7_background.asset" }
+
+[view7.from.USA]
+at = [{ stage = 1, folder = 1101, file = 7 }]
+chunks = { image = "821b2de2323beee084953de08c67df5d65944cae" }
+
+[view8]
+uid = "uid://1f2tdwzdl2rrz"
+kind = "file"
+
+[[view8.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ukkonyxtpe0r", path = "res://stages/akropolis/rooms/promenade/views/view8.asset" } },
+]
+page_slots = 3
+
+[[view8.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1bn9tp2n6b2zv", path = "res://stages/akropolis/rooms/promenade/views/view8_background.asset" }
+
+[view8.from.USA]
+at = [{ stage = 1, folder = 1101, file = 8 }]
+chunks = { image = "b08f927645bcafe83381171c37a50a7aeefc3cc0" }
+
+[view9]
+uid = "uid://e0p1agneztba"
+kind = "file"
+
+[[view9.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://3brtmsforkn9", path = "res://stages/akropolis/rooms/promenade/views/view9.asset" } },
+]
+
+[[view9.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1v2t69oirlozr", path = "res://stages/akropolis/rooms/promenade/views/view9_background.asset" }
+
+[view9.from.USA]
+at = [{ stage = 1, folder = 1101, file = 9 }]
+chunks = { image = "1627d81c214e1529698c4ac5c9dda66f3d36a3c2" }
+
+[view10]
+uid = "uid://1wc8lzq1azmgy"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://rjq5j5hpukn7", path = "res://stages/akropolis/rooms/promenade/views/view10_background.asset" } },
+]
+
+[view10.from.USA]
+at = [{ stage = 1, folder = 1101, file = 10 }]
+
+[view11]
+uid = "uid://1u0dyqanvvymn"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1ufg7imwxtpni", path = "res://stages/akropolis/rooms/promenade/views/view11_background.asset" } },
+]
+
+[view11.from.USA]
+at = [{ stage = 1, folder = 1101, file = 11 }]
+
+[view12]
+uid = "uid://1t74xi7a9guw0"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://t6mblqkygzhv", path = "res://stages/akropolis/rooms/promenade/views/view12_background.asset" } },
+]
+
+[view12.from.USA]
+at = [{ stage = 1, folder = 1101, file = 12 }]
+
+[view13]
+uid = "uid://16pw6eyk4oeus"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1l4c70v2e9elr", path = "res://stages/akropolis/rooms/promenade/views/view13_background.asset" } },
+]
+
+[view13.from.USA]
+at = [{ stage = 1, folder = 1101, file = 13 }]

@@ -1461,7 +1461,7 @@ def decode_declared(assets_root: Path, *, native_only: bool = False) -> None:
     animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), each shaped asset
     as its instance (shape/), and each room as its instance (room/). The rest stays raw until it is declared.
 
-    `native_only` (the minimal extraction, tier 1 of local/project_design.md): only the native forms the build reads
+    `native_only` (the build's extraction): only the native forms the build reads
     beyond the stored bytes - the room and stage instances and the shaped instances, from which it generates C; the
     editable forms (PNG, UFO, USD, SFZ) are for the project and are not written."""
     import room

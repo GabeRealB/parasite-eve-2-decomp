@@ -1,0 +1,101 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[view1_background]
+uid = "uid://r9k016istsig"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view1_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 1, slot = "background" }]
+sha1 = "0852344d0a2799d7e072afbf1f90052ddc4949a6"
+
+[view2_background]
+uid = "uid://19nlbvo5zsr37"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view2_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 2, slot = "background" }]
+sha1 = "506aefa372c915b643ecc70ca6c123cb5f94e0fd"
+
+[view3_background]
+uid = "uid://6rc9q3wd789s"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view3_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 3, slot = "background" }]
+sha1 = "4a69d7cbedf16f9bfff88253e37bef4da8c3c063"
+
+[view4_background]
+uid = "uid://10f4dd6koc9ui"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view4_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 4, slot = "background" }]
+sha1 = "5085c199a6613117264b7297bd981b4da55cf778"
+
+[view5_background]
+uid = "uid://y31dsgzcr3ce"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view5_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 5, slot = "background" }]
+sha1 = "dfb2d0256a14dd3fe3a0ba8860df95b787983f1f"
+
+[view6_background]
+uid = "uid://1dlnkgt5e1h5l"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view6_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 6, slot = "background" }]
+sha1 = "5352694b60fd8fca4939015a448363408e79d827"
+
+[view7_background]
+uid = "uid://qho7pwtbnfde"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view7_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 7, slot = "background" }]
+sha1 = "9a35ccc6796e299b77774cdf7412180b9b3b2b89"
+
+[view8_background]
+uid = "uid://1ho8kldjowxab"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view8_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 8, slot = "background" }]
+sha1 = "7f4af9510d19852bee947581af6e477664e51176"
+
+[view9_background]
+uid = "uid://1tlreayb7t3ni"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view9_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 9, slot = "background" }]
+sha1 = "0644448fc916ec4f7cb4a1fa4fa65a6af804814f"
+
+[view10_background]
+uid = "uid://15rnn2m2pz66h"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view10_background.from.USA]
+at = [{ stage = 3, folder = 2501, file = 10, slot = "background" }]
+sha1 = "97f0a2da487a9ec9c28fdc74e257cceb01fb2079"

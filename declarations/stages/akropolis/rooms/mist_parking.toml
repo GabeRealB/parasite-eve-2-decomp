@@ -1,0 +1,36 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://148g3z9l1s7yn"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://1wecle4iggfpo", path = "res://stages/akropolis/rooms/mist_parking/streams/movie_100.asset" } },
+    { name = "movie_101", type = "movie", asset = { uid = "uid://kyfsqfq6ok5j", path = "res://stages/akropolis/rooms/mist_parking/streams/movie_101.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1dw84ai6d67bw", path = "res://stages/akropolis/rooms/mist_parking/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1c0f6d6zyz2w1", path = "res://stages/akropolis/rooms/mist_parking/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://tyzocip0nr0r", path = "res://stages/akropolis/rooms/mist_parking/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://11emre0vg1mpp", path = "res://stages/akropolis/rooms/mist_parking/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1hw3fsg4d60ru", path = "res://stages/akropolis/rooms/mist_parking/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1w3anlw52dou2", path = "res://stages/akropolis/rooms/mist_parking/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://a9cukiq7tkbt", path = "res://stages/akropolis/rooms/mist_parking/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://2rr5266om8wc", path = "res://stages/akropolis/rooms/mist_parking/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://xzvd16vmo5vu", path = "res://stages/akropolis/rooms/mist_parking/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://87yljbytthrv", path = "res://stages/akropolis/rooms/mist_parking/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://lalq2dghysqa", path = "res://stages/akropolis/rooms/mist_parking/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://g9xj7u86nvtu", path = "res://stages/akropolis/rooms/mist_parking/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1l0c4p0qlivs7", path = "res://stages/akropolis/rooms/mist_parking/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://19enroxxcbbtp", path = "res://stages/akropolis/rooms/mist_parking/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://5u7vds5wb00v", path = "res://stages/akropolis/rooms/mist_parking/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://12rn1cd6lmg0b", path = "res://stages/akropolis/rooms/mist_parking/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://aexdhq2ruc5v", path = "res://stages/akropolis/rooms/mist_parking/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1cd9c6z90vtcl", path = "res://stages/akropolis/rooms/mist_parking/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://jcd6jd4x2o2f", path = "res://stages/akropolis/rooms/mist_parking/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://1s2y3xwviaiug", path = "res://stages/akropolis/rooms/mist_parking/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://chr6i0y8sug9", path = "res://stages/akropolis/rooms/mist_parking/files/view20.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 1901 }]

@@ -1,0 +1,251 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[view1_background]
+uid = "uid://kyffhz9dyscr"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view1_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 1, slot = "background" }]
+sha1 = "2b58ca86fbe035eb41b3c06cde007d1b7791c73d"
+
+[view2_background]
+uid = "uid://5edb7bczpv27"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view2_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 2, slot = "background" }, { stage = 3, folder = 3201, file = 2, slot = "background" }]
+sha1 = "c54968e12ab0579ed55dbff5a1b8b978bf531c2a"
+
+[view3_background]
+uid = "uid://1np2jw3wtvfyl"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view3_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 3, slot = "background" }, { stage = 3, folder = 3201, file = 3, slot = "background" }]
+sha1 = "4cea4c6fade937f7dbc00e0fff97495c08039bbd"
+
+[view4_background]
+uid = "uid://1g72m29racwjg"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view4_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 4, slot = "background" }]
+sha1 = "e1d4ab8b8ad805155d2230cd8478234d3dfc3c8a"
+
+[view5_background]
+uid = "uid://agb1vdxm2blc"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view5_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 5, slot = "background" }]
+sha1 = "1723ab2a482c3e19c39d0705ecf60d909e19bdd1"
+
+[view6_background]
+uid = "uid://kxjss1v12r2g"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view6_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 6, slot = "background" }]
+sha1 = "e78634eb9cf4931a61f870cba4da120e866e34ff"
+
+[view7_background]
+uid = "uid://1x1qagvx0gecq"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view7_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 7, slot = "background" }]
+sha1 = "ad37c246604d1c336ede1536f57eb54e9e030b13"
+
+[view8_background]
+uid = "uid://1023lutxcela"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view8_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 8, slot = "background" }]
+sha1 = "381f9355e07ccefab1aeddfc570f8df5af3d0927"
+
+[view9_background]
+uid = "uid://v03uajn7f7np"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view9_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 9, slot = "background" }, { stage = 3, folder = 3201, file = 9, slot = "background" }]
+sha1 = "0742ef45a364ad448f25eb4b3350346064023292"
+
+[view10_background]
+uid = "uid://1hag98pz7k3db"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view10_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 10, slot = "background" }, { stage = 3, folder = 3201, file = 10, slot = "background" }]
+sha1 = "9d598ba2359a888cdcd998f5fb62169118cf15ea"
+
+[view12_background]
+uid = "uid://kyv9rrpn0i76"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view12_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 12, slot = "background" }]
+sha1 = "48e032054ed003183f532687a3c5439c4fa34c65"
+
+[view13_background]
+uid = "uid://17ux9ru2wxgdy"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view13_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 13, slot = "background" }, { stage = 3, folder = 3201, file = 13, slot = "background" }]
+sha1 = "15638a1f35953fd506fcc41361d969edd7ad19b9"
+
+[view14_background]
+uid = "uid://765vi78dgne9"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view14_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 14, slot = "background" }, { stage = 3, folder = 3201, file = 14, slot = "background" }]
+sha1 = "6d4408d2db0a6a18213dc35bbda83d239be417ad"
+
+[view15_background]
+uid = "uid://1mp1dafjstub5"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view15_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 15, slot = "background" }, { stage = 3, folder = 3201, file = 15, slot = "background" }]
+sha1 = "410d918061e4388d7150945afc20fac61c7072a6"
+
+[view16_background]
+uid = "uid://1qztv7mmmc1yu"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view16_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 16, slot = "background" }, { stage = 3, folder = 3201, file = 16, slot = "background" }]
+sha1 = "779b9f4e77b7e6640203b272e35404405a2be55a"
+
+[view17_background]
+uid = "uid://1a007rh5p0dln"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view17_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 17, slot = "background" }, { stage = 3, folder = 3201, file = 17, slot = "background" }]
+sha1 = "f269246189064c14d45522831e20d2b98af7b26a"
+
+[view18_background]
+uid = "uid://1e0mu7rb5hpz"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view18_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 18, slot = "background" }, { stage = 3, folder = 3201, file = 18, slot = "background" }]
+sha1 = "4879e0acf3b292045fc66b49e69abcd25ca2a4de"
+
+[view19_background]
+uid = "uid://5snqr6itl18u"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view19_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 19, slot = "background" }, { stage = 3, folder = 3201, file = 19, slot = "background" }]
+sha1 = "6a975add208159f8adce7a8d1a6f135c5fb98d64"
+
+[view20_background]
+uid = "uid://1r8n6zcp6vg3e"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view20_background.from.USA]
+at = [{ stage = 2, folder = 3201, file = 20, slot = "background" }, { stage = 3, folder = 3201, file = 20, slot = "background" }]
+sha1 = "3f74420d3c3f1934c85765dedffc751c548f7307"
+
+[view21_background]
+uid = "uid://3hy8oynkky8m"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view21_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 21, slot = "background" }]
+sha1 = "b37cba6d81aa948506fcdeb84fe0cd4afc1c1b5e"
+
+[view22_background]
+uid = "uid://5mlp7p20p69g"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view22_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 22, slot = "background" }]
+sha1 = "16f558558b8638569a9e17db24efbba54f53813a"
+
+[view23_background]
+uid = "uid://giltetqx9vei"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view23_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 23, slot = "background" }]
+sha1 = "b47a18e5cfdc9e00644914bdbdb3a816e065c51b"
+
+[view24_background]
+uid = "uid://1tpqk2ek4kwbq"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view24_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 24, slot = "background" }]
+sha1 = "fbf98fc60e0b8a20405d838239650ac93db7525b"
+
+[view25_background]
+uid = "uid://1qf6qwo8bhqlf"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view25_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 25, slot = "background" }]
+sha1 = "a51427f5adabc19a3ccb38a4bf79ad76db2c64f6"
+
+[view26_background]
+uid = "uid://8j1fov3ax9f3"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view26_background.from.USA]
+at = [{ stage = 3, folder = 3201, file = 26, slot = "background" }]
+sha1 = "e72a905271c03f0ed9c604be009cc4ae10d00acd"

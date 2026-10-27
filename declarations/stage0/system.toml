@@ -1,0 +1,1435 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[gameplay]
+uid = "uid://3zg81cuz90q"
+kind = "file"
+slots = [
+    { name = "sounds", type = "sound_bank" },
+    { name = "package", type = "package" },
+]
+
+[gameplay.from.USA]
+at = [{ stage = 0, file = 0 }]
+
+[title]
+uid = "uid://swvvgzpql4fk"
+kind = "file"
+
+[[title.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[title.slots]]
+name = "font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1lszyuxlyyz77", path = "res://ui/font/texture.asset" } },
+]
+
+[[title.slots]]
+name = "dialogue_palette"
+type = "palette"
+palettes = [
+    { name = "text_0", entries = 16, slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] },
+    { name = "text_1", entries = 16, slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] },
+    { name = "text_2", entries = 16, slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] },
+    { name = "text_3", entries = 16, slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] },
+    { name = "plate", entries = 16, slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] },
+    { name = "unread", entries = 16, slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 4] },
+]
+upload = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" } }
+
+[[title.slots]]
+name = "sheet_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" } },
+]
+
+[[title.slots]]
+name = "sheet_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "shoulder" },
+    { name = "row_inactive", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [16, 0] },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "player_name" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "frame" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_fire" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_wind" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_water" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_earth" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "status" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "arrow_up" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "cursor" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "gauge" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "disc" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "marker_targeted" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "background" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "portrait" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "weapon.battery" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "lock_on" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "range_around" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "other_item" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "background.pulse" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "caption_earth" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "caption_wind" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "action_cursor.hotspot" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "action_cursor" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "ammunition.ammo_40mm" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "empty" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_fallback" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "ammunition.ammo_44_magnum" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "other_item.ammo_9mm" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "unidentified" },
+    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "key_item" },
+]
+
+[[title.slots]]
+name = "package"
+type = "package"
+
+[title.from.USA]
+at = [{ stage = 0, file = 1 }]
+chunks = { font_image = "be2e0e8b8369be9d2a7889b0335a6ee579de630c", dialogue_palette = "b770378551c0f0deda9e65172e056a817539c14f", sheet_image = "6891a8c4f5a876ab13c617bfa06851b3cdbbda4c", sheet_palette = "17188003fce13afabb38fed0a1d85b1e82622596" }
+
+[title_screen]
+uid = "uid://16bvb11pu8wbt"
+kind = "file"
+
+[[title_screen.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://f1e963jhv4i4", path = "res://title/background.asset" }
+
+[[title_screen.slots]]
+name = "chrome_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ise7wq932mjc", path = "res://title/chrome_left.asset" }, palette = "default" },
+    { image = { uid = "uid://1mur93yy6mhb7", path = "res://title/chrome_right.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[title_screen.slots]]
+name = "chrome_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ise7wq932mjc", path = "res://title/chrome_left.asset" } },
+    { image = { uid = "uid://1mur93yy6mhb7", path = "res://title/chrome_right.asset" } },
+]
+
+[title_screen.from.USA]
+at = [{ stage = 0, file = 2 }]
+chunks = { chrome_palette = "2d38102565e03e543c68396df95ab9a35247be24", chrome_image = "265dfbebeafa8446495f04515607ea05ffaa30f6" }
+
+[load_screen_detailed_caption]
+uid = "uid://17pgwew839yc7"
+kind = "file"
+
+[[load_screen_detailed_caption.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_detailed_caption.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[load_screen_detailed_caption.from.USA]
+at = [{ stage = 0, file = 3 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_motel_room_6]
+uid = "uid://rwmh9qls3fia"
+kind = "file"
+
+[[load_screen_dryfield_motel_room_6.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_motel_room_6.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_motel_room_6.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://8o2jk5et34ka", path = "res://load_screens/dryfield_motel_room_6/background.asset" }
+
+[load_screen_dryfield_motel_room_6.from.USA]
+at = [{ stage = 0, file = 4 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_acropolis_square]
+uid = "uid://9j09den9b98l"
+kind = "file"
+
+[[load_screen_acropolis_square.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_acropolis_square.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_acropolis_square.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://z3no05xnxsb", path = "res://load_screens/acropolis_square/background.asset" }
+
+[load_screen_acropolis_square.from.USA]
+at = [{ stage = 0, file = 5 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_acropolis_other]
+uid = "uid://xnhrvhgisg39"
+kind = "file"
+
+[[load_screen_acropolis_other.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_acropolis_other.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_acropolis_other.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1dtz8qcfbgmpr", path = "res://load_screens/acropolis_other/background.asset" }
+
+[load_screen_acropolis_other.from.USA]
+at = [{ stage = 0, file = 6 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_mist_arrival]
+uid = "uid://1x88eqf8vxsc7"
+kind = "file"
+
+[[load_screen_mist_arrival.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_mist_arrival.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_mist_arrival.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1aq0jsm63w6oh", path = "res://load_screens/mist_arrival/background.asset" }
+
+[load_screen_mist_arrival.from.USA]
+at = [{ stage = 0, file = 7 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_mist_departure]
+uid = "uid://6q4hd3kwtouy"
+kind = "file"
+
+[[load_screen_mist_departure.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_mist_departure.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_mist_departure.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://j7skem9e6wkf", path = "res://load_screens/mist_departure/background.asset" }
+
+[load_screen_mist_departure.from.USA]
+at = [{ stage = 0, file = 8 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_unselected_9]
+uid = "uid://b1r3qlr5e7w6"
+kind = "file"
+
+[[load_screen_unselected_9.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_unselected_9.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[load_screen_unselected_9.from.USA]
+at = [{ stage = 0, file = 9 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_main_street]
+uid = "uid://1nf0kus3cfye5"
+kind = "file"
+
+[[load_screen_dryfield_main_street.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_main_street.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_main_street.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://4x46obzknjvc", path = "res://load_screens/dryfield_main_street/background.asset" }
+
+[load_screen_dryfield_main_street.from.USA]
+at = [{ stage = 0, file = 10 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_trailer_coach]
+uid = "uid://1jhwdzl7xm2h1"
+kind = "file"
+
+[[load_screen_dryfield_trailer_coach.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_trailer_coach.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_trailer_coach.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1n8h4vuxcem6", path = "res://load_screens/dryfield_trailer_coach/background.asset" }
+
+[load_screen_dryfield_trailer_coach.from.USA]
+at = [{ stage = 0, file = 11 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_lobby_chapter_3]
+uid = "uid://1gc9m6fl98zlb"
+kind = "file"
+
+[[load_screen_dryfield_night_lobby_chapter_3.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_lobby_chapter_3.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_lobby_chapter_3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1ngvlhwnshr0h", path = "res://load_screens/dryfield_night_lobby_chapter_3/background.asset" }
+
+[load_screen_dryfield_night_lobby_chapter_3.from.USA]
+at = [{ stage = 0, file = 12 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_trailer_chapter_3]
+uid = "uid://1k0y4y3bpenfa"
+kind = "file"
+
+[[load_screen_dryfield_night_trailer_chapter_3.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_trailer_chapter_3.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_trailer_chapter_3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1rqegd9xmrb9v", path = "res://load_screens/dryfield_night_trailer_chapter_3/background.asset" }
+
+[load_screen_dryfield_night_trailer_chapter_3.from.USA]
+at = [{ stage = 0, file = 13 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_other_chapter_3]
+uid = "uid://14rxpy0ra57ri"
+kind = "file"
+
+[[load_screen_dryfield_night_other_chapter_3.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_other_chapter_3.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_other_chapter_3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1p0ovmfohl7dx", path = "res://load_screens/dryfield_night_other_chapter_3/background.asset" }
+
+[load_screen_dryfield_night_other_chapter_3.from.USA]
+at = [{ stage = 0, file = 14 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_other_chapter_4]
+uid = "uid://tqhfnsr43ub9"
+kind = "file"
+
+[[load_screen_dryfield_night_other_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_other_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_other_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1mzy7nne0o1vi", path = "res://load_screens/dryfield_night_other_chapter_4/background.asset" }
+
+[load_screen_dryfield_night_other_chapter_4.from.USA]
+at = [{ stage = 0, file = 15 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_mine_refuge_chapter_4]
+uid = "uid://1qgusn0ctk7pb"
+kind = "file"
+
+[[load_screen_mine_refuge_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_mine_refuge_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_mine_refuge_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://12c0c5psu19yu", path = "res://load_screens/mine_refuge_chapter_4/background.asset" }
+
+[load_screen_mine_refuge_chapter_4.from.USA]
+at = [{ stage = 0, file = 16 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_sterilization_chapter_4]
+uid = "uid://ufzhiuguw4ua"
+kind = "file"
+
+[[load_screen_shelter_sterilization_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_sterilization_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_sterilization_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://85n5kj3msav2", path = "res://load_screens/shelter_sterilization_chapter_4/background.asset" }
+
+[load_screen_shelter_sterilization_chapter_4.from.USA]
+at = [{ stage = 0, file = 17 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_incinerator_chapter_4]
+uid = "uid://58tgk214r4o4"
+kind = "file"
+
+[[load_screen_shelter_incinerator_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_incinerator_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_incinerator_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1jma2af3929c5", path = "res://load_screens/shelter_incinerator_chapter_4/background.asset" }
+
+[load_screen_shelter_incinerator_chapter_4.from.USA]
+at = [{ stage = 0, file = 18 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_lobby_chapter_4]
+uid = "uid://i6hjrttpfffs"
+kind = "file"
+
+[[load_screen_dryfield_night_lobby_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_lobby_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_lobby_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1nma6kpcwdq1p", path = "res://load_screens/dryfield_night_lobby_chapter_4/background.asset" }
+
+[load_screen_dryfield_night_lobby_chapter_4.from.USA]
+at = [{ stage = 0, file = 19 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_trailer_chapter_4]
+uid = "uid://1pt0ralb3p7sv"
+kind = "file"
+
+[[load_screen_dryfield_night_trailer_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_trailer_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_trailer_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1kbc6mkb70d0e", path = "res://load_screens/dryfield_night_trailer_chapter_4/background.asset" }
+
+[load_screen_dryfield_night_trailer_chapter_4.from.USA]
+at = [{ stage = 0, file = 20 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_laboratory_chapter_4]
+uid = "uid://9lljs66tyz8t"
+kind = "file"
+
+[[load_screen_shelter_laboratory_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_laboratory_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_laboratory_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1r2ip9t02yrmx", path = "res://load_screens/shelter_laboratory_chapter_4/background.asset" }
+
+[load_screen_shelter_laboratory_chapter_4.from.USA]
+at = [{ stage = 0, file = 21 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_pod_chapter_4]
+uid = "uid://sxvs8brosrb9"
+kind = "file"
+
+[[load_screen_shelter_pod_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_pod_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_pod_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://5or9kvj74n2s", path = "res://load_screens/shelter_pod_chapter_4/background.asset" }
+
+[load_screen_shelter_pod_chapter_4.from.USA]
+at = [{ stage = 0, file = 22 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_mine_refuge_chapter_5]
+uid = "uid://ajkxpccrwq37"
+kind = "file"
+
+[[load_screen_mine_refuge_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_mine_refuge_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_mine_refuge_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1iif5xzzdeph4", path = "res://load_screens/mine_refuge_chapter_5/background.asset" }
+
+[load_screen_mine_refuge_chapter_5.from.USA]
+at = [{ stage = 0, file = 23 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_sterilization_chapter_5]
+uid = "uid://ebpou1hnbjw6"
+kind = "file"
+
+[[load_screen_shelter_sterilization_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_sterilization_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_sterilization_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1o0vmy1blcho", path = "res://load_screens/shelter_sterilization_chapter_5/background.asset" }
+
+[load_screen_shelter_sterilization_chapter_5.from.USA]
+at = [{ stage = 0, file = 24 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_incinerator_chapter_5]
+uid = "uid://1qnszvquqjsay"
+kind = "file"
+
+[[load_screen_shelter_incinerator_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_incinerator_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_incinerator_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1e243gzvq88p2", path = "res://load_screens/shelter_incinerator_chapter_5/background.asset" }
+
+[load_screen_shelter_incinerator_chapter_5.from.USA]
+at = [{ stage = 0, file = 25 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_lobby_chapter_5]
+uid = "uid://f64yb3xhoesm"
+kind = "file"
+
+[[load_screen_dryfield_night_lobby_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_lobby_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_lobby_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://zu6uk5x53u59", path = "res://load_screens/dryfield_night_lobby_chapter_5/background.asset" }
+
+[load_screen_dryfield_night_lobby_chapter_5.from.USA]
+at = [{ stage = 0, file = 26 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_trailer_chapter_5]
+uid = "uid://ymepp3j4ajkh"
+kind = "file"
+
+[[load_screen_dryfield_night_trailer_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_trailer_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_trailer_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://5bk96ge6w8o5", path = "res://load_screens/dryfield_night_trailer_chapter_5/background.asset" }
+
+[load_screen_dryfield_night_trailer_chapter_5.from.USA]
+at = [{ stage = 0, file = 27 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_laboratory_chapter_5]
+uid = "uid://rw44bocppzu9"
+kind = "file"
+
+[[load_screen_shelter_laboratory_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_laboratory_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_laboratory_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://4tzbbta0acc3", path = "res://load_screens/shelter_laboratory_chapter_5/background.asset" }
+
+[load_screen_shelter_laboratory_chapter_5.from.USA]
+at = [{ stage = 0, file = 28 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_pod_chapter_5]
+uid = "uid://u4rv3zmtctpk"
+kind = "file"
+
+[[load_screen_shelter_pod_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_pod_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_pod_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://149hai4u8qurv", path = "res://load_screens/shelter_pod_chapter_5/background.asset" }
+
+[load_screen_shelter_pod_chapter_5.from.USA]
+at = [{ stage = 0, file = 29 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_nursery]
+uid = "uid://1hvtbx7uq17k0"
+kind = "file"
+
+[[load_screen_shelter_nursery.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_nursery.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_nursery.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1jtu3deyg2sq6", path = "res://load_screens/shelter_nursery/background.asset" }
+
+[load_screen_shelter_nursery.from.USA]
+at = [{ stage = 0, file = 30 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_parking_chapter_5]
+uid = "uid://1uzlyc287dpt8"
+kind = "file"
+
+[[load_screen_shelter_parking_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_parking_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_parking_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://15g3f5aqtjrzk", path = "res://load_screens/shelter_parking_chapter_5/background.asset" }
+
+[load_screen_shelter_parking_chapter_5.from.USA]
+at = [{ stage = 0, file = 31 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_night_other_chapter_5]
+uid = "uid://2q5addrv4mjy"
+kind = "file"
+
+[[load_screen_dryfield_night_other_chapter_5.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_night_other_chapter_5.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_night_other_chapter_5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://mck1q36pjf7j", path = "res://load_screens/dryfield_night_other_chapter_5/background.asset" }
+
+[load_screen_dryfield_night_other_chapter_5.from.USA]
+at = [{ stage = 0, file = 32 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_unselected_33]
+uid = "uid://1qi9wepkcz2dc"
+kind = "file"
+
+[[load_screen_unselected_33.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_unselected_33.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[load_screen_unselected_33.from.USA]
+at = [{ stage = 0, file = 33 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_unselected_34]
+uid = "uid://xckev3r1rfju"
+kind = "file"
+
+[[load_screen_unselected_34.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_unselected_34.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[load_screen_unselected_34.from.USA]
+at = [{ stage = 0, file = 34 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_heliport]
+uid = "uid://1xtmum2qfj5wt"
+kind = "file"
+
+[[load_screen_shelter_heliport.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_heliport.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_heliport.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://wan52dw75k5p", path = "res://load_screens/shelter_heliport/background.asset" }
+
+[load_screen_shelter_heliport.from.USA]
+at = [{ stage = 0, file = 35 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_sterilization_chapter_6]
+uid = "uid://ppvb06a786qf"
+kind = "file"
+
+[[load_screen_shelter_sterilization_chapter_6.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_sterilization_chapter_6.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_sterilization_chapter_6.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://i460g81giqgy", path = "res://load_screens/shelter_sterilization_chapter_6/background.asset" }
+
+[load_screen_shelter_sterilization_chapter_6.from.USA]
+at = [{ stage = 0, file = 36 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_laboratory_chapter_6]
+uid = "uid://5v3sxb6fwyg5"
+kind = "file"
+
+[[load_screen_shelter_laboratory_chapter_6.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_laboratory_chapter_6.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_laboratory_chapter_6.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://5r79s23ufk4d", path = "res://load_screens/shelter_laboratory_chapter_6/background.asset" }
+
+[load_screen_shelter_laboratory_chapter_6.from.USA]
+at = [{ stage = 0, file = 37 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_parking_chapter_6]
+uid = "uid://12a1rry5a72de"
+kind = "file"
+
+[[load_screen_shelter_parking_chapter_6.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_parking_chapter_6.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_parking_chapter_6.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1x0lzku3u6ogy", path = "res://load_screens/shelter_parking_chapter_6/background.asset" }
+
+[load_screen_shelter_parking_chapter_6.from.USA]
+at = [{ stage = 0, file = 38 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_dryfield_other]
+uid = "uid://1lybdgksxs5q3"
+kind = "file"
+
+[[load_screen_dryfield_other.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_dryfield_other.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_dryfield_other.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1x0do78jqca67", path = "res://load_screens/dryfield_other/background.asset" }
+
+[load_screen_dryfield_other.from.USA]
+at = [{ stage = 0, file = 39 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[load_screen_shelter_parking_chapter_4]
+uid = "uid://ecjsb96p4obf"
+kind = "file"
+
+[[load_screen_shelter_parking_chapter_4.slots]]
+name = "caption_font_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" } },
+]
+page_slots = 3
+
+[[load_screen_shelter_parking_chapter_4.slots]]
+name = "caption_font_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
+    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[load_screen_shelter_parking_chapter_4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://sxfxggcfx5wn", path = "res://load_screens/shelter_parking_chapter_4/background.asset" }
+
+[load_screen_shelter_parking_chapter_4.from.USA]
+at = [{ stage = 0, file = 40 }]
+chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", caption_font_palette = "e523af5c11086379eac181adbaf5a69ca234abcd" }
+
+[mode_splash_replay]
+uid = "uid://g000rcmpgwbb"
+kind = "file"
+slots = [
+    { name = "splash", type = "bs", asset = { uid = "uid://v8csf3kvq7fo", path = "res://game_modes/replay/splash.asset" } },
+]
+
+[mode_splash_replay.from.USA]
+at = [{ stage = 0, file = 41 }]
+
+[mode_splash_bounty]
+uid = "uid://1aw2pq7mu0a70"
+kind = "file"
+slots = [
+    { name = "splash", type = "bs", asset = { uid = "uid://10m6n69uui9ek", path = "res://game_modes/bounty/splash.asset" } },
+]
+
+[mode_splash_bounty.from.USA]
+at = [{ stage = 0, file = 42 }]
+
+[mode_splash_scavenger]
+uid = "uid://u10dv6m2nou5"
+kind = "file"
+slots = [
+    { name = "splash", type = "bs", asset = { uid = "uid://14n91xjmf1x0w", path = "res://game_modes/scavenger/splash.asset" } },
+]
+
+[mode_splash_scavenger.from.USA]
+at = [{ stage = 0, file = 43 }]
+
+[mode_splash_nightmare]
+uid = "uid://o6t6wtq81ok7"
+kind = "file"
+slots = [
+    { name = "splash", type = "bs", asset = { uid = "uid://mrlsxgise63x", path = "res://game_modes/nightmare/splash.asset" } },
+]
+
+[mode_splash_nightmare.from.USA]
+at = [{ stage = 0, file = 44 }]

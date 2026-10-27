@@ -1,0 +1,44 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[target]
+uid = "uid://jr68leys0zcz"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [384, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+]
+
+[target.from.USA]
+at = [{ stage = 0, file = 107600, slot = "image", page = 0 }]
+sha1 = "34b06f0dbad75e6711385d555e59b87609eb41ec"
+palettes = { default = "9de06a4c470449ee9741b52de3e9101da43af2f9", default_2 = "1c13a76d8fc5898adcd437fd43a8aa132fd6d056", default_3 = "a1f7d7344b35ef812e4ee8fb57253434c249babf" }
+
+[target_page_4]
+uid = "uid://142s3oqa46sa7"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] },
+]
+cells = [
+    { name = "death_burst", rect = [64, 0, 40, 40], palette = "default" },
+    { name = "hit_mark", rect = [104, 0, 16, 16], palette = "default" },
+]
+
+[target_page_4.from.USA]
+at = [{ stage = 0, file = 107600, slot = "image", page = 3 }]
+sha1 = "9f2e725cb3eaf59021384a46eeeb2ab2508471e3"
+palettes = { default = "29b406dc31179ea63165595c9c0620ea6c4376fc" }

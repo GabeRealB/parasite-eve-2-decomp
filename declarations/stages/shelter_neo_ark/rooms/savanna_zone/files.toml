@@ -1,0 +1,77 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://jpo7nto157ey"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 1, type = "palette" },
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 5, folder = 1801, file = 0 }]
+
+[view1]
+uid = "uid://1hk0a8izpib7p"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1gnwsh8rlh0mq", path = "res://stages/shelter_neo_ark/rooms/savanna_zone/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 5, folder = 1801, file = 1 }]
+
+[view2]
+uid = "uid://1ojiebib2mi6v"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://zlirby91abo", path = "res://stages/shelter_neo_ark/rooms/savanna_zone/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 5, folder = 1801, file = 2 }]
+
+[view3]
+uid = "uid://ntg2v952h42o"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://10hp7os7t4r26", path = "res://stages/shelter_neo_ark/rooms/savanna_zone/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 5, folder = 1801, file = 3 }]
+
+[view4]
+uid = "uid://1nv73dwi57lcz"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1sekza5trkb26", path = "res://stages/shelter_neo_ark/rooms/savanna_zone/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 5, folder = 1801, file = 4 }]

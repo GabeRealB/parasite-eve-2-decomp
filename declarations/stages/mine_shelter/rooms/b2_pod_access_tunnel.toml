@@ -1,0 +1,19 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1rwsqzxg95mwg"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1shb9thozschx", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://3mvajvo2prsw", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://jjvasnrklpmu", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://13xtk4hgblv1m", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1qdj0lwjxie2v", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://637dna3g9fyy", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://14drop0nhk9ni", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1af5ztgcdpeai", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/files/view7.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 3501 }]

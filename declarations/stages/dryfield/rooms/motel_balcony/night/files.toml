@@ -1,0 +1,497 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://14zi42k775lb4"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dryfield_motel_balcony_dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "palette_0"
+type = "palette"
+
+[[base.slots]]
+name = "palette_1"
+type = "palette"
+
+[[base.slots]]
+name = "image"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 1, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 5, type = "palette" },
+    { index = 6, type = "palette" },
+    { index = 7, type = "palette" },
+    { index = 8, type = "palette" },
+    { index = 9, type = "palette" },
+    { index = 10, type = "palette" },
+    { index = 11, type = "palette" },
+    { index = 13, type = "palette" },
+    { index = 16, type = "palette" },
+    { index = 17, type = "palette" },
+    { index = 18, type = "palette" },
+    { index = 19, type = "palette" },
+    { index = 21, type = "palette" },
+    { index = 22, type = "palette" },
+    { index = 23, type = "palette" },
+    { index = 24, type = "palette" },
+    { index = 25, type = "palette" },
+    { index = 28, type = "palette" },
+    { index = 29, type = "palette" },
+    { index = 30, type = "palette" },
+    { index = 31, type = "palette" },
+    { index = 32, type = "palette" },
+    { index = 34, type = "palette" },
+    { index = 35, type = "palette" },
+    { index = 36, type = "palette" },
+    { index = 37, type = "palette" },
+    { index = 38, type = "palette" },
+    { index = 39, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 3, folder = 2901, file = 0 }]
+
+[view1]
+uid = "uid://1jrpfjd17s03t"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://46k5vn1j5dkh", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 3, folder = 2901, file = 1 }]
+
+[view2]
+uid = "uid://1e83kgf3rqysa"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://ycvt5ld64f7t", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 3, folder = 2901, file = 2 }]
+
+[view3]
+uid = "uid://1d0hkadwwrsl4"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1bfemcdaihd0q", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 3, folder = 2901, file = 3 }]
+
+[view4]
+uid = "uid://7vdwhtuy0rqc"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://19saegodtfi3m", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 3, folder = 2901, file = 4 }]
+
+[view5]
+uid = "uid://8acfeaqw7ak2"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1cyq58iorcxdc", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 3, folder = 2901, file = 5 }]
+
+[view6]
+uid = "uid://1n0rla2lgfh6k"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://kygx87lrbw4f", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 3, folder = 2901, file = 6 }]
+
+[view7]
+uid = "uid://nim474afnl2v"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1b7yte1tz2b3j", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 3, folder = 2901, file = 7 }]
+
+[view8]
+uid = "uid://1pj72y5q7k1pk"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1eksxdii2l2wi", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view8_background.asset" } },
+]
+
+[view8.from.USA]
+at = [{ stage = 3, folder = 2901, file = 8 }]
+
+[view9]
+uid = "uid://1757pwe72csxp"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://tu7asov44xcq", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view9_background.asset" } },
+]
+
+[view9.from.USA]
+at = [{ stage = 3, folder = 2901, file = 9 }]
+
+[view10]
+uid = "uid://2ii9yvf4peej"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://97h8zwrg5239", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view10_background.asset" } },
+]
+
+[view10.from.USA]
+at = [{ stage = 3, folder = 2901, file = 10 }]
+
+[view11]
+uid = "uid://d6rxl0z09t6s"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1xkb7fc9rw9nb", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view11_background.asset" } },
+]
+
+[view11.from.USA]
+at = [{ stage = 3, folder = 2901, file = 11 }]
+
+[view12]
+uid = "uid://5xet013itvvk"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://15xkrqlsuoagw", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view12_background.asset" } },
+]
+
+[view12.from.USA]
+at = [{ stage = 3, folder = 2901, file = 12 }]
+
+[view13]
+uid = "uid://1k1znse8vzp42"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://zihmyhvd2x4o", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view13_background.asset" } },
+]
+
+[view13.from.USA]
+at = [{ stage = 3, folder = 2901, file = 13 }]
+
+[view14]
+uid = "uid://1jtc4jm1jbvrm"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1x3vncfuju6kh", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view14_background.asset" } },
+]
+
+[view14.from.USA]
+at = [{ stage = 3, folder = 2901, file = 14 }]
+
+[view15]
+uid = "uid://xcni67vsjb7p"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://n3g3pmn7uujz", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view15_background.asset" } },
+]
+
+[view15.from.USA]
+at = [{ stage = 3, folder = 2901, file = 15 }]
+
+[view16]
+uid = "uid://k52kl8nqxiv6"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1a02aovg2hskg", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view16_background.asset" } },
+]
+
+[view16.from.USA]
+at = [{ stage = 3, folder = 2901, file = 16 }]
+
+[view17]
+uid = "uid://1hlkqohuga31w"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1cyu5q2ep623n", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view17_background.asset" } },
+]
+
+[view17.from.USA]
+at = [{ stage = 3, folder = 2901, file = 17 }]
+
+[view18]
+uid = "uid://1b4hwik64upgv"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image_0", type = "image" },
+    { name = "image_1", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://14evvmqxd8xnn", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view18_background.asset" } },
+]
+
+[view18.from.USA]
+at = [{ stage = 3, folder = 2901, file = 18 }]
+
+[view19]
+uid = "uid://1ltrgaiakkxkm"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://zx7shbtoqftg", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view19_background.asset" } },
+]
+
+[view19.from.USA]
+at = [{ stage = 3, folder = 2901, file = 19 }]
+
+[view20]
+uid = "uid://1jkt27bjuk83i"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://ov29c5fx73r1", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view20_background.asset" } },
+]
+
+[view20.from.USA]
+at = [{ stage = 3, folder = 2901, file = 20 }]
+
+[view21]
+uid = "uid://1jn0vi8w2ijbn"
+kind = "file"
+slots = [
+    { name = "palette", type = "palette" },
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://edf23ql7qfcj", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view21_background.asset" } },
+]
+
+[view21.from.USA]
+at = [{ stage = 3, folder = 2901, file = 21 }]
+
+[view22]
+uid = "uid://gpz0sftuy6f6"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://c05n94wuueex", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view22_background.asset" } },
+]
+
+[view22.from.USA]
+at = [{ stage = 3, folder = 2901, file = 22 }]
+
+[view23]
+uid = "uid://16i7se4tfphkh"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://4tveigrl5bkb", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view23_background.asset" } },
+]
+
+[view23.from.USA]
+at = [{ stage = 3, folder = 2901, file = 23 }]
+
+[view24]
+uid = "uid://8hq67o5j0mxb"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://y2owa2k0ynze", path = "res://stages/akropolis/rooms/square/views/view15_background.asset" } },
+]
+
+[view24.from.USA]
+at = [{ stage = 3, folder = 2901, file = 24 }]
+
+[view25]
+uid = "uid://1jcc6z7fa7hp8"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://8mvhverzy0hf", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view25_background.asset" } },
+]
+
+[view25.from.USA]
+at = [{ stage = 3, folder = 2901, file = 25 }]
+
+[view26]
+uid = "uid://1ebblda7ovq97"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://rghxihnayi19", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view26_background.asset" } },
+]
+
+[view26.from.USA]
+at = [{ stage = 3, folder = 2901, file = 26 }]
+
+[view27]
+uid = "uid://186hyzrt5uyqy"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://19jmh58ijbpaz", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view27_background.asset" } },
+]
+
+[view27.from.USA]
+at = [{ stage = 3, folder = 2901, file = 27 }]
+
+[view28]
+uid = "uid://1jupjwqkmoqta"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://17er156icqygh", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view28_background.asset" } },
+]
+
+[view28.from.USA]
+at = [{ stage = 3, folder = 2901, file = 28 }]
+
+[view29]
+uid = "uid://r25o77ud599b"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1vo01b8k7y45", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view29_background.asset" } },
+]
+
+[view29.from.USA]
+at = [{ stage = 3, folder = 2901, file = 29 }]
+
+[view30]
+uid = "uid://y8oo6jsspuu8"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://fxa52i1hhdj4", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view30_background.asset" } },
+]
+
+[view30.from.USA]
+at = [{ stage = 3, folder = 2901, file = 30 }]
+
+[view31]
+uid = "uid://1f6647u4c99ks"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://y295bsgqqmao", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view31_background.asset" } },
+]
+
+[view31.from.USA]
+at = [{ stage = 3, folder = 2901, file = 31 }]
+
+[view32]
+uid = "uid://pmv0slbyftee"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://wuvvzav7pb78", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view32_background.asset" } },
+]
+
+[view32.from.USA]
+at = [{ stage = 3, folder = 2901, file = 32 }]
+
+[view33]
+uid = "uid://1g8tmfimkefli"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1uj5kzg3hp7nm", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view33_background.asset" } },
+]
+
+[view33.from.USA]
+at = [{ stage = 3, folder = 2901, file = 33 }]
+
+[view34]
+uid = "uid://18hchoejjew87"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1qz6omibt0wxn", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view34_background.asset" } },
+]
+
+[view34.from.USA]
+at = [{ stage = 3, folder = 2901, file = 34 }]
+
+[view35]
+uid = "uid://173arufzgmi0b"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1qp4tv8lvvlbu", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view35_background.asset" } },
+]
+
+[view35.from.USA]
+at = [{ stage = 3, folder = 2901, file = 35 }]
+
+[view36]
+uid = "uid://2rnsz9mxrzar"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1on0vlvb5t3if", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view36_background.asset" } },
+]
+
+[view36.from.USA]
+at = [{ stage = 3, folder = 2901, file = 36 }]
+
+[view37]
+uid = "uid://ti8wxubro8za"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://c4yu2z4c55qx", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view37_background.asset" } },
+]
+
+[view37.from.USA]
+at = [{ stage = 3, folder = 2901, file = 37 }]
+
+[view38]
+uid = "uid://hgyxcmvjp97i"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://tb4v7xn7jh9e", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view38_background.asset" } },
+]
+
+[view38.from.USA]
+at = [{ stage = 3, folder = 2901, file = 38 }]
+
+[view39]
+uid = "uid://7tijjbbt5s29"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1pw48kyv70km9", path = "res://stages/dryfield/rooms/motel_balcony/night/views/view39_background.asset" } },
+]
+
+[view39.from.USA]
+at = [{ stage = 3, folder = 2901, file = 39 }]

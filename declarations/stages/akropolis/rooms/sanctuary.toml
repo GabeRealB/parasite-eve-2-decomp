@@ -1,0 +1,70 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[flames]
+uid = "uid://lq3rgmey09nr"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [120, 40]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "flame_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+    { name = "flame_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] },
+    { name = "flame_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
+]
+cells = [
+    { name = "flame_0", rect = [0, 0, 40, 40], palette = "flame_0" },
+    { name = "flame_1", rect = [40, 0, 40, 40], palette = "flame_1" },
+    { name = "flame_2", rect = [80, 0, 40, 40], palette = "flame_2" },
+]
+
+[flames.from.USA]
+at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 0 }]
+sha1 = "06a072a33a7c1bc559d03ade253a1f60aec87410"
+palettes = { flame_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flame_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", flame_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8" }
+
+[folder]
+uid = "uid://byz9k900fel"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_7", type = "scene_audio", asset = { uid = "uid://coqmkoidngkp", path = "res://stages/akropolis/rooms/sanctuary/streams/scene_7.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://idls9k67c8ek", path = "res://stages/akropolis/rooms/sanctuary/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://xc8e361qf2k7", path = "res://stages/akropolis/rooms/sanctuary/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://2n04xouu2qzp", path = "res://stages/akropolis/rooms/sanctuary/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://153l0e21wp1am", path = "res://stages/akropolis/rooms/sanctuary/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1f8dvc69btett", path = "res://stages/akropolis/rooms/sanctuary/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://f1ckb9tyf08d", path = "res://stages/akropolis/rooms/sanctuary/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1iyz62ourxuo4", path = "res://stages/akropolis/rooms/sanctuary/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://155ocaif7i6mh", path = "res://stages/akropolis/rooms/sanctuary/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://15b7f9vfxfkm", path = "res://stages/akropolis/rooms/sanctuary/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1q1chw64kyt2f", path = "res://stages/akropolis/rooms/sanctuary/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1sjros7c4mdl2", path = "res://stages/akropolis/rooms/sanctuary/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://sv0odbj8ewko", path = "res://stages/akropolis/rooms/sanctuary/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://8r81an80lxg7", path = "res://stages/akropolis/rooms/sanctuary/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1q3iv3c18im7b", path = "res://stages/akropolis/rooms/sanctuary/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://1njxagbilz94d", path = "res://stages/akropolis/rooms/sanctuary/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://1db557qboiobx", path = "res://stages/akropolis/rooms/sanctuary/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://1u4bmflt6s0wa", path = "res://stages/akropolis/rooms/sanctuary/files/view16.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 1201 }]
+
+[mosaic_page_2]
+uid = "uid://loy7cedirzi6"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [56, 256]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
+]
+
+[mosaic_page_2.from.USA]
+at = [{ stage = 1, folder = 1201, file = 0, slot = "image_1", page = 0 }]
+sha1 = "ca1019e7ecd493a4dde15b1a29e03d2ab2aeb0c3"
+palettes = { default = "668b0a188b74c3b57cb96c460ebfb64b91a44ac3" }

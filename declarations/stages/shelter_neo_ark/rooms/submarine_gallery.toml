@@ -1,0 +1,19 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1b45occm2k2ub"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://gai4cj4xqweu", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1emiua0g99pfn", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://h8kigouf52tm", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1g0wu83ox84q5", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://nk5ddkhqmhvq", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1cc6qx4tq4xuv", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://10vf1dlam62qa", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1fvf4qonz7162", path = "res://stages/shelter_neo_ark/rooms/submarine_gallery/files/view7.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 3001 }]

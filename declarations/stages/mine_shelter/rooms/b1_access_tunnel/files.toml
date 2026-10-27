@@ -1,0 +1,87 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://1ko3thf9n1o65"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 1, type = "palette" },
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 5, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 1901, file = 0 }]
+
+[view1]
+uid = "uid://1azi6s3z4gwee"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://apk5di4tzbma", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 1901, file = 1 }]
+
+[view2]
+uid = "uid://adlpeqqda36g"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://201zgjnrei8n", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 1901, file = 2 }]
+
+[view3]
+uid = "uid://1cczwtxi4dk68"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1n5j2azl4iakd", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 1901, file = 3 }]
+
+[view4]
+uid = "uid://q8kn6mmvyr07"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://4ewrcc4mtlzb", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 4, folder = 1901, file = 4 }]
+
+[view5]
+uid = "uid://1sqpwmy8vgaql"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://2fg3olf8zpas", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 4, folder = 1901, file = 5 }]

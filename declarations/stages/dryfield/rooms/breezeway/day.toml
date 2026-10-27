@@ -1,0 +1,18 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://u1khf6qmdnqt"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://o68yd3ejmbab", path = "res://stages/dryfield/rooms/breezeway/day/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1292exb0cm71e", path = "res://stages/dryfield/rooms/breezeway/day/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://19vq86ezvn658", path = "res://stages/dryfield/rooms/breezeway/day/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://sm2xv6xwpsss", path = "res://stages/dryfield/rooms/breezeway/day/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1kf8w94d3uiie", path = "res://stages/dryfield/rooms/breezeway/day/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://emrp3icda9ra", path = "res://stages/dryfield/rooms/breezeway/day/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://110qr8lozl8qr", path = "res://stages/dryfield/rooms/breezeway/day/files/view6.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 2, folder = 2201 }]

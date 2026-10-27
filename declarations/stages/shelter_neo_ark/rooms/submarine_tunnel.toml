@@ -1,0 +1,26 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://2t7nciw3bmoc"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_60", type = "scene_audio", asset = { uid = "uid://1ciquiadvpcb1", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/streams/scene_60.asset" } },
+    { name = "scene_11", type = "scene_audio", asset = { uid = "uid://76y6os00zker", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/streams/scene_11.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://hkjpyu7v5mgd", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://14mje0djbrtui", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://7627txq9anbv", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://l4vumjojpjgo", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1q01xgu5kil32", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1v97uak3hjzau", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1tzucxbhawjhp", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://h54fzr6cxn0s", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://hh4kaructvt0", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1wmz310uiu0yw", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://xxfq7sgpp1rg", path = "res://stages/shelter_neo_ark/rooms/submarine_tunnel/files/view10.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 1201 }]

@@ -1,0 +1,64 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[masked_texture]
+uid = "uid://v8n8kv3bc1oa"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [256, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+]
+
+[masked_texture.from.USA]
+at = [{ stage = 0, file = 350500, slot = "masked_image", page = 0 }, { stage = 0, file = 608100, slot = "masked_image", page = 0 }, { stage = 0, file = 650700, slot = "masked_image", page = 0 }, { stage = 0, file = 660800, slot = "masked_image", page = 0 }, { stage = 0, file = 660801, slot = "masked_image", page = 0 }]
+sha1 = "245f70d9e5a94dcc4fa36723d906a2ffa2fc7914"
+palettes = { default = "7386fc8e83e30a92b28f50c7ea2616fb0501b0ef", default_2 = "af6dee3b21ec19cdc5ee821cb264fddc5d551d8a" }
+
+[texture]
+uid = "uid://azv42w04vfqd"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [256, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+]
+
+[texture.from.USA]
+at = [{ stage = 0, file = 121300, slot = "image", page = 0 }, { stage = 0, file = 151000, slot = "image", page = 0 }, { stage = 0, file = 451100, slot = "image", page = 0 }, { stage = 0, file = 535700, slot = "image", page = 0 }, { stage = 0, file = 661100, slot = "image", page = 0 }, { stage = 0, file = 661800, slot = "image", page = 0 }, { stage = 0, file = 800300, slot = "image", page = 0 }]
+sha1 = "8a77ef774bb7728ba9e9b83717c46453bd577d55"
+palettes = { default = "37c70cad02a9042c1ae6782d2c919126c06d5c67", default_2 = "af6dee3b21ec19cdc5ee821cb264fddc5d551d8a" }
+
+[texture_2]
+uid = "uid://10w3zll3gyevh"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [256, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+]
+
+[texture_2.from.USA]
+at = [{ stage = 0, file = 141000, slot = "image_2", page = 0 }]
+sha1 = "44bec65af983f4117f4cadca84889fff47db4720"
+palettes = { default = "9681c3cf38510362c046005e6ef224880030b1c1", default_2 = "12951079c176022f4d03b4d8e0af812d554a9728" }

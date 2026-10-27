@@ -1,0 +1,127 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[movie_2_0]
+uid = "uid://t61gouhjlji3"
+kind = "movie"
+group = 0
+id = 2
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 400
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_2_0.from.USA]
+at = [{ stage = 1, folder = 501, stream = "movie_2_0" }]
+
+[movie_2_1]
+uid = "uid://5l3drpbi5xpw"
+kind = "movie"
+group = 0
+id = 2
+sub_id = 1
+vram_x = 0
+vram_y = 24
+frame_limit = 400
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_2_1.from.USA]
+at = [{ stage = 1, folder = 501, stream = "movie_2_1" }]
+
+[movie_2_2]
+uid = "uid://5cnknapc733z"
+kind = "movie"
+group = 0
+id = 2
+sub_id = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 120
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_2_2.from.USA]
+at = [{ stage = 1, folder = 501, stream = "movie_2_2" }]
+
+[movie_2_3]
+uid = "uid://173h3kt6ct6iq"
+kind = "movie"
+group = 0
+id = 2
+sub_id = 3
+vram_x = 0
+vram_y = 24
+frame_limit = 150
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_2_3.from.USA]
+at = [{ stage = 1, folder = 501, stream = "movie_2_3" }]
+
+[movie_2_4]
+uid = "uid://1l2vrc8q5s5lf"
+kind = "movie"
+group = 0
+id = 2
+sub_id = 4
+vram_x = 0
+vram_y = 24
+frame_limit = 16
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_2_4.from.USA]
+at = [{ stage = 1, folder = 501, stream = "movie_2_4" }]
+
+[movie_2_5]
+uid = "uid://i8ybru8lsm6z"
+kind = "movie"
+group = 0
+id = 2
+sub_id = 5
+vram_x = 0
+vram_y = 24
+frame_limit = 50
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[movie_2_5.from.USA]
+at = [{ stage = 1, folder = 501, stream = "movie_2_5" }]
+
+[movie_100]
+uid = "uid://16shbyuxtbq91"
+kind = "movie"
+group = 0
+id = 100
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 655
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 3
+upload_mode = 0
+
+[movie_100.from.USA]
+at = [{ stage = 1, folder = 501, stream = "movie_100" }]

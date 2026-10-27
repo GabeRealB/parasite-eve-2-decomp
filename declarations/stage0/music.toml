@@ -1,0 +1,691 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[sequence_05]
+uid = "uid://1g1izp3y0uyiw"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_05.from.USA]
+at = [{ stage = 0, file = 40105 }]
+
+[sequence_06]
+uid = "uid://1kiyiq84wujsk"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_06.from.USA]
+at = [{ stage = 0, file = 40106 }]
+
+[sequence_09]
+uid = "uid://18j02jum95ydo"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_09.from.USA]
+at = [{ stage = 0, file = 40109 }]
+
+[sequence_11]
+uid = "uid://mem0i9992cg0"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_11.from.USA]
+at = [{ stage = 0, file = 40111 }]
+
+[sequence_12]
+uid = "uid://1de9wh07uxmxu"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_12.from.USA]
+at = [{ stage = 0, file = 40112 }]
+
+[sequence_17]
+uid = "uid://1rwjb8wupfuu8"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_17.from.USA]
+at = [{ stage = 0, file = 40117 }]
+
+[sequence_18]
+uid = "uid://1ik3k85qp1zi7"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_18.from.USA]
+at = [{ stage = 0, file = 40118 }]
+
+[sequence_20]
+uid = "uid://1n160ivu3pt53"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_20.from.USA]
+at = [{ stage = 0, file = 40120 }]
+
+[sequence_21]
+uid = "uid://fqz41kuu6hy7"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_21.from.USA]
+at = [{ stage = 0, file = 40121 }]
+
+[sequence_22]
+uid = "uid://1k3f9mu4620eu"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_22.from.USA]
+at = [{ stage = 0, file = 40122 }]
+
+[sequence_23]
+uid = "uid://j4d0m95b8hku"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_23.from.USA]
+at = [{ stage = 0, file = 40123 }]
+
+[sequence_29]
+uid = "uid://1cbfza5bob2ou"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_29.from.USA]
+at = [{ stage = 0, file = 40129 }]
+
+[sequence_30]
+uid = "uid://13foc5lotrw1q"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_30.from.USA]
+at = [{ stage = 0, file = 40130 }]
+
+[sequence_31]
+uid = "uid://yxoiooywxo58"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_31.from.USA]
+at = [{ stage = 0, file = 40131 }]
+
+[sequence_32]
+uid = "uid://13k3wurmv4cxk"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_32.from.USA]
+at = [{ stage = 0, file = 40132 }]
+
+[sequence_33]
+uid = "uid://driaza0usc80"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_33.from.USA]
+at = [{ stage = 0, file = 40133 }]
+
+[sequence_34]
+uid = "uid://13ueawvx45je6"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_34.from.USA]
+at = [{ stage = 0, file = 40134 }]
+
+[sequence_35]
+uid = "uid://1mrr4w2zl99tc"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_35.from.USA]
+at = [{ stage = 0, file = 40135 }]
+
+[sequence_36]
+uid = "uid://hg1qqbzz6ggc"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_36.from.USA]
+at = [{ stage = 0, file = 40136 }]
+
+[sequence_37]
+uid = "uid://1k60ngg9xmm7i"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_37.from.USA]
+at = [{ stage = 0, file = 40137 }]
+
+[sequence_38]
+uid = "uid://b9at92meioys"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_38.from.USA]
+at = [{ stage = 0, file = 40138 }]
+
+[sequence_41]
+uid = "uid://16c81dh59335s"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_41.from.USA]
+at = [{ stage = 0, file = 40141 }]
+
+[sequence_42]
+uid = "uid://wdj11rfy3tt"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_42.from.USA]
+at = [{ stage = 0, file = 40142 }]
+
+[sequence_43]
+uid = "uid://8kmt7yb9hicq"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_43.from.USA]
+at = [{ stage = 0, file = 40143 }]
+
+[sequence_44]
+uid = "uid://lnbt7o50vbb2"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_44.from.USA]
+at = [{ stage = 0, file = 40144 }]
+
+[sequence_45]
+uid = "uid://1q84hkdsu2n6d"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_45.from.USA]
+at = [{ stage = 0, file = 40145 }]
+
+[sequence_46]
+uid = "uid://b51e24l8rk10"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_46.from.USA]
+at = [{ stage = 0, file = 40146 }]
+
+[sequence_47]
+uid = "uid://4uuv6mliiai"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_47.from.USA]
+at = [{ stage = 0, file = 40147 }]
+
+[sequence_48]
+uid = "uid://l07ook2d6dxj"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_48.from.USA]
+at = [{ stage = 0, file = 40148 }]
+
+[sequence_49]
+uid = "uid://qafqclsp0ip4"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_49.from.USA]
+at = [{ stage = 0, file = 40149 }]
+
+[sequence_50]
+uid = "uid://8uyt6j5yn6sy"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_50.from.USA]
+at = [{ stage = 0, file = 40150 }]
+
+[sequence_55]
+uid = "uid://97zbbideok5u"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_55.from.USA]
+at = [{ stage = 0, file = 40155 }]
+
+[sequence_56]
+uid = "uid://154ny3o69x5qv"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_56.from.USA]
+at = [{ stage = 0, file = 40156 }]
+
+[sequence_57]
+uid = "uid://1bp4dt9360mtm"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_57.from.USA]
+at = [{ stage = 0, file = 40157 }]
+
+[sequence_58]
+uid = "uid://175l83ahtt4l6"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_58.from.USA]
+at = [{ stage = 0, file = 40158 }]
+
+[sequence_59]
+uid = "uid://bhky4c0nyc2v"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_59.from.USA]
+at = [{ stage = 0, file = 40159 }]
+
+[sequence_60]
+uid = "uid://68jk54ww0kw7"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_60.from.USA]
+at = [{ stage = 0, file = 40160 }]
+
+[sequence_61]
+uid = "uid://hreqibvou7bo"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_61.from.USA]
+at = [{ stage = 0, file = 40161 }]
+
+[sequence_62]
+uid = "uid://tl8wdamvue8f"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_62.from.USA]
+at = [{ stage = 0, file = 40162 }]
+
+[sequence_63]
+uid = "uid://n3bgh7x1rpw2"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_63.from.USA]
+at = [{ stage = 0, file = 40163 }]
+
+[sequence_65]
+uid = "uid://pizwhyhbm5cr"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_65.from.USA]
+at = [{ stage = 0, file = 40165 }]
+
+[sequence_66]
+uid = "uid://8a5713gbaxwc"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_66.from.USA]
+at = [{ stage = 0, file = 40166 }]
+
+[sequence_67]
+uid = "uid://7une7cc11hao"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_67.from.USA]
+at = [{ stage = 0, file = 40167 }]
+
+[sequence_68]
+uid = "uid://kow1gud449cr"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_68.from.USA]
+at = [{ stage = 0, file = 40168 }]
+
+[sequence_69]
+uid = "uid://ti2kbo6styi0"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_69.from.USA]
+at = [{ stage = 0, file = 40169 }]
+
+[sequence_70]
+uid = "uid://1liuska4cqqjt"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_70.from.USA]
+at = [{ stage = 0, file = 40170 }]
+
+[sequence_71]
+uid = "uid://1vmh7vct0lgqn"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_71.from.USA]
+at = [{ stage = 0, file = 40171 }]
+
+[sequence_72]
+uid = "uid://7vtvn4411dqh"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_72.from.USA]
+at = [{ stage = 0, file = 40172 }]
+
+[sequence_73]
+uid = "uid://6va9ymjtguo9"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_73.from.USA]
+at = [{ stage = 0, file = 40173 }]
+
+[sequence_74]
+uid = "uid://74ad3l2aedtp"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_74.from.USA]
+at = [{ stage = 0, file = 40174 }]
+
+[sequence_75]
+uid = "uid://1dka8cq257qn6"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_75.from.USA]
+at = [{ stage = 0, file = 40175 }]
+
+[sequence_76]
+uid = "uid://v61xbaeay4qm"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_76.from.USA]
+at = [{ stage = 0, file = 40176 }]
+
+[sequence_77]
+uid = "uid://apgxj3jprg1v"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_77.from.USA]
+at = [{ stage = 0, file = 40177 }]
+
+[sequence_78]
+uid = "uid://43r4t054lbu"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_78.from.USA]
+at = [{ stage = 0, file = 40178 }]
+
+[sequence_79]
+uid = "uid://h4in5bgsgh8f"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_79.from.USA]
+at = [{ stage = 0, file = 40179 }]
+
+[sequence_80]
+uid = "uid://r3hh5shblhut"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_80.from.USA]
+at = [{ stage = 0, file = 40180 }]
+
+[sequence_81]
+uid = "uid://1xtihb6djbk"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_81.from.USA]
+at = [{ stage = 0, file = 40181 }]
+
+[sequence_82]
+uid = "uid://18z43491v11bf"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_82.from.USA]
+at = [{ stage = 0, file = 40182 }]
+
+[sequence_83]
+uid = "uid://1dntjcdjui5rb"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_83.from.USA]
+at = [{ stage = 0, file = 40183 }]
+
+[sequence_85]
+uid = "uid://uycco198c54y"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_85.from.USA]
+at = [{ stage = 0, file = 40185 }]
+
+[sequence_86]
+uid = "uid://39w6wozk9d4t"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_86.from.USA]
+at = [{ stage = 0, file = 40186 }]
+
+[sequence_89]
+uid = "uid://xrtso1lgyu6u"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_89.from.USA]
+at = [{ stage = 0, file = 40189 }]
+
+[sequence_90]
+uid = "uid://1t97wijlvhh82"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_90.from.USA]
+at = [{ stage = 0, file = 40190 }]
+
+[sequence_93]
+uid = "uid://132udud2643b5"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_93.from.USA]
+at = [{ stage = 0, file = 40193 }]
+
+[sequence_94]
+uid = "uid://i9hbg9cow5ji"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_94.from.USA]
+at = [{ stage = 0, file = 40194 }]
+
+[sequence_95]
+uid = "uid://4yz6y0nv2is4"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_95.from.USA]
+at = [{ stage = 0, file = 40195 }]
+
+[sequence_96]
+uid = "uid://17zgfk32b000h"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_96.from.USA]
+at = [{ stage = 0, file = 40196 }]
+
+[sequence_97]
+uid = "uid://1n65u3n14cgpd"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_97.from.USA]
+at = [{ stage = 0, file = 40197 }]
+
+[sequence_98]
+uid = "uid://gkz3btywcwf8"
+kind = "file"
+slots = [
+    { name = "data", type = "sequence" },
+]
+
+[sequence_98.from.USA]
+at = [{ stage = 0, file = 40198 }]

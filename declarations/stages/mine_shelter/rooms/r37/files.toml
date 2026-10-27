@@ -1,0 +1,53 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://15sk6xeudco6a"
+kind = "file"
+
+[[base.slots]]
+name = "image"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 0, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 3701, file = 0 }]
+
+[view1]
+uid = "uid://1dmiercikrtre"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://m8xbd72hrei9", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 3701, file = 1 }]
+
+[view2]
+uid = "uid://1cgf7gccouoat"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1xxtgifffep69", path = "res://stages/mine_shelter/rooms/r37/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 3701, file = 2 }]
+
+[view3]
+uid = "uid://1nbucfmhdzzf1"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1b0oz0h87sy6m", path = "res://stages/mine_shelter/rooms/r37/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 3701, file = 3 }]

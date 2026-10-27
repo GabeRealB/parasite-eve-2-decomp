@@ -1,0 +1,43 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://1bof8vopbxrnt"
+kind = "file"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 2, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 1, folder = 2101, file = 0 }]
+
+[view1]
+uid = "uid://rdyehav8dk68"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1so2afymr9ioq", path = "res://stages/akropolis/rooms/mist_r21/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 1, folder = 2101, file = 1 }]
+
+[view2]
+uid = "uid://1lfefy37v18gb"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://18rheyd49rjt0", path = "res://stages/akropolis/rooms/mist_r21/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 1, folder = 2101, file = 2 }]

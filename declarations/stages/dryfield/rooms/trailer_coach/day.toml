@@ -1,0 +1,23 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://13bo10hfbwt21"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://bf5l745awnam", path = "res://stages/dryfield/rooms/trailer_coach/day/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://qk8c7na9a3p0", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1vssu8yc45mq5", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://rmhi91s0le6c", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1pkasnyb8sy5u", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1jutqc177f203", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://uhjdgru7i8eo", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://18r479gvew1r8", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1pq1pkxps0bej", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://xh9br0bthp7h", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://pu1aaqesd1ck", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://wcmzm17xb69c", path = "res://stages/dryfield/rooms/trailer_coach/day/files/view11.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 2, folder = 2701 }]

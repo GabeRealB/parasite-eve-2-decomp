@@ -1,0 +1,62 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[blizzard_chasers_texture]
+uid = "uid://xddk58ei760n"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [512, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+    { name = "default_4", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+    { name = "page_3", rect = [384, 0, 128, 256], palette = "default_4" },
+]
+
+[blizzard_chasers_texture.from.USA]
+at = [{ stage = 0, file = 403000, slot = "image", page = 0 }]
+sha1 = "97f2c23a53bad4becd5b61d6cb1030148051fe1a"
+palettes = { default = "9a71722d39347f758625e6ce34567ec40cc39c97", default_2 = "1aa668a70880e6cb17713e28649f5eca9b9e3d71", default_3 = "29b22a7a87a509a4c8845f2d1887aae4e391a1ed", default_4 = "5abd81b6712786701c1bc9251b58dc2d1a8522dc" }
+
+[folder]
+uid = "uid://3o2ak6ad7brp"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://yn4rywcgjm7r", path = "res://stages/mine_shelter/rooms/cavern/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1rgbpkvjo730r", path = "res://stages/mine_shelter/rooms/cavern/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://o8sjp5bkhnq0", path = "res://stages/mine_shelter/rooms/cavern/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1aa2bk8lf3xtx", path = "res://stages/mine_shelter/rooms/cavern/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://802tp4m3k8o3", path = "res://stages/mine_shelter/rooms/cavern/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1hmfh8o99ax3y", path = "res://stages/mine_shelter/rooms/cavern/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://3ku8483tiwpa", path = "res://stages/mine_shelter/rooms/cavern/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://shrh8yb03pxy", path = "res://stages/mine_shelter/rooms/cavern/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1f0arnlj0j2aj", path = "res://stages/mine_shelter/rooms/cavern/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://mvpd701tydn2", path = "res://stages/mine_shelter/rooms/cavern/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://mcba4ikbjyfi", path = "res://stages/mine_shelter/rooms/cavern/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://1qxcc591k9oew", path = "res://stages/mine_shelter/rooms/cavern/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1nmufvm7ldxiu", path = "res://stages/mine_shelter/rooms/cavern/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1gdwatun3g06w", path = "res://stages/mine_shelter/rooms/cavern/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://1hmsxg2sz55o3", path = "res://stages/mine_shelter/rooms/cavern/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://os90enjfeqbt", path = "res://stages/mine_shelter/rooms/cavern/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://1i8o7n08u0h28", path = "res://stages/mine_shelter/rooms/cavern/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1p71edfleq539", path = "res://stages/mine_shelter/rooms/cavern/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://69v3l3glb50w", path = "res://stages/mine_shelter/rooms/cavern/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://n824yo3t677c", path = "res://stages/mine_shelter/rooms/cavern/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://r458f14jqizj", path = "res://stages/mine_shelter/rooms/cavern/files/view20.asset" } },
+    { name = "view21", id = 21, asset = { uid = "uid://1tre54hluo0of", path = "res://stages/mine_shelter/rooms/cavern/files/view21.asset" } },
+    { name = "view22", id = 22, asset = { uid = "uid://1bcj3z8rrlm23", path = "res://stages/mine_shelter/rooms/cavern/files/view22.asset" } },
+    { name = "view23", id = 23, asset = { uid = "uid://1nx2r6wrbb2d8", path = "res://stages/mine_shelter/rooms/cavern/files/view23.asset" } },
+    { name = "view24", id = 24, asset = { uid = "uid://aa1qp1d3js2p", path = "res://stages/mine_shelter/rooms/cavern/files/view24.asset" } },
+    { name = "view25", id = 25, asset = { uid = "uid://1v15u8o5yy6yk", path = "res://stages/mine_shelter/rooms/cavern/files/view25.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 4, folder = 201 }]

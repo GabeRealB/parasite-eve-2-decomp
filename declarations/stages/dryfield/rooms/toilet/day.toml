@@ -1,0 +1,26 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://sr8fxq0fhhys"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "scene_33", type = "scene_audio", asset = { uid = "uid://eikb8850vow2", path = "res://stages/dryfield/rooms/toilet/day/streams/scene_33.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://133oom6waecdd", path = "res://stages/dryfield/rooms/toilet/day/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1sggur2lg3f4k", path = "res://stages/dryfield/rooms/toilet/day/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://89f148ab24bm", path = "res://stages/dryfield/rooms/toilet/day/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://qn5agbiqutpw", path = "res://stages/dryfield/rooms/toilet/day/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1cd3lwpkegivz", path = "res://stages/dryfield/rooms/toilet/day/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://glwuey05qx3w", path = "res://stages/dryfield/rooms/toilet/day/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://y7b4xwvn23cp", path = "res://stages/dryfield/rooms/toilet/day/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1i5xr0sp0twxf", path = "res://stages/dryfield/rooms/toilet/day/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://fjnxj8gxsrwy", path = "res://stages/dryfield/rooms/toilet/day/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://4eilm6qspt0c", path = "res://stages/dryfield/rooms/toilet/day/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1m7aehrhisxs2", path = "res://stages/dryfield/rooms/toilet/day/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://yuiddxn450am", path = "res://stages/dryfield/rooms/toilet/day/files/view11.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 2, folder = 1601 }]

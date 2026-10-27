@@ -1,0 +1,77 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1mjqmn059cov4"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_14", type = "movie", asset = { uid = "uid://1nnof0hvs1afi", path = "res://stages/akropolis/rooms/security_room/streams/movie_14.asset" } },
+    { name = "movie_16", type = "movie", asset = { uid = "uid://nkt2mx05z8q", path = "res://stages/akropolis/rooms/security_room/streams/movie_16.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://it60kyc0zyhd", path = "res://stages/akropolis/rooms/security_room/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://16pmheuasayg8", path = "res://stages/akropolis/rooms/security_room/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://15f2vwnlh7yth", path = "res://stages/akropolis/rooms/security_room/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://8v3foir44rou", path = "res://stages/akropolis/rooms/security_room/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://18pkdl8icrirn", path = "res://stages/akropolis/rooms/security_room/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://xv0rsr5a9ku1", path = "res://stages/akropolis/rooms/security_room/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1tvy1nb97x5up", path = "res://stages/akropolis/rooms/security_room/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://clizfdmxb2b3", path = "res://stages/akropolis/rooms/security_room/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://19kx8yy598k0v", path = "res://stages/akropolis/rooms/security_room/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://uj0z2cpozd1k", path = "res://stages/akropolis/rooms/security_room/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://oku1gcggen37", path = "res://stages/akropolis/rooms/security_room/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://18gnmpp4q59k8", path = "res://stages/akropolis/rooms/security_room/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://10y4adtrikqqn", path = "res://stages/akropolis/rooms/security_room/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1rju74b76qfqx", path = "res://stages/akropolis/rooms/security_room/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://vqdpsdpic5jo", path = "res://stages/akropolis/rooms/security_room/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://dk74feo7bjo7", path = "res://stages/akropolis/rooms/security_room/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://8olelgloe8ma", path = "res://stages/akropolis/rooms/security_room/files/view16.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 601 }]
+
+[lock_lamps_left]
+uid = "uid://15vqau10pa7po"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_270", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+    { name = "row_271", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] },
+    { name = "locked", executable = "stages/akropolis/rooms/security_room/lamp_left_locked" },
+    { name = "released", executable = "stages/akropolis/rooms/security_room/lamp_left_released" },
+]
+variants = [
+    { name = "row_270", palette = "row_270" },
+    { name = "row_271", palette = "row_271" },
+    { name = "locked", palette = "locked" },
+    { name = "released", palette = "released" },
+]
+
+[lock_lamps_left.from.USA]
+at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 0 }]
+sha1 = "a8d0c17bd1cd57a40b7e7429564f5906fd6d7535"
+palettes = { row_270 = "da5fbc489a2520743d422d0932903526ec7aa6b5", row_271 = "da5fbc489a2520743d422d0932903526ec7aa6b5" }
+
+[lock_lamps_right]
+uid = "uid://bhpbu8y0h1b"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "locked", executable = "stages/akropolis/rooms/security_room/lamp_right_locked" },
+    { name = "released", executable = "stages/akropolis/rooms/security_room/lamp_right_released" },
+]
+variants = [
+    { name = "locked", palette = "locked" },
+    { name = "released", palette = "released" },
+]
+
+[lock_lamps_right.from.USA]
+at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 1 }]
+sha1 = "f60564816dd3cc54c128b8caf125f3a204e91a7b"

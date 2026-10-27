@@ -1,0 +1,21 @@
+# Declarations: each disc's movie file, bound whole for now; its native
+# form is the file's 2336-byte mode 2 sectors as the disc dump holds them. The movies in it are its streams, reached
+# by the stream slots' entries.
+
+[inter_0]                       # INTER0.STR
+uid = "uid://1pucxqjuau6zg"
+kind = "stream"
+format = "str"
+
+[inter_0.from.USA]
+at = [{ disc = "disk1", slot = "INTER0.STR" }]
+sha1 = "34a744a7a9896ff966373b507dd35e95c336b406"
+
+[inter_1]                       # INTER1.STR
+uid = "uid://e5or642we8nj"
+kind = "stream"
+format = "str"
+
+[inter_1.from.USA]
+at = [{ disc = "disk2", slot = "INTER1.STR" }]
+sha1 = "4ba2435d4a68859cc3d0d97fd2732dcbbfb2ed9f"

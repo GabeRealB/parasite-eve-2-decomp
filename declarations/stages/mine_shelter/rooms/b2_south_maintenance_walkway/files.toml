@@ -1,0 +1,83 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://1sg9qqugf0cfe"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 2, type = "palette" },
+    { index = 5, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 2801, file = 0 }]
+
+[view1]
+uid = "uid://jqhj8qxb7qz6"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://iy90snctm0xy", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 2801, file = 1 }]
+
+[view2]
+uid = "uid://1xe9t5z5e9hqi"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1toc6z7uo1dpt", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 2801, file = 2 }]
+
+[view3]
+uid = "uid://1btr1on5fg0v6"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://r8semdsgog9s", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 2801, file = 3 }]
+
+[view4]
+uid = "uid://1l20foiwabwq8"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1kok4otzhxt51", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 4, folder = 2801, file = 4 }]
+
+[view5]
+uid = "uid://2fcju36txq2d"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1qz5hwk23ows0", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 4, folder = 2801, file = 5 }]

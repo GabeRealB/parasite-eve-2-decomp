@@ -1,0 +1,64 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[bullseye_page]
+uid = "uid://1fulxftjapq7x"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "clock_digits", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] },
+    { name = "bullseyes", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] },
+]
+cells = [
+    { name = "clock_digits.0", rect = [0, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.1", rect = [16, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.2", rect = [32, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.3", rect = [48, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.4", rect = [64, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.5", rect = [80, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.6", rect = [96, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.7", rect = [112, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.8", rect = [128, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.9", rect = [144, 0, 16, 24], palette = "clock_digits" },
+    { name = "clock_digits.colon", rect = [160, 0, 16, 24], palette = "clock_digits" },
+    { name = "bullseyes", rect = [0, 24, 128, 232], palette = "bullseyes", bpp = 8 },
+]
+
+[bullseye_page.from.USA]
+at = [{ stage = 0, file = 107600, slot = "image_2", page = 0 }]
+sha1 = "aca0739d98734fa58593d87461cf49bead0d4922"
+palettes = { clock_digits = "1024c2959616eb438b197131d5ea3c5559f82b9a", bullseyes = "577671a95b2cfd3bd5210478fa07ad9b94559058" }
+
+[folder]
+uid = "uid://k7u1t7lkh8og"
+kind = "folder"
+stream_data = false
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://1djv0b7hp11rs", path = "res://stages/akropolis/rooms/mist_shooting_gallery/streams/movie_100.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1bi6zkvafgyun", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://9m25sg2tj5yw", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://3t8qv8rnl1b8", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://12i7wmoy7952r", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://18rej22570ot5", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://uz6r4hjl7guc", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://85joeartpasw", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1t2tgy4sabza9", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://xhpvwik2qgzj", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://glbw143fjnoy", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1wc47e0pa718u", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://gy6zu5q9wn28", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1sbhm4780yfg2", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://rcfzdnd1ycra", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://1frfaovgumego", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://cysatgr1keid", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://emqmb6ql7zqu", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1cc6bl672hj3f", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://1f7yte900cz0l", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view18.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 1, folder = 2001 }]

@@ -58,7 +58,7 @@ which the viewer, `dump_asset_db.py` and the repack need - is a project's:
 `python3 tools/pe2project.py create --roms rom/image` makes one in `project/`
 (gitignored), and every asset tool defaults to it (`tools/peassets/project.py`).
 `ninja_config.py --project [DIR]` builds a project's data instead of
-`assets/USA`. See `local/project_design.md`.
+`assets/USA`.
 
 **The `.text` span is derived, and rarely wrong.** A `0x03E00008` word inside a
 data block can extend the span past the end of the code; splat then emits a

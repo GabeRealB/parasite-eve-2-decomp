@@ -1,0 +1,60 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://138doxnivf1hn"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://jy5eamher1iu", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_100.asset" } },
+    { name = "movie_101", type = "movie", asset = { uid = "uid://e0vfkcma4cv1", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_101.asset" } },
+    { name = "movie_102", type = "movie", asset = { uid = "uid://eyap8y8pfmax", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_102.asset" } },
+    { name = "movie_103", type = "movie", asset = { uid = "uid://12orax1tke6ap", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_103.asset" } },
+    { name = "scene_58", type = "scene_audio", asset = { uid = "uid://1kowswnqm9z6c", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_58.asset" } },
+    { name = "scene_59", type = "scene_audio", asset = { uid = "uid://s6hro3q0j8j2", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_59.asset" } },
+    { name = "scene_60", type = "scene_audio", asset = { uid = "uid://1xxa4y116tu15", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_60.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://14zi42k775lb4", path = "res://stages/dryfield/rooms/motel_balcony/night/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1jrpfjd17s03t", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1e83kgf3rqysa", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1d0hkadwwrsl4", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://7vdwhtuy0rqc", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://8acfeaqw7ak2", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1n0rla2lgfh6k", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://nim474afnl2v", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1pj72y5q7k1pk", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1757pwe72csxp", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://2ii9yvf4peej", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://d6rxl0z09t6s", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://5xet013itvvk", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view12.asset" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1k1znse8vzp42", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view13.asset" } },
+    { name = "view14", id = 14, asset = { uid = "uid://1jtc4jm1jbvrm", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view14.asset" } },
+    { name = "view15", id = 15, asset = { uid = "uid://xcni67vsjb7p", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view15.asset" } },
+    { name = "view16", id = 16, asset = { uid = "uid://k52kl8nqxiv6", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view16.asset" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1hlkqohuga31w", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view17.asset" } },
+    { name = "view18", id = 18, asset = { uid = "uid://1b4hwik64upgv", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view18.asset" } },
+    { name = "view19", id = 19, asset = { uid = "uid://1ltrgaiakkxkm", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view19.asset" } },
+    { name = "view20", id = 20, asset = { uid = "uid://1jkt27bjuk83i", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view20.asset" } },
+    { name = "view21", id = 21, asset = { uid = "uid://1jn0vi8w2ijbn", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view21.asset" } },
+    { name = "view22", id = 22, asset = { uid = "uid://gpz0sftuy6f6", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view22.asset" } },
+    { name = "view23", id = 23, asset = { uid = "uid://16i7se4tfphkh", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view23.asset" } },
+    { name = "view24", id = 24, asset = { uid = "uid://8hq67o5j0mxb", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view24.asset" } },
+    { name = "view25", id = 25, asset = { uid = "uid://1jcc6z7fa7hp8", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view25.asset" } },
+    { name = "view26", id = 26, asset = { uid = "uid://1ebblda7ovq97", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view26.asset" } },
+    { name = "view27", id = 27, asset = { uid = "uid://186hyzrt5uyqy", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view27.asset" } },
+    { name = "view28", id = 28, asset = { uid = "uid://1jupjwqkmoqta", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view28.asset" } },
+    { name = "view29", id = 29, asset = { uid = "uid://r25o77ud599b", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view29.asset" } },
+    { name = "view30", id = 30, asset = { uid = "uid://y8oo6jsspuu8", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view30.asset" } },
+    { name = "view31", id = 31, asset = { uid = "uid://1f6647u4c99ks", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view31.asset" } },
+    { name = "view32", id = 32, asset = { uid = "uid://pmv0slbyftee", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view32.asset" } },
+    { name = "view33", id = 33, asset = { uid = "uid://1g8tmfimkefli", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view33.asset" } },
+    { name = "view34", id = 34, asset = { uid = "uid://18hchoejjew87", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view34.asset" } },
+    { name = "view35", id = 35, asset = { uid = "uid://173arufzgmi0b", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view35.asset" } },
+    { name = "view36", id = 36, asset = { uid = "uid://2rnsz9mxrzar", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view36.asset" } },
+    { name = "view37", id = 37, asset = { uid = "uid://ti8wxubro8za", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view37.asset" } },
+    { name = "view38", id = 38, asset = { uid = "uid://hgyxcmvjp97i", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view38.asset" } },
+    { name = "view39", id = 39, asset = { uid = "uid://7tijjbbt5s29", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view39.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 3, folder = 2901 }]

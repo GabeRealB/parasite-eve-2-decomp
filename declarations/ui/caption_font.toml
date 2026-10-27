@@ -1,0 +1,30 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[texture]
+uid = "uid://1ctxcectnfq4q"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 144]
+page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 5] },
+    { name = "x16", slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [16, 5] },
+    { name = "x32", slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [32, 5] },
+    { name = "x48", slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [48, 5] },
+    { name = "x64", slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [64, 5] },
+    { name = "x80", slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [80, 5] },
+]
+variants = [
+    { name = "default", palette = "default" },
+    { name = "x16", palette = "x16" },
+    { name = "x32", palette = "x32" },
+    { name = "x48", palette = "x48" },
+    { name = "x64", palette = "x64" },
+    { name = "x80", palette = "x80" },
+]
+
+[texture.from.USA]
+at = [{ stage = 0, file = 3, slot = "caption_font_image", page = 0 }, { stage = 0, file = 4, slot = "caption_font_image", page = 0 }, { stage = 0, file = 5, slot = "caption_font_image", page = 0 }, { stage = 0, file = 6, slot = "caption_font_image", page = 0 }, { stage = 0, file = 7, slot = "caption_font_image", page = 0 }, { stage = 0, file = 8, slot = "caption_font_image", page = 0 }, { stage = 0, file = 9, slot = "caption_font_image", page = 0 }, { stage = 0, file = 10, slot = "caption_font_image", page = 0 }, { stage = 0, file = 11, slot = "caption_font_image", page = 0 }, { stage = 0, file = 12, slot = "caption_font_image", page = 0 }, { stage = 0, file = 13, slot = "caption_font_image", page = 0 }, { stage = 0, file = 14, slot = "caption_font_image", page = 0 }, { stage = 0, file = 15, slot = "caption_font_image", page = 0 }, { stage = 0, file = 16, slot = "caption_font_image", page = 0 }, { stage = 0, file = 17, slot = "caption_font_image", page = 0 }, { stage = 0, file = 18, slot = "caption_font_image", page = 0 }, { stage = 0, file = 19, slot = "caption_font_image", page = 0 }, { stage = 0, file = 20, slot = "caption_font_image", page = 0 }, { stage = 0, file = 21, slot = "caption_font_image", page = 0 }, { stage = 0, file = 22, slot = "caption_font_image", page = 0 }, { stage = 0, file = 23, slot = "caption_font_image", page = 0 }, { stage = 0, file = 24, slot = "caption_font_image", page = 0 }, { stage = 0, file = 25, slot = "caption_font_image", page = 0 }, { stage = 0, file = 26, slot = "caption_font_image", page = 0 }, { stage = 0, file = 27, slot = "caption_font_image", page = 0 }, { stage = 0, file = 28, slot = "caption_font_image", page = 0 }, { stage = 0, file = 29, slot = "caption_font_image", page = 0 }, { stage = 0, file = 30, slot = "caption_font_image", page = 0 }, { stage = 0, file = 31, slot = "caption_font_image", page = 0 }, { stage = 0, file = 32, slot = "caption_font_image", page = 0 }, { stage = 0, file = 33, slot = "caption_font_image", page = 0 }, { stage = 0, file = 34, slot = "caption_font_image", page = 0 }, { stage = 0, file = 35, slot = "caption_font_image", page = 0 }, { stage = 0, file = 36, slot = "caption_font_image", page = 0 }, { stage = 0, file = 37, slot = "caption_font_image", page = 0 }, { stage = 0, file = 38, slot = "caption_font_image", page = 0 }, { stage = 0, file = 39, slot = "caption_font_image", page = 0 }, { stage = 0, file = 40, slot = "caption_font_image", page = 0 }]
+sha1 = "e7438e5d4e808c1a8b38c7e061514791aca9bb1e"
+palettes = { default = "103ae988d77991ccda7020a0ef18154f61ed46bb", x16 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x32 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x48 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x64 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x80 = "103ae988d77991ccda7020a0ef18154f61ed46bb" }

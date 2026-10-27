@@ -1,0 +1,88 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[credits_font_0]
+uid = "uid://binbyhfa0ewz"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 0] }
+palettes = [
+    { name = "gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 254] },
+    { name = "violet", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 254] },
+    { name = "red", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 254] },
+    { name = "magenta", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 254] },
+    { name = "blue", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 255] },
+    { name = "aqua", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 255] },
+    { name = "yellow", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 255] },
+    { name = "light_gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 255] },
+]
+variants = [
+    { name = "gray", palette = "gray" },
+    { name = "violet", palette = "violet" },
+    { name = "red", palette = "red" },
+    { name = "magenta", palette = "magenta" },
+    { name = "blue", palette = "blue" },
+    { name = "aqua", palette = "aqua" },
+    { name = "yellow", palette = "yellow" },
+    { name = "light_gray", palette = "light_gray" },
+]
+
+[credits_font_0.from.USA]
+at = [{ stage = 0, file = 21000, slot = "font_image_0", page = 0 }]
+sha1 = "63ba1ed8efb66671aa36f7f763f7795fea7af854"
+palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e7f08c99dc6ff03b81df068c72c11106a9c", red = "6387b0c183f4e4ace3b6e3dadd403465382c296f", magenta = "75abc7a552f88b9c83163f8a329b79af6147266d", blue = "0e5f22442feccda6ef0a352a60fa3502a66ed89b", aqua = "4fab74e231a77db62be2a109f53d6f534f921680", yellow = "bc7510c76099c12662c40f4e0c2f7dcd1e1cb257", light_gray = "732a792eb4085c5f8f38dcd8743fde2070e834ea" }
+
+[credits_font_1]
+uid = "uid://j5ynvx2x8i0x"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 254] },
+    { name = "violet", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 254] },
+    { name = "red", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 254] },
+    { name = "magenta", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 254] },
+    { name = "blue", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 255] },
+    { name = "aqua", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 255] },
+    { name = "yellow", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 255] },
+    { name = "light_gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 255] },
+]
+variants = [
+    { name = "gray", palette = "gray" },
+    { name = "violet", palette = "violet" },
+    { name = "red", palette = "red" },
+    { name = "magenta", palette = "magenta" },
+    { name = "blue", palette = "blue" },
+    { name = "aqua", palette = "aqua" },
+    { name = "yellow", palette = "yellow" },
+    { name = "light_gray", palette = "light_gray" },
+]
+
+[credits_font_1.from.USA]
+at = [{ stage = 0, file = 21000, slot = "font_image_1", page = 0 }]
+sha1 = "d37a03a2fd1beee6d644c3bf70340b6521dae95d"
+palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e7f08c99dc6ff03b81df068c72c11106a9c", red = "6387b0c183f4e4ace3b6e3dadd403465382c296f", magenta = "75abc7a552f88b9c83163f8a329b79af6147266d", blue = "0e5f22442feccda6ef0a352a60fa3502a66ed89b", aqua = "4fab74e231a77db62be2a109f53d6f534f921680", yellow = "bc7510c76099c12662c40f4e0c2f7dcd1e1cb257", light_gray = "732a792eb4085c5f8f38dcd8743fde2070e834ea" }
+
+[logos]
+uid = "uid://t0wkc20tu0i5"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [248, 80]
+page = { slot = { uid = "uid://qnx1brk2em4b", path = "res://engine/vram/credits_logos.asset" }, at = [0, 0] }
+palettes = [
+    { name = "square", slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 224] },
+    { name = "squartz", slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 225] },
+]
+cells = [
+    { name = "square", rect = [5, 1, 243, 38], palette = "square" },
+    { name = "squartz", rect = [2, 46, 226, 29], palette = "squartz" },
+]
+
+[logos.from.USA]
+at = [{ stage = 0, file = 21000, slot = "logo_image", page = 0 }]
+sha1 = "6b3053768931d7e7aca8fa8ac1b355dffefa78a2"
+palettes = { square = "16cf58357495535d36fd85c1a9cbf148feb066d4", squartz = "c4a6c16b062256f8e2842860efdd16be346aafe6" }

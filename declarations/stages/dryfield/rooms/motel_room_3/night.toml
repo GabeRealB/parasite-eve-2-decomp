@@ -1,0 +1,23 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1a1ld262djq5p"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://mqjtron0uhvo", path = "res://stages/dryfield/rooms/motel_room_3/night/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1ukjy8pgy7ozr", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://15qbh6ua3kdig", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://dzsgi0jiffyt", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1v20rnqbtbbj2", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://lhkgdzy19e57", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1v4okeh7y0dyf", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://cauf5dqegdxu", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1nr30l3amjt70", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://189wgy5w54lh7", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://8yd294hkbyhp", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://3rqxkawlmysu", path = "res://stages/dryfield/rooms/motel_room_3/night/files/view11.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 3, folder = 1301 }]

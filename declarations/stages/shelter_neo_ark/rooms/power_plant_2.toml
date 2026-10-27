@@ -1,0 +1,44 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[beta_generator_texture]
+uid = "uid://13qvksy4ixnmu"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [384, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+]
+
+[beta_generator_texture.from.USA]
+at = [{ stage = 0, file = 105300, slot = "image", page = 0 }]
+sha1 = "2638c0ce0e5fb4cb812e89bd1e6e0a29dd713075"
+palettes = { default = "52aca0cbe1943c291d140ded80130162d05b614b", default_2 = "b4182a409cc970296fcca1789a3bb68758f11aa9", default_3 = "c6d549893979d5d8656a5b9dc72d046236f4eb01" }
+
+[folder]
+uid = "uid://1qovokzbhuwmj"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://1uhhzkss5d02l", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://14wfwytp96we2", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://wh5vbz5cwuw1", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://52hn6i3yrvo5", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1st92aprsyzyu", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://2hqs6r1s9lts", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://yf0fggz75864", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://pd4bppsgvbzo", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://n6jfg45qcxf3", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://5o3xzdgmh5up", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view9.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 1601 }]

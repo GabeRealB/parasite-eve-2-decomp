@@ -3,8 +3,8 @@
 
 A `font` record's table (`_gFontGlyphsMedium`, `gTextCaptionGlyphCells`, ...) is defined in main's C, which
 includes `assets/<table>.inc`. The table's bytes are the font's native form: the embedded table the extraction stored,
-or its slice of a credits document (font/declared.py, `table_bytes`). The build reads native forms only
-(local/project_design.md, "Two tiers"); encoding an edited `<face>.ufo` is the editor's, and the suite holds the
+or its slice of a credits document (font/declared.py, `table_bytes`). The build reads native forms only;
+encoding an edited `<face>.ufo` is the editor's, and the suite holds the
 declared encoder to the same bytes. Written as gen_asset_inc.py writes a byte table, sixteen to a line.
 
     gen_font_inc.py FONT OUT [--assets assets/USA]

@@ -1,0 +1,19 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://1eihwzlxcj7z0"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://110kpszl16sv2", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1iltw2620dmn9", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://x8qjfnre0jrp", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://kdfmn9ocxsro", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://7li3p1p08rsv", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1gi1zypvlpnxl", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://121d2m68u71ya", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1ftedj050obrj", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/files/view7.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 801 }]

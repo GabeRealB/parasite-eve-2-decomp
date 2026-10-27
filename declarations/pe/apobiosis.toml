@@ -1,0 +1,65 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[level1_menu_picture]
+uid = "uid://jo87rhtw56jb"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [80, 64]
+page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
+]
+
+[level1_menu_picture.from.USA]
+at = [{ stage = 0, file = 20716, slot = "image", page = 0 }]
+sha1 = "3a500a8f8f68c073723bab0c4687d340933f0549"
+palettes = { default = "b5f4590d9e5bc5a1381e2e4c8300841c8eddd0a3" }
+
+[level2_menu_picture]
+uid = "uid://99edylujdzz4"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [80, 64]
+page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
+]
+
+[level2_menu_picture.from.USA]
+at = [{ stage = 0, file = 20717, slot = "image", page = 0 }]
+sha1 = "b4d1ddf87e285f1ecc285350f28ac172dd594bfe"
+palettes = { default = "c421aaf9d5930dc0b38e2f23ea4699240fee2e77" }
+
+[level3_menu_picture]
+uid = "uid://gwkd6qli49bc"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [80, 64]
+page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
+]
+
+[level3_menu_picture.from.USA]
+at = [{ stage = 0, file = 20718, slot = "image", page = 0 }]
+sha1 = "b41d112e285a944423d621403a50de6c0a6c2fe2"
+palettes = { default = "55119f2b64aac4a7b67aeb823f11f16823adf416" }
+
+[shop_picture]
+uid = "uid://1141b2toyn1cf"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 96]
+page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
+]
+
+[shop_picture.from.USA]
+at = [{ stage = 0, file = 20330, slot = "image", page = 0 }, { stage = 0, file = 20331, slot = "image", page = 0 }, { stage = 0, file = 20332, slot = "image", page = 0 }]
+sha1 = "4e45967f9b11627c7c25070efc67245b4302cfc6"
+palettes = { default = "b403f19b17a68cd67ba938f5a621de7457a31252" }

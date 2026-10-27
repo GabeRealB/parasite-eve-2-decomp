@@ -1,0 +1,47 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[texture_akropolis]
+uid = "uid://8k02somh1ij1"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [384, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+]
+
+[texture_akropolis.from.USA]
+at = [{ stage = 0, file = 110700, slot = "image_akropolis", page = 0 }, { stage = 0, file = 510900, slot = "image", page = 0 }]
+sha1 = "6d14e53111137553f34458ba1917eec78b91e354"
+palettes = { default = "8c34c29d34e8e423a29e00dcef37983d45df06a4", default_2 = "49106280683b4fecc209c239fd9dd04af6e40616", default_3 = "38b1cb5e68f271d834e59beff24b8e5bfa7d0ce2" }
+
+[texture_dryfield]
+uid = "uid://1hsffgjk201ux"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [384, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
+    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
+    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+]
+cells = [
+    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
+    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
+    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
+]
+
+[texture_dryfield.from.USA]
+at = [{ stage = 0, file = 150400, slot = "image_dryfield", page = 0 }, { stage = 0, file = 521100, slot = "image", page = 0 }, { stage = 0, file = 560800, slot = "image_dryfield", page = 0 }, { stage = 0, file = 651100, slot = "image_dryfield", page = 0 }]
+sha1 = "e129c0a9debfc1c3741954e185d0165869ffb7a6"
+palettes = { default = "86a3a6840dafb8af050bb52b2eef9c7e7019ddeb", default_2 = "5d3c413f199903aa77d714ba24bf5e55ac7f9b2c", default_3 = "705099e66ee80f2fe97344270ec755d6f9b01b00" }

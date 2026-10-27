@@ -1,0 +1,401 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[kyle_companion]
+uid = "uid://1x9a08nxhru7d"
+kind = "file"
+slots = [
+    { name = "package", type = "package" },
+]
+
+[kyle_companion.from.USA]
+at = [{ stage = 0, file = 800100 }]
+
+[kyle_companion_1]
+uid = "uid://1dy6pq3afesh6"
+kind = "file"
+
+[[kyle_companion_1.slots]]
+name = "companion_1_sounds"
+type = "sound_bank"
+
+[[kyle_companion_1.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+]
+
+[[kyle_companion_1.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+]
+page_slots = 6
+
+[[kyle_companion_1.slots]]
+name = "p229_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" }, palette = "default" },
+]
+
+[[kyle_companion_1.slots]]
+name = "p229_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" } },
+]
+
+[[kyle_companion_1.slots]]
+name = "package"
+type = "package"
+
+[kyle_companion_1.from.USA]
+at = [{ stage = 0, file = 800101 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
+
+[kyle_companion_2]
+uid = "uid://1flgt3u9wa39"
+kind = "file"
+
+[[kyle_companion_2.slots]]
+name = "companion_2_sounds"
+type = "sound_bank"
+
+[[kyle_companion_2.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+]
+
+[[kyle_companion_2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+]
+page_slots = 6
+
+[[kyle_companion_2.slots]]
+name = "mm1_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.asset" }, palette = "default" },
+]
+
+[[kyle_companion_2.slots]]
+name = "mm1_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.asset" } },
+]
+
+[[kyle_companion_2.slots]]
+name = "package"
+type = "package"
+
+[kyle_companion_2.from.USA]
+at = [{ stage = 0, file = 800102 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", mm1_palette = "76303bb67d2984038bac7dc178e15d2a123a56de", mm1_image = "321de772e775a264a70cc456b63f291cc77b6a57" }
+
+[kyle_companion_3]
+uid = "uid://pxj99lowpc5"
+kind = "file"
+
+[[kyle_companion_3.slots]]
+name = "companion_3_sounds"
+type = "sound_bank"
+
+[[kyle_companion_3.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+]
+
+[[kyle_companion_3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+]
+page_slots = 6
+
+[[kyle_companion_3.slots]]
+name = "m950_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" }, palette = "default" },
+]
+
+[[kyle_companion_3.slots]]
+name = "m950_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" } },
+]
+
+[[kyle_companion_3.slots]]
+name = "package"
+type = "package"
+
+[kyle_companion_3.from.USA]
+at = [{ stage = 0, file = 800103 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m950_palette = "9d90bfefb365038938325519fae6d83efe74ec56", m950_image = "8c97e9522da30044b42babb401e0a1161fff1929" }
+
+[kyle_companion_4]
+uid = "uid://ub5zl1ezyv1h"
+kind = "file"
+
+[[kyle_companion_4.slots]]
+name = "companion_4_sounds"
+type = "sound_bank"
+
+[[kyle_companion_4.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+]
+
+[[kyle_companion_4.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+]
+page_slots = 6
+
+[[kyle_companion_4.slots]]
+name = "m4a1_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.asset" }, palette = "default" },
+]
+
+[[kyle_companion_4.slots]]
+name = "m4a1_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.asset" } },
+]
+
+[[kyle_companion_4.slots]]
+name = "package"
+type = "package"
+
+[kyle_companion_4.from.USA]
+at = [{ stage = 0, file = 800104 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m4a1_palette = "30c1db1d9894a4de88e6215ac6e660725aca0592", m4a1_image = "c15b0e3d2ac50fe2226c5249f10c4f9229573d03" }
+
+[kyle_companion_5]
+uid = "uid://fheuys1m1z7o"
+kind = "file"
+
+[[kyle_companion_5.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+]
+
+[[kyle_companion_5.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+]
+page_slots = 6
+
+[[kyle_companion_5.slots]]
+name = "m950_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" }, palette = "default" },
+]
+
+[[kyle_companion_5.slots]]
+name = "m950_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" } },
+]
+
+[[kyle_companion_5.slots]]
+name = "package"
+type = "package"
+
+[kyle_companion_5.from.USA]
+at = [{ stage = 0, file = 800105 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m950_palette = "9d90bfefb365038938325519fae6d83efe74ec56", m950_image = "8c97e9522da30044b42babb401e0a1161fff1929" }
+
+[flint_companion]
+uid = "uid://g61m93n6dn2f"
+kind = "file"
+
+[[flint_companion.slots]]
+name = "sounds"
+type = "sound_bank"
+
+[[flint_companion.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.asset" }, palette = "default" },
+]
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+
+[[flint_companion.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.asset" } },
+]
+page_slots = 6
+
+[[flint_companion.slots]]
+name = "package"
+type = "package"
+
+[flint_companion.from.USA]
+at = [{ stage = 0, file = 800200 }]
+chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd705d3ff9ebad301c211b732060e1b08508" }
+
+[eve_companion]
+uid = "uid://85mg3s9cibx9"
+kind = "file"
+
+[[eve_companion.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" }, palette = "default_2" },
+]
+
+[[eve_companion.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" } },
+]
+page_slots = 6
+
+[[eve_companion.slots]]
+name = "p229_palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" }, palette = "default" },
+]
+
+[[eve_companion.slots]]
+name = "p229_image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" } },
+]
+
+[[eve_companion.slots]]
+name = "package"
+type = "package"
+
+[eve_companion.from.USA]
+at = [{ stage = 0, file = 800300 }]
+chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b", p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
+
+[akropolis_square]
+uid = "uid://10kn8yyer6an1"
+kind = "file"
+
+[[akropolis_square.slots]]
+name = "logo_palette"
+type = "palette"
+
+[[akropolis_square.slots]]
+name = "logo_shadow_palette"
+type = "palette"
+
+[[akropolis_square.slots]]
+name = "logo"
+type = "image"
+
+[[akropolis_square.slots]]
+name = "logo_shadow"
+type = "image"
+
+[[akropolis_square.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 0, type = "demo" },
+]
+
+[akropolis_square.from.USA]
+at = [{ stage = 0, file = 801000 }]
+
+[dryfield_main_street]
+uid = "uid://1n8oqsrr25xl"
+kind = "file"
+
+[[dryfield_main_street.slots]]
+name = "logo_palette"
+type = "palette"
+
+[[dryfield_main_street.slots]]
+name = "logo_shadow_palette"
+type = "palette"
+
+[[dryfield_main_street.slots]]
+name = "logo"
+type = "image"
+
+[[dryfield_main_street.slots]]
+name = "logo_shadow"
+type = "image"
+
+[[dryfield_main_street.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 0, type = "demo" },
+]
+
+[dryfield_main_street.from.USA]
+at = [{ stage = 0, file = 801100 }]
+
+[dryfield_underpass]
+uid = "uid://awkh1hwk0fk2"
+kind = "file"
+
+[[dryfield_underpass.slots]]
+name = "logo_palette"
+type = "palette"
+
+[[dryfield_underpass.slots]]
+name = "logo_shadow_palette"
+type = "palette"
+
+[[dryfield_underpass.slots]]
+name = "logo"
+type = "image"
+
+[[dryfield_underpass.slots]]
+name = "logo_shadow"
+type = "image"
+
+[[dryfield_underpass.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 0, type = "demo" },
+]
+
+[dryfield_underpass.from.USA]
+at = [{ stage = 0, file = 801200 }]

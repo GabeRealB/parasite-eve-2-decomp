@@ -1,0 +1,18 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://106bfoy9gtakk"
+kind = "folder"
+stream_data = false
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://zhzczjitlfc3", path = "res://stages/shelter_neo_ark/rooms/north_promenade/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1477qximi6dm3", path = "res://stages/shelter_neo_ark/rooms/north_promenade/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://r6hzjhbbtw6r", path = "res://stages/shelter_neo_ark/rooms/north_promenade/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://15q8edye2dc2b", path = "res://stages/shelter_neo_ark/rooms/north_promenade/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1whqmcwz45rit", path = "res://stages/shelter_neo_ark/rooms/north_promenade/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://ewh2f3133q1f", path = "res://stages/shelter_neo_ark/rooms/north_promenade/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://iymsx98s3qik", path = "res://stages/shelter_neo_ark/rooms/north_promenade/files/view6.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 5, folder = 1001 }]

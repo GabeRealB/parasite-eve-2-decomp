@@ -1,0 +1,55 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[movie_100]
+uid = "uid://1sa5pr4l8y67t"
+kind = "movie"
+group = 0
+id = 100
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 448
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 37
+upload_mode = 0
+
+[movie_100.from.USA]
+at = [{ stage = 5, folder = 2001, stream = "movie_100" }]
+
+[movie_101]
+uid = "uid://ph8vg23td2gi"
+kind = "movie"
+group = 0
+id = 101
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 448
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 38
+upload_mode = 0
+
+[movie_101.from.USA]
+at = [{ stage = 5, folder = 2001, stream = "movie_101" }]
+
+[movie_102]
+uid = "uid://1qwt06m0kuquh"
+kind = "movie"
+group = 0
+id = 102
+sub_id = 0
+vram_x = 0
+vram_y = 24
+frame_limit = 230
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 39
+upload_mode = 0
+
+[movie_102.from.USA]
+at = [{ stage = 5, folder = 2001, stream = "movie_102" }]

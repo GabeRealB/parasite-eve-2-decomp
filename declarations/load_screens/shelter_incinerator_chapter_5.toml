@@ -1,0 +1,11 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[background]
+uid = "uid://1e243gzvq88p2"
+kind = "image"
+role = "background"
+format = "bs"
+
+[background.from.USA]
+at = [{ stage = 0, file = 25, slot = "background" }]
+sha1 = "0982dc8b2951b4cf6a3e67e9ab2284239f4884b0"

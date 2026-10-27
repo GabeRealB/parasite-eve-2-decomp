@@ -1,0 +1,33 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[preview]
+uid = "uid://8u2t36ozfufp"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 96]
+page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
+]
+
+[preview.from.USA]
+at = [{ stage = 0, file = 20125, slot = "image", page = 0 }]
+sha1 = "de088abb45a225c85b8047ef508f5bde6f3e6b2c"
+palettes = { default = "c5b8dcf6281acdb55ea7f4d20ccd6107a6d99973" }
+
+[texture]
+uid = "uid://1thc0xio15tpz"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 64]
+page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1s46guge2y3r0", path = "res://engine/vram/weapon_palette.asset" }, at = [0, 0] },
+]
+
+[texture.from.USA]
+at = [{ stage = 0, file = 10325, slot = "image", page = 0 }]
+sha1 = "79fee9754e3962873431d638d30c6ccfdbd23015"
+palettes = { default = "703cf88b280188add77a63e3b2bee6e037e058cd" }

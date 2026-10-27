@@ -1,0 +1,135 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://1girzmuq8s4hp"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 1, type = "palette" },
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 5, type = "palette" },
+    { index = 6, type = "palette" },
+    { index = 7, type = "palette" },
+    { index = 9, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 5, folder = 1701, file = 0 }]
+
+[view1]
+uid = "uid://2k36gqs6e3ua"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://19ql3d7wzeh0k", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 5, folder = 1701, file = 1 }]
+
+[view2]
+uid = "uid://58ulbv1pvju9"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1ocavcqpbhyu4", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 5, folder = 1701, file = 2 }]
+
+[view3]
+uid = "uid://1u59qf3a9iuki"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://xtxq0dw23nre", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 5, folder = 1701, file = 3 }]
+
+[view4]
+uid = "uid://uc8lj5uvl8z5"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1ss5ccp9x7v54", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 5, folder = 1701, file = 4 }]
+
+[view5]
+uid = "uid://k13azxr6o9y8"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://14djg3g1zgzh2", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 5, folder = 1701, file = 5 }]
+
+[view6]
+uid = "uid://11ctg9oiy5vfz"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://zmn1u37ko8yu", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 5, folder = 1701, file = 6 }]
+
+[view7]
+uid = "uid://fy92sziuem25"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://mbgaulwfuf2d", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 5, folder = 1701, file = 7 }]
+
+[view8]
+uid = "uid://1849q72ddaicz"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://aqchfr0knmxq", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view8_background.asset" } },
+]
+
+[view8.from.USA]
+at = [{ stage = 5, folder = 1701, file = 8 }]
+
+[view9]
+uid = "uid://17ipelnntboxo"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://c9hrx110ku30", path = "res://stages/shelter_neo_ark/rooms/power_plant_1/views/view9_background.asset" } },
+]
+
+[view9.from.USA]
+at = [{ stage = 5, folder = 1701, file = 9 }]

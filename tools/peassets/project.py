@@ -1,4 +1,4 @@
-"""Projects: what a `project.toml` declares, and how the tier 1 build reaches a project's data (local/project_design.md).
+"""Projects: what a `project.toml` declares, and how the tier 1 build reaches a project's data.
 
 A project is a directory holding `project.toml` (made by tools/pe2project.py):
 
@@ -131,7 +131,7 @@ def _toml(value) -> str:
 
 def render(game: dict, layers: list[dict], mounts: list[dict], configs: dict[str, dict]) -> str:
     """A `project.toml`'s text."""
-    lines = ["# A project (local/project_design.md). `res://` paths are absolute from this directory.", "",
+    lines = ["# A project. `res://` paths are absolute from this directory.", "",
              "[game]"] + [f"{k} = {_toml(v)}" for k, v in game.items() if k != "releases"]
     for release, spec in game.get("releases", {}).items():
         lines += ["", f"[game.releases.{release}]", "discs = ["] + [f"    {_toml(d)}," for d in spec["discs"]] + ["]"]

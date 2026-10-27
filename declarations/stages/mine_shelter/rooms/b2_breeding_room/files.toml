@@ -1,0 +1,160 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[base]
+uid = "uid://jufh4wg9lds2"
+kind = "file"
+
+[[base.slots]]
+name = "sound_bank_0"
+type = "sound_bank"
+
+[[base.slots]]
+name = "sound_bank_1"
+type = "sound_bank"
+
+[[base.slots]]
+name = "dialogue_0_atlas"
+type = "image"
+
+[[base.slots]]
+name = "dialogue_1_atlas"
+type = "image"
+
+[[base.slots]]
+name = "palette"
+type = "palette"
+
+[[base.slots]]
+name = "image"
+type = "image"
+
+[[base.slots]]
+name = "package"
+type = "package"
+
+[[base.slots]]
+name = "bundle"
+type = "bundle"
+resources = [
+    { index = 1, type = "palette" },
+    { index = 2, type = "palette" },
+    { index = 3, type = "palette" },
+    { index = 4, type = "palette" },
+    { index = 5, type = "palette" },
+    { index = 6, type = "palette" },
+    { index = 7, type = "palette" },
+    { index = 8, type = "palette" },
+    { index = 10, type = "dialogue" },
+    { index = 11, type = "dialogue" },
+]
+
+[base.from.USA]
+at = [{ stage = 4, folder = 3201, file = 0 }]
+
+[view1]
+uid = "uid://6jzqvyw1fwqj"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://z45qi9of8h0f", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view1_background.asset" } },
+]
+
+[view1.from.USA]
+at = [{ stage = 4, folder = 3201, file = 1 }]
+
+[view2]
+uid = "uid://m8hkxohw0ap8"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://q1eeyj9tita5", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view2_background.asset" } },
+]
+
+[view2.from.USA]
+at = [{ stage = 4, folder = 3201, file = 2 }]
+
+[view3]
+uid = "uid://16bafy7odon7h"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://g8jr4w27rcux", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view3_background.asset" } },
+]
+
+[view3.from.USA]
+at = [{ stage = 4, folder = 3201, file = 3 }]
+
+[view4]
+uid = "uid://1xnieewqsi5l2"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://7nppt2i6yyxw", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view4_background.asset" } },
+]
+
+[view4.from.USA]
+at = [{ stage = 4, folder = 3201, file = 4 }]
+
+[view5]
+uid = "uid://a3ugozojcnb2"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://12c4thfs1x18m", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view5_background.asset" } },
+]
+
+[view5.from.USA]
+at = [{ stage = 4, folder = 3201, file = 5 }]
+
+[view6]
+uid = "uid://142jk03bz2bi3"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1w5gcxhfy97xj", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view6_background.asset" } },
+]
+
+[view6.from.USA]
+at = [{ stage = 4, folder = 3201, file = 6 }]
+
+[view7]
+uid = "uid://u1cusigemwyp"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://1k332ud0tvka2", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view7_background.asset" } },
+]
+
+[view7.from.USA]
+at = [{ stage = 4, folder = 3201, file = 7 }]
+
+[view8]
+uid = "uid://1naaij9cvjrgk"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://r1u6liil6tev", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view8_background.asset" } },
+]
+
+[view8.from.USA]
+at = [{ stage = 4, folder = 3201, file = 8 }]
+
+[view9]
+uid = "uid://1iipdg12gst8o"
+kind = "file"
+slots = [
+    { name = "image", type = "image" },
+    { name = "background", type = "bs", asset = { uid = "uid://zpcooc2twxc0", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view9_background.asset" } },
+]
+
+[view9.from.USA]
+at = [{ stage = 4, folder = 3201, file = 9 }]
+
+[view10]
+uid = "uid://aen6ep5l5j55"
+kind = "file"
+slots = [
+    { name = "background", type = "bs", asset = { uid = "uid://1ul61nat386ab", path = "res://stages/mine_shelter/rooms/b2_breeding_room/views/view10_background.asset" } },
+]
+
+[view10.from.USA]
+at = [{ stage = 4, folder = 3201, file = 10 }]

@@ -1,0 +1,91 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[view1_background]
+uid = "uid://xrivpmx0mbem"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view1_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 1, slot = "background" }, { stage = 3, folder = 1101, file = 1, slot = "background" }]
+sha1 = "54b517688e7033f6d5b8f49c0a0e8031da89423b"
+
+[view2_background]
+uid = "uid://1c2if7zep35i8"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view2_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 2, slot = "background" }]
+sha1 = "f98cfacccc1225f672811bf642e82f146d610f11"
+
+[view3_background]
+uid = "uid://1ojh6aojir0wv"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view3_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 3, slot = "background" }]
+sha1 = "4735fca4ed6f2dbb1ec85a0d40f39e201c8e7092"
+
+[view4_background]
+uid = "uid://rhb1xemu7d2l"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view4_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 4, slot = "background" }]
+sha1 = "8ac057c90ae27fb73953dc93df68ae9901b4d26c"
+
+[view5_background]
+uid = "uid://4f7cjnhyuam7"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view5_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 5, slot = "background" }]
+sha1 = "0e2e65b5aca76cc0171f317f74af311cedc75424"
+
+[view6_background]
+uid = "uid://1qodf02x7er21"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view6_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 6, slot = "background" }]
+sha1 = "e8dfa96f78abdb5587477e024afb9ecf2c9af29c"
+
+[view7_background]
+uid = "uid://1uzpqrlh8bwqh"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view7_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 7, slot = "background" }]
+sha1 = "e88ced377fdb32ef6de1f6e7017b80d0d982b105"
+
+[view8_background]
+uid = "uid://tk5whl6deyyb"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view8_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 8, slot = "background" }]
+sha1 = "8dda65a55646cd4c82c54d67c0f3438477ea1d66"
+
+[view9_background]
+uid = "uid://6rgmxej99cav"
+kind = "image"
+role = "background"
+format = "bs"
+
+[view9_background.from.USA]
+at = [{ stage = 2, folder = 1101, file = 9, slot = "background" }]
+sha1 = "d020e90e4bb8ab757dc0a774ff37974aeb9b97ac"

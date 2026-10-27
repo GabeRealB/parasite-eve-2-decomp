@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Make projects and fill their game layer (local/project_design.md, "Extracting and projects").
+"""Make projects and fill their game layer.
 
     pe2project.py create [DIR] [--release R ...] [--roms PATH] [--no-extract]
     pe2project.py init [--release R ...] [--roms PATH] [--no-extract]

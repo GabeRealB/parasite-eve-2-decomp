@@ -1,0 +1,75 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[container]
+uid = "uid://1kh9tjaccx59w"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "pain_reliever", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] },
+    { name = "stim", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 0] },
+    { name = "ammunition", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 0] },
+    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 0] },
+]
+variants = [
+    { name = "default", palette = "default" },
+    { name = "stim", palette = "stim" },
+    { name = "pain_reliever", palette = "pain_reliever" },
+    { name = "ammunition", palette = "ammunition" },
+]
+
+[container.from.USA]
+at = [{ stage = 1, folder = 401, file = 0, slot = "image_0", page = 0 }, { stage = 2, folder = 2701, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2701, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 1601, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 2001, file = 0, slot = "image_1", page = 0 }, { stage = 4, folder = 3101, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 3901, file = 0, slot = "image_0", page = 0 }, { stage = 5, folder = 401, file = 0, slot = "image", page = 0 }]
+sha1 = "cf9ed5fdd2508eaf02d8b025be4d208b0c6a628c"
+palettes = { default = "f463efbf6a4702b2828c74dbe29753d07f8c5801", stim = "446d9d88a7824f0fda646bb10c2729bf93723522", pain_reliever = "9b382e8d84e2bd0ba0a9107cad362eef47487560", ammunition = "24d412eaad362c291e8a0b08b04ca63b9c57e8de" }
+
+[model]
+uid = "uid://78u9qvsagvui"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "loose_prop", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] },
+    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
+]
+variants = [
+    { name = "default", palette = "default" },
+    { name = "loose_prop", palette = "loose_prop" },
+]
+
+[model.from.USA]
+at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 1 }]
+sha1 = "05a24705ba2544bd45ec559e205fdf9b2cdb63e8"
+palettes = { default = "1a18cea47648422f0ad8958da6874d1776efe9ca", loose_prop = "d066cc61aaacb6b64a31999b3a4a6047da3793eb" }
+
+[puff]
+uid = "uid://5igeqovcfi78"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [240, 160]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+]
+cells = [
+    { name = "puff_0", rect = [0, 0, 48, 48], palette = "default" },
+    { name = "puff_1", rect = [48, 0, 48, 48], palette = "default" },
+    { name = "puff_2", rect = [96, 0, 48, 48], palette = "default" },
+    { name = "puff_3", rect = [144, 0, 48, 48], palette = "default" },
+    { name = "puff_4", rect = [192, 0, 48, 48], palette = "default" },
+    { name = "puff_row_2_0", rect = [0, 48, 48, 48], palette = "default" },
+    { name = "puff_row_2_1", rect = [48, 48, 48, 48], palette = "default" },
+    { name = "puff_row_2_2", rect = [96, 48, 48, 48], palette = "default" },
+    { name = "puff_row_2_3", rect = [144, 48, 48, 48], palette = "default" },
+    { name = "puff_row_2_4", rect = [192, 48, 48, 48], palette = "default" },
+]
+
+[puff.from.USA]
+at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 0 }]
+sha1 = "2422b444ed71058f4e4e4df655a71a3e2d2c87c6"
+palettes = { default = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }

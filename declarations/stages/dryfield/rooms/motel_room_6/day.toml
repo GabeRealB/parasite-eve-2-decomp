@@ -1,0 +1,27 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[folder]
+uid = "uid://jck9gnqy95se"
+kind = "folder"
+stream_data = true
+streams = [
+    { name = "movie_100", type = "movie", asset = { uid = "uid://fy7850eno8uc", path = "res://stages/dryfield/rooms/motel_room_6/day/streams/movie_100.asset" } },
+]
+files = [
+    { name = "base", id = 0, asset = { uid = "uid://4z2exjh6mzez", path = "res://stages/dryfield/rooms/motel_room_6/day/files/base.asset" } },
+    { name = "view1", id = 1, asset = { uid = "uid://a3le042lod6s", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view1.asset" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1h1slh00u5s6i", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view2.asset" } },
+    { name = "view3", id = 3, asset = { uid = "uid://v5ml56bd3kzx", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view3.asset" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1xxdks546qyxw", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view4.asset" } },
+    { name = "view5", id = 5, asset = { uid = "uid://xqw3bdmf0u9z", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view5.asset" } },
+    { name = "view6", id = 6, asset = { uid = "uid://1u7mrrf9r6fu4", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view6.asset" } },
+    { name = "view7", id = 7, asset = { uid = "uid://17xe9lgse47ok", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view7.asset" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1sntfmio0zo92", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view8.asset" } },
+    { name = "view9", id = 9, asset = { uid = "uid://19jw9a5m9xo2r", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view9.asset" } },
+    { name = "view10", id = 10, asset = { uid = "uid://wzuxc6onf89m", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view10.asset" } },
+    { name = "view11", id = 11, asset = { uid = "uid://t0swe0up8tc2", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view11.asset" } },
+    { name = "view12", id = 12, asset = { uid = "uid://18o1ku0g2sddk", path = "res://stages/dryfield/rooms/motel_room_6/day/files/view12.asset" } },
+]
+
+[folder.from.USA]
+at = [{ stage = 2, folder = 3001 }]
