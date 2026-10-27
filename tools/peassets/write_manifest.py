@@ -278,6 +278,8 @@ def _contents_from_chunk_map(
             "path": ent["path"],
             "type": type_id,
         }
+        if ent.get("raw_path"):                  # the stored chunk an edited form is placed against
+            entry["raw"] = ent["raw_path"]
         # Default sector_len is 0x800 — only emit when retail differs.
         # chunk_size is not stored: pack infers it from payload + sector_len.
         sector_len = parse_sector_len(ent.get("sector_len"))

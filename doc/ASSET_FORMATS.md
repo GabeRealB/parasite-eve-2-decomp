@@ -1373,6 +1373,7 @@ allowed at each level; unknown keys (e.g. `chunk_size`, `end_flag`) fail.
 | `path` | **yes** | all | Relative to assets root: the inflated file, under its type directory or its group (§13) |
 | `type` | **yes** | all | See type table below |
 | `sector_len` | no | all | Omit if `0x800`. Range `(0x10, 0x800]` |
+| `raw` | no | all | The stored chunk, `raw/<type>/<name><ext>`: what a matching pack writes, and what an edited picture is placed and sized against. The extraction records it, so pack works it out from nothing else |
 | `load_addr` | **yes** (non-zero) | **`room_pkg`, `bundle` only** | RAM load address; retail never uses `0` |
 
 **Never in `stages.json`** (inferred or on-disc only):
@@ -1386,13 +1387,13 @@ allowed at each level; unknown keys (e.g. `chunk_size`, `end_flag`) fail.
 
 | `type` | Extension | Keys |
 |--------|-----------|------|
-| `room_pkg` | `.pe2pkg` | `path`, `type`, **`load_addr`**, `sector_len?` |
-| `image` | `.pe2img` / `.png` | `path`, `type`, `sector_len?` |
-| `clut` | `.pe2clut` / `.png` | `path`, `type`, `sector_len?` |
-| `bundle` | `.pe2bundle` | `path`, `type`, **`load_addr`**, `sector_len?` |
-| `room_background` | `.bs` / `.png` | `path`, `type`, `sector_len?` |
-| `music` | `.spk` | `path`, `type`, `sector_len?` |
-| `ascii` | `.txt` | `path`, `type`, `sector_len?` |
+| `room_pkg` | `.pe2pkg` | `path`, `type`, **`load_addr`**, `sector_len?`, `raw?` |
+| `image` | `.pe2img` / `.png` | `path`, `type`, `sector_len?`, `raw?` |
+| `clut` | `.pe2clut` / `.png` | `path`, `type`, `sector_len?`, `raw?` |
+| `bundle` | `.pe2bundle` | `path`, `type`, **`load_addr`**, `sector_len?`, `raw?` |
+| `room_background` | `.bs` / `.png` | `path`, `type`, `sector_len?`, `raw?` |
+| `music` | `.spk` | `path`, `type`, `sector_len?`, `raw?` |
+| `ascii` | `.txt` | `path`, `type`, `sector_len?`, `raw?` |
 | `raw` | `raw.bin` | `path`, `type` only (non-chunked file) |
 
 Example:

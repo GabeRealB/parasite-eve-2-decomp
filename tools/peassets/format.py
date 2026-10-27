@@ -275,9 +275,9 @@ def parse_load_addr(
 # Required for every non-raw chunk entry.
 STAGES_CHUNK_REQUIRED_KEYS: frozenset[str] = frozenset({"path", "type"})
 
-# Optional for every non-raw chunk.
+# Optional for every non-raw chunk: `raw` names the stored chunk the entry is packed from or placed against.
 # end_flag is never in stages.json — pack sets continue/end from chunk order.
-STAGES_CHUNK_COMMON_OPTIONAL_KEYS: frozenset[str] = frozenset({"sector_len"})
+STAGES_CHUNK_COMMON_OPTIONAL_KEYS: frozenset[str] = frozenset({"sector_len", "raw"})
 
 # Extra keys required only on specific types (retail always has non-zero load_addr).
 STAGES_CHUNK_TYPE_REQUIRED_KEYS: dict[FileChunkType, frozenset[str]] = {

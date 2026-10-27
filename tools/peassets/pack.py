@@ -33,8 +33,12 @@ Example ``stages.json`` (see ``doc/ASSET_FORMATS.md`` §11 for the full schema):
     }
 
 ``files`` → STAGE0-style HED+CDF. ``folders`` → STAGEn.CDF with folder table.
-File/folder/chunk dict keys use friendly names from ``asset_db.TREE`` when set
-(else ``file0`` / ``101`` / ``1.pe2pkg``). Key order is on-disc order.
+File/folder/chunk dict keys are the names the extraction gave them (else ``file0`` /
+``101`` / ``1.pe2pkg``), and name the sidecar directories. Key order is on-disc order.
+The disc ids are in the sidecars: a folder's ``layout.json`` holds its id and its files',
+in the manifest's order (stage 0's, its files'). A chunk's ``raw`` names the stored chunk
+it is packed from or placed against. Pack reads neither ``asset_data`` nor the groups for
+these.
 ``end_flag`` / ``chunk_size`` are never in the manifest (inferred at pack).
 
 Content paths point at the **type store** under the assets root
@@ -97,12 +101,6 @@ from format import (  # noqa: E402
     validate_stages_manifest,
 )
 from lzss import encode_lzss  # noqa: E402
-from asset_db import (  # noqa: E402
-    disk_file_rel,
-    disk_folder_rel,
-    resolve_file_id,
-    resolve_folder_id,
-)
 
 # Chunk types stored as LZSS (or LZSS-wrapped) on disc.
 LZSS_ON_DISC_TYPES = frozenset(
@@ -142,43 +140,13 @@ def resolve_path(base: Path, value: str | Path) -> Path:
     return (base / path).resolve()
 
 
-def path_under_raw_type_store(
-    assets_dir: Path, path_str: str, chunk_type: FileChunkType
-) -> Path:
-    """Map an inflated type-store path to the corresponding ``raw/{type}/`` file.
-
-    ``pe2pkg/gameplay.pe2pkg`` → ``raw/pe2pkg/gameplay.pe2pkg``
-    ``pe2img/foo.png`` → ``raw/pe2img/foo.pe2img``
-    ``spk/spk_95/meta.json`` → ``raw/spk/spk_95.spk``
-
-    Only the asset's name is read from the path and the type comes from the
-    chunk. Under a group the name is the path (``weapons/m4a1/foo.png`` is
-    ``weapons/m4a1/foo``, ``asset_schema.manifest_asset``), which is where
-    ``raw/<type>/`` keeps it too.
-    """
-    p = Path(path_str)
-    # Already under raw/
-    if p.parts and p.parts[0] == "raw":
-        return resolve_path(assets_dir, p)
-    type_dir = AssetStore_type_dir(chunk_type)
-    ext = chunk_type.get_extension()
-    import asset_schema
-    # SPK inflates to ``spk/{stem}/meta.json`` — stem is the parent dir name.
-    found = asset_schema.manifest_asset(p.as_posix())
-    if found is not None:
-        stem = found[0]
-    elif chunk_type == FileChunkType.Music and p.name == "meta.json" and p.parent.name:
-        stem = p.parent.name
-    else:
-        stem = p.stem
-    if chunk_type == FileChunkType.RoomPkg:
-        # pe2pkg/ holds a package under its overlay name; raw/ under the asset's (`package_name`).
-        stem = asset_schema.package_asset(stem)
-    # Several assets may hold one content, stored once under one of their names (asset_schema.stored_name).
-    assets, _embedded = asset_schema.load()
-    if stem in assets:
-        stem = asset_schema.stored_name(stem, assets[stem])
-    return (assets_dir / "raw" / type_dir / f"{stem}{ext}").resolve()
+def stored_chunk_path(assets_dir: Path, content: dict[str, Any]) -> Path:
+    """The stored chunk (`raw/<type>/...`) an entry is packed from or placed against: the manifest's `raw`, or its
+    `path` where that is the stored chunk itself (a bundle). The extraction records it; pack does not work it out."""
+    rel = content.get("raw") or (content["path"] if Path(content["path"]).parts[:1] == ("raw",) else None)
+    if rel is None:
+        raise FileNotFoundError(f"{content['path']}: the manifest names no stored chunk for it (extract again)")
+    return resolve_path(assets_dir, rel)
 
 
 def shaped_output_text(assets_dir: Path, path_str: str) -> bytes | None:
@@ -200,23 +168,9 @@ def shaped_output_text(assets_dir: Path, path_str: str) -> bytes | None:
     return shape.encode(key, assets, _embedded, assets_dir)[output]
 
 
-def AssetStore_type_dir(chunk_type: FileChunkType) -> str:
-    """Type directory name for a chunk type (mirrors extract.TYPE_DIR_BY_EXT)."""
-    ext = chunk_type.get_extension()
-    return {
-        ".pe2pkg": "pe2pkg",
-        ".pe2img": "pe2img",
-        ".pe2clut": "pe2clut",
-        ".pe2bundle": "pe2bundle",
-        ".bs": "bs",
-        ".spk": "spk",
-        ".txt": "txt",
-    }.get(ext, ext.lstrip(".") or "bin")
-
-
 def resolve_content_path(
     assets_dir: Path,
-    path_str: str,
+    content: dict[str, Any],
     *,
     source: PackSource,
     chunk_type: FileChunkType,
@@ -226,6 +180,7 @@ def resolve_content_path(
     Returns ``(path, on_disc_blob)``. When ``on_disc_blob`` is True the file is
     already a clean on-disc payload (no LZSS/PNG re-encode).
     """
+    path_str = content["path"]
     needs_lzss = chunk_type in LZSS_ON_DISC_TYPES
     # Prefer retail raw for LZSS, BS (lossy PNG re-encode), and SPK (no WAV→SPK).
     prefer_raw = needs_lzss or chunk_type in (
@@ -235,13 +190,13 @@ def resolve_content_path(
     staged = resolve_path(assets_dir, path_str)
 
     if source == PackSource.RAW:
-        raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
+        raw_path = stored_chunk_path(assets_dir, content)
         if not raw_path.exists():
             raise FileNotFoundError(f"missing raw content: {raw_path}")
         return raw_path, True
 
     if source == PackSource.MATCHING and prefer_raw:
-        raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
+        raw_path = stored_chunk_path(assets_dir, content)
         if raw_path.exists():
             return raw_path, True
         # Fall through to inflated re-encode if raw is missing.
@@ -253,7 +208,7 @@ def resolve_content_path(
     if chunk_type == FileChunkType.Music and staged.suffix.lower() == ".sfz" and staged.exists():
         return staged, False
     if chunk_type == FileChunkType.Music:
-        raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
+        raw_path = stored_chunk_path(assets_dir, content)
         if raw_path.exists():
             return raw_path, True
         raise FileNotFoundError(
@@ -602,7 +557,7 @@ def build_file_blob_from_contents(
         elif "path" in content:
             payload_path, on_disc_blob = resolve_content_path(
                 assets_dir,
-                content["path"],
+                content,
                 source=source,
                 chunk_type=chunk_type,
             )
@@ -634,8 +589,7 @@ def build_file_blob_from_contents(
             content_path=payload_path,
             content=content if isinstance(content, dict) else None,
             on_disc_blob=on_disc_blob,
-            raw_path=path_under_raw_type_store(assets_dir, content["path"], chunk_type)
-            if "path" in content else None,
+            raw_path=stored_chunk_path(assets_dir, content) if "path" in content else None,
         )
         out.extend(build_chunk_blob(header_json, on_disc))
 
@@ -648,32 +602,14 @@ def build_file_blob_from_contents(
     return pad_to(bytes(out), align_up(len(out), SECTOR_SIZE))
 
 
-def resolve_file_dir(
-    contents: dict[str, dict[str, Any]] | list[dict[str, Any]],
-    assets_dir: Path,
-    *,
-    file_name: str,
-    stage: int | None = None,
-    folder_id: int | None = None,
-    stage_rel: str | None = None,
-    source: PackSource = PackSource.MATCHING,
-) -> Path:
-    """Infer stage-tree directory for trailers / sidecars.
-
-    Sidecars live under ``stage0/…`` / ``stageN/…`` (not type dirs). Prefer
-    :func:`disk_file_rel` when stage/file ids are known.
-    """
-    del contents, source  # content paths point at type store, not stage tree
-    if stage is not None:
-        try:
-            file_id = resolve_file_id(file_name, stage=stage, folder_id=folder_id)
-        except ValueError:
-            file_id = None
-        if file_id is not None:
-            return assets_dir / disk_file_rel(stage, file_id, folder_id)
-    if stage_rel is not None:
-        return assets_dir / stage_rel / file_name
-    return assets_dir / "stage0" / file_name
+def file_ids(side: Path, files: dict[str, Any], what: str) -> list[int]:
+    """The disc ids of a stage's or a folder's files, in the manifest's order: the `layout.json` the extraction wrote
+    beside them lists the same files in the same order."""
+    layout = load_json(side / "layout.json")
+    entries = layout if isinstance(layout, list) else layout["files"]
+    if len(entries) != len(files):
+        raise ValueError(f"{what}: stages.json lists {len(files)} files, {side / 'layout.json'} {len(entries)}")
+    return [parse_int(e["file_id"]) for e in entries]
 
 
 def load_streaming_json(path: Path) -> list[dict[str, Any]]:
@@ -756,21 +692,13 @@ def build_files_stage(
         raise ValueError(f"cannot parse stage index from {stage_name!r}")
 
     built_files: list[tuple[int, bytes]] = []
-    for file_name, chunks in files_map.items():
-        file_id = resolve_file_id(file_name, stage=stage_index, folder_id=None)
+    ids = file_ids(assets_dir / stage_name, files_map, stage_name)
+    for file_id, (file_name, chunks) in zip(ids, files_map.items()):
         if not isinstance(chunks, (dict, list)):
             raise TypeError(
                 f"{stage_name}.files[{file_name!r}] must be a dict of chunk_name → fields"
             )
-        file_dir = resolve_file_dir(
-            chunks,
-            assets_dir,
-            file_name=file_name,
-            stage=stage_index,
-            folder_id=None,
-            stage_rel=stage_name,
-            source=source,
-        )
+        file_dir = assets_dir / stage_name / file_name     # its sidecars, named as the manifest names it
         blob = build_file_blob_from_contents(
             chunks, assets_dir, file_dir=file_dir, source=source
         )
@@ -837,36 +765,30 @@ def build_files_stage(
 
 
 def build_stage_n_folder(
-    folder_id: int,
+    folder_key: str,
     files_map: dict[str, Any],
     assets_dir: Path,
     stage_index: int,
     *,
     source: PackSource = PackSource.MATCHING,
 ) -> tuple[int, bytes]:
-    """Build one STAGE-N folder from an ordered files dict."""
+    """Build one STAGE-N folder from an ordered files dict: its id and its files' are in the `layout.json` beside
+    its sidecars, `stage<N>/<folder key>/`."""
+    folder_side = assets_dir / f"stage{stage_index}" / folder_key
+    folder_id = parse_int(load_json(folder_side / "layout.json")["folder_id"])
     if not isinstance(files_map, dict):
         raise TypeError(
             f"folder {folder_id} must be an ordered dict of file_name → chunks"
         )
 
     built: list[tuple[int, bytes]] = []
-    for file_name, chunks in files_map.items():
-        file_id = resolve_file_id(
-            file_name, stage=stage_index, folder_id=folder_id
-        )
+    ids = file_ids(folder_side, files_map, f"stage{stage_index} folder {folder_key}")
+    for file_id, (file_name, chunks) in zip(ids, files_map.items()):
         if not isinstance(chunks, (dict, list)):
             raise TypeError(
                 f"folder {folder_id}[{file_name!r}] must be a dict of chunk_name → fields"
             )
-        file_dir = resolve_file_dir(
-            chunks,
-            assets_dir,
-            file_name=file_name,
-            stage=stage_index,
-            folder_id=folder_id,
-            source=source,
-        )
+        file_dir = folder_side / file_name
         built.append(
             (
                 file_id,
@@ -879,7 +801,6 @@ def build_stage_n_folder(
             )
         )
 
-    folder_side = assets_dir / disk_folder_rel(stage_index, folder_id)
     layout_path = folder_side / "layout.json"
     retail_offsets: dict[int, int] | None = None
     retail_folder_size: int | None = None
@@ -990,10 +911,9 @@ def build_stage_n(
 
     built_folders: list[tuple[int, bytes]] = []
     for folder_key, files_map in folders_map.items():
-        folder_id = resolve_folder_id(str(folder_key), stage=stage_index)
         built_folders.append(
             build_stage_n_folder(
-                folder_id,
+                str(folder_key),
                 files_map,
                 assets_dir,
                 stage_index,
