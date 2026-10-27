@@ -43,7 +43,7 @@
 #define RED_BEACON_TASK akropolisEastElevatorHallRedBeaconTask
 #include "../../../../shared/effects/red_beacon.h"
 
-#include "assets/rooms/akropolis/east_elevator_hall/declarations.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/declarations.inc"
 
 static void _akropolisEastElevatorHallInitializeRoomTask(Task* task);
 static void _akropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask);
@@ -75,14 +75,14 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
     return _gAkropolisEastElevatorHallReflectionTaskDescs;
 }
 
-#include "assets/rooms/akropolis/east_elevator_hall/clips.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/clips.inc"
 
 /// The player's animations in the opening: its main part, its lead-in and its exit.
-#include "assets/rooms/akropolis/east_elevator_hall/opening_player_main_bank.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/opening_player_lead_in_bank.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/opening_player_exit_bank.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_main_bank.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_lead_in_bank.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_exit_bank.inc"
 
-#include "assets/rooms/akropolis/east_elevator_hall/events.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/events.inc"
 
 /// Messages of the room task.
 static TaskMessageEntry _gAkropolisEastElevatorHallRoomMessages[] = {
@@ -95,15 +95,15 @@ static TaskMessageEntry _gAkropolisEastElevatorHallRoomMessages[] = {
 
 /// Set once the opening has started in this visit.
 static s32 _gAkropolisEastElevatorHallOpeningEventStarted = 0;
-#include "assets/rooms/akropolis/east_elevator_hall/header.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/geometry.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/view_boundaries.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/action_triggers.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/placements.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/sprites.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/lights.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/cameras.inc"
-#include "assets/rooms/akropolis/east_elevator_hall/surfaces.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/header.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/geometry.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/placements.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/sprites.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/lights.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/cameras.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/surfaces.inc"
 
 #include "../../../../shared/room/planar_reflection.inc.c"
 
@@ -178,7 +178,7 @@ static void _akropolisEastElevatorHallInitializeRoomTask(Task* task)
 
 /// The player's label in the debug display; its last byte is never shown.
 static const char _gAkropolisEastElevatorHallPlayerDebugLabel[8] = "Player\0\x0F";
-#include "assets/rooms/akropolis/east_elevator_hall/markers.inc"
+#include "assets/stages/akropolis/rooms/east_elevator_hall/markers.inc"
 
 /// Shows the player in the debug display.
 static void _akropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask)

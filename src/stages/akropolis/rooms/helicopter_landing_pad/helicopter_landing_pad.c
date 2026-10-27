@@ -29,7 +29,7 @@
 #include "main/tmd_types.h"
 #include "../../../../shared/actor/actor_messages.h"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/declarations_helicopter_landing_pad.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/declarations_helicopter_landing_pad.inc"
 
 /// Frames one scripted run of the landing pad's lift lasts.
 #define LIFT_TRAVEL_FRAMES 120
@@ -110,9 +110,9 @@ static s8 _gAkropolisHelicopterLandingPadLiftVisibleByView[36] = {
     0,
 };
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/events_1.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/events_1.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/lift_platform.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/props/lift_platform.inc"
 
 /// Initializes the lift's model, lighting and message handling.
 static void _akropolisHelicopterLandingPadLiftInit(Task* task)

@@ -26,7 +26,7 @@
 #include "../../../../shared/actor/actor_motion.h"
 #include "../../../../shared/actor/actor_messages.h"
 
-#include "assets/rooms/akropolis/patio/stranger_schema.h"
+#include "assets/stages/akropolis/actors/patio_leaping_strangers/schema.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn state and kept at `Task::work` for the task's
 /// life.
@@ -98,10 +98,10 @@ static void      _patioLeapingStrangersTask(Task* task);
 
 #include "assets/enemies/stranger/grinning/body.inc"
 
-#include "assets/rooms/akropolis/patio/leaping_strangers_clips.inc"
+#include "assets/stages/akropolis/actors/patio_leaping_strangers/clips.inc"
 
 /// Grinning Stranger body animation sets for bank 0: clip 0 absent, clips 1..8 loaded.
-#include "assets/rooms/akropolis/patio/stranger_bank.inc"
+#include "assets/stages/akropolis/actors/patio_leaping_strangers/bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..8.
 static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
@@ -355,8 +355,8 @@ static s32 _patioLeapingStrangersBeginLeap(Task* task, s32 messageId, const Acto
         startRequest.animationId   = animationRequest->animationId;
         leapWork->model.nextAnimId = animationRequest->nextAnimId;
     } else {
-        startRequest.animationId   = STRANGER_ANIMATION_LEAP;
-        leapWork->model.nextAnimId = STRANGER_ANIMATION_REACT;
+        startRequest.animationId   = PATIO_LEAPING_STRANGERS_ANIMATION_LEAP;
+        leapWork->model.nextAnimId = PATIO_LEAPING_STRANGERS_ANIMATION_REACT;
     }
     startRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
     startRequest.blendFrames          = BLEND_FRAMES;
@@ -463,7 +463,7 @@ static void _patioLeapingStrangersTurnToLaunchYaw(Task* task)
     } else {
         rootAngles.vy                      = work->walk.targetRot.vy;
         launchRequest.source.index         = 0;
-        launchRequest.animationId          = STRANGER_ANIMATION_LEAP;
+        launchRequest.animationId          = PATIO_LEAPING_STRANGERS_ANIMATION_LEAP;
         launchRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
         launchRequest.blendFrames          = BLEND_FRAMES;
         launchRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

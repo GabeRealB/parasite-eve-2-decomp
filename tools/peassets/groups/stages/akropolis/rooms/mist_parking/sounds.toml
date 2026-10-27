@@ -1,0 +1,108 @@
+# The assets of the group stages/akropolis/rooms/mist_parking/sounds, each named stages/akropolis/rooms/mist_parking/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
+]
+sounds = { walk_floor_1 = 17, walk_floor_2 = 18, run_floor_1 = 19, run_floor_2 = 20 }
+sha1 = "86f82c6b17237764b7b5e51cbd368ecd4507d138"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/mist_parking/sounds/room_change_door_open",
+    "stages/akropolis/rooms/mist_parking/sounds/room_change_door_close",
+    "stages/akropolis/rooms/square/sounds/call_start",
+    "stages/akropolis/rooms/square/sounds/ammo_box_open",
+    "stages/akropolis/rooms/mist_parking/sounds/cutscene_playback",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_model_reveal",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_model_reveal_2",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_pierce_walk_steps",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_pierce_walk_steps_2",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_pierce_gesture",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_pierce_aim",
+    "stages/akropolis/rooms/plaza/sounds/police_step_1",
+    "stages/akropolis/rooms/plaza/sounds/police_step_2",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_player_gesture",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_player_gesture_2",
+    "stages/akropolis/rooms/mist_parking/sounds/cutscene_after",
+    "stages/akropolis/rooms/mist_parking/sounds/arrival_model_reveal_3",
+]
+sha1 = "07e072293408683ddd898eb74c44306a42249b02"
+
+[bank_1.sounds]
+room_change_door_open = 1
+room_change_door_close = 2
+cutscene_start = 3
+cutscene_end = 4
+arrival_model_reveal = 5
+arrival_pierce_walk_steps = 6
+arrival_pierce_gesture = 8
+cutscene_playback = 11
+arrival_steps_2 = 12
+arrival_steps_3 = 13
+arrival_pierce_aim = 14
+pierce_step_1 = 15
+pierce_step_2 = 16
+arrival_player_gesture = 17
+cutscene_after = 18
+pierce_step_alternate = 19
+door_open = 20
+door_close = 21
+
+[cutscene_after]
+type = "sound"
+sha1 = "fe319cd58e949e9b574cd334093bfdca3f2a6482"
+
+[cutscene_playback]
+type = "sound"
+sha1 = "6b0c662bdf046cf17a063b267e91f0927f960285"
+
+[arrival_pierce_aim]
+type = "sound"
+sha1 = "0d6a309c238f61f08677c2cdfb289503e2f16b99"
+
+[arrival_model_reveal]
+type = "sound"
+sha1 = "552958dddee0c978f03b4a2be1d8e8974417c2f9"
+
+[room_change_door_open]
+type = "sound"
+sha1 = "7e1479db85ff2a01bdebebd9f938a54ddb8fb37f"
+
+[arrival_model_reveal_2]
+type = "sound"
+sha1 = "4c35e39a54e99cac2ac9a706617d30fb472e7e45"
+
+[arrival_model_reveal_3]
+type = "sound"
+sha1 = "7c28f1fb94c1a20476f5dd6ee6ee05516c101738"
+
+[arrival_pierce_gesture]
+type = "sound"
+sha1 = "876c4f9f56ee38d04010fa4bd97f451ad4f85db3"
+
+[arrival_player_gesture]
+type = "sound"
+sha1 = "0aaf78bfa37cfc9b9e2f6386663a922717f08eee"
+
+[room_change_door_close]
+type = "sound"
+sha1 = "c0d2b7a52327706ecec52d7175cde39bb1cce1c5"
+
+[arrival_player_gesture_2]
+type = "sound"
+sha1 = "2528ebca5a43982eca5c7ca2e5e82f62c995191a"
+
+[arrival_pierce_walk_steps]
+type = "sound"
+sha1 = "175743ef51a82f3eb59470b23bbe5e3a28122680"
+
+[arrival_pierce_walk_steps_2]
+type = "sound"
+sha1 = "d9e401601824a64836b64183a26641385f13aa26"

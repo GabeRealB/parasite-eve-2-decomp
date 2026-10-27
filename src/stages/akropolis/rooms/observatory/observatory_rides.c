@@ -45,17 +45,17 @@ TaskDesc gAkropolisObservatoryArrivalTaskDescs[4] = {
 
 /// Player-root XYZ samples for the movie arrival from the forked road.
 static SVECTOR _gAkropolisObservatoryForkedRoadArrivalPlayerPath[300] = {
-#include "assets/rooms/akropolis/observatory/forked_road_arrival_player_path.inc"
+#include "assets/stages/akropolis/rooms/observatory/forked_road_arrival_player_path.inc"
 };
 
 /// Player-root XYZ samples for the movie arrival from the promenade.
 static SVECTOR _gAkropolisObservatoryPromenadeArrivalPlayerPath[300] = {
-#include "assets/rooms/akropolis/observatory/promenade_arrival_player_path.inc"
+#include "assets/stages/akropolis/rooms/observatory/promenade_arrival_player_path.inc"
 };
 
-#include "assets/rooms/akropolis/observatory/clips.inc"
+#include "assets/stages/akropolis/rooms/observatory/clips.inc"
 
-#include "assets/rooms/akropolis/observatory/akropolis_observatory_player_bank.inc"
+#include "assets/stages/akropolis/rooms/observatory/scenes/ride/player_bank.inc"
 
 /// Phases and sampling units shared by the two observatory arrival controllers.
 enum {

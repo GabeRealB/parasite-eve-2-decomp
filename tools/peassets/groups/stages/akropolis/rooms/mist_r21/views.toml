@@ -1,0 +1,10 @@
+# The assets of the group stages/akropolis/rooms/mist_r21/views, each named stages/akropolis/rooms/mist_r21/views/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[view1_background]
+type = "bs"
+sha1 = "9b78b915fd7ed494d846f6dc71593c180748c5ad"
+
+[view2_background]
+type = "bs"
+sha1 = "619e77600fb63d41fb078701427bda3385686025"

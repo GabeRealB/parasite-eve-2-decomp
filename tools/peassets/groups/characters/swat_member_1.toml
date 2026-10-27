@@ -61,7 +61,7 @@ pages = [
 slots = 6
 
 [[file.contents]]
-asset = "rooms/akropolis/patio/swat_member"
+asset = "stages/akropolis/actors/patio_swat_member/package"
 
 [body_binding]
 type = "binding"

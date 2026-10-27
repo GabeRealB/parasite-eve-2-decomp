@@ -54,7 +54,7 @@
 #include "rooms/shop_tier.h"
 #include "../../../../shared/room/room_cutscene.h"
 
-#include "assets/rooms/mist/parking/declarations_mist_parking.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/declarations_mist_parking.inc"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -96,7 +96,7 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-#include "assets/rooms/mist/parking/clips_1.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/clips_1.inc"
 
 /// Room receiver for transition replies, direction actions, key-item refusal and CAP commands.
 static TaskMessageEntry _gMistParkingRoomMessages[5] = {
@@ -109,14 +109,14 @@ static TaskMessageEntry _gMistParkingRoomMessages[5] = {
 
 /// Single player clip installed at extension index zero for room command 1.
 
-#include "assets/rooms/mist/parking/events_1.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/events_1.inc"
 
-#include "assets/rooms/mist/parking/command1_player_bank.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/scenes/script/player_bank.inc"
 
-#include "assets/rooms/mist/parking/events_2.inc"
-#include "assets/rooms/mist/parking/hinged_panel.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/events_2.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/props/hinged_panel.inc"
 
-#include "assets/rooms/mist/parking/clips_2.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/clips_2.inc"
 
 static void _mistParkingInitializeRoomTask(Task* task);
 

@@ -29,7 +29,7 @@
 #include "../../../../shared/effects/glow_draw.h"
 #include "../../../../shared/room/room_cutscene.h"
 
-#include "assets/rooms/mist/parking/declarations_mist_parking_glows.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/declarations_mist_parking_glows.inc"
 
 /// World-coordinate capsule endpoints and the separate pulsing point-glow center.
 typedef struct {
@@ -46,7 +46,7 @@ enum {
     SHOP_REPLY_END_UPDATES  = 30
 };
 
-#include "assets/rooms/mist/parking/events_10.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/events_10.inc"
 /// Authored parking glow positions in signed world-coordinate units.
 static _GlowWorldPoints _gMistParkingGlowWorldPoints = {
     .capsuleEndpoints = {
@@ -67,16 +67,16 @@ static _GlowWorldPoints _gMistParkingGlowWorldPoints = {
     .pointCenter = { -7412, -1345, 773, 0 },
 };
 
-#include "assets/rooms/mist/parking/header.inc"
-#include "assets/rooms/mist/parking/geometry.inc"
-#include "assets/rooms/mist/parking/cameras.inc"
-#include "assets/rooms/mist/parking/sprites.inc"
-#include "assets/rooms/mist/parking/view_boundaries.inc"
-#include "assets/rooms/mist/parking/action_triggers.inc"
-#include "assets/rooms/mist/parking/lights.inc"
-#include "assets/rooms/mist/parking/placements.inc"
-#include "assets/rooms/mist/parking/ambient.inc"
-#include "assets/rooms/mist/parking/surfaces.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/header.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/geometry.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/cameras.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/sprites.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/lights.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/placements.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/ambient.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/surfaces.inc"
 
 s32 gShopRefillDisplayQuantityFixed = 0;
 

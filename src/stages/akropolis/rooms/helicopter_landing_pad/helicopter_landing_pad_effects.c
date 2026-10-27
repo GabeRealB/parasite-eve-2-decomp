@@ -62,7 +62,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/actor/actor_messages.h"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/declarations_helicopter_landing_pad_effects.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/declarations_helicopter_landing_pad_effects.inc"
 
 /// Returns this carrier's persistent last contact-push correction.
 static inline SVECTOR* _actorContactGetLastPushStep(void)
@@ -120,20 +120,20 @@ TaskMessageEntry gAkropolisHelicopterLandingPadRoomMessages[5] = {
     { .messageId = TASK_MESSAGE_TABLE_END, .handler = NULL },
 };
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/vibrations_1.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/events_2.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/vibrations_1.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/events_2.inc"
 
 AkropolisHelicopterLandingPadSceneMarkStorage gAkropolisHelicopterLandingPadSceneMarkStorage = {
     .destination = { -3496, -2871, -1283 },
     .unknown_0C  = { 0, 0x3280000, 0, -360, -120, 480, 0, 0, 0, -3188, -2871, -694, 0, 0x9C40000, 0 },
 };
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/events_3.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/events_3.inc"
 
 /// Three words copied into the equipped-weapon bank's departure-scene extension.
-#include "assets/rooms/akropolis/helicopter_landing_pad/departure_player_bank.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/scenes/departure/player_bank.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/events_4.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/events_4.inc"
 
 s32 gAkropolisHelicopterLandingPadEncounterPhase = AKROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING;
 
@@ -165,17 +165,17 @@ static s32 _gAkropolisHelicopterLandingPadUnusedWords[6] = {
     0,
 };
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/events_5.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/events_5.inc"
 
 TaskDesc gAkropolisHelicopterLandingPadMovieTasks[2] = {
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } }, .callback = _akropolisHelicopterLandingPadStartMovieTask, .data = { .value = 0 } },
     { .header = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } }, .callback = _akropolisHelicopterLandingPadMovieTask, .data = { .value = 0 } },
 };
-#include "assets/rooms/akropolis/helicopter_landing_pad/markers.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/view_masks.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/header.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/geometry.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/markers.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/view_masks.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/header.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/geometry.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/view_boundaries.inc"
 
 /// Plays the room's view-100 movie, permits Start cancellation and restores gameplay.
 static void _akropolisHelicopterLandingPadMovieTask(Task* task)

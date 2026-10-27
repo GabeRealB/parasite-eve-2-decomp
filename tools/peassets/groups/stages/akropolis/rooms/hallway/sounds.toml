@@ -1,0 +1,46 @@
+# The assets of the group stages/akropolis/rooms/hallway/sounds, each named stages/akropolis/rooms/hallway/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
+]
+sounds = { walk_floor_1 = 9, walk_floor_2 = 10, run_floor_1 = 11, run_floor_2 = 12 }
+sha1 = "af58a083eeffe8423612678fefe099e41595e44e"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/fountain/sounds/door_depart",
+    "stages/akropolis/rooms/fountain/sounds/door_arrive",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_depart",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_arrive",
+    "stages/akropolis/rooms/hallway/sounds/unused_1",
+    "stages/akropolis/rooms/hallway/sounds/key_box_open",
+    "stages/akropolis/rooms/hallway/sounds/key_box_close",
+]
+sha1 = "b85e4341fa94f6bd29ebaba21c6cccc67617b9cc"
+
+[bank_1.sounds]
+door_depart = 1
+door_arrive = 2
+cafeteria_door_depart = 3
+cafeteria_door_arrive = 4
+key_box_open = 6
+key_box_close = 7
+
+[unused_1]
+type = "sound"
+sha1 = "94ca207d3807db953822cfe8d40f3835aa1f9ee0"
+
+[key_box_open]
+type = "sound"
+sha1 = "6aa8aade9c0d6240f9bd692f45b3af97e085d856"
+
+[key_box_close]
+type = "sound"
+sha1 = "24e3526a540f5cf5e52756dd14d036781ff124d6"

@@ -23,7 +23,7 @@
 
 #include "../../rooms/roof_garden/config.h"
 
-#include "assets/rooms/akropolis/roof_garden/swat_schema.h"
+#include "assets/stages/akropolis/actors/roof_garden_swat_member/schema.h"
 
 #include "../../../../shared/actor/actor_messages.h"
 #include "../../../../shared/actor/view_figure.h"
@@ -48,9 +48,9 @@ static void      _roofGardenSwatMemberAttachRadioTask(Task* task);
 
 #include "assets/characters/swat_member_2/body.inc"
 
-#include "assets/rooms/akropolis/roof_garden/swat_member_radio.inc"
+#include "assets/stages/akropolis/actors/roof_garden_swat_member/radio.inc"
 
-#include "assets/rooms/akropolis/roof_garden/swat_member_clips.inc"
+#include "assets/stages/akropolis/actors/roof_garden_swat_member/clips.inc"
 
 /// Animation-request and paired model-visibility messages for the view figure.
 static TaskMessageEntry _gViewFigureMessages[3] = {
@@ -65,7 +65,7 @@ TaskDesc gRoofGardenSwatMemberViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
 };
 
 /// The SWAT member's radio calls by slot.
-#include "assets/rooms/akropolis/roof_garden/swat_bank.inc"
+#include "assets/stages/akropolis/actors/roof_garden_swat_member/bank.inc"
 
 static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
@@ -105,12 +105,12 @@ static void _roofGardenSwatMemberUpdateViewFigure(Enemy* unusedEnemy, Task* task
     model     = task->extra.tmd;
     _viewFigureStepAnim(task);
     switch (_gViewFigureWork->st.animId) {
-        case SWAT_ANIMATION_RADIO_CALL_4:
+        case ROOF_GARDEN_SWAT_MEMBER_ANIMATION_RADIO_CALL_4:
             CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0xC8, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_RADIO_CLICK));
             CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0xCA, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_1));
             CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0xCD, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_SWAT_MEMBER_STEP_2));
             break;
-        case SWAT_ANIMATION_RADIO_CALL_5:
+        case ROOF_GARDEN_SWAT_MEMBER_ANIMATION_RADIO_CALL_5:
             CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0x115, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
             CUE_ANIMATION_SOUND(LEFT_FOOT_TRACK, 0x11F, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_1));
             CUE_ANIMATION_SOUND(RIGHT_FOOT_TRACK, 0xCE, AKROPOLIS_ROOF_GARDEN_SOUND(AKROPOLIS_ROOF_GARDEN_SOUND_STEP_2));

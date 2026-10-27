@@ -3,7 +3,7 @@
     groups/<group>.toml        one table per asset of the group, keyed by its local name
 
 An asset's name is its path: its group, then its local name. `[view3_background]` in
-groups/rooms/akropolis/square.toml is `rooms/akropolis/square/view3_background`, and every reference to it, from any
+groups/rooms/akropolis/square.toml is `stages/akropolis/rooms/square/views/view3_background`, and every reference to it, from any
 group or from asset_data.py, says so. An asset outside the groups keeps a plain name (`pe2img_12`). `asset_data.py`
 calls `merge` when it is imported, so every tool reads one ASSETS; `dump_asset_db.write_groups` writes the files.
 

@@ -37,7 +37,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "assets/rooms/akropolis/observatory/declarations.inc"
+#include "assets/stages/akropolis/rooms/observatory/declarations.inc"
 #include "assets/engine/animation/player_schema.h"
 
 /// Work block of the observatory's one-time scripted player scene, owned by the scene task through `Task::work`.
@@ -68,15 +68,15 @@ TaskDesc gAkropolisObservatoryScriptedBattleTaskDesc = {
     .data     = { .value = 0 },
 };
 
-#include "assets/rooms/akropolis/observatory/markers.inc"
-#include "assets/rooms/akropolis/observatory/view_masks.inc"
-#include "assets/rooms/akropolis/observatory/header.inc"
-#include "assets/rooms/akropolis/observatory/geometry.inc"
-#include "assets/rooms/akropolis/observatory/view_boundaries.inc"
-#include "assets/rooms/akropolis/observatory/action_triggers.inc"
-#include "assets/rooms/akropolis/observatory/placements.inc"
-#include "assets/rooms/akropolis/observatory/lights.inc"
-#include "assets/rooms/akropolis/observatory/sprites_1.inc"
+#include "assets/stages/akropolis/rooms/observatory/markers.inc"
+#include "assets/stages/akropolis/rooms/observatory/view_masks.inc"
+#include "assets/stages/akropolis/rooms/observatory/header.inc"
+#include "assets/stages/akropolis/rooms/observatory/geometry.inc"
+#include "assets/stages/akropolis/rooms/observatory/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/observatory/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/observatory/placements.inc"
+#include "assets/stages/akropolis/rooms/observatory/lights.inc"
+#include "assets/stages/akropolis/rooms/observatory/sprites_1.inc"
 /// Unreferenced; its role is unproven.
 u16 gAkropolisObservatoryUnusedHalfwords[4] = {
     256,
@@ -84,10 +84,10 @@ u16 gAkropolisObservatoryUnusedHalfwords[4] = {
     0,
     0,
 };
-#include "assets/rooms/akropolis/observatory/sprites_2.inc"
-#include "assets/rooms/akropolis/observatory/cameras.inc"
-#include "assets/rooms/akropolis/observatory/vibrations.inc"
-#include "assets/rooms/akropolis/observatory/surfaces.inc"
+#include "assets/stages/akropolis/rooms/observatory/sprites_2.inc"
+#include "assets/stages/akropolis/rooms/observatory/cameras.inc"
+#include "assets/stages/akropolis/rooms/observatory/vibrations.inc"
+#include "assets/stages/akropolis/rooms/observatory/surfaces.inc"
 
 /// Runs the observatory's scripted player pose and enemy-entrance battle handoff.
 static void _akropolisObservatoryScriptedBattleTask(Task* task)

@@ -1,0 +1,167 @@
+# The assets of the group stages/akropolis/actors/police_officers, each named stages/akropolis/actors/police_officers/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[package]
+type = "package"
+embedded = [
+    { asset = "characters/police_rookie/body", offset = 0x0159C, size = 0x5868, address = 0x801633BC },
+    { asset = "characters/police_rookie/culled_body", offset = 0x06E04, size = 0x488C, address = 0x80168C24 },
+    { asset = "characters/police_sergeant/body", offset = 0x0B690, size = 0x5C24, address = 0x8016D4B0 },
+    { asset = "characters/police_sergeant/culled_body", offset = 0x112B4, size = 0x48FC, address = 0x801730D4 },
+    { asset = "characters/police_rookie/step_aside", offset = 0x15BB0, size = 0x470, address = 0x801779D0 },
+    { asset = "characters/police_rookie/aside_idle", offset = 0x16020, size = 0x214, address = 0x80177E40 },
+    { asset = "characters/police_rookie/watch_aya_enter", offset = 0x16234, size = 0x2AC, address = 0x80178054 },
+    { asset = "characters/police_rookie/walk_to_sergeant", offset = 0x164E0, size = 0x830, address = 0x80178300 },
+    { asset = "characters/police_rookie/halt", offset = 0x16D10, size = 0x27C, address = 0x80178B30 },
+    { asset = "characters/police_rookie/talk_idle", offset = 0x16F8C, size = 0x1E4, address = 0x80178DAC },
+    { asset = "characters/police_rookie/ask_sergeant", offset = 0x17170, size = 0x304, address = 0x80178F90 },
+    { asset = "characters/police_rookie/report_agent", offset = 0x17474, size = 0x1EC, address = 0x80179294 },
+    { asset = "characters/police_rookie/turn_away", offset = 0x17660, size = 0x2D4, address = 0x80179480 },
+    { name = "rookie_bank", offset = 0x17934, size = 0x40, address = 0x80179754 },
+    { name = "sergeant_bank", offset = 0x17974, size = 0x68, address = 0x80179794 },
+    { name = "scene_player_bank", offset = 0x179DC, size = 0x34, address = 0x801797FC },
+]
+load = { slot = "actor_3" }
+package_name = "police_officers"
+required = true
+requires = ["gameplay", "stages/akropolis/rooms/plaza/package"]
+sha1 = "f9b3a4b29e62b743444b4c28ff43cf71aa73b871"
+
+[package.exports]
+rookie_tasks = { at = 0x17ADC, symbol = "gPoliceOfficersRookieTaskDescriptors" }
+sergeant_tasks = { at = 0x17B00, symbol = "gPoliceOfficersSergeantTaskDescriptors" }
+
+[rookie_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/police_officers/rookie_schema"
+symbol = "_gPoliceOfficersRookieAnimSets"
+
+[rookie_bank.clips]
+stand = "characters/police_rookie/stand"
+look_at_badge = "characters/police_rookie/look_at_badge"
+shift_stance = "characters/police_rookie/shift_stance"
+idle = "characters/police_rookie/idle"
+explain_swat = "characters/police_rookie/explain_swat"
+step_aside = "characters/police_rookie/step_aside"
+aside_idle = "characters/police_rookie/aside_idle"
+watch_aya_enter = "characters/police_rookie/watch_aya_enter"
+walk_to_sergeant = "characters/police_rookie/walk_to_sergeant"
+halt = "characters/police_rookie/halt"
+talk_idle = "characters/police_rookie/talk_idle"
+ask_sergeant = "characters/police_rookie/ask_sergeant"
+report_agent = "characters/police_rookie/report_agent"
+turn_away = "characters/police_rookie/turn_away"
+
+[rookie_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "stand",
+    "look_at_badge",
+    "shift_stance",
+    "idle",
+    "explain_swat",
+    "step_aside",
+    "aside_idle",
+    "watch_aya_enter",
+    "walk_to_sergeant",
+    "halt",
+    "talk_idle",
+    "ask_sergeant",
+    "report_agent",
+    "turn_away",
+    "",
+]
+
+[sergeant_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/police_officers/sergeant_schema"
+symbol = "_gPoliceOfficersSergeantAnimSets"
+
+[sergeant_bank.clips]
+cleared_for_entry = "characters/police_sergeant/cleared_for_entry"
+go_right_in = "characters/police_sergeant/go_right_in"
+talk_idle = "characters/police_sergeant/talk_idle"
+outta_control = "characters/police_sergeant/outta_control"
+outta_control_gesture = "characters/police_sergeant/outta_control_gesture"
+helicopter_down = "characters/police_sergeant/helicopter_down"
+something_big = "characters/police_sergeant/something_big"
+watch_yourself = "characters/police_sergeant/watch_yourself"
+raise_arm = "characters/police_sergeant/raise_arm"
+lower_arm = "characters/police_sergeant/lower_arm"
+listen = "characters/police_sergeant/listen"
+turn_head = "characters/police_sergeant/turn_head"
+turn_head_back = "characters/police_sergeant/turn_head_back"
+heard_of_them = "characters/police_sergeant/heard_of_them"
+turned_idle = "characters/police_sergeant/turned_idle"
+damn_rookies = "characters/police_sergeant/damn_rookies"
+turn_away = "characters/police_sergeant/turn_away"
+hunter_from_mist = "characters/police_sergeant/hunter_from_mist"
+idle = "characters/police_sergeant/idle"
+
+[sergeant_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "",
+    "cleared_for_entry",
+    "",
+    "go_right_in",
+    "talk_idle",
+    "outta_control",
+    "outta_control_gesture",
+    "helicopter_down",
+    "something_big",
+    "watch_yourself",
+    "",
+    "",
+    "",
+    "raise_arm",
+    "lower_arm",
+    "listen",
+    "turn_head",
+    "turn_head_back",
+    "heard_of_them",
+    "turned_idle",
+    "damn_rookies",
+    "turn_away",
+    "hunter_from_mist",
+    "idle",
+    "",
+]
+
+[scene_player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/police_officers/scene_player_schema"
+symbol = "gPoliceOfficersPlayerAnimSets"
+
+[scene_player_bank.clips]
+idle = "characters/aya/idle"
+show_badge = "characters/aya/show_badge"
+put_away_badge = "characters/aya/put_away_badge"
+turn_to_sergeant = "characters/aya/turn_to_sergeant"
+face_sergeant = "characters/aya/face_sergeant"
+ask_situation = "characters/aya/ask_situation"
+turn_from_sergeant = "characters/aya/turn_from_sergeant"
+ask_about_civilians = "characters/aya/ask_about_civilians"
+thank_officer = "characters/aya/thank_officer"
+ask_about_roof = "characters/aya/ask_about_roof"
+look_at_wreck = "characters/aya/look_at_wreck"
+
+[scene_player_schema]
+type = "animation_schema"
+slots = [
+    "idle",
+    "show_badge",
+    "put_away_badge",
+    "turn_to_sergeant",
+    "face_sergeant",
+    "ask_situation",
+    "turn_from_sergeant",
+    "ask_about_civilians",
+    "thank_officer",
+    "ask_about_roof",
+    "",
+    "look_at_wreck",
+    "",
+]

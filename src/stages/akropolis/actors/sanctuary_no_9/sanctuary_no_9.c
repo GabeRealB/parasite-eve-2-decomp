@@ -49,7 +49,7 @@ enum { FIRST_ANIMATED_PART = 1 };
 
 #include "assets/enemies/golem/no_9/body_akropolis.inc"
 
-#include "assets/rooms/akropolis/sanctuary/no_9_clips.inc"
+#include "assets/stages/akropolis/actors/sanctuary_no_9/clips.inc"
 
 TaskDesc gSanctuaryNo9TaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },
@@ -66,7 +66,7 @@ static const TaskMessageEntry _gSanctuaryNo9Messages[4] __attribute__((section("
 };
 
 /// Animation sets of the script-posed No. 9 golem, indexed by clip ID.
-#include "assets/rooms/akropolis/sanctuary/no_9_bank.inc"
+#include "assets/stages/akropolis/actors/sanctuary_no_9/bank.inc"
 
 /// Runs the script-posed No. 9 golem's setup or per-frame update.
 static void _sanctuaryNo9Task(Task* task)

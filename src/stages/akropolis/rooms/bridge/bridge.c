@@ -82,7 +82,7 @@
 
 #include "assets/enemies/bass/sounds.h"
 
-#include "assets/rooms/akropolis/bridge/declarations.inc"
+#include "assets/stages/akropolis/rooms/bridge/declarations.inc"
 
 /// Selects the private hotspot test used by the bridge keypad.
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
@@ -409,7 +409,7 @@ static void _akropolisBridgeEnemyInactive(Task* task);
 static void _akropolisBridgeEnemyTask(Task* task);
 
 /// Fixed horizontal translucent plane drawn by the bridge room's model task.
-#include "assets/rooms/akropolis/bridge/water_surface.inc"
+#include "assets/stages/akropolis/rooms/bridge/props/water_surface.inc"
 
 /// Room-transition, keypad, action, item-use and sound message bindings.
 static TaskMessageEntry _gAkropolisBridgeRoomMessageTable[6] = {
@@ -434,7 +434,7 @@ static TaskDesc _gAkropolisBridgeRoomTaskDescriptors[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-#include "assets/rooms/akropolis/bridge/events.inc"
+#include "assets/stages/akropolis/rooms/bridge/events.inc"
 
 /// Bodyless accepted-code movie recipe at descriptor index zero.
 static TaskDesc _gAkropolisBridgeKeypadMovieTaskDesc = {
@@ -443,7 +443,7 @@ static TaskDesc _gAkropolisBridgeKeypadMovieTaskDesc = {
 
 /// Raw movie samples supplying the bridge enemies' presentation height.
 static SVECTOR _gAkropolisBridgeMovieEnemyHeightPath[190] = {
-#include "assets/rooms/akropolis/bridge/keypad_movie_enemy_heights.inc"
+#include "assets/stages/akropolis/rooms/bridge/keypad_movie_enemy_heights.inc"
 };
 
 /// Bodyless keypad cursor recipe, borrowed until the keypad closes its cursor.
@@ -519,8 +519,8 @@ enum {
     STREAK_PARTICLE  = 6
 };
 
-#include "assets/rooms/akropolis/bridge/markers_1.inc"
-#include "assets/rooms/akropolis/bridge/view_masks_1.inc"
+#include "assets/stages/akropolis/rooms/bridge/markers_1.inc"
+#include "assets/stages/akropolis/rooms/bridge/view_masks_1.inc"
 /// Maps a one-based camera view to its framebuffer-streak family.
 static u16 _gAkropolisBridgeViewStreakStyles[16] = {
     STREAK_NONE,
@@ -541,9 +541,9 @@ static u16 _gAkropolisBridgeViewStreakStyles[16] = {
     0,
 };
 
-#include "assets/rooms/akropolis/bridge/view_masks_2.inc"
-#include "assets/rooms/akropolis/bridge/markers_2.inc"
-#include "assets/rooms/akropolis/bridge/header_1.inc"
+#include "assets/stages/akropolis/rooms/bridge/view_masks_2.inc"
+#include "assets/stages/akropolis/rooms/bridge/markers_2.inc"
+#include "assets/stages/akropolis/rooms/bridge/header_1.inc"
 
 u8 gAkropolisBridgeStairSurfaceRows[2][12] = {
     { 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4 },
@@ -555,16 +555,16 @@ enum {
     SURFACE_2_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
 };
 
-#include "assets/rooms/akropolis/bridge/header_2.inc"
-#include "assets/rooms/akropolis/bridge/geometry.inc"
-#include "assets/rooms/akropolis/bridge/view_boundaries.inc"
-#include "assets/rooms/akropolis/bridge/action_triggers.inc"
-#include "assets/rooms/akropolis/bridge/sprites.inc"
-#include "assets/rooms/akropolis/bridge/placements.inc"
-#include "assets/rooms/akropolis/bridge/lights.inc"
-#include "assets/rooms/akropolis/bridge/cameras.inc"
-#include "assets/rooms/akropolis/bridge/vibrations.inc"
-#include "assets/rooms/akropolis/bridge/surfaces_1.inc"
+#include "assets/stages/akropolis/rooms/bridge/header_2.inc"
+#include "assets/stages/akropolis/rooms/bridge/geometry.inc"
+#include "assets/stages/akropolis/rooms/bridge/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/bridge/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/bridge/sprites.inc"
+#include "assets/stages/akropolis/rooms/bridge/placements.inc"
+#include "assets/stages/akropolis/rooms/bridge/lights.inc"
+#include "assets/stages/akropolis/rooms/bridge/cameras.inc"
+#include "assets/stages/akropolis/rooms/bridge/vibrations.inc"
+#include "assets/stages/akropolis/rooms/bridge/surfaces_1.inc"
 /// Unreferenced footstep requests; their role is unproven.
 static s32 _gAkropolisBridgeUnusedFootstepSounds[3] = {
     SURFACE_2_WALK_CUE,
@@ -575,7 +575,7 @@ static s32 _gAkropolisBridgeUnusedFootstepSounds[3] = {
 /// Victim reaction packed into the bridge enemy's category-4 contact key.
 enum { ENEMY_ATTACK_REACTION_POISON = 3 };
 
-#include "assets/rooms/akropolis/bridge/surfaces_2.inc"
+#include "assets/stages/akropolis/rooms/bridge/surfaces_2.inc"
 /// Attack rows shared by all bridge enemies.
 static DamageAttack _gAkropolisBridgeEnemyAttacks[] = {
     { 18, ENEMY_ATTACK_REACTION_POISON },
@@ -597,7 +597,7 @@ static EnemyParams _gAkropolisBridgeEnemyParams = {
 
 #include "assets/enemies/bass/body.inc"
 
-#include "assets/rooms/akropolis/bridge/clips.inc"
+#include "assets/stages/akropolis/rooms/bridge/clips.inc"
 
 /// The Bass's clips by slot, borrowed by every bridge enemy's rig.
 #include "assets/enemies/bass/bank.inc"

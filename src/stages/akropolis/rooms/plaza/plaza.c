@@ -69,10 +69,10 @@
 #include "../../../../shared/screen/screen_fade_tile_overlay.inc.c"
 
 #include "assets/engine/animation/player_schema.h"
-#include "assets/rooms/akropolis/plaza/police_rookie_schema.h"
-#include "assets/rooms/akropolis/plaza/police_scene_player_schema.h"
+#include "assets/stages/akropolis/actors/police_officers/rookie_schema.h"
+#include "assets/stages/akropolis/actors/police_officers/scene_player_schema.h"
 
-#include "assets/rooms/akropolis/plaza/declarations.inc"
+#include "assets/stages/akropolis/rooms/plaza/declarations.inc"
 
 /// Screen geometry shared by the plaza's fade and cinematic bars, in pixels.
 enum {
@@ -279,7 +279,7 @@ static void _akropolisPlazaLetterboxTask(Task* task);
 static void _akropolisPlazaSequenceTask(Task* task);
 static void _akropolisPlazaStartOpeningMovieTask(Task* task);
 
-#include "assets/rooms/akropolis/plaza/events.inc"
+#include "assets/stages/akropolis/rooms/plaza/events.inc"
 
 TaskDesc gAkropolisPlazaSequenceTaskDescriptors[AKROPOLIS_PLAZA_TASK_COUNT] = {
     [AKROPOLIS_PLAZA_TASK_SEQUENCE]            = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPlazaSequenceTask, { .value = 0 } },
@@ -311,12 +311,12 @@ static s32 _gAkropolisPlazaTraversalCameraSampleCount = CAMERA_TRAVERSAL_FRAME_C
 
 /// The traversal's camera, frame by frame along both of its movies.
 static ViewCamera _gAkropolisPlazaTraversalCameraSamples[CAMERA_TRAVERSAL_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
-#include "assets/rooms/akropolis/plaza/traversal_camera_path.inc"
+#include "assets/stages/akropolis/rooms/plaza/traversal_camera_path.inc"
 };
 
 /// The camera at the helicopter wreck.
 static ViewCamera _gAkropolisPlazaHelicopterWreckCameraSamples[CAMERA_HELICOPTER_WRECK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
-#include "assets/rooms/akropolis/plaza/helicopter_wreck_camera_path.inc"
+#include "assets/stages/akropolis/rooms/plaza/helicopter_wreck_camera_path.inc"
 };
 
 /// Unread: the number of samples in the path after it.
@@ -324,7 +324,7 @@ static s32 _gAkropolisPlazaOfficersTalkCameraSampleCount = CAMERA_OFFICERS_TALK_
 
 /// The camera while the officer and the sergeant talk, after Aya has gone in.
 static ViewCamera _gAkropolisPlazaOfficersTalkCameraSamples[CAMERA_OFFICERS_TALK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
-#include "assets/rooms/akropolis/plaza/officers_talk_camera_path.inc"
+#include "assets/stages/akropolis/rooms/plaza/officers_talk_camera_path.inc"
 };
 
 /// Unread: the number of samples in the path after it.
@@ -332,7 +332,7 @@ static s32 _gAkropolisPlazaEntranceOfficerTalkCameraSampleCount = CAMERA_ENTRANC
 
 /// The camera while Aya talks to the officer at the entrance.
 static ViewCamera _gAkropolisPlazaEntranceOfficerTalkCameraSamples[CAMERA_ENTRANCE_OFFICER_TALK_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
-#include "assets/rooms/akropolis/plaza/entrance_officer_talk_camera_path.inc"
+#include "assets/stages/akropolis/rooms/plaza/entrance_officer_talk_camera_path.inc"
 };
 
 /// Unread: the number of samples in the path after it.
@@ -340,27 +340,27 @@ static s32 _gAkropolisPlazaEnteringTowerCameraSampleCount = CAMERA_ENTERING_TOWE
 
 /// The camera as Aya walks into the tower.
 static ViewCamera _gAkropolisPlazaEnteringTowerCameraSamples[CAMERA_ENTERING_TOWER_FRAME_COUNT * CAMERA_SAMPLES_PER_FRAME] = {
-#include "assets/rooms/akropolis/plaza/entering_tower_camera_path.inc"
+#include "assets/stages/akropolis/rooms/plaza/entering_tower_camera_path.inc"
 };
 
 /// The traversal's shot positions, one per movie frame: where its collision walls stand and the edges are measured
 /// from.
 static VECTOR3 _gAkropolisPlazaTraversalShotPositions[CAMERA_TRAVERSAL_FRAME_COUNT] = {
-#include "assets/rooms/akropolis/plaza/traversal_shot_positions.inc"
+#include "assets/stages/akropolis/rooms/plaza/traversal_shot_positions.inc"
 };
 
-#include "assets/rooms/akropolis/plaza/clips.inc"
-#include "assets/rooms/akropolis/plaza/samples.inc"
-#include "assets/rooms/akropolis/plaza/markers.inc"
-#include "assets/rooms/akropolis/plaza/header_1.inc"
-#include "assets/rooms/akropolis/plaza/cameras.inc"
-#include "assets/rooms/akropolis/plaza/sprites.inc"
-#include "assets/rooms/akropolis/plaza/header_2.inc"
-#include "assets/rooms/akropolis/plaza/geometry.inc"
-#include "assets/rooms/akropolis/plaza/action_triggers.inc"
-#include "assets/rooms/akropolis/plaza/placements.inc"
-#include "assets/rooms/akropolis/plaza/lights.inc"
-#include "assets/rooms/akropolis/plaza/surfaces.inc"
+#include "assets/stages/akropolis/rooms/plaza/clips.inc"
+#include "assets/stages/akropolis/rooms/plaza/samples.inc"
+#include "assets/stages/akropolis/rooms/plaza/markers.inc"
+#include "assets/stages/akropolis/rooms/plaza/header_1.inc"
+#include "assets/stages/akropolis/rooms/plaza/cameras.inc"
+#include "assets/stages/akropolis/rooms/plaza/sprites.inc"
+#include "assets/stages/akropolis/rooms/plaza/header_2.inc"
+#include "assets/stages/akropolis/rooms/plaza/geometry.inc"
+#include "assets/stages/akropolis/rooms/plaza/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/plaza/placements.inc"
+#include "assets/stages/akropolis/rooms/plaza/lights.inc"
+#include "assets/stages/akropolis/rooms/plaza/surfaces.inc"
 
 /// Envelope selectors and byte-volume units of the plaza ambience driver.
 enum {
@@ -1119,7 +1119,7 @@ static void _akropolisPlazaHelicopterWreckSceneTask(Task* task)
                 return;
             }
             animationRequest.source.sets          = gPoliceOfficersPlayerAnimSets;
-            animationRequest.animationId          = POLICE_SCENE_PLAYER_ANIMATION_LOOK_AT_WRECK;
+            animationRequest.animationId          = SCENE_PLAYER_ANIMATION_LOOK_AT_WRECK;
             animationRequest.blend                = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames          = 0;
             animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
@@ -1278,7 +1278,7 @@ static void _akropolisPlazaEntranceSceneTask(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(
                 ((_EventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &insideDestination, 0);
             officerAnimation.source.index         = POLICE_OFFICERS_FOLLOW_UP_ROOKIE;
-            officerAnimation.animationId          = POLICE_ROOKIE_ANIMATION_WATCH_AYA_ENTER;
+            officerAnimation.animationId          = ROOKIE_ANIMATION_WATCH_AYA_ENTER;
             officerAnimation.blend                = ANIMATION_BLEND_RESET;
             officerAnimation.blendFrames          = OFFICER_BLEND_FRAMES;
             officerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

@@ -1,0 +1,83 @@
+# The assets of the group stages/akropolis/actors/roof_garden_swat_member, each named stages/akropolis/actors/roof_garden_swat_member/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/roof_garden_swat_member/schema"
+symbol = "_gViewFigureAnimSets"
+
+[bank.clips]
+radio_call_1 = "stages/akropolis/actors/roof_garden_swat_member/radio_call_1"
+radio_call_2 = "stages/akropolis/actors/roof_garden_swat_member/radio_call_2"
+radio_call_3 = "stages/akropolis/actors/roof_garden_swat_member/radio_call_3"
+radio_call_4 = "stages/akropolis/actors/roof_garden_swat_member/radio_call_4"
+radio_call_5 = "stages/akropolis/actors/roof_garden_swat_member/radio_call_5"
+
+[glows]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["glow_0", "glow_1", "glow_2", "leaf", "radio"]
+width = 256
+
+[glows.cells]
+glow_0 = [0, 0, 40, 40]
+glow_1 = [40, 0, 40, 40]
+glow_2 = [80, 0, 40, 40]
+leaf = [0, 232, 8, 8]
+radio = [128, 224, 92, 32]
+
+[radio]
+type = "model"
+slots = ["radio"]
+symbol = "_gRoofGardenSwatMemberRadioModel"
+sha1 = "10570ab2ca284557d763b5be04a7f17d0cda01ba"
+
+[schema]
+type = "animation_schema"
+slots = ["", "radio_call_1", "radio_call_2", "radio_call_3", "radio_call_4", "radio_call_5"]
+
+[package]
+type = "package"
+embedded = [
+    { asset = "characters/swat_member_2/body", offset = 0x007D0, size = 0x57C8, address = 0x801325F0 },
+    { name = "radio", offset = 0x05F98, size = 0x2B4, address = 0x80137DB8 },
+    { name = "radio_call_1", offset = 0x0624C, size = 0x4CC, address = 0x8013806C },
+    { name = "radio_call_2", offset = 0x06718, size = 0x3AC, address = 0x80138538 },
+    { name = "radio_call_3", offset = 0x06AC4, size = 0x5B4, address = 0x801388E4 },
+    { name = "radio_call_4", offset = 0x07078, size = 0x6BC, address = 0x80138E98 },
+    { name = "radio_call_5", offset = 0x07734, size = 0x970, address = 0x80139554 },
+    { name = "bank", offset = 0x080D4, size = 0x1C, address = 0x80139EF4 },
+]
+exports = { tasks = { at = 0x080BC, symbol = "gRoofGardenSwatMemberViewFigureTasks" } }
+load = { slot = "actor_1" }
+package_name = "roof_garden_swat_member"
+parent = "stages/akropolis/rooms/roof_garden/package"
+required = true
+requires = ["gameplay"]
+sha1 = "9af3abc89cf5e9fef33ffd375426c6fa19634630"
+
+[radio_call_1]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[radio_call_2]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[radio_call_3]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[radio_call_4]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[radio_call_5]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[radio_binding]
+type = "binding"
+model = "stages/akropolis/actors/roof_garden_swat_member/radio"
+textures = { radio = "stages/akropolis/actors/roof_garden_swat_member/glows.radio" }

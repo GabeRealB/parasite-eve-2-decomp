@@ -47,7 +47,7 @@
 #include "rooms/room_common.h"
 #include "../../../../shared/effects/glow_draw.h"
 
-#include "assets/rooms/akropolis/patio/declarations.inc"
+#include "assets/stages/akropolis/rooms/patio/declarations.inc"
 
 /// The opening's head-aim task, whose state the event scripts set.
 static Task* _gAkropolisPatioPlayerHeadAimTask;
@@ -81,7 +81,7 @@ static s32  _akropolisPatioHandleRoomAction(Task* unusedTask, s32 unusedMessageI
 static void _akropolisPatioRecordSceneChoiceTask(Task* task);
 static void _akropolisPatioPlayerHeadAimTask(Task* task);
 
-#include "assets/rooms/akropolis/patio/clips_1.inc"
+#include "assets/stages/akropolis/rooms/patio/clips_1.inc"
 
 /// Messages of the room task.
 static TaskMessageEntry _gAkropolisPatioRoomMessages[] = {
@@ -101,30 +101,30 @@ static TaskDesc _gAkropolisPatioSceneTaskDescs[] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-#include "assets/rooms/akropolis/patio/events_1.inc"
-#include "assets/rooms/akropolis/patio/follow_up_player_bank.inc"
+#include "assets/stages/akropolis/rooms/patio/events_1.inc"
+#include "assets/stages/akropolis/rooms/patio/scenes/follow_up/player_bank.inc"
 
-#include "assets/rooms/akropolis/patio/events_2.inc"
-#include "assets/rooms/akropolis/patio/clips_2.inc"
+#include "assets/stages/akropolis/rooms/patio/events_2.inc"
+#include "assets/stages/akropolis/rooms/patio/clips_2.inc"
 /// The player's animations in the follow-up and the ambush, copied into the equipped weapon's bank from slot 47.
-#include "assets/rooms/akropolis/patio/ambush_player_bank.inc"
+#include "assets/stages/akropolis/rooms/patio/scenes/ambush/player_bank.inc"
 
-#include "assets/rooms/akropolis/patio/events_3.inc"
+#include "assets/stages/akropolis/rooms/patio/events_3.inc"
 /// The player's scripted half turn left.
 static TaskDesc _gAkropolisPatioPlayerTurnLeftTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisPatioPlayerTurnLeftTask, { .value = 0 } };
-#include "assets/rooms/akropolis/patio/events_4.inc"
-#include "assets/rooms/akropolis/patio/markers.inc"
-#include "assets/rooms/akropolis/patio/view_masks.inc"
-#include "assets/rooms/akropolis/patio/header.inc"
-#include "assets/rooms/akropolis/patio/geometry.inc"
-#include "assets/rooms/akropolis/patio/view_boundaries.inc"
-#include "assets/rooms/akropolis/patio/action_triggers.inc"
-#include "assets/rooms/akropolis/patio/occluders.inc"
-#include "assets/rooms/akropolis/patio/placements.inc"
-#include "assets/rooms/akropolis/patio/sprites.inc"
-#include "assets/rooms/akropolis/patio/lights.inc"
-#include "assets/rooms/akropolis/patio/cameras.inc"
-#include "assets/rooms/akropolis/patio/surfaces.inc"
+#include "assets/stages/akropolis/rooms/patio/events_4.inc"
+#include "assets/stages/akropolis/rooms/patio/markers.inc"
+#include "assets/stages/akropolis/rooms/patio/view_masks.inc"
+#include "assets/stages/akropolis/rooms/patio/header.inc"
+#include "assets/stages/akropolis/rooms/patio/geometry.inc"
+#include "assets/stages/akropolis/rooms/patio/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/patio/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/patio/occluders.inc"
+#include "assets/stages/akropolis/rooms/patio/placements.inc"
+#include "assets/stages/akropolis/rooms/patio/sprites.inc"
+#include "assets/stages/akropolis/rooms/patio/lights.inc"
+#include "assets/stages/akropolis/rooms/patio/cameras.inc"
+#include "assets/stages/akropolis/rooms/patio/surfaces.inc"
 
 STATIC_ASSERT(ARRAY_SIZE(_gAkropolisPatioLightViewMasks) == ARRAY_SIZE(_gAkropolisPatioLightAnchors), akropolisPatioLightMaskCount);
 

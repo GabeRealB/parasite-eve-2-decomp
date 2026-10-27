@@ -1,0 +1,22 @@
+# The assets of the group stages/akropolis/rooms/hallway/views, each named stages/akropolis/rooms/hallway/views/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[view1_background]
+type = "bs"
+sha1 = "fc5fb2f3f50e81a4c683f2632bc501e51ce8fdc3"
+
+[view2_background]
+type = "bs"
+sha1 = "489ddadeec97620b88d3ed67cbb41ae01ab7b610"
+
+[view3_background]
+type = "bs"
+sha1 = "7b348b203899d93e6fd448687d8974bc26d6a54c"
+
+[view4_background]
+type = "bs"
+sha1 = "cfc371e33ffad2b33c3c60823cfaac580ece6ee2"
+
+[view5_background]
+type = "bs"
+sha1 = "4fe03700fe59be7f6e71f20f3e8f75baa7b6b864"

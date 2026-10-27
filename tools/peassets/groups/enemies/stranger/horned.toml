@@ -54,7 +54,7 @@ rise_front = "enemies/stranger/odd/rise_front"
 hold_back = "enemies/stranger/down_back"
 hold_front = "enemies/stranger/odd/down_front"
 strike_a = "enemies/stranger/strike"
-strike_b = "rooms/akropolis/patio/stranger_wait_1"
+strike_b = "stages/akropolis/actors/patio_leaping_strangers/wait_1"
 charge_run = "enemies/stranger/horned/charge_run"
 charge_close = "enemies/stranger/horned/charge_close"
 charge_finish = "enemies/stranger/horned/charge_finish"
@@ -229,7 +229,7 @@ size = 0xFC4
 address = 0x8014955C
 
 [[package_4.embedded]]
-asset = "rooms/akropolis/patio/stranger_wait_1"
+asset = "stages/akropolis/actors/patio_leaping_strangers/wait_1"
 offset = 0x18700
 size = 0x1028
 address = 0x8014A520

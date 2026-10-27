@@ -1,0 +1,16 @@
+# The assets of the group stages/akropolis/rooms/mist_parking/scenes/script, each named stages/akropolis/rooms/mist_parking/scenes/script/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_bank]
+type = "animation_bank"
+clips = { slot_0 = "stages/akropolis/rooms/mist_parking/scenes/script/player_anim_00" }
+schema = "stages/akropolis/rooms/mist_parking/scenes/script/player_schema"
+symbol = "_gMistParkingCommand1PlayerAnimationSets"
+
+[player_schema]
+type = "animation_schema"
+slots = ["slot_0"]
+
+[player_anim_00]
+type = "clip"
+rig = "characters/aya/rig"

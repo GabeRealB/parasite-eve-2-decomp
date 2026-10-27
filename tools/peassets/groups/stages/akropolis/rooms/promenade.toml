@@ -1,0 +1,272 @@
+# The assets of the group stages/akropolis/rooms/promenade, each named stages/akropolis/rooms/promenade/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/promenade/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/promenade/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+sector_len = 1536
+
+[[file.contents]]
+asset = "rooms/akropolis/bridge_model_palette"
+sha1 = "82bbdfc9a19bd207c929469cdaf0de47ea916795"
+
+[[file.contents.palettes]]
+texture = "plane"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/bridge/props/bridge"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_16"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_32"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_48"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_64"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_80"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_96"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_112"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_128"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_144"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_160"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_176"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_192"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_208"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_224"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_263_240"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_row_264"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "96bdd981f3259a93340d2021a3211d937d1f1fc2"
+palettes = [
+    { texture = "stars", variant = "star_core", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
+    { texture = "stars", variant = "star_flare", region = "engine/vram/effect_palettes", offset = [0x00010, 0x00009] },
+    { texture = "stars", variant = "lamp_0", region = "engine/vram/effect_palettes", offset = [0x00020, 0x00009] },
+    { texture = "stars", variant = "lamp_1", region = "engine/vram/effect_palettes", offset = [0x00030, 0x00009] },
+    { texture = "stars", variant = "lamp_2", region = "engine/vram/effect_palettes", offset = [0x00040, 0x00009] },
+    { name = "unread_270_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x00009] },
+    { name = "unread_270_96", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00060, 0x00009] },
+    { name = "unread_270_112", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00070, 0x00009] },
+    { name = "unread_270_128", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00080, 0x00009] },
+    { name = "unread_270_144", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00090, 0x00009] },
+    { name = "unread_270_160", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000A0, 0x00009] },
+    { name = "unread_270_176", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000B0, 0x00009] },
+    { name = "unread_270_192", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000C0, 0x00009] },
+    { name = "unread_270_208", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000D0, 0x00009] },
+    { name = "unread_270_224", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000E0, 0x00009] },
+    { name = "unread_270_240", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000F0, 0x00009] },
+    { name = "unread_270_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x00009] },
+    { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
+    { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
+    { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
+    { name = "unread_row_271", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
+    { name = "unread_271_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
+    { name = "unread_271_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
+    { name = "unread_271_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
+    { name = "unread_271_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "4d9ee6443127c23bcde92e24e77454bc70313e02"
+sector_len = 1536
+pages = [
+    { texture = "stars", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "plane", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
+]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[plane]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default"]
+width = 256
+
+[stars]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["star_core", "star_flare", "lamp_0", "lamp_1", "lamp_2"]
+width = 256
+
+[stars.cells]
+star_core_0 = [0, 0, 16, 16]
+star_core_1 = [16, 0, 16, 16]
+star_core_2 = [32, 0, 16, 16]
+star_core_3 = [48, 0, 16, 16]
+star_core_4 = [64, 0, 16, 16]
+star_core_5 = [80, 0, 16, 16]
+star_flare = [0, 16, 40, 40]
+lamp_0 = [40, 16, 40, 40]
+lamp_1 = [80, 16, 40, 40]
+lamp_2 = [120, 16, 40, 40]
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/promenade/views/view2_palette",
+    "stages/akropolis/rooms/promenade/views/view3_palette",
+    "stages/akropolis/rooms/promenade/views/view4_palette",
+    "stages/akropolis/rooms/promenade/views/view5_palette",
+    "stages/akropolis/rooms/promenade/views/view6_palette",
+    "stages/akropolis/rooms/promenade/views/view7_palette",
+    "stages/akropolis/rooms/promenade/views/view8_palette",
+    "stages/akropolis/rooms/promenade/views/view9_palette",
+    "",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/promenade/dialogue_0",
+]
+sha1 = "1ceb2f1ae9e72ee0ef98691aa0d48b0507bb7ea6"
+
+[package]
+type = "package"
+embedded = [
+    { asset = "stages/akropolis/rooms/bridge/props/water_surface", offset = 0x02844, size = 0x1070, address = 0x8017FE04 },
+    "stages/akropolis/rooms/promenade/arrival_player_path",
+    { name = "collision_1", offset = 0x04734, size = 0x6E8 },
+    { name = "collision_2", offset = 0x04E40, size = 0x7D0 },
+]
+load = { slot = "room" }
+package_name = "akropolis_promenade"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "61de7cf0d94d0b266b70a85befb299273b7b42ac"
+
+[package.entries]
+markers = [0x04534, { at = 0x0454C, single = true }, 0x04554]
+scripts = [0x03940, 0x03AA8]
+spare_batches = [0x089E4]
+transforms = [0x03910]
+vibrations = [{ commands = 0x08C64, segments = 0x08C7C }]
+view_masks = [{ at = 0x045B4, single = true }, { at = 0x045B6, single = true }, 0x045B8]
+
+[package.slots]
+brute_and_mossback_3 = "encounters/brute_and_mossback/package_3"
+rat_and_moth_2 = "encounters/rat_and_moth/package_2"
+crawler_caterpillar_1 = "enemies/crawler/caterpillar/package_1"
+crawler_maggot_1 = "enemies/crawler/maggot/package_1"
+golem_knight = "enemies/golem/knight/package"
+
+[dialogue_0]
+type = "cap"
+sha1 = "46fd56249e8aeb3ebd3f82213567a214d7938bc7"
+
+[collision_1]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "58e1e031c276e7196294189fa569f9c8a10004dc"
+
+[collision_2]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "e61ddcd27385390bc9a07782c736afa8c7118b18"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/promenade/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "a7a07bd2f650a921718db6263482ad84451586b6"

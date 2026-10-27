@@ -37,7 +37,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "assets/rooms/mist/parking/declarations_mist_parking_shop.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/declarations_mist_parking_shop.inc"
 
 static void _mistParkingSelectShopDialogueResource(s32 resourceOrdinal);
 
@@ -107,14 +107,14 @@ static AnimationSet* _gMistParkingShopPlayerAnimationSets[] = {
     &gMistParkingPlayerConversationAnim21CopyClip,
 };
 
-#include "assets/rooms/mist/parking/events_7.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/events_7.inc"
 /// Player head-aim requests by extension index (0 disabled, 1 enabled).
 static s8 _gMistParkingShopPlayerHeadAimFlags[ARRAY_SIZE(_gMistParkingShopPlayerAnimationSets)] = { 0, 1, 1, 0 };
 
-#include "assets/rooms/mist/parking/events_8.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/events_8.inc"
 /// Unreferenced; its role is unproven.
 static u8 _gMistParkingUnusedBytes[8] = { 0, 0, 0, 0, 0, 0, 1, 0 };
-#include "assets/rooms/mist/parking/events_9.inc"
+#include "assets/stages/akropolis/rooms/mist_parking/events_9.inc"
 
 void mistParkingSetPierceCollisionPatchLowered(s32 lowerPatch)
 {

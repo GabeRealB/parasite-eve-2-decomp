@@ -56,9 +56,9 @@ static void _sucklercephDropState(Enemy* enemy, Task* task);
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static AnimationSet _gAkropolisForkedRoadSucklercephIdleClip;
-static AnimationSet _gAkropolisForkedRoadSucklercephCrawlClip;
-static AnimationSet _gAkropolisForkedRoadSucklercephAnim03Clip;
+static AnimationSet _gSucklercephAndSkullStalkerSucklercephIdleClip;
+static AnimationSet _gSucklercephAndSkullStalkerSucklercephCrawlClip;
+static AnimationSet _gSucklercephAndSkullStalkerSucklercephAnim03Clip;
 static TmdSource    _gAkropolisForkedRoadSucklercephBody;
 
 /// Burst damage to the player, enabled only while the burst attack sphere is armed.
@@ -107,9 +107,9 @@ static PadScriptVibrationSegment _gSucklercephBurstVibrationSegments[3] = {
     [SUCKLERCEPH_BURST_VIBRATION_FADE] = { .startIntensity = 100, .endIntensity = 50, .durationFrames = 6, .field_3 = 1 },
 };
 
-#include "assets/rooms/akropolis/forked_road/sucklerceph_body.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/sucklerceph_body.inc"
 
-#include "assets/rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1_clips_1.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/package_1_clips_1.inc"
 
 /// Commands accepted by a hidden/drop Sucklerceph, followed by the lookup terminator.
 ///
@@ -138,7 +138,7 @@ static TaskDesc _gActor04600SucklercephDropTaskDesc = {
 /// Sucklerceph animation sets: 0 empty, 1 idle, 2 crawl, 3 retained but unrequested.
 ///
 /// Contexts borrow this table and its sets for the model's lifetime.
-#include "assets/rooms/akropolis/forked_road/sucklerceph_bank.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/sucklerceph_bank.inc"
 
 /// Burst-particle offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSucklercephBurstParticleOffset = { 0, -10, 0, 0 };
@@ -168,9 +168,9 @@ static EnemyParams _gSkullStalkerParams = {
     .damageOverTimeTicks  = 99,
 };
 
-#include "assets/rooms/akropolis/forked_road/skull_stalker_body.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/skull_stalker_body.inc"
 
-#include "assets/rooms/akropolis/forked_road/sucklerceph_and_skull_stalker_1_clips_2.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/package_1_clips_2.inc"
 
 TaskDesc gActor04600SkullStalkerTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = 96 } },
@@ -181,7 +181,7 @@ TaskDesc gActor04600SkullStalkerTaskDesc = {
 /// Skull Stalker animation sets: 0 empty, 1 idle, 2 alert.
 ///
 /// Contexts borrow this table and its sets for the model's lifetime.
-#include "assets/rooms/akropolis/forked_road/skull_stalker_bank.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/skull_stalker_bank.inc"
 
 /// Both death particles' offset in signed game-coordinate units relative to the model root.
 static SVECTOR _gSkullStalkerDeathParticleOffset = { 0, -100, 0, 0 };

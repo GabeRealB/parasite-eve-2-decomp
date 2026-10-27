@@ -66,7 +66,7 @@
 #include "../../../../shared/room/room_cutscene.h"
 #include "../../../../shared/effects/glow_draw.h"
 
-#include "assets/rooms/akropolis/square/declarations.inc"
+#include "assets/stages/akropolis/rooms/square/declarations.inc"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -128,7 +128,7 @@ static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/rooms/akropolis/square/events_1.inc"
+#include "assets/stages/akropolis/rooms/square/events_1.inc"
 /// Room tasks: the telephone ring (0), the map board sequence (1, never spawned)
 /// and the scrolling backdrop (2).
 static TaskDesc _gAkropolisSquareSequenceTaskDescs[3] = {
@@ -149,7 +149,7 @@ enum {
     BACKDROP_ACTION_STOP  = 1,
 };
 
-#include "assets/rooms/akropolis/square/events_2.inc"
+#include "assets/stages/akropolis/rooms/square/events_2.inc"
 /// Sound scripts by room sound cue; cues 0 and 2..4 play nothing.
 static s32 _gAkropolisSquareSoundCueScripts[9] = {
     SOUND_SCRIPT_REQUEST_NO_OP,
@@ -170,22 +170,22 @@ static TaskMessageEntry _gAkropolisSquareRoomEffectMessages[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/rooms/akropolis/square/samples.inc"
+#include "assets/stages/akropolis/rooms/square/samples.inc"
 
 /// The telephone light's mode: 0 idle, 1 ringing.
 static s32 _gAkropolisSquareTelephoneLightMode = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_IDLE;
 
-#include "assets/rooms/akropolis/square/header.inc"
-#include "assets/rooms/akropolis/square/geometry.inc"
-#include "assets/rooms/akropolis/square/view_boundaries.inc"
-#include "assets/rooms/akropolis/square/action_triggers.inc"
-#include "assets/rooms/akropolis/square/placements.inc"
-#include "assets/rooms/akropolis/square/lights.inc"
-#include "assets/rooms/akropolis/square/ambient.inc"
-#include "assets/rooms/akropolis/square/sprites.inc"
-#include "assets/rooms/akropolis/square/cameras.inc"
-#include "assets/rooms/akropolis/square/surfaces.inc"
-#include "assets/rooms/akropolis/square/updates.inc"
+#include "assets/stages/akropolis/rooms/square/header.inc"
+#include "assets/stages/akropolis/rooms/square/geometry.inc"
+#include "assets/stages/akropolis/rooms/square/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/square/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/square/placements.inc"
+#include "assets/stages/akropolis/rooms/square/lights.inc"
+#include "assets/stages/akropolis/rooms/square/ambient.inc"
+#include "assets/stages/akropolis/rooms/square/sprites.inc"
+#include "assets/stages/akropolis/rooms/square/cameras.inc"
+#include "assets/stages/akropolis/rooms/square/surfaces.inc"
+#include "assets/stages/akropolis/rooms/square/updates.inc"
 
 /// Frames since the last ring.
 static s32 _gAkropolisSquareTelephoneRingFrames = 0;

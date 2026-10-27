@@ -4,12 +4,12 @@
 [bank_0]
 type = "sound_bank"
 samples = [
-    "rooms/akropolis/fire_escape/unused_1",
-    "rooms/akropolis/fire_escape/unused_2",
-    "rooms/akropolis/square/walk_floor_1",
-    "rooms/akropolis/square/walk_floor_2",
-    "rooms/akropolis/patio/walk_floor_1",
-    "rooms/akropolis/patio/walk_floor_2",
+    "stages/akropolis/rooms/fire_escape/sounds/unused_1",
+    "stages/akropolis/rooms/fire_escape/sounds/unused_2",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
     "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
     "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
     "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_1",

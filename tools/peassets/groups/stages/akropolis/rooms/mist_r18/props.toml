@@ -1,0 +1,31 @@
+# The assets of the group stages/akropolis/rooms/mist_r18/props, each named stages/akropolis/rooms/mist_r18/props/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[props]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_263", "row_264"]
+width = 128
+
+[laptop]
+type = "model"
+slots = ["props_row_264"]
+symbol = "_gMistR18Laptop"
+sha1 = "d08ec1a39e2681c653080614eb4e3b2f1ce65e57"
+
+[briefing_file]
+type = "model"
+slots = ["props_row_263"]
+symbol = "_gMistR18BriefingFile"
+sha1 = "782c84a59b6aec0b237aaaf02ec9bebb4e8c6480"
+
+[laptop_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_r18/props/laptop"
+textures = { props_row_264 = "stages/akropolis/rooms/mist_r18/props/props.row_264" }
+
+[briefing_file_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_r18/props/briefing_file"
+textures = { props_row_263 = "stages/akropolis/rooms/mist_r18/props/props.row_263" }

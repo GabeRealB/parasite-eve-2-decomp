@@ -1,0 +1,247 @@
+# The assets of the group stages/akropolis/rooms/mist_shooting_gallery/props, each named stages/akropolis/rooms/mist_shooting_gallery/props/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[mount]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryMountModel"
+sha1 = "3c8fecd1e4870b333c0f8a3d28726cae33bbd508"
+
+[bullseyes]
+type = "texture"
+bpp = 8
+height = 232
+variants = ["default"]
+width = 128
+
+[bullseye_1]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryBullseye1Model"
+sha1 = "c2590ce0953d131461524bd94211f92f921b915d"
+
+[bullseye_2]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryBullseye2Model"
+sha1 = "bded72e3607ae1a9fdba75cd4728ef2c4c46d983"
+
+[bullseye_3]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryBullseye3Model"
+sha1 = "c1ad3d473deec750781bebc0b24401ff3a5a332d"
+
+[half_target_1]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget1Model"
+sha1 = "cf6ef5f0558e350cdfefdd4b5f1ff72cf27481a6"
+
+[half_target_2]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget2Model"
+sha1 = "468467d7b94637e27fa2d521ea863331a5bf1d6a"
+
+[half_target_3]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget3Model"
+sha1 = "454abc92bdb24abbe544fd389a191ddfbb02b02e"
+
+[half_target_4]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryHalfTarget4Model"
+sha1 = "aa7465060b0a0498ee6a116e93f974e7c2be713a"
+
+[mount_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/mount"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4.default" }
+
+[target_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[target_page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[target_page_3]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[target_page_4]
+type = "texture"
+bpp = 8
+cells = { death_burst = [64, 0, 40, 40], hit_mark = [104, 0, 16, 16] }
+height = 256
+variants = ["default"]
+width = 128
+
+[creature_target_1]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget1Model"
+sha1 = "113c5dead3df882e3e69142407bb1de888f44f7f"
+
+[creature_target_2]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget2Model"
+sha1 = "7f9abae9355b995917fdfd65908505fa371da114"
+
+[creature_target_3]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget3Model"
+sha1 = "48fef6bc7f17acea0b9d36bf962865085ddf7a59"
+
+[creature_target_4]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget4Model"
+sha1 = "1437e2e4610527bbe71ed7286edce79592a8ebe8"
+
+[creature_target_5]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget5Model"
+sha1 = "d67b0a1e204bf5c2d94bea5d490686c74fc79ec7"
+
+[creature_target_6]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget6Model"
+sha1 = "10114ba7b78ddc3c8a204828cf275bb442ddf267"
+
+[creature_target_7]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget7Model"
+sha1 = "c77e091e80da1a69b606867296a56e3cafb32490"
+
+[creature_target_8]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget8Model"
+sha1 = "547fa3cabe24f5f844cb572b3f978bfa3a3bc1e7"
+
+[creature_target_9]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget9Model"
+sha1 = "f658a9ae34735f4b93e469842182f12519c92848"
+
+[bullseye_1_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/bullseye_1"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/bullseyes.default" }
+
+[bullseye_2_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/bullseye_2"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/bullseyes.default" }
+
+[bullseye_3_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/bullseye_3"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/bullseyes.default" }
+
+[creature_target_10]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryCreatureTarget10Model"
+sha1 = "a483edf4a31632d3116247479daaf5ac391e9fd9"
+
+[demonstration_target]
+type = "model"
+slots = ["page"]
+symbol = "gMistShootingGalleryDemonstrationTargetModel"
+sha1 = "e940a94a0032fce2f98ae9e749087167905e93e5"
+
+[half_target_1_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/half_target_1"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4.default" }
+
+[half_target_2_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/half_target_2"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4.default" }
+
+[half_target_3_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/half_target_3"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4.default" }
+
+[half_target_4_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/half_target_4"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4.default" }
+
+[creature_target_1_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_1"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_1.default" }
+
+[creature_target_2_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_2"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_1.default" }
+
+[creature_target_3_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_3"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_1.default" }
+
+[creature_target_4_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_4"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_2.default" }
+
+[creature_target_5_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_5"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_2.default" }
+
+[creature_target_6_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_6"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_2.default" }
+
+[creature_target_7_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_7"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_3.default" }
+
+[creature_target_8_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_8"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_3.default" }
+
+[creature_target_9_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_9"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_3.default" }
+
+[creature_target_10_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_10"
+textures = { page = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4.default" }
+
+[demonstration_target_binding]
+type = "binding"
+model = "stages/akropolis/rooms/mist_shooting_gallery/props/demonstration_target"
+unbound = { page = { bits = 8, page = [896, 0], palette = [0, 255] } }

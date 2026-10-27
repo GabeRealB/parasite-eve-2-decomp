@@ -66,7 +66,7 @@
 
 #include "rooms/room_common.h"
 
-#include "assets/rooms/akropolis/security_room/declarations.inc"
+#include "assets/stages/akropolis/rooms/security_room/declarations.inc"
 
 static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
@@ -404,7 +404,7 @@ static TaskMessageEntry _gAkropolisSecurityRoomRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/rooms/akropolis/security_room/events.inc"
+#include "assets/stages/akropolis/rooms/security_room/events.inc"
 
 /// Bodyless opener recipes: index 0 monitor, index 1 power supply, index 2 end.
 static TaskDesc _gAkropolisSecurityRoomPanelOpenerTaskDescs[3] = {
@@ -473,22 +473,22 @@ static u16 _gAkropolisSecurityRoomLockIndicatorOffPalette[256] = { 0 };
 
 /// Lit 256-color RGB555 source for the left locked indicator (lamp bit 0).
 static u16 _gAkropolisSecurityRoomLeftLockedPalette[256] = {
-#include "assets/rooms/akropolis/security_room/lamp_left_locked.inc"
+#include "assets/stages/akropolis/rooms/security_room/lamp_left_locked.inc"
 };
 
 /// Lit 256-color RGB555 source for the left released indicator (lamp bit 1).
 static u16 _gAkropolisSecurityRoomLeftReleasedPalette[256] = {
-#include "assets/rooms/akropolis/security_room/lamp_left_released.inc"
+#include "assets/stages/akropolis/rooms/security_room/lamp_left_released.inc"
 };
 
 /// Lit 256-color RGB555 source for the right locked indicator (lamp bit 2).
 static u16 _gAkropolisSecurityRoomRightLockedPalette[256] = {
-#include "assets/rooms/akropolis/security_room/lamp_right_locked.inc"
+#include "assets/stages/akropolis/rooms/security_room/lamp_right_locked.inc"
 };
 
 /// Lit 256-color RGB555 source for the right released indicator (lamp bit 3).
 static u16 _gAkropolisSecurityRoomRightReleasedPalette[256] = {
-#include "assets/rooms/akropolis/security_room/lamp_right_released.inc"
+#include "assets/stages/akropolis/rooms/security_room/lamp_right_released.inc"
 };
 
 /// Writable 256-color RGB555 blend for the left locked lamp, uploaded to VRAM row 270.
@@ -541,7 +541,7 @@ enum {
     LOCK_INDICATOR_GLOW_RED   = 1 << 1,
 };
 
-#include "assets/rooms/akropolis/security_room/markers.inc"
+#include "assets/stages/akropolis/rooms/security_room/markers.inc"
 /// Red/green glow-channel bits in left locked/released, right locked/released order.
 static s16 _gAkropolisSecurityRoomLockIndicatorGlowColorMasks[4] = {
     LOCK_INDICATOR_GLOW_RED | LOCK_INDICATOR_GLOW_GREEN,
@@ -558,16 +558,16 @@ static EffectUnitQuadCorner _gAkropolisSecurityRoomFallingQuadUnitCorners[4] = {
     { 1, -1 },
 };
 
-#include "assets/rooms/akropolis/security_room/header.inc"
-#include "assets/rooms/akropolis/security_room/geometry.inc"
-#include "assets/rooms/akropolis/security_room/view_boundaries.inc"
-#include "assets/rooms/akropolis/security_room/action_triggers.inc"
-#include "assets/rooms/akropolis/security_room/placements.inc"
-#include "assets/rooms/akropolis/security_room/lights.inc"
-#include "assets/rooms/akropolis/security_room/sprites.inc"
-#include "assets/rooms/akropolis/security_room/cameras.inc"
-#include "assets/rooms/akropolis/security_room/updates.inc"
-#include "assets/rooms/akropolis/security_room/surfaces.inc"
+#include "assets/stages/akropolis/rooms/security_room/header.inc"
+#include "assets/stages/akropolis/rooms/security_room/geometry.inc"
+#include "assets/stages/akropolis/rooms/security_room/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/security_room/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/security_room/placements.inc"
+#include "assets/stages/akropolis/rooms/security_room/lights.inc"
+#include "assets/stages/akropolis/rooms/security_room/sprites.inc"
+#include "assets/stages/akropolis/rooms/security_room/cameras.inc"
+#include "assets/stages/akropolis/rooms/security_room/updates.inc"
+#include "assets/stages/akropolis/rooms/security_room/surfaces.inc"
 #include "assets/rooms/item_box/model.inc"
 DEFINE_ALIAS(_gItemBoxModel, gAkropolisSecurityRoomItemBoxModel);
 

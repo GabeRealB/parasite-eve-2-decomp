@@ -1,0 +1,65 @@
+# The assets of the group stages/akropolis/rooms/forked_road/sounds, each named stages/akropolis/rooms/forked_road/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
+]
+sounds = { walk_surface_4_1 = 17, walk_surface_4_2 = 18, run_surface_4_1 = 19, run_surface_4_2 = 20 }
+sha1 = "a0eb9dd203524688f06faae761f3abe4c482f24f"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_depart",
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_arrive",
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_locked",
+    "stages/akropolis/rooms/forked_road/sounds/crawler_leap",
+    "stages/akropolis/rooms/forked_road/sounds/stranger_dormant_1",
+    "stages/akropolis/rooms/forked_road/sounds/stranger_dormant_2",
+]
+sha1 = "628d7526d0ec47a6cb5f9c272368eda05a10fca0"
+
+[bank_1.sounds]
+fountain_door_open = 2
+fountain_door_close = 3
+fountain_door_locked = 6
+crawler_leap = 7
+stranger_dormant_1 = 8
+stranger_dormant_2 = 9
+
+[crawler_leap]
+type = "sound"
+sha1 = "748fde9c68fc7dea83d9e614789cc5f8ac3d2ebc"
+
+[walk_floor_1]
+type = "sound"
+sha1 = "49a928f43f0e0eb8f8e8d13c3a6adf176a8f8a4b"
+
+[walk_floor_2]
+type = "sound"
+sha1 = "30deb660556d3b0fdd64a1c8cfb99c4a5badedf7"
+
+[stranger_dormant_1]
+type = "sound"
+sha1 = "c769ffd4568be0234e26da762bfc80dfa39511d5"
+
+[stranger_dormant_2]
+type = "sound"
+sha1 = "8a0ac6369e0e06206704da25748b415325ea1e05"
+
+[fountain_door_arrive]
+type = "sound"
+sha1 = "fc9796de2fd691e7d5c032d808bb64faf253e62f"
+
+[fountain_door_depart]
+type = "sound"
+sha1 = "49498a147e594d0021c894a66c706ec8d81b743f"
+
+[fountain_door_locked]
+type = "sound"
+sha1 = "ab4d42b113e91c33c5fbba9ebd0822419b89bda0"

@@ -102,11 +102,11 @@ static AnimationSet _gAkropolisSanctuaryRupertTalkClip;
 static AnimationSet _gAkropolisSanctuaryRupertTalkEndClip;
 static TmdSource    _gRupertBody;
 
-#include "assets/rooms/akropolis/sanctuary/rupert_clips_1.inc"
+#include "assets/stages/akropolis/actors/sanctuary_rupert/clips_1.inc"
 
 #include "assets/characters/rupert/body.inc"
 
-#include "assets/rooms/akropolis/sanctuary/rupert_clips_2.inc"
+#include "assets/stages/akropolis/actors/sanctuary_rupert/clips_2.inc"
 
 /// Packed open-eye texture pixels for the actor's face band.
 ///
@@ -173,7 +173,7 @@ static GpuImageUpload _gActor210700ClosedEyesUploads[2] = {
 ///
 /// Playback borrows this table and the package's clip descriptors; requests
 /// must select a loaded clip and keep the package live until teardown.
-#include "assets/rooms/akropolis/sanctuary/rupert_bank.inc"
+#include "assets/stages/akropolis/actors/sanctuary_rupert/bank.inc"
 
 /// Indexed animation banks; `AnimationPlayRequest.source.index` must be 0.
 ///

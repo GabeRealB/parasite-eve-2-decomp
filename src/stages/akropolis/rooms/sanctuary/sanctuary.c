@@ -66,7 +66,7 @@
 #include "rooms/room_common.h"
 #include "../../../../shared/actor/actor_contacts.h"
 
-#include "assets/rooms/akropolis/sanctuary/declarations.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/declarations.inc"
 #include "assets/engine/animation/player_schema.h"
 
 /// Task-owned state for the sanctuary cutscene's script-cued player placement.
@@ -201,7 +201,7 @@ static const TaskFuncTable3 _gAkropolisSanctuaryRoomTaskStates = {
     .funcs = { _akropolisSanctuaryInitializeRoomTask, _akropolisSanctuaryUpdateRoomProgress, taskKill },
 };
 
-#include "assets/rooms/akropolis/sanctuary/markers_1.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/markers_1.inc"
 
 /// Resting flame gray for texture/palette variants 0..2.
 static const _FlameGray _gAkropolisSanctuaryFlameBaseGray = { { 0x60, 0x60, 0x10 } };
@@ -224,7 +224,7 @@ static s32 _akropolisSanctuaryRejectKeyItemUse(Task* unusedTask, s32 unusedMessa
 static s32 _akropolisSanctuaryHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 static s32 _akropolisSanctuaryHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-#include "assets/rooms/akropolis/sanctuary/clips_1.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/clips_1.inc"
 
 /// Messages of the room task.
 static TaskMessageEntry _gAkropolisSanctuaryRoomMessages[] = {
@@ -235,17 +235,17 @@ static TaskMessageEntry _gAkropolisSanctuaryRoomMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/rooms/akropolis/sanctuary/events_1.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/events_1.inc"
 /// Nine animation sets copied into the player's sanctuary scene bank extension.
-#include "assets/rooms/akropolis/sanctuary/player_scene_bank.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/scenes/arrival/player_bank.inc"
 
-#include "assets/rooms/akropolis/sanctuary/events_2.inc"
-#include "assets/rooms/akropolis/sanctuary/clips_2.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/events_2.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/clips_2.inc"
 
 /// Single-set table installed for the player's sanctuary departure cutscene.
-#include "assets/rooms/akropolis/sanctuary/cutscene_player_bank.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/scenes/departure/player_bank.inc"
 
-#include "assets/rooms/akropolis/sanctuary/events_3.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/events_3.inc"
 /// Bodyless task recipe for the first sanctuary room action 1.
 static TaskDesc _gAkropolisSanctuaryCutsceneTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
@@ -253,7 +253,7 @@ static TaskDesc _gAkropolisSanctuaryCutsceneTaskDesc = {
     .data     = { .value = 0 },
 };
 
-#include "assets/rooms/akropolis/sanctuary/geometry_1.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/geometry_1.inc"
 
 /// Mosaic-start route borrowed by the sanctuary room-effect task.
 static TaskMessageEntry _gAkropolisSanctuaryRoomEffectMessages[] = {
@@ -381,23 +381,23 @@ static s16 _gAkropolisSanctuaryMosaicRepeatedTileIndices[] = {
 /// View-driven latch accelerating cleanup of mosaic debris outside view 16.
 static s32 _gAkropolisSanctuaryMosaicCleanupLatched = MOSAIC_CLEANUP_CLEAR;
 
-#include "assets/rooms/akropolis/sanctuary/markers_2.inc"
-#include "assets/rooms/akropolis/sanctuary/view_masks.inc"
-#include "assets/rooms/akropolis/sanctuary/header.inc"
-#include "assets/rooms/akropolis/sanctuary/geometry_2.inc"
-#include "assets/rooms/akropolis/sanctuary/view_boundaries.inc"
-#include "assets/rooms/akropolis/sanctuary/action_triggers.inc"
-#include "assets/rooms/akropolis/sanctuary/placements.inc"
-#include "assets/rooms/akropolis/sanctuary/lights.inc"
-#include "assets/rooms/akropolis/sanctuary/sprites.inc"
-#include "assets/rooms/akropolis/sanctuary/cameras.inc"
-#include "assets/rooms/akropolis/sanctuary/surfaces.inc"
-#include "assets/rooms/akropolis/sanctuary/updates.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/markers_2.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/view_masks.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/header.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/geometry_2.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/placements.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/lights.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/sprites.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/cameras.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/surfaces.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/updates.inc"
 
 #include "assets/rooms/item_box/model.inc"
 DEFINE_ALIAS(_gItemBoxModel, gAkropolisSanctuaryItemBoxModel);
 
-#include "assets/rooms/akropolis/sanctuary/red_key_pickup.inc"
+#include "assets/stages/akropolis/rooms/sanctuary/props/red_key_pickup.inc"
 
 /// Unread; its role is unproven.
 static u32 _gAkropolisSanctuaryUnusedWord = 0xB000000;

@@ -55,7 +55,7 @@
 #include "../../../../shared/room/room_visual_effects.h"
 #include "../../../../shared/effects/falling_leaves.h"
 
-#include "assets/rooms/akropolis/forked_road/declarations.inc"
+#include "assets/stages/akropolis/rooms/forked_road/declarations.inc"
 #include "assets/engine/animation/player_schema.h"
 
 static void _akropolisForkedRoadOutboundMoviePathTask(Task* task);
@@ -75,29 +75,29 @@ TaskDesc gAkropolisForkedRoadMovieTaskDescriptors[AKROPOLIS_FORKED_ROAD_MOVIE_TA
 
 /// Player-root translations sampled along the observatory route's movie path.
 static SVECTOR _gAkropolisForkedRoadMoviePlayerPositions[300] = {
-#include "assets/rooms/akropolis/forked_road/movie_player_path.inc"
+#include "assets/stages/akropolis/rooms/forked_road/movie_player_path.inc"
 };
 
-#include "assets/rooms/akropolis/forked_road/clips.inc"
+#include "assets/stages/akropolis/rooms/forked_road/clips.inc"
 
 /// Three set pointers copied to equipped-weapon bank entries 47..49 for the lock-release event.
-#include "assets/rooms/akropolis/forked_road/ambush_player_bank.inc"
+#include "assets/stages/akropolis/rooms/forked_road/scenes/ambush/player_bank.inc"
 
-#include "assets/rooms/akropolis/forked_road/events.inc"
-#include "assets/rooms/akropolis/forked_road/markers.inc"
-#include "assets/rooms/akropolis/forked_road/view_masks.inc"
+#include "assets/stages/akropolis/rooms/forked_road/events.inc"
+#include "assets/stages/akropolis/rooms/forked_road/markers.inc"
+#include "assets/stages/akropolis/rooms/forked_road/view_masks.inc"
 
 #include "../../../../shared/room/room_visual_effects_trail_data.inc.c"
-#include "assets/rooms/akropolis/forked_road/header.inc"
-#include "assets/rooms/akropolis/forked_road/geometry.inc"
-#include "assets/rooms/akropolis/forked_road/view_boundaries.inc"
-#include "assets/rooms/akropolis/forked_road/action_triggers.inc"
-#include "assets/rooms/akropolis/forked_road/placements.inc"
-#include "assets/rooms/akropolis/forked_road/sprites.inc"
-#include "assets/rooms/akropolis/forked_road/lights.inc"
-#include "assets/rooms/akropolis/forked_road/cameras.inc"
-#include "assets/rooms/akropolis/forked_road/vibrations.inc"
-#include "assets/rooms/akropolis/forked_road/surfaces.inc"
+#include "assets/stages/akropolis/rooms/forked_road/header.inc"
+#include "assets/stages/akropolis/rooms/forked_road/geometry.inc"
+#include "assets/stages/akropolis/rooms/forked_road/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/forked_road/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/forked_road/placements.inc"
+#include "assets/stages/akropolis/rooms/forked_road/sprites.inc"
+#include "assets/stages/akropolis/rooms/forked_road/lights.inc"
+#include "assets/stages/akropolis/rooms/forked_road/cameras.inc"
+#include "assets/stages/akropolis/rooms/forked_road/vibrations.inc"
+#include "assets/stages/akropolis/rooms/forked_road/surfaces.inc"
 
 // Action-1 control bit 8 selects descent; its parameter0 packs surface class and steps.
 

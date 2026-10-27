@@ -1,0 +1,319 @@
+# The assets of the group stages/akropolis/rooms/mist_r18, each named stages/akropolis/rooms/mist_r18/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/mist_r18/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/mist_r18/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "37ba03cc4f84cabaabfcf58b833fdc226baff1b2"
+
+[[file.contents.palettes]]
+name = "unread_row_255"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+name = "unread_row_256"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents.palettes]]
+name = "unread_row_257"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_row_258"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents.palettes]]
+name = "unread_row_259"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[file.contents.palettes]]
+name = "unread_260_0"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[[file.contents.palettes]]
+texture = "caption"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00010, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_32"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00020, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_48"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00030, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_64"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00040, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_80"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00050, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_96"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00060, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_112"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00070, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_128"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00080, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_144"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00090, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_160"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000A0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_176"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000B0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_192"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000C0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_208"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000D0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_224"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000E0, 0x00005]
+
+[[file.contents.palettes]]
+name = "unread_260_240"
+entries = 16
+region = "engine/vram/room_sprite_palettes"
+offset = [0x000F0, 0x00005]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "5be24498a488b517e5661298838e17a393f5737c"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_r18/props/props"
+variant = "row_263"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_r18/props/props"
+variant = "row_264"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "0c377f40f81e995f257a140dc8f470ccee3d8c60"
+
+[[file.contents.pages]]
+texture = "caption"
+region = "engine/vram/effect_sheet"
+offset = [0x000C0, 0x00000]
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/mist_r18/props/props"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/mist_r18/views/view4_palette",
+    "",
+    "stages/akropolis/rooms/mist_r18/views/view6_palette",
+    "",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/mist_r18/dialogue_0",
+]
+sha1 = "e5e2c90b0cfc47443dcc48c09ab3e8a31629f9cb"
+
+[caption]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default"]
+width = 256
+
+[package]
+type = "package"
+load = { slot = "room" }
+package_name = "mist_r18"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { eric = "stages/akropolis/actors/mist_eric/package", rupert = "stages/akropolis/actors/mist_rupert/package" }
+sha1 = "72d08008a6f9c1f371d03dc8d79a70aea31c66c7"
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/props/briefing_file"
+offset = 0x017FC
+size = 0x2CC
+address = 0x8017EDBC
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/props/laptop"
+offset = 0x01AC8
+size = 0x1F8
+address = 0x8017F088
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_01"
+offset = 0x01CC0
+size = 0x5DC
+address = 0x8017F280
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_02"
+offset = 0x0229C
+size = 0xE74
+address = 0x8017F85C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_03"
+offset = 0x03110
+size = 0x674
+address = 0x801806D0
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_04"
+offset = 0x03784
+size = 0x534
+address = 0x80180D44
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_05"
+offset = 0x03CB8
+size = 0xAFC
+address = 0x80181278
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_06"
+offset = 0x047B4
+size = 0x648
+address = 0x80181D74
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_07"
+offset = 0x04DFC
+size = 0xCD0
+address = 0x801823BC
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_08"
+offset = 0x05ACC
+size = 0x178C
+address = 0x8018308C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_09"
+offset = 0x07258
+size = 0x39C
+address = 0x80184818
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_10"
+offset = 0x075F4
+size = 0x2F4
+address = 0x80184BB4
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_bank"
+offset = 0x079A4
+size = 0x2C
+address = 0x80184F64
+
+[[package.embedded]]
+name = "collision"
+offset = 0x090A4
+size = 0x94
+
+[package.entries]
+scripts = [0x07C6C, 0x081AC, 0x08524, 0x088FC, 0x08A7C, 0x08BFC, 0x08DDC, 0x08E9C, 0x08F5C, 0x08FA4]
+view_counts = 2
+
+[collision]
+type = "collision"
+cell_face_list_macro = "MIST_R18_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "6f690cf39f468b98720ac18d53bf8ad98f659307"
+
+[dialogue_0]
+type = "cap"
+sha1 = "bc8bce16a078d9d0eeb5c753254a62900a25444b"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/mist_r18/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "bd30c83aaf299464dfe503b32f9cd8923d34eee4"

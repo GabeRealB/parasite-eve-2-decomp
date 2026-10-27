@@ -72,7 +72,7 @@ sha1 = "444f69024feff08db58a48916ca62819d993b4e1"
 pages = [{ texture = "submachine_gun_texture", region = "engine/vram/held_weapon_sheet" }]
 
 [[file.contents]]
-asset = "rooms/akropolis/east_elevator_hall/swat_member"
+asset = "stages/akropolis/actors/east_elevator_hall_swat_member/package"
 
 [body_binding]
 type = "binding"

@@ -1,0 +1,56 @@
+# The assets of the group stages/akropolis/actors/sanctuary_no_9, each named stages/akropolis/actors/sanctuary_no_9/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/sanctuary_no_9/schema"
+symbol = "_gSanctuaryNo9AnimationSets"
+
+[bank.clips]
+attack_rupert = "stages/akropolis/actors/sanctuary_no_9/attack_rupert"
+arrival_3 = "stages/akropolis/actors/sanctuary_no_9/arrival_3"
+arrival_4 = "stages/akropolis/actors/sanctuary_no_9/arrival_4"
+flee = "stages/akropolis/actors/sanctuary_no_9/flee"
+slot_5 = "stages/akropolis/actors/sanctuary_no_9/no9_golem_anim_05"
+
+[flee]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "attack_rupert", "arrival_3", "arrival_4", "flee", "slot_5"]
+
+[package]
+type = "package"
+embedded = [
+    { asset = "enemies/golem/no_9/body_akropolis", offset = 0x00300, size = 0x56CC, address = 0x80132120 },
+    { name = "attack_rupert", offset = 0x059CC, size = 0x3C0, address = 0x801377EC },
+    { name = "arrival_3", offset = 0x05D8C, size = 0x918, address = 0x80137BAC },
+    { name = "arrival_4", offset = 0x066A4, size = 0x1B90, address = 0x801384C4 },
+    { name = "flee", offset = 0x08234, size = 0x508, address = 0x8013A054 },
+    { name = "no9_golem_anim_05", offset = 0x0873C, size = 0x1A38, address = 0x8013A55C },
+    { name = "bank", offset = 0x0A1A0, size = 0x18, address = 0x8013BFC0 },
+]
+exports = { tasks = { at = 0x0A174, symbol = "gSanctuaryNo9TaskDesc" } }
+load = { slot = "actor_1" }
+package_name = "sanctuary_no_9"
+required = true
+requires = ["gameplay"]
+sha1 = "0e9e9b3f5609545a85e397e98152df642939551e"
+
+[arrival_3]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[arrival_4]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[attack_rupert]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no9_golem_anim_05]
+type = "clip"
+rig = "enemies/golem/no_9/rig"

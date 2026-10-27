@@ -36,7 +36,7 @@
 
 #include "stages/akropolis/rooms/mist_parking.h"
 
-#include "assets/rooms/mist/parking/pierce_schema.h"
+#include "assets/stages/akropolis/actors/parking_pierce/schema.h"
 
 #include "../../rooms/mist_parking/config.h"
 #include "../../../../shared/actor/model_placement.h"
@@ -141,12 +141,12 @@ static void      _parkingPierceTask(Task* task);
 
 #include "assets/characters/pierce/id_badge.inc"
 
-#include "assets/rooms/mist/parking/hand_billboard.inc"
+#include "assets/stages/akropolis/actors/parking_pierce/hand_billboard.inc"
 
-#include "assets/rooms/mist/parking/pierce_clips.inc"
+#include "assets/stages/akropolis/actors/parking_pierce/clips.inc"
 
 /// Pierce Carradine's bank-0 clip table for his twenty-part body rig.
-#include "assets/rooms/mist/parking/pierce_bank.inc"
+#include "assets/stages/akropolis/actors/parking_pierce/bank.inc"
 
 /// Body animation banks for Pierce Carradine; bank 0 is the sole 36-entry clip table.
 static AnimationSet** _gParkingPierceAnimationBanks[1] = {
@@ -494,7 +494,7 @@ static void _parkingPierceTurnAndBeginWalk(Task* task)
         work->walk.lastDistance.vy       = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
         work->walk.lastDistance.vz       = ACTOR_MOTION_INITIAL_ARRIVAL_GAP;
         walkRequest.source.index         = BODY_ANIMATION_BANK;
-        walkRequest.animationId          = PIERCE_ANIMATION_WALK;
+        walkRequest.animationId          = PARKING_PIERCE_ANIMATION_WALK;
         walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
         walkRequest.blendFrames          = TURN_BLEND_FRAMES;
         walkRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -625,8 +625,8 @@ static s32 _parkingPierceStartWalk(Task* task, s32 messageId, const ActorTransfo
         walkRequest.animationId    = walkAnim->animationId;
         walkWork->model.nextAnimId = walkAnim->nextAnimId;
     } else {
-        walkRequest.animationId    = PIERCE_ANIMATION_WALK;
-        walkWork->model.nextAnimId = PIERCE_ANIMATION_REST;
+        walkRequest.animationId    = PARKING_PIERCE_ANIMATION_WALK;
+        walkWork->model.nextAnimId = PARKING_PIERCE_ANIMATION_REST;
     }
     walkRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
     walkRequest.blendFrames          = WALK_BLEND_FRAMES;
@@ -793,7 +793,7 @@ static void _parkingPierceQueueWalkHeading(Task* task)
     work->walkYaw = ratan2(direction.vx, direction.vz);
 
     turnRequest.source.index         = BODY_ANIMATION_BANK;
-    turnRequest.animationId          = PIERCE_ANIMATION_TURN;
+    turnRequest.animationId          = PARKING_PIERCE_ANIMATION_TURN;
     turnRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
     turnRequest.blendFrames          = TURN_BLEND_FRAMES;
     turnRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;

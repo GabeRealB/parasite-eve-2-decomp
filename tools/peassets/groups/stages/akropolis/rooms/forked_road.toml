@@ -1,0 +1,146 @@
+# The assets of the group stages/akropolis/rooms/forked_road, each named stages/akropolis/rooms/forked_road/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/forked_road/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/forked_road/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "fe78d2a2315a38157c0240b41d8a8447703ce52d"
+palettes = [
+    { texture = "lamps", variant = "lamp_0", region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
+    { texture = "lamps", variant = "lamp_1", region = "engine/vram/effect_palettes", offset = [0x00010, 0x00009] },
+    { texture = "lamps", variant = "lamp_2", region = "engine/vram/effect_palettes", offset = [0x00020, 0x00009] },
+    { name = "unread_270_48", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00030, 0x00009] },
+    { name = "unread_270_64", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00040, 0x00009] },
+    { name = "unread_270_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x00009] },
+    { name = "unread_270_96", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00060, 0x00009] },
+    { name = "unread_270_112", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00070, 0x00009] },
+    { name = "unread_270_128", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00080, 0x00009] },
+    { name = "unread_270_144", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00090, 0x00009] },
+    { name = "unread_270_160", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000A0, 0x00009] },
+    { name = "unread_270_176", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000B0, 0x00009] },
+    { name = "unread_270_192", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000C0, 0x00009] },
+    { name = "unread_270_208", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000D0, 0x00009] },
+    { name = "unread_270_224", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000E0, 0x00009] },
+    { name = "unread_270_240", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000F0, 0x00009] },
+    { texture = "lamps", variant = "leaf", region = "engine/vram/effect_palettes", offset = [0x00100, 0x00009] },
+    { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
+    { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
+    { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
+    { name = "unread_row_271", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
+    { name = "unread_271_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
+    { name = "unread_271_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
+    { name = "unread_271_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
+    { name = "unread_271_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "72f5f7a2131d77d79b1217be00ea068b7d958775"
+pages = [{ texture = "lamps", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] }]
+slots = 2
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[lamps]
+type = "texture"
+bpp = 4
+cells = { lamp_0 = [0, 0, 40, 40], lamp_1 = [40, 0, 40, 40], lamp_2 = [80, 0, 40, 40], leaf = [0, 232, 8, 8] }
+height = 256
+variants = ["lamp_0", "lamp_1", "lamp_2", "leaf"]
+width = 256
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/forked_road/views/view2_palette",
+    "stages/akropolis/rooms/forked_road/views/view3_palette",
+    "",
+    "stages/akropolis/rooms/forked_road/views/view5_palette",
+    "",
+    "stages/akropolis/rooms/forked_road/views/view7_palette",
+    "stages/akropolis/rooms/forked_road/views/view7_palette",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/forked_road/views/view3_palette",
+    "stages/akropolis/rooms/forked_road/dialogue_0",
+]
+sha1 = "38a9fa90e79dbc78940f8ddabc84ce35a7fc18bf"
+
+[package]
+type = "package"
+embedded = [
+    "stages/akropolis/rooms/forked_road/movie_player_path",
+    { asset = "characters/aya/stand", offset = 0x04320, size = 0x304, address = 0x801818E0 },
+    { asset = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger", offset = 0x04624, size = 0x470, address = 0x80181BE4 },
+    { asset = "stages/akropolis/rooms/forked_road/scenes/ambush/player_bank", offset = 0x04A94, size = 0xC, address = 0x80182054 },
+    { name = "collision", offset = 0x04DE0, size = 0x850 },
+]
+load = { slot = "room" }
+package_name = "akropolis_forked_road"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "0cc59b82e4c8116da25d79f5cf06274f0c8ee331"
+
+[package.entries]
+animations = [0x04AA8, 0x04AD0]
+markers = [0x04BB8]
+scripts = [0x04AF8]
+spare_batches = [0x06518, 0x06F10]
+vibrations = [{ commands = 0x07A78, segments = 0x07A90 }, { commands = 0x07A98, segments = 0x07AB0 }]
+view_masks = [0x04C28]
+
+[package.slots]
+green_and_red_amoeba_1 = "encounters/green_and_red_amoeba/package_1"
+rat_and_moth_1 = "encounters/rat_and_moth/package_1"
+rat_and_moth_2 = "encounters/rat_and_moth/package_2"
+rat_and_moth_3 = "encounters/rat_and_moth/package_3"
+skull_stalker_and_creeping_stranger_2 = "encounters/skull_stalker_and_creeping_stranger/package_2"
+sucklerceph_and_slouch_1 = "encounters/sucklerceph_and_slouch/package_1"
+bat_1 = "enemies/bat/package_1"
+black_beetle_1 = "enemies/black_beetle/package_1"
+crawler_caterpillar_1 = "enemies/crawler/caterpillar/package_1"
+crawler_maggot_1 = "enemies/crawler/maggot/package_1"
+golem_pawn_beam_sword_1 = "enemies/golem/pawn/beam_sword/package_1"
+scavenger_1 = "enemies/scavenger/package_1"
+scorpion_1 = "enemies/scorpion/package_1"
+stranger_grinning_3 = "enemies/stranger/grinning/package_3"
+stranger_odd_4 = "enemies/stranger/odd/package_4"
+stranger_odd_b_4 = "enemies/stranger/odd/package_b_4"
+suckler_mind_1 = "enemies/suckler/mind/package_1"
+sucklerceph_and_skull_stalker_1 = "encounters/sucklerceph_and_skull_stalker/package_1"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "e98eb13d072ee3f72f5dea62be5cfb48d8dc028b"
+
+[dialogue_0]
+type = "cap"
+sha1 = "f99d8f1695ee1f33cdc5991e6f81e1d4b1a0e98a"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/forked_road/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "bcf31c83062597c4b71e4ce33d5ba9c9a4674913"

@@ -1,0 +1,46 @@
+# The assets of the group stages/akropolis/actors/security_monitors, each named stages/akropolis/actors/security_monitors/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[package]
+type = "package"
+embedded = [
+    { asset = "characters/rupert/body", offset = 0x00A90, size = 0x5EF8, address = 0x801628B0 },
+    { asset = "characters/swat_member_2/body", offset = 0x06988, size = 0x57C8, address = 0x801687A8 },
+    { asset = "characters/rupert/walk", offset = 0x0C150, size = 0x880, address = 0x8016DF70 },
+    { name = "swat_monitor_idle", offset = 0x0C9D0, size = 0x3F8, address = 0x8016E7F0 },
+    { name = "rupert_bank", offset = 0x0CDC8, size = 0xC, address = 0x8016EBE8 },
+    { name = "swat_bank", offset = 0x0CDD4, size = 0xC, address = 0x8016EBF4 },
+]
+load = { slot = "actor_3" }
+package_name = "security_monitors"
+required = true
+requires = ["gameplay"]
+sha1 = "bf71732d3698d13e9081cbae18002b7a03b4e28b"
+
+[package.exports]
+rupert_tasks = { at = 0x0CDEC, symbol = "gSecurityMonitorsRupertTaskDesc" }
+swat_tasks = { at = 0x0CDE0, symbol = "gSecurityMonitorsSwatTaskDesc" }
+
+[swat_bank]
+type = "animation_bank"
+clips = { monitor_idle = "stages/akropolis/actors/security_monitors/swat_monitor_idle" }
+schema = "stages/akropolis/actors/security_monitors/swat_schema"
+symbol = "_gSecurityMonitorsSwatAnimationSets"
+
+[rupert_bank]
+type = "animation_bank"
+clips = { walk = "characters/rupert/walk" }
+schema = "stages/akropolis/actors/security_monitors/rupert_schema"
+symbol = "_gSecurityMonitorsRupertAnimationSets"
+
+[swat_schema]
+type = "animation_schema"
+slots = ["", "monitor_idle"]
+
+[rupert_schema]
+type = "animation_schema"
+slots = ["", "walk"]
+
+[swat_monitor_idle]
+type = "clip"
+rig = "characters/swat_member_2/rig"

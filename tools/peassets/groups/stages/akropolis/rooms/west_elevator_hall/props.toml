@@ -1,0 +1,31 @@
+# The assets of the group stages/akropolis/rooms/west_elevator_hall/props, each named stages/akropolis/rooms/west_elevator_hall/props/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[doors]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[door_leaf_left]
+type = "model"
+slots = ["doors"]
+symbol = "_gAkropolisWestElevatorHallDoorLeafLeftModel"
+sha1 = "3fdd51c88e7d897ad7ed99c9afa08cd49683fab7"
+
+[door_leaf_right]
+type = "model"
+slots = ["doors"]
+symbol = "_gAkropolisWestElevatorHallDoorLeafRightModel"
+sha1 = "dd8d3b0ec9503bc78955392162272b0322346dac"
+
+[door_leaf_left_binding]
+type = "binding"
+model = "stages/akropolis/rooms/west_elevator_hall/props/door_leaf_left"
+textures = { doors = "stages/akropolis/rooms/west_elevator_hall/props/doors.default" }
+
+[door_leaf_right_binding]
+type = "binding"
+model = "stages/akropolis/rooms/west_elevator_hall/props/door_leaf_right"
+textures = { doors = "stages/akropolis/rooms/west_elevator_hall/props/doors.default" }

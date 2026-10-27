@@ -58,7 +58,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/effects/glow_draw.h"
 
-#include "assets/rooms/akropolis/roof_garden/declarations.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/declarations.inc"
 
 static Task* _gAkropolisRoofGardenCutsceneSoundTask;
 
@@ -105,7 +105,7 @@ static void _akropolisRoofGardenAmbienceTask(Task* task);
 static void _akropolisRoofGardenCutsceneOpeningSoundTask(Task* task);
 static void _akropolisRoofGardenCutsceneClosingSoundTask(Task* task);
 
-#include "assets/rooms/akropolis/roof_garden/clips_1.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/clips_1.inc"
 
 /// Messages of the room task.
 static TaskMessageEntry _gAkropolisRoofGardenRoomMessages[6] = {
@@ -130,36 +130,36 @@ static TaskDesc _gAkropolisRoofGardenSoundTaskDescriptors[4] = {
 
 /// Borrowed player clips for arrival opening, closing and dialogue, in that order.
 
-#include "assets/rooms/akropolis/roof_garden/events_1.inc"
-#include "assets/rooms/akropolis/roof_garden/arrival_player_bank.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/events_1.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/scenes/arrival/player_bank.inc"
 
 // Arrival waits count interpreter ticks; sound cues use type-3 bank 0x108.
 
-#include "assets/rooms/akropolis/roof_garden/events_2.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/events_2.inc"
 
 /// Arrival-scene latch (0 unstarted, 1 attempted), reset by loading the overlay.
 static s32 _gAkropolisRoofGardenArrivalSceneStarted = 0;
 
-#include "assets/rooms/akropolis/roof_garden/clips_2.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/clips_2.inc"
 
 /// Player extension slots for the Maggot/Caterpillar entrance: empty, start, end.
-#include "assets/rooms/akropolis/roof_garden/entrance_player_bank.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/scenes/entrance/player_bank.inc"
 
-#include "assets/rooms/akropolis/roof_garden/events_3.inc"
-#include "assets/rooms/akropolis/roof_garden/markers.inc"
-#include "assets/rooms/akropolis/roof_garden/view_masks.inc"
-#include "assets/rooms/akropolis/roof_garden/samples.inc"
-#include "assets/rooms/akropolis/roof_garden/header.inc"
-#include "assets/rooms/akropolis/roof_garden/geometry.inc"
-#include "assets/rooms/akropolis/roof_garden/view_boundaries.inc"
-#include "assets/rooms/akropolis/roof_garden/action_triggers.inc"
-#include "assets/rooms/akropolis/roof_garden/placements.inc"
-#include "assets/rooms/akropolis/roof_garden/sprites.inc"
-#include "assets/rooms/akropolis/roof_garden/lights.inc"
-#include "assets/rooms/akropolis/roof_garden/cameras.inc"
-#include "assets/rooms/akropolis/roof_garden/occluders.inc"
-#include "assets/rooms/akropolis/roof_garden/surfaces.inc"
-#include "assets/rooms/akropolis/roof_garden/armory_cardkey_pickup.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/events_3.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/markers.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/view_masks.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/samples.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/header.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/geometry.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/placements.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/sprites.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/lights.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/cameras.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/occluders.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/surfaces.inc"
+#include "assets/stages/akropolis/rooms/roof_garden/props/armory_cardkey_pickup.inc"
 
 /// Last ambience volume percentage requested by the view controller (0, 30 or 100).
 static s32 _gAkropolisRoofGardenRequestedAmbiencePercent = 0;

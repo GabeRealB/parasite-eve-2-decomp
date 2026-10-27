@@ -82,9 +82,9 @@ Byte for byte a `.pe2clut` chunk. Rows 245..255 are shifted by `gFsImageHeaderYS
 ## 5. Asset record
 
 ```python
-'rooms/akropolis/square/bundle': {"sha1": "…", "type": "pe2bundle",
-    'resources': [None, None, 'rooms/akropolis/square/view3_palette', …, 'rooms/akropolis/square/view8_palette',
-                  None, …, 'rooms/akropolis/square/dialogue_0', 'akropolis_square_dialogue_1']},
+'stages/akropolis/rooms/square/bundle': {"sha1": "…", "type": "pe2bundle",
+    'resources': [None, None, 'stages/akropolis/rooms/square/views/view3_palette', …, 'stages/akropolis/rooms/square/views/view8_palette',
+                  None, …, 'stages/akropolis/rooms/square/dialogue_0', 'akropolis_square_dialogue_1']},
 ```
 
 | Field | |

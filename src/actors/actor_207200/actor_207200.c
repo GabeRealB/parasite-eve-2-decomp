@@ -69,7 +69,7 @@ static EnemyParams _gSkullStalkerParams = {
     .damageOverTimeTicks  = 99,
 };
 
-#include "assets/rooms/akropolis/forked_road/skull_stalker_body.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/skull_stalker_body.inc"
 
 #include "assets/encounters/skull_stalker_and_creeping_stranger/package_2_clips_1.inc"
 

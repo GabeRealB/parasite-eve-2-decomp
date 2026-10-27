@@ -1,0 +1,99 @@
+# The assets of the group stages/akropolis/rooms/helicopter_landing_pad/sounds, each named stages/akropolis/rooms/helicopter_landing_pad/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/fire_escape/sounds/unused_3",
+    "stages/akropolis/rooms/fire_escape/sounds/unused_4",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/run_stairs_1",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/run_stairs_2",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/walk_floor_1",
+]
+sha1 = "659c8683df639f40565a6c3d1972eb03abb48616"
+
+[bank_0.sounds]
+walk_stairs_1 = 13
+walk_stairs_2 = 14
+run_stairs_1 = 15
+run_stairs_2 = 16
+walk_floor_1 = 21
+walk_floor_2 = 22
+run_floor_1 = 23
+run_floor_2 = 24
+jump_floor_1 = 25
+jump_floor_2 = 26
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/lift_move",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/unused_1",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/light_spark",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/lift_move_2",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/lift_move_3",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/unused_2",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/ambience",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/ambience_2",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/encounter_intro_impact",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/unused_3",
+    "stages/akropolis/rooms/helicopter_landing_pad/sounds/unused_4",
+]
+sounds = { light_spark = 1, lift_move = 3, ambience = 5, encounter_intro_impact = 6 }
+sha1 = "1a8ba3fe9c20f89e57541316e58d0764d5d8724e"
+
+[ambience]
+type = "sound"
+sha1 = "76157882863f6111cc1e21f8b60157af5e1a9809"
+
+[unused_1]
+type = "sound"
+sha1 = "b05d249874d88612c6393368f698ba7a0e49f0aa"
+
+[unused_2]
+type = "sound"
+sha1 = "76f51c9bcbac45050c7c5d21a9650efdcec6d3b9"
+
+[unused_3]
+type = "sound"
+sha1 = "c5ca729fdaf02b3fdc03c33230fa20b74902a6c4"
+
+[unused_4]
+type = "sound"
+sha1 = "863b9bc243a152ba13c3254a969777f72c89350e"
+
+[lift_move]
+type = "sound"
+sha1 = "dd8bb6403f195387658248078d50760a10b29bca"
+
+[ambience_2]
+type = "sound"
+sha1 = "78ca4ca353da11b24fb2b48f5c596741ee2be81d"
+
+[lift_move_2]
+type = "sound"
+sha1 = "b761499d7534bbd08175bcf3e33530f4b4808210"
+
+[lift_move_3]
+type = "sound"
+sha1 = "584ec577f25b51f2f9c543f591511f5c38b7dec4"
+
+[light_spark]
+type = "sound"
+sha1 = "6b057a3fab36e84289d8b2c9883dfd537f25d62b"
+
+[run_stairs_1]
+type = "sound"
+sha1 = "37976b592f55f84f25eddf4c841f81197bb019b7"
+
+[run_stairs_2]
+type = "sound"
+sha1 = "d4a004f83d1807217b16347b50150f6ab537ad7a"
+
+[walk_floor_1]
+type = "sound"
+sha1 = "847099e47670f1f1ef85247628f79a9e3a2e5e09"
+
+[encounter_intro_impact]
+type = "sound"
+sha1 = "18e686f8ffdbab741a9de541d5e9877cc83cabcf"

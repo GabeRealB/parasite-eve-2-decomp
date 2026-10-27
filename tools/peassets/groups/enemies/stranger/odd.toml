@@ -578,7 +578,7 @@ region = "engine/vram/actor_palettes"
 offset = [0x00000, 0x00001]
 
 [[package_2_file.contents]]
-asset = "rooms/akropolis/square/grinning_stranger"
+asset = "stages/akropolis/actors/square_grinning_stranger/package"
 
 [package_4_file]
 type = "file"

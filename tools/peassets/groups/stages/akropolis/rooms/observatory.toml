@@ -1,0 +1,128 @@
+# The assets of the group stages/akropolis/rooms/observatory, each named stages/akropolis/rooms/observatory/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/observatory/sounds/bank_0"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "fd1ca70429d732aa9a638bcdc31d37cb4e019b7d"
+palettes = [
+    { name = "unread_row_270", entries = 256, region = "engine/vram/effect_palettes", offset = [0x00000, 0x00009] },
+    { name = "unread_270_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x00009] },
+    { name = "unread_270_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x00009] },
+    { name = "unread_270_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x00009] },
+    { name = "unread_270_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x00009] },
+    { name = "unread_271_0", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00000, 0x0000A] },
+    { name = "unread_271_16", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00010, 0x0000A] },
+    { name = "unread_271_32", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00020, 0x0000A] },
+    { name = "unread_271_48", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00030, 0x0000A] },
+    { name = "unread_271_64", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00040, 0x0000A] },
+    { name = "unread_271_80", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00050, 0x0000A] },
+    { name = "unread_271_96", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00060, 0x0000A] },
+    { name = "unread_271_112", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00070, 0x0000A] },
+    { name = "unread_271_128", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00080, 0x0000A] },
+    { name = "unread_271_144", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00090, 0x0000A] },
+    { name = "unread_271_160", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000A0, 0x0000A] },
+    { name = "unread_271_176", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000B0, 0x0000A] },
+    { name = "unread_271_192", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000C0, 0x0000A] },
+    { name = "unread_271_208", entries = 16, region = "engine/vram/effect_palettes", offset = [0x000D0, 0x0000A] },
+    { texture = "glow", variant = "frame_0", region = "engine/vram/effect_palettes", offset = [0x000E0, 0x0000A] },
+    { texture = "glow", variant = "frame_1", region = "engine/vram/effect_palettes", offset = [0x000F0, 0x0000A] },
+    { name = "unread_271_256", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00100, 0x0000A] },
+    { name = "unread_271_272", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00110, 0x0000A] },
+    { name = "unread_271_288", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00120, 0x0000A] },
+    { name = "unread_271_304", entries = 16, region = "engine/vram/effect_palettes", offset = [0x00130, 0x0000A] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "a6f22076a0d3e6c7cfaf146747a9a0dc5805420c"
+pages = [{ texture = "glow", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] }]
+slots = 2
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[glow]
+type = "texture"
+bpp = 4
+cells = { glow = [0, 160, 32, 32] }
+height = 256
+variants = ["frame_0", "frame_1"]
+width = 256
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/observatory/views/view2_palette",
+    "stages/akropolis/rooms/observatory/views/view3_palette",
+    "stages/akropolis/rooms/observatory/views/view4_palette",
+    "",
+    "stages/akropolis/rooms/observatory/views/view6_palette",
+    "stages/akropolis/rooms/observatory/views/view7_palette",
+    "stages/akropolis/rooms/observatory/views/view8_palette",
+    "stages/akropolis/rooms/observatory/dialogue_0",
+]
+sha1 = "124a633a4fd8c3acec02cb25f7328ae847b10a8d"
+
+[package]
+type = "package"
+embedded = [
+    "stages/akropolis/rooms/observatory/forked_road_arrival_player_path",
+    "stages/akropolis/rooms/observatory/promenade_arrival_player_path",
+    { asset = "rooms/dryfield/trailer_coach/player_event_58", offset = 0x0250C, size = 0x394, address = 0x8017FACC },
+    { asset = "stages/akropolis/rooms/observatory/scenes/ride/player_bank", offset = 0x028A0, size = 0x8, address = 0x8017FE60 },
+    { name = "collision", offset = 0x02A2C, size = 0xA64 },
+]
+load = { slot = "room" }
+package_name = "akropolis_observatory"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "68dd1721f0677347cfcdbd4ef610e125572ef4fd"
+
+[package.entries]
+markers = [0x028B8]
+vibrations = [{ commands = 0x05EC0, segments = 0x05ED8 }, { commands = 0x05EE0, segments = 0x05EF8 }]
+view_masks = [0x028F8]
+
+[package.slots]
+brute_and_mossback_1 = "encounters/brute_and_mossback/package_1"
+brute_and_mossback_recolor_1 = "encounters/brute_and_mossback/recolor_package_1"
+bat_1 = "enemies/bat/package_1"
+stranger_grinning_1 = "enemies/stranger/grinning/package_1"
+stranger_grinning_3 = "enemies/stranger/grinning/package_3"
+stranger_horned_4 = "enemies/stranger/horned/package_4"
+stranger_odd_4 = "enemies/stranger/odd/package_4"
+stranger_odd_b_4 = "enemies/stranger/odd/package_b_4"
+suckler_blood_1 = "enemies/suckler/blood/package_1"
+suckler_bone_1 = "enemies/suckler/bone/package_1"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "66783b4257cf4f528309406b642bdec350d620c7"
+
+[dialogue_0]
+type = "cap"
+sha1 = "cb89b1b41ac6fc05d8e1a75e810d31dcf9e1a48c"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/observatory/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "225c365dcc7255cd49e1f8181386ed7b8b429ebc"

@@ -1,0 +1,69 @@
+# The assets of the group stages/akropolis/rooms/sanctuary/sounds, each named stages/akropolis/rooms/sanctuary/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_2",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+]
+sha1 = "37066dd655f6302a0ae4465fedb8572507699cc8"
+
+[bank_0.sounds]
+walk_surface_2_1 = 17
+walk_surface_2_2 = 18
+run_surface_2_1 = 19
+run_surface_2_2 = 20
+walk_surface_1_1 = 45
+walk_surface_1_2 = 46
+run_surface_1_1 = 47
+run_surface_1_2 = 48
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/roof_garden/sounds/radio_chatter",
+    "stages/akropolis/rooms/sanctuary/sounds/radio_chatter_2",
+    "stages/akropolis/rooms/roof_garden/sounds/radio_click",
+    "stages/akropolis/rooms/sanctuary/sounds/promenade_door_open",
+    "stages/akropolis/rooms/sanctuary/sounds/promenade_door_close",
+    "stages/akropolis/rooms/roof_garden/sounds/roof_garden_door_open",
+    "stages/akropolis/rooms/roof_garden/sounds/roof_garden_door_close",
+    "stages/akropolis/rooms/sanctuary/sounds/item_lid_open",
+    "stages/akropolis/rooms/sanctuary/sounds/item_lid_close",
+]
+sha1 = "a9010747973258c3408dac132062023b5c59401b"
+
+[bank_1.sounds]
+promenade_door_open = 1
+promenade_door_close = 2
+roof_garden_door_open = 3
+roof_garden_door_close = 4
+item_lid_open = 5
+item_lid_close = 6
+radio_chatter = 7
+radio_click = 8
+
+[item_lid_open]
+type = "sound"
+sha1 = "aa6fb5c83505c92682fb08ceb29e6b3386027dd0"
+
+[item_lid_close]
+type = "sound"
+sha1 = "0cc5fa53467287e6a6d28d237731cac1542706db"
+
+[radio_chatter_2]
+type = "sound"
+sha1 = "ffb9733ace8535529fd9e24c4832188eaa91f958"
+
+[promenade_door_open]
+type = "sound"
+sha1 = "e8b48909dbea8a8272fd02ef78114fe239484738"
+
+[promenade_door_close]
+type = "sound"
+sha1 = "67892103e7b3993c9a50ea7d04fb906b4c11b7c3"

@@ -74,9 +74,9 @@ STATIC_ASSERT_SIZEOF(_Actor07000SlouchProjectileWork, 0x58);
 
 void ActorsShared801349d8(Task*);
 
-static AnimationSet _gAkropolisForkedRoadSucklercephIdleClip;
-static AnimationSet _gAkropolisForkedRoadSucklercephCrawlClip;
-static AnimationSet _gAkropolisForkedRoadSucklercephAnim03Clip;
+static AnimationSet _gSucklercephAndSkullStalkerSucklercephIdleClip;
+static AnimationSet _gSucklercephAndSkullStalkerSucklercephCrawlClip;
+static AnimationSet _gSucklercephAndSkullStalkerSucklercephAnim03Clip;
 static TmdSource    _gAkropolisForkedRoadSucklercephBody;
 static s32          _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
 static void         _actor07000SlouchTask(Task* task);
@@ -130,7 +130,7 @@ static PadScriptVibrationSegment _gSucklercephBurstVibrationSegments[3] = {
     [SUCKLERCEPH_BURST_VIBRATION_FADE] = { .startIntensity = 100, .endIntensity = 50, .durationFrames = 6, .field_3 = 1 },
 };
 
-#include "assets/rooms/akropolis/forked_road/sucklerceph_body.inc"
+#include "assets/encounters/sucklerceph_and_skull_stalker/sucklerceph_body.inc"
 
 #include "assets/encounters/sucklerceph_and_slouch/package_1_clips_1.inc"
 

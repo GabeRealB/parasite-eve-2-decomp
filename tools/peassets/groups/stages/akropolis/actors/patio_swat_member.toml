@@ -1,0 +1,50 @@
+# The assets of the group stages/akropolis/actors/patio_swat_member, each named stages/akropolis/actors/patio_swat_member/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/patio_swat_member/schema"
+symbol = "_gPatioSwatMemberAnimationSets"
+
+[bank.clips]
+dormant = "stages/akropolis/actors/patio_swat_member/dormant"
+warn = "stages/akropolis/actors/patio_swat_member/warn"
+slump = "stages/akropolis/actors/patio_swat_member/slump"
+rest = "stages/akropolis/actors/patio_swat_member/rest"
+
+[rest]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[warn]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[slump]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "dormant", "warn", "slump", "rest"]
+
+[dormant]
+type = "clip"
+rig = "characters/swat_member_1/rig"
+
+[package]
+type = "package"
+embedded = [
+    { asset = "characters/swat_member_1/body", offset = 0x01A90, size = 0x48BC, address = 0x801638B0 },
+    { name = "dormant", offset = 0x0634C, size = 0x1044, address = 0x8016816C },
+    { name = "warn", offset = 0x07390, size = 0x3D4, address = 0x801691B0 },
+    { name = "slump", offset = 0x07764, size = 0x63C, address = 0x80169584 },
+    { name = "rest", offset = 0x07DA0, size = 0x368, address = 0x80169BC0 },
+    { name = "bank", offset = 0x08124, size = 0x18, address = 0x80169F44 },
+]
+exports = { tasks = { at = 0x0815C, symbol = "gPatioSwatMemberTaskDesc" } }
+load = { slot = "actor_3" }
+package_name = "patio_swat_member"
+required = true
+requires = ["gameplay"]
+sha1 = "274783de5c0be610bc1e70593693de58b74ea6fb"

@@ -1,0 +1,37 @@
+# The assets of the group stages/akropolis/rooms/plaza/views, each named stages/akropolis/rooms/plaza/views/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[view2_movie_0]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+
+[view2_movie_1]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 1
+
+[view2_movie_2]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 2
+
+[view2_movie_3]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 3
+
+[view2_movie_4]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 4
+
+[view2_movie_5]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 5

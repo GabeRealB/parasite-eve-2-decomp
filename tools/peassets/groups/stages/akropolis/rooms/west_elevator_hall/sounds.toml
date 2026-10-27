@@ -1,0 +1,32 @@
+# The assets of the group stages/akropolis/rooms/west_elevator_hall/sounds, each named stages/akropolis/rooms/west_elevator_hall/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/fire_escape/sounds/unused_1",
+    "stages/akropolis/rooms/fire_escape/sounds/unused_2",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+]
+sounds = { walk_floor_1 = 17, walk_floor_2 = 18, run_floor_1 = 19, run_floor_2 = 20 }
+sha1 = "26800521891f717986370df6c7391f516fa7c561"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/west_elevator_hall/sounds/elevator_arrival",
+    "stages/akropolis/rooms/west_elevator_hall/sounds/elevator_door_close",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/telephone_scene_3",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/elevator_depart",
+]
+sounds = { door_open = 1, door_close = 2, elevator_arrival = 3, elevator_door_close = 4 }
+sha1 = "6ffcc52d4ae6d38d6d04d8660f66dd8cf81d584a"
+
+[elevator_arrival]
+type = "sound"
+sha1 = "7613a08016409907d81825fc419bc05ffaf1eb06"
+
+[elevator_door_close]
+type = "sound"
+sha1 = "98db3a25afd13d836f2c2423de779cd54f25ead1"

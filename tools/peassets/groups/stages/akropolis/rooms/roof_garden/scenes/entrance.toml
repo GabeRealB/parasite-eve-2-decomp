@@ -1,0 +1,15 @@
+# The assets of the group stages/akropolis/rooms/roof_garden/scenes/entrance, each named stages/akropolis/rooms/roof_garden/scenes/entrance/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/rooms/roof_garden/scenes/entrance/player_schema"
+symbol = "_gAkropolisRoofGardenEntrancePlayerAnimationSets"
+
+[player_bank.clips]
+slot_1 = "characters/aya/stand"
+slot_2 = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
+
+[player_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2"]

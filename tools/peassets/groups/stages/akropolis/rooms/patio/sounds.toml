@@ -1,0 +1,121 @@
+# The assets of the group stages/akropolis/rooms/patio/sounds, each named stages/akropolis/rooms/patio/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
+    "stages/akropolis/rooms/patio/sounds/run_floor_1",
+    "stages/akropolis/rooms/patio/sounds/run_floor_2",
+]
+sha1 = "2f26e000fe6c02e14c44caa285761d1e76f71156"
+
+[bank_0.sounds]
+walk_floor_1 = 1
+walk_floor_2 = 2
+run_floor_1 = 3
+run_floor_2 = 4
+stairs_floor_1 = 17
+stairs_floor_2 = 18
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/patio/sounds/follow_up_scene_1",
+    "stages/akropolis/rooms/patio/sounds/follow_up_scene_2",
+    "stages/akropolis/rooms/patio/sounds/follow_up_scene_3",
+    "stages/akropolis/rooms/patio/sounds/stranger_dormant",
+    "stages/akropolis/rooms/patio/sounds/stranger_dormant_2",
+    "stages/akropolis/rooms/patio/sounds/stranger_dormant_3",
+    "stages/akropolis/rooms/patio/sounds/stranger_dormant_4",
+    "stages/akropolis/rooms/patio/sounds/stranger_dormant_5",
+    "stages/akropolis/rooms/patio/sounds/stranger_dormant_6",
+    "stages/akropolis/rooms/patio/sounds/opening_scene",
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_depart",
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_arrive",
+    "stages/akropolis/rooms/patio/sounds/cafeteria_door_unlock",
+    "stages/akropolis/rooms/patio/sounds/cafeteria_door_depart",
+    "stages/akropolis/rooms/patio/sounds/cafeteria_door_arrive",
+    "stages/akropolis/rooms/patio/sounds/cafeteria_door_locked",
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_locked",
+]
+sha1 = "30d95aaabb87f89553c5b344dccab0a6432209c6"
+
+[bank_1.sounds]
+fountain_door_depart = 1
+fountain_door_arrive = 2
+cafeteria_door_unlock = 3
+cafeteria_door_depart = 4
+cafeteria_door_arrive = 5
+cafeteria_door_locked = 6
+fountain_door_locked = 7
+stranger_dormant = 8
+opening_scene = 9
+follow_up_scene_3 = 10
+follow_up_scene_1 = 11
+follow_up_scene_2 = 12
+
+[run_floor_1]
+type = "sound"
+sha1 = "1c3c19f41c336864b2bbbd704407abaf68c996dc"
+
+[run_floor_2]
+type = "sound"
+sha1 = "ad42e5ff4334046d245ab3b2f9b2f6b8c35baf3f"
+
+[opening_scene]
+type = "sound"
+sha1 = "b673b18c20356046ad90e22d16b5f6b3ab1b457e"
+
+[stranger_dormant]
+type = "sound"
+sha1 = "b2bed460ecd0ea23da43b87bfa9773089dfb5e42"
+
+[follow_up_scene_1]
+type = "sound"
+sha1 = "ef52dcf08ba960ad7c0745eaac28e5c7e37a0884"
+
+[follow_up_scene_2]
+type = "sound"
+sha1 = "b618f2e6ce337e9b87e34d88053fe4d83b55f98d"
+
+[follow_up_scene_3]
+type = "sound"
+sha1 = "5fefeb1801ad6037f42a5e37d84c5f2b0993a183"
+
+[stranger_dormant_2]
+type = "sound"
+sha1 = "67b043dfb5bee2c9fb6acb58c87f014e4873e703"
+
+[stranger_dormant_3]
+type = "sound"
+sha1 = "498cf32bca9d9f6689dca1e97ed8d599657f78d7"
+
+[stranger_dormant_4]
+type = "sound"
+sha1 = "1dba2195331aa76ce2561170917c24c7a1aaeb2f"
+
+[stranger_dormant_5]
+type = "sound"
+sha1 = "c8c56df045fab2ea6176c562867ff70656f757f1"
+
+[stranger_dormant_6]
+type = "sound"
+sha1 = "81f9e6eada7dec0a24f1f71bf07916b8cb8584f6"
+
+[cafeteria_door_arrive]
+type = "sound"
+sha1 = "2b0ec6878464dcdb2f734beda0d538d5c422276e"
+
+[cafeteria_door_depart]
+type = "sound"
+sha1 = "5a0ef954dd8ddc6af1780d5cc1581a13672c1244"
+
+[cafeteria_door_locked]
+type = "sound"
+sha1 = "e250e0a6306aab956eb8269f0fc36cda007ab7eb"
+
+[cafeteria_door_unlock]
+type = "sound"
+sha1 = "9f9cc042c3e0da106d6c9127bb1767d656f172e2"

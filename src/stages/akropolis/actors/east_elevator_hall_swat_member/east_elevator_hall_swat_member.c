@@ -46,7 +46,7 @@ static void      _eastElevatorHallSwatMemberAttachGunTask(Task* task);
 
 #include "assets/characters/swat_member_2/submachine_gun.inc"
 
-#include "assets/rooms/akropolis/east_elevator_hall/swat_member_clips.inc"
+#include "assets/stages/akropolis/actors/east_elevator_hall_swat_member/clips.inc"
 
 /// Animation-request and paired model-visibility messages for the view figure.
 static TaskMessageEntry _gViewFigureMessages[3] = {
@@ -61,7 +61,7 @@ TaskDesc gEastElevatorHallSwatMemberViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
 };
 
 /// The SWAT member's clips by slot.
-#include "assets/rooms/akropolis/east_elevator_hall/swat_bank.inc"
+#include "assets/stages/akropolis/actors/east_elevator_hall_swat_member/bank.inc"
 
 /// Selects the published view-figure body task for the shared fragments.
 #define ACTOR_MESSAGE_BODY_TASK _gEastElevatorHallSwatMemberBodyTask

@@ -62,7 +62,7 @@
 #include "../../../../shared/room/room_cutscene.h"
 #include "../../../../shared/effects/glow_draw.h"
 
-#include "assets/rooms/akropolis/fire_escape/declarations.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/declarations.inc"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -132,17 +132,17 @@ static TaskDesc _gAkropolisFireEscapeAmbienceTaskDescriptors[2] = {
     },
     { .header = { .fields = { TASK_DESC_END, 0 } } },
 };
-#include "assets/rooms/akropolis/fire_escape/samples.inc"
-#include "assets/rooms/akropolis/fire_escape/header.inc"
-#include "assets/rooms/akropolis/fire_escape/geometry.inc"
-#include "assets/rooms/akropolis/fire_escape/view_boundaries.inc"
-#include "assets/rooms/akropolis/fire_escape/action_triggers.inc"
-#include "assets/rooms/akropolis/fire_escape/occluders.inc"
-#include "assets/rooms/akropolis/fire_escape/placements.inc"
-#include "assets/rooms/akropolis/fire_escape/lights.inc"
-#include "assets/rooms/akropolis/fire_escape/sprites.inc"
-#include "assets/rooms/akropolis/fire_escape/cameras.inc"
-#include "assets/rooms/akropolis/fire_escape/surfaces.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/samples.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/header.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/geometry.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/occluders.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/placements.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/lights.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/sprites.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/cameras.inc"
+#include "assets/stages/akropolis/rooms/fire_escape/surfaces.inc"
 
 Task* gRoomCutsceneSoundTask;
 

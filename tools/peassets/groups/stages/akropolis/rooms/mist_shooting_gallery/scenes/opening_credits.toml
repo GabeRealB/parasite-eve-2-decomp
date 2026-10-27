@@ -1,0 +1,7 @@
+# The assets of the group stages/akropolis/rooms/mist_shooting_gallery/scenes/opening_credits, each named stages/akropolis/rooms/mist_shooting_gallery/scenes/opening_credits/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[movie]
+type = "movie"
+folder = "mist_shooting_gallery"
+stream = 100

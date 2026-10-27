@@ -1,0 +1,23 @@
+# The assets of the group stages/akropolis/rooms/patio/scenes/follow_up, each named stages/akropolis/rooms/patio/scenes/follow_up/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/rooms/patio/scenes/follow_up/player_schema"
+symbol = "_gAkropolisPatioFollowUpPlayerAnimationSets"
+
+[player_bank.clips]
+slot_0 = "rooms/shelter/b1_sterilization_room/player_talk_start"
+slot_1 = "rooms/shelter/b1_sterilization_room/player_talk_end"
+slot_2 = "rooms/shelter/b1_sterilization_room/player_talk"
+slot_3 = "stages/akropolis/rooms/patio/scenes/follow_up/player"
+slot_4 = "rooms/shelter/b1_sterilization_room/player_conversation_arrival"
+slot_5 = "rooms/shelter/b1_sterilization_room/player_sterilization_17"
+
+[player_schema]
+type = "animation_schema"
+slots = ["slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5"]

@@ -625,9 +625,9 @@ type = "package"
 exports = { tasks = { at = 0x35BF8, symbol = "gHelicopterLandingPadNo9TaskDescriptors" } }
 load = { slot = "actor_1" }
 package_name = "helicopter_landing_pad_no_9"
-parent = "rooms/akropolis/helicopter_landing_pad/package"
+parent = "stages/akropolis/rooms/helicopter_landing_pad/package"
 required = true
-requires = ["gameplay", "rooms/akropolis/helicopter_landing_pad/package"]
+requires = ["gameplay", "stages/akropolis/rooms/helicopter_landing_pad/package"]
 sha1 = "91bc20bb98fc6653a2729859fef0014c3366bfa1"
 
 [[package_akropolis.embedded]]
@@ -1128,7 +1128,7 @@ pages = [
 slots = 6
 
 [[package_akropolis_file.contents]]
-asset = "rooms/akropolis/sanctuary/no_9"
+asset = "stages/akropolis/actors/sanctuary_no_9/package"
 
 [akropolis_sword_binding]
 type = "binding"
@@ -1185,7 +1185,7 @@ sha1 = "3452e203e5839b17679894af30b5357c48b0a3ea"
 [transformer_cable_binding]
 type = "binding"
 model = "enemies/golem/no_9/transformer_cable"
-textures = { cable = "rooms/akropolis/helicopter_landing_pad/cable.default" }
+textures = { cable = "stages/akropolis/rooms/helicopter_landing_pad/props/cable.default" }
 
 [akropolis_chest_piece_binding]
 type = "binding"

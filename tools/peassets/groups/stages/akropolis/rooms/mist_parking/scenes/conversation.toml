@@ -1,0 +1,119 @@
+# The assets of the group stages/akropolis/rooms/mist_parking/scenes/conversation, each named stages/akropolis/rooms/mist_parking/scenes/conversation/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_schema"
+symbol = "_gMistParkingPlayerConversationAnimationSets"
+
+[player_bank.clips]
+slot_1 = "characters/aya/stand"
+slot_2 = "rooms/shelter/r47/player_look_at_map"
+slot_3 = "rooms/shelter/b3_incinerator_control_room/player_flustered"
+slot_4 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_04"
+slot_5 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_05"
+slot_6 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_06"
+slot_7 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_07"
+slot_8 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_08"
+slot_9 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_09"
+slot_10 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_10"
+slot_11 = "characters/aya/anim_07"
+slot_12 = "characters/aya/talk"
+slot_13 = "rooms/shelter/b6_growth_room/player_choice_start"
+slot_14 = "characters/aya/its_nothing"
+slot_15 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_15"
+slot_16 = "characters/aya/on_my_way"
+slot_17 = "characters/aya/talk_start"
+slot_18 = "characters/aya/talk_end"
+slot_19 = "characters/aya/reply"
+slot_20 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_20"
+slot_21 = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_21"
+slot_22 = "characters/aya/turn_pale"
+slot_23 = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_7"
+slot_24 = "characters/aya/introduce_herself"
+
+[player_schema]
+type = "animation_schema"
+slots = [
+    "",
+    "slot_1",
+    "slot_2",
+    "slot_3",
+    "slot_4",
+    "slot_5",
+    "slot_6",
+    "slot_7",
+    "slot_8",
+    "slot_9",
+    "slot_10",
+    "slot_11",
+    "slot_12",
+    "slot_13",
+    "slot_14",
+    "slot_15",
+    "slot_16",
+    "slot_17",
+    "slot_18",
+    "slot_19",
+    "slot_20",
+    "slot_21",
+    "slot_22",
+    "slot_23",
+    "slot_24",
+]
+
+[player_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim04Clip"
+
+[player_anim_05]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim05Clip"
+
+[player_anim_06]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim06Clip"
+
+[player_anim_07]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim07Clip"
+
+[player_anim_08]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim08Clip"
+
+[player_anim_09]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim09Clip"
+
+[player_anim_10]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim10Clip"
+
+[player_anim_15]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim15Clip"
+
+[player_anim_20]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim20Clip"
+
+[player_anim_21]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim21Clip"
+
+[player_anim_21_copy]
+type = "clip"
+copy_of = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_21"
+rig = "characters/aya/rig"
+symbol = "gMistParkingPlayerConversationAnim21CopyClip"

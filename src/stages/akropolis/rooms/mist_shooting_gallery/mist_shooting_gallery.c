@@ -69,7 +69,7 @@
 #include "../../../../shared/effects/glow_draw.h"
 #include "../../../../shared/room/jukebox.h"
 
-#include "assets/rooms/mist/shooting_gallery/declarations_mist_shooting_gallery.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/declarations_mist_shooting_gallery.inc"
 
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
 enum {
@@ -254,7 +254,7 @@ static TaskDesc _gMistShootingGalleryWeaponMenuTaskDesc = {
     .data     = { .value = 0 },
 };
 
-#include "assets/rooms/mist/shooting_gallery/scores.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/scores.inc"
 UiObjectDesc gMistShootingGalleryResultPanelDesc = {
     .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
     .bounds          = { -104, -48, 208, 64 },
@@ -351,8 +351,8 @@ static TaskMessageEntry _gMistShootingGalleryRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/rooms/mist/shooting_gallery/geometry_1.inc"
-#include "assets/rooms/mist/shooting_gallery/jukebox_2.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/geometry_1.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/jukebox_2.inc"
 /// Single jukebox row handler; shared dispatch applies it to all three or four tracks.
 static UiListRowCallback _gMistShootingGalleryJukeboxRowCallbacks[1] = {
     _jukeboxDrawRow,
@@ -402,8 +402,8 @@ TaskDesc gMistShootingGalleryMovieTaskDescs[MIST_SHOOTING_GALLERY_MOVIE_TASK_COU
         .data     = { .value = 0 },
     },
 };
-#include "assets/rooms/mist/shooting_gallery/header.inc"
-#include "assets/rooms/mist/shooting_gallery/markers.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/header.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/markers.inc"
 
 static void _mistShootingGalleryInitializeRoomTask(Task* task);
 static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask);
@@ -1632,7 +1632,7 @@ void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
     }
 }
 
-#include "assets/rooms/mist/shooting_gallery/jukebox_1.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/jukebox_1.inc"
 /// SELECT title for the jukebox panel, ending at its first NUL.
 static const char _gMistShootingGalleryJukeboxTitle[8] = "SELECT\0\xE1";
 

@@ -1,0 +1,22 @@
+# The assets of the group stages/akropolis/rooms/sanctuary/scenes/arrival, each named stages/akropolis/rooms/sanctuary/scenes/arrival/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/rooms/sanctuary/scenes/arrival/player_schema"
+symbol = "_gAkropolisSanctuaryPlayerSceneAnimationSets"
+
+[player_bank.clips]
+slot_0 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_arrival_7"
+slot_1 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_arrival_11"
+slot_2 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_talk"
+slot_3 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_talk_end"
+slot_4 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_reply"
+slot_5 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_listen"
+slot_6 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_arrival_26"
+slot_7 = "stages/akropolis/actors/sanctuary_rupert/player_sanctuary_arrival_27"
+slot_8 = "stages/akropolis/actors/cafeteria_rupert/arrive"
+
+[player_schema]
+type = "animation_schema"
+slots = ["slot_0", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8"]

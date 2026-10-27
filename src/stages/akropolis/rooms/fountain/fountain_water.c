@@ -39,7 +39,7 @@
 
 #include "rooms/room_common.h"
 
-#include "assets/rooms/akropolis/fountain/declarations.inc"
+#include "assets/stages/akropolis/rooms/fountain/declarations.inc"
 
 /// Phases of `_WaterLoop`.
 enum {
@@ -90,8 +90,8 @@ static void _akropolisFountainClimbFinish(Task* task);
 static void _akropolisFountainWaterMovieTask(Task* task);
 static void _akropolisFountainStopWaterMovieTask(Task* task);
 
-#include "assets/rooms/akropolis/fountain/action_triggers_1.inc"
-#include "assets/rooms/akropolis/fountain/markers.inc"
+#include "assets/stages/akropolis/rooms/fountain/action_triggers_1.inc"
+#include "assets/stages/akropolis/rooms/fountain/markers.inc"
 /// Persistent water-loop request latch (0 no applied request, 1 request applied).
 static s16 _gAkropolisFountainWaterLoopRequested = 0;
 
@@ -101,15 +101,15 @@ static TaskDesc _gAkropolisFountainWaterMovieTaskDescriptors[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _akropolisFountainStopWaterMovieTask, { .value = 0 } },
 };
 
-#include "assets/rooms/akropolis/fountain/header.inc"
-#include "assets/rooms/akropolis/fountain/geometry.inc"
-#include "assets/rooms/akropolis/fountain/view_boundaries.inc"
-#include "assets/rooms/akropolis/fountain/action_triggers_2.inc"
-#include "assets/rooms/akropolis/fountain/placements.inc"
-#include "assets/rooms/akropolis/fountain/lights.inc"
-#include "assets/rooms/akropolis/fountain/sprites.inc"
-#include "assets/rooms/akropolis/fountain/cameras.inc"
-#include "assets/rooms/akropolis/fountain/surfaces.inc"
+#include "assets/stages/akropolis/rooms/fountain/header.inc"
+#include "assets/stages/akropolis/rooms/fountain/geometry.inc"
+#include "assets/stages/akropolis/rooms/fountain/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/fountain/action_triggers_2.inc"
+#include "assets/stages/akropolis/rooms/fountain/placements.inc"
+#include "assets/stages/akropolis/rooms/fountain/lights.inc"
+#include "assets/stages/akropolis/rooms/fountain/sprites.inc"
+#include "assets/stages/akropolis/rooms/fountain/cameras.inc"
+#include "assets/stages/akropolis/rooms/fountain/surfaces.inc"
 
 u8 gAkropolisFountainPatioArrivalWarp = 0;
 

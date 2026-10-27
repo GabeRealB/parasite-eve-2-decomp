@@ -1,0 +1,130 @@
+# The assets of the group stages/akropolis/rooms/mist_shooting_gallery/sounds, each named stages/akropolis/rooms/mist_shooting_gallery/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
+]
+sha1 = "2634d416a878cd6eb16e85d8a5c5bb1e86e83959"
+
+[bank_0.sounds]
+walk_surface_1_1 = 9
+walk_surface_1_2 = 10
+run_surface_1_1 = 11
+run_surface_1_2 = 12
+walk_surface_2_1 = 65
+walk_surface_2_2 = 66
+run_surface_2_1 = 67
+run_surface_2_2 = 68
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/door_2_open",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/door_2_close",
+    "stages/akropolis/rooms/mist_parking/sounds/room_change_door_open",
+    "stages/akropolis/rooms/mist_parking/sounds/room_change_door_close",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/door_3_open",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/door_3_close",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_appear",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_hit",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_death",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_death_2",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/unused_1",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/story_pierce_cue",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/gallery_intro",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_attack",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_kill_kind_9",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_kill",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_kill_kind_10_up",
+    "stages/akropolis/rooms/mist_shooting_gallery/sounds/target_charge",
+]
+sha1 = "cf8b8a59b58fc2a916d46701fe4045a521dd1d64"
+
+[bank_1.sounds]
+door_1_open = 1
+door_1_close = 2
+door_2_open = 3
+door_2_close = 4
+door_3_open = 5
+door_3_close = 6
+target_appear = 7
+target_hit = 8
+target_death = 9
+story_pierce_cue = 11
+gallery_intro = 12
+gallery_demo = 13
+target_attack = 14
+round_start = 15
+target_kill_kind_9 = 16
+target_kill = 17
+target_kill_kind_10_up = 18
+target_charge = 19
+
+[unused_1]
+type = "sound"
+sha1 = "5925039e478b67302120e2f0bf24c96fad3ba61a"
+
+[target_hit]
+type = "sound"
+sha1 = "98341b21c82807637d9bbd121181b7198f5abea1"
+
+[door_2_open]
+type = "sound"
+sha1 = "bed7579e90bcf0a56efca55c25df8bc4ae58d4d2"
+
+[door_3_open]
+type = "sound"
+sha1 = "cebb5cf5378f1e434eb30d4623e730f77d9c671a"
+
+[target_kill]
+type = "sound"
+sha1 = "15f46a89de96ad95d771c5d7372a2047a6acfb80"
+
+[door_2_close]
+type = "sound"
+sha1 = "dccb1aedb65c375bf910cf52235418d9edcc5696"
+
+[door_3_close]
+type = "sound"
+sha1 = "59ae06e2e581222fb53d7ee3fd45d9789f2f4c58"
+
+[target_death]
+type = "sound"
+sha1 = "834ac84a035349ac790c9bdba5321bde70ef30c8"
+
+[gallery_intro]
+type = "sound"
+sha1 = "8335885fe5e321308349b2427be5d04217cc729a"
+
+[target_appear]
+type = "sound"
+sha1 = "0b16f90ae86495e2d53e0846e1e83e8ec8ad06ac"
+
+[target_attack]
+type = "sound"
+sha1 = "445609e109bcdf3440760206bc02eefacf601906"
+
+[target_charge]
+type = "sound"
+sha1 = "c3e42a6927706a56127aac1bedb15fe4108b3390"
+
+[target_death_2]
+type = "sound"
+sha1 = "5892c5517df1549b108ae0cbea40f9342a18e11e"
+
+[story_pierce_cue]
+type = "sound"
+sha1 = "bfbd8e3bf2b98b956f006f9cf1f63784a251f8e7"
+
+[target_kill_kind_9]
+type = "sound"
+sha1 = "a8c00952d8cf99acb2f546a13b6d60ea9d378a80"
+
+[target_kill_kind_10_up]
+type = "sound"
+sha1 = "bc6aa76ecc21c5a342c5bb832f61c126709cb715"

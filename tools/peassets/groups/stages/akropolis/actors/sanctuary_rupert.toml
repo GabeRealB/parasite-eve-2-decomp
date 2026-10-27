@@ -1,0 +1,123 @@
+# The assets of the group stages/akropolis/actors/sanctuary_rupert, each named stages/akropolis/actors/sanctuary_rupert/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/sanctuary_rupert/schema"
+symbol = "_gActor210700AnimationSets"
+
+[bank.clips]
+ambushed = "stages/akropolis/actors/sanctuary_rupert/ambushed"
+arrival_3 = "stages/akropolis/actors/sanctuary_rupert/arrival_3"
+hurt_idle = "stages/akropolis/actors/sanctuary_rupert/hurt_idle"
+arrival_11 = "stages/akropolis/actors/sanctuary_rupert/arrival_11"
+talk = "stages/akropolis/actors/sanctuary_rupert/talk"
+talk_end = "stages/akropolis/actors/sanctuary_rupert/talk_end"
+
+[talk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "ambushed", "arrival_3", "hurt_idle", "arrival_11", "talk", "talk_end"]
+
+[package]
+type = "package"
+embedded = [
+    { name = "player_sanctuary_arrival_7", offset = 0x00750, size = 0x1704, address = 0x8014A570 },
+    { name = "player_sanctuary_arrival_11", offset = 0x01E54, size = 0x9CC, address = 0x8014BC74 },
+    { name = "player_sanctuary_talk", offset = 0x02820, size = 0x35C, address = 0x8014C640 },
+    { name = "player_sanctuary_talk_end", offset = 0x02B7C, size = 0x2B8, address = 0x8014C99C },
+    { name = "player_sanctuary_reply", offset = 0x02E34, size = 0x380, address = 0x8014CC54 },
+    { name = "player_sanctuary_listen", offset = 0x031B4, size = 0x298, address = 0x8014CFD4 },
+    { name = "player_sanctuary_arrival_26", offset = 0x0344C, size = 0x7AC, address = 0x8014D26C },
+    { name = "player_sanctuary_arrival_27", offset = 0x03BF8, size = 0x2C18, address = 0x8014DA18 },
+    { asset = "characters/rupert/body", offset = 0x06810, size = 0x5EF8, address = 0x80150630 },
+    { name = "ambushed", offset = 0x0C708, size = 0x540, address = 0x80156528 },
+    { name = "arrival_3", offset = 0x0CC48, size = 0x3C0, address = 0x80156A68 },
+    { name = "hurt_idle", offset = 0x0D008, size = 0x260, address = 0x80156E28 },
+    { name = "arrival_11", offset = 0x0D268, size = 0x4EC, address = 0x80157088 },
+    { name = "talk", offset = 0x0D754, size = 0x450, address = 0x80157574 },
+    { name = "talk_end", offset = 0x0DBA4, size = 0x288, address = 0x801579C4 },
+    "characters/rupert/eyes_open",
+    "characters/rupert/eyes_half_open",
+    "characters/rupert/eyes_closed",
+    { name = "bank", offset = 0x0E78C, size = 0x1C, address = 0x801585AC },
+]
+load = { slot = "actor_2" }
+package_name = "actor_210700"
+required = true
+requires = ["gameplay"]
+sha1 = "672c188bf5dd3c02d031ea77ad11c6cacddd23e4"
+
+[package.exports]
+tasks = { at = 0x0E7AC, symbol = "gActor210700RupertBroderickTaskDesc" }
+player_sanctuary_arrival_7 = { at = 0x01E2C, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival7Clip" }
+player_sanctuary_arrival_11 = { at = 0x027F8, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival11Clip" }
+player_sanctuary_talk = { at = 0x02B54, symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkClip" }
+player_sanctuary_talk_end = { at = 0x02E0C, symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkEndClip" }
+player_sanctuary_reply = { at = 0x0318C, symbol = "gAkropolisSanctuaryPlayerSanctuaryReplyClip" }
+player_sanctuary_listen = { at = 0x03424, symbol = "gAkropolisSanctuaryPlayerSanctuaryListenClip" }
+player_sanctuary_arrival_26 = { at = 0x03BD0, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival26Clip" }
+player_sanctuary_arrival_27 = { at = 0x067E8, symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival27Clip" }
+
+[ambushed]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[talk_end]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[arrival_3]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[hurt_idle]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[arrival_11]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[player_sanctuary_talk]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkClip"
+
+[player_sanctuary_reply]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryReplyClip"
+
+[player_sanctuary_listen]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryListenClip"
+
+[player_sanctuary_talk_end]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryTalkEndClip"
+
+[player_sanctuary_arrival_7]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival7Clip"
+
+[player_sanctuary_arrival_11]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival11Clip"
+
+[player_sanctuary_arrival_26]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival26Clip"
+
+[player_sanctuary_arrival_27]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisSanctuaryPlayerSanctuaryArrival27Clip"

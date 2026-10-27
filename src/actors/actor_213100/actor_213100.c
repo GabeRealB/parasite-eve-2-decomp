@@ -60,16 +60,16 @@ static void      _actor213100BodyTask(Task* actorTask);
 
 #include "assets/characters/jodie/body.inc"
 
-#include "assets/rooms/mist/r18/laptop.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/props/laptop.inc"
 
-#include "assets/rooms/mist/parking/jodie_clips.inc"
+#include "assets/stages/akropolis/actors/parking_jodie/clips.inc"
 
 /// Jodie Bouquet's body animation sets for bank 0: clip 0 absent, clips 1..9 loaded.
 ///
 /// `AnimationPlayRequest::animationId` selects an entry after `source.index`
 /// selects bank 0. Animation contexts borrow this table and its sets, so the
 /// package must remain loaded for their playback lifetime.
-#include "assets/rooms/mist/parking/jodie_bank.inc"
+#include "assets/stages/akropolis/actors/parking_jodie/bank.inc"
 
 /// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..9.
 ///

@@ -1,0 +1,63 @@
+# The assets of the group stages/akropolis/rooms/mist_r18/scenes/briefing, each named stages/akropolis/rooms/mist_r18/scenes/briefing/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_schema"
+symbol = "_gMistR18PlayerBriefingAnimationSets"
+
+[player_bank.clips]
+slot_1 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_01"
+slot_2 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_02"
+slot_3 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_03"
+slot_4 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_04"
+slot_5 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_05"
+slot_6 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_06"
+slot_7 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_07"
+slot_8 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_08"
+slot_9 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_09"
+slot_10 = "stages/akropolis/rooms/mist_r18/scenes/briefing/player_anim_10"
+
+[player_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2", "slot_3", "slot_4", "slot_5", "slot_6", "slot_7", "slot_8", "slot_9", "slot_10"]
+
+[player_anim_01]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_02]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_03]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_04]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_05]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_06]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_07]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_08]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_09]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_anim_10]
+type = "clip"
+rig = "characters/aya/rig"

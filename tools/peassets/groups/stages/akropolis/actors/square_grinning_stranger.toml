@@ -1,0 +1,36 @@
+# The assets of the group stages/akropolis/actors/square_grinning_stranger, each named stages/akropolis/actors/square_grinning_stranger/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/square_grinning_stranger/schema"
+symbol = "_gSquareGrinningStrangerAnimationSets"
+
+[bank.clips]
+react = "enemies/stranger/react"
+unused_1 = "enemies/stranger/odd/b_walk"
+run_off = "enemies/stranger/odd/b_run"
+idle = "enemies/stranger/leap_crouch"
+unused_2 = "enemies/stranger/leap_start"
+
+[schema]
+type = "animation_schema"
+slots = ["react", "unused_1", "run_off", "", "", "idle", "unused_2", ""]
+
+[package]
+type = "package"
+embedded = [
+    { asset = "enemies/stranger/grinning/body", offset = 0x00BA4, size = 0x5664, address = 0x801329C4 },
+    { asset = "enemies/stranger/react", offset = 0x06208, size = 0x41C, address = 0x80138028 },
+    { asset = "enemies/stranger/odd/b_walk", offset = 0x06624, size = 0xB24, address = 0x80138444 },
+    { asset = "enemies/stranger/odd/b_run", offset = 0x07148, size = 0xA84, address = 0x80138F68 },
+    { asset = "enemies/stranger/leap_crouch", offset = 0x07BCC, size = 0x408, address = 0x801399EC },
+    { asset = "enemies/stranger/leap_start", offset = 0x07FD4, size = 0x654, address = 0x80139DF4 },
+    { name = "bank", offset = 0x08628, size = 0x20, address = 0x8013A448 },
+]
+exports = { tasks = { at = 0x08648, symbol = "gSquareGrinningStrangerTaskDesc" } }
+load = { slot = "actor_1" }
+package_name = "square_grinning_stranger"
+required = true
+requires = ["gameplay", "stages/akropolis/rooms/square/package"]
+sha1 = "d97bb6dbf0ebb661e14214507cac320193b923c2"

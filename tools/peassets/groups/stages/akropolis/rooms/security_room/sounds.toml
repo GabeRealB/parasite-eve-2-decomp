@@ -1,0 +1,56 @@
+# The assets of the group stages/akropolis/rooms/security_room/sounds, each named stages/akropolis/rooms/security_room/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
+]
+sounds = { walk_floor_1 = 9, walk_floor_2 = 10, run_floor_1 = 11, run_floor_2 = 12 }
+sha1 = "2aaa4a44e6c57c9e6b15cd298ae2a24e8563d051"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/security_room/sounds/shutter_unlock",
+    "stages/akropolis/rooms/security_room/sounds/unlock_fade",
+    "stages/akropolis/rooms/fountain/sounds/door_depart",
+    "stages/akropolis/rooms/fountain/sounds/door_arrive",
+    "stages/akropolis/rooms/security_room/sounds/monitor_select",
+    "stages/akropolis/rooms/security_room/sounds/unused_1",
+    "stages/akropolis/rooms/fountain/sounds/unlock_movie_loop",
+    "stages/akropolis/rooms/sanctuary/sounds/item_lid_open",
+    "stages/akropolis/rooms/sanctuary/sounds/item_lid_close",
+]
+sha1 = "477ad24e663e8b634d9df5aa7da4d072fb79831e"
+
+[bank_1.sounds]
+shutter_unlock = 1
+unlock_fade = 2
+monitor_select = 3
+door_depart = 4
+door_arrive = 5
+monitor_brighter = 6
+monitor_darker = 7
+unlock_movie_loop = 8
+item_lid_open = 9
+item_lid_close = 10
+
+[unused_1]
+type = "sound"
+sha1 = "0905dc17256d29eb02b9b75c342a8a94b0ff218b"
+
+[unlock_fade]
+type = "sound"
+sha1 = "8b3c43ff029d7b34c9e0250c962e9bc6ee1bbac5"
+
+[monitor_select]
+type = "sound"
+sha1 = "5afa5a3bf7cdb5c6e898f7350b464c6811ee8d95"
+
+[shutter_unlock]
+type = "sound"
+sha1 = "0bb4f6a89d03f455cc4b274168d4b14b809a6b91"

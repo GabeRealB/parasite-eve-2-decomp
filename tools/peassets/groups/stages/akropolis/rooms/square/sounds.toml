@@ -1,0 +1,79 @@
+# The assets of the group stages/akropolis/rooms/square/sounds, each named stages/akropolis/rooms/square/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+]
+sounds = { walk_floor_1 = 17, walk_floor_2 = 18, run_floor_1 = 19, run_floor_2 = 20 }
+sha1 = "fca5f3a7369e0e2fafe16af20defa5cd093cd858"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/square/sounds/telephone_scene",
+    "stages/akropolis/rooms/square/sounds/telephone_scene_2",
+    "stages/akropolis/rooms/square/sounds/call_start",
+    "stages/akropolis/rooms/square/sounds/unused_2",
+    "stages/akropolis/rooms/square/sounds/unused_1",
+    "stages/akropolis/rooms/square/sounds/ammo_box_open",
+    "stages/akropolis/rooms/square/sounds/call_end",
+    "stages/akropolis/rooms/square/sounds/ammo_box_close",
+    "stages/akropolis/rooms/fire_escape/sounds/telephone_ring",
+    "stages/akropolis/rooms/fire_escape/sounds/call_scene",
+    "stages/akropolis/rooms/square/sounds/call_after",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/telephone_scene_3",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/elevator_depart",
+]
+sha1 = "cfc6a5b7bccd432282dba946c8bc6dcb81064243"
+
+[bank_1.sounds]
+call_start = 1
+elevator_depart = 2
+elevator_arrive = 3
+elevator_blocked = 4
+ammo_box_open = 5
+call_scene = 6
+call_end = 7
+ammo_box_close = 8
+telephone_ring = 9
+telephone_scene = 10
+call_after = 11
+
+[call_end]
+type = "sound"
+sha1 = "71fcbe7a906c44bcbd980cb457b7954dc80687c0"
+
+[unused_1]
+type = "sound"
+sha1 = "c48fdceaa6f9cd0631529f61bf1e401efce28732"
+
+[unused_2]
+type = "sound"
+sha1 = "f3c9d16e67f277a527674183b0eefcf6a17b0253"
+
+[call_after]
+type = "sound"
+sha1 = "fd8a338bbcba8d690f6840fa61afbcf7f81d88bc"
+
+[call_start]
+type = "sound"
+sha1 = "04021a433d024b69e55a21fe67b62495d953a94e"
+
+[ammo_box_open]
+type = "sound"
+sha1 = "46ebb264075ff7e7232aeb9fc8651d14b4279c90"
+
+[ammo_box_close]
+type = "sound"
+sha1 = "b721d47120135a773f337fd0a05b7e2b4a47589e"
+
+[telephone_scene]
+type = "sound"
+sha1 = "ccc8e093d4b2ffe91ca5b24a649591b21e362eaf"
+
+[telephone_scene_2]
+type = "sound"
+sha1 = "466c5a258e5d529f7c56140421e6253df998e9f2"

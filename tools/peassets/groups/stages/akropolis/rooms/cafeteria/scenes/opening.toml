@@ -1,6 +1,11 @@
 # The assets of the group stages/akropolis/rooms/cafeteria/scenes/opening, each named stages/akropolis/rooms/cafeteria/scenes/opening/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
+[movie]
+type = "movie"
+folder = "akropolis_cafeteria"
+stream = 100
+
 [player_bank]
 type = "animation_bank"
 clips = { slot_0 = "stages/akropolis/actors/cafeteria_woman/player_opening" }
@@ -10,8 +15,3 @@ symbol = "_gAkropolisCafeteriaOpeningPlayerAnimationSets"
 [player_schema]
 type = "animation_schema"
 slots = ["slot_0"]
-
-[transformation]
-type = "movie"
-folder = "akropolis_cafeteria"
-stream = 100

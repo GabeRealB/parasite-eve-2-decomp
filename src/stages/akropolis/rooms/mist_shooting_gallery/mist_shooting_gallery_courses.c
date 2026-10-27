@@ -59,7 +59,7 @@ s32 gMistShootingGalleryUnscaledBp;
 #include "../../../../shared/effects/sprite_quad.h"
 #include "../../../../shared/effects/beam_strip.h"
 
-#include "assets/rooms/mist/shooting_gallery/declarations_mist_shooting_gallery_courses.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/declarations_mist_shooting_gallery_courses.inc"
 
 /// Marker values of `_MistShootingGallerySpawn::frame`, above every frame the script clock can reach.
 enum {
@@ -118,7 +118,7 @@ TaskDesc gMistShootingGalleryTaskDescs[MIST_SHOOTING_GALLERY_TASK_COUNT] = {
 /// Modal caption task descriptor, with no body and priority 192.
 static TaskDesc _gMistShootingGalleryCaptionModeTaskDesc = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _mistShootingGalleryCaptionModeTask, { .value = 0 } };
 
-#include "assets/rooms/mist/shooting_gallery/waves.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/waves.inc"
 /// One pointer slot selecting course 0's finite wave script.
 static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse0WaveScriptRefs[1] = {
     _gMistShootingGalleryCourse0WaveScript,
@@ -136,37 +136,37 @@ static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse3WaveScriptRe
 /// Borrowed wave-script pointer for zero-based course 4's combat tutorial.
 static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse4WaveScriptRef = _gMistShootingGalleryCourse4WaveScript;
 
-#include "assets/rooms/mist/shooting_gallery/creature_target_1.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_2.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_3.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_4.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_5.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_6.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_7.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_8.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_9.inc"
-#include "assets/rooms/mist/shooting_gallery/creature_target_10.inc"
-#include "assets/rooms/mist/shooting_gallery/mount.inc"
-#include "assets/rooms/mist/shooting_gallery/half_target_1.inc"
-#include "assets/rooms/mist/shooting_gallery/half_target_2.inc"
-#include "assets/rooms/mist/shooting_gallery/half_target_3.inc"
-#include "assets/rooms/mist/shooting_gallery/half_target_4.inc"
-#include "assets/rooms/mist/shooting_gallery/bullseye_1.inc"
-#include "assets/rooms/mist/shooting_gallery/bullseye_2.inc"
-#include "assets/rooms/mist/shooting_gallery/bullseye_3.inc"
-#include "assets/rooms/mist/shooting_gallery/demonstration_target.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_1.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_2.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_3.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_4.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_5.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_6.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_7.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_8.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_9.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/creature_target_10.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/mount.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/half_target_1.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/half_target_2.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/half_target_3.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/half_target_4.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/bullseye_1.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/bullseye_2.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/bullseye_3.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/props/demonstration_target.inc"
 
 // Keep the read-only table at its original position among the overlay's data.
 
-#include "assets/rooms/mist/shooting_gallery/geometry_2.inc"
-#include "assets/rooms/mist/shooting_gallery/cameras.inc"
-#include "assets/rooms/mist/shooting_gallery/sprites.inc"
-#include "assets/rooms/mist/shooting_gallery/view_boundaries.inc"
-#include "assets/rooms/mist/shooting_gallery/action_triggers.inc"
-#include "assets/rooms/mist/shooting_gallery/lights.inc"
-#include "assets/rooms/mist/shooting_gallery/placements.inc"
-#include "assets/rooms/mist/shooting_gallery/ambient.inc"
-#include "assets/rooms/mist/shooting_gallery/surfaces.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/geometry_2.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/cameras.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/sprites.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/lights.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/placements.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/ambient.inc"
+#include "assets/stages/akropolis/rooms/mist_shooting_gallery/surfaces.inc"
 s32 gMistShootingGalleryUnscaledExp = 0;
 
 Task* gMistShootingGalleryControllerTask;

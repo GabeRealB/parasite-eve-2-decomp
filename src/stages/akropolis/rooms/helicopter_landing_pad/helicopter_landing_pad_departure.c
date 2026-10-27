@@ -48,7 +48,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/declarations_helicopter_landing_pad_departure.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/declarations_helicopter_landing_pad_departure.inc"
 
 static Task* _gAkropolisHelicopterLandingPadPlayerPitchTask;
 
@@ -63,15 +63,15 @@ static const TaskFuncTable3 _gAkropolisHelicopterLandingPadRoomTaskStates = {
     { _akropolisHelicopterLandingPadInitializeRoomTask, akropolisHelicopterLandingPadUpdateEncounterPhase, taskKill },
 };
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/action_triggers.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/occluders.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/placements.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/lights.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/sprites.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/cameras.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/vibrations_2.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/surfaces.inc"
-#include "assets/rooms/akropolis/helicopter_landing_pad/ammunition_pickup.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/occluders.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/placements.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/lights.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/sprites.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/cameras.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/vibrations_2.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/surfaces.inc"
+#include "assets/stages/akropolis/rooms/helicopter_landing_pad/props/ammunition_pickup.inc"
 
 /// Current unwrapped yaw of the singleton player-turn task.
 static s32 _gAkropolisHelicopterLandingPadTurnYaw = 0;

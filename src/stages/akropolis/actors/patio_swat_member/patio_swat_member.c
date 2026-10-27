@@ -36,7 +36,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/actor/actor_messages.h"
 
-#include "assets/rooms/akropolis/patio/swat_schema.h"
+#include "assets/stages/akropolis/actors/patio_swat_member/schema.h"
 
 /// Whole-unit part of the last step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -85,7 +85,7 @@ typedef struct {
     s16                   animRequest;     // `ANIM_REQUEST_*` for `rig`
     byte                  field_88E[0x2];  // never accessed
     s16                   appliedAnim;     // animation `rig` was last started on
-    s16                   animId;          // animation requested of `rig`: `SWAT_ANIMATION_DORMANT` from the spawn, then the room command's number
+    s16                   animId;          // animation requested of `rig`: `PATIO_SWAT_MEMBER_ANIMATION_DORMANT` from the spawn, then the room command's number
     u16                   animFrames;      // ticks since `animRequest` was last applied; never read
     s16                   animRate;        // playback rate of `rig`'s slots
     byte                  field_898[0x2];  // never accessed
@@ -100,7 +100,7 @@ typedef struct {
     byte                  field_8AE[0x6];  // never accessed
     s16                   commandStage;    // stage tag of the last actor command received; never read
     s16                   commandArea;     // area tag of the last actor command received; never read
-    s16                   command;         // command word of the last actor command received; while it is `SWAT_ANIMATION_DORMANT`, view 0x10 plays the dormant sound
+    s16                   command;         // command word of the last actor command received; while it is `PATIO_SWAT_MEMBER_ANIMATION_DORMANT`, view 0x10 plays the dormant sound
     byte                  field_8BA[0x2];  // never accessed
     WorldCollisionBody    body;            // sphere on the chest in collision list 2; the spawn enables its pair tests and entering `STATE_HIDDEN` disables them
     WorldCollisionContact contacts[3];     // contacts of `body`; a tick that finds the first occupied clears them
@@ -121,13 +121,13 @@ static void      _patioSwatMemberTask(Task* task);
 
 #include "assets/characters/swat_member_1/body.inc"
 
-#include "assets/rooms/akropolis/patio/swat_member_clips.inc"
+#include "assets/stages/akropolis/actors/patio_swat_member/clips.inc"
 
 /// Whole-frame blend durations indexed by previous and requested animation; every transition is immediate.
 static s8 _gPatioSwatMemberAnimationBlendFrames[5][5] = { 0 };
 
 /// Animation sets for the scripted SWAT member, indexed by animation ID.
-#include "assets/rooms/akropolis/patio/swat_bank.inc"
+#include "assets/stages/akropolis/actors/patio_swat_member/bank.inc"
 
 /// Message map for the scripted SWAT member's drawing, commands and placement.
 static const TaskMessageEntry _gPatioSwatMemberMessages[4] __attribute__((section(".data"))) = {
@@ -262,7 +262,7 @@ static void _patioSwatMemberSpawn(Enemy* enemy, Task* task)
     enemy->field_4D = 0;
     animationInitContext(&work->rig.anim, _gPatioSwatMemberAnimationSets, model, work->rig.poses, work->rig.slots);
     work->animRequest = ANIM_REQUEST_RESET;
-    work->animId      = SWAT_ANIMATION_DORMANT;
+    work->animId      = PATIO_SWAT_MEMBER_ANIMATION_DORMANT;
     work->animRate    = ANIMATION_RATE_ONE;
     _patioSwatMemberDriveAnimation(task);
     // The sphere and its three contact records live inside the task's work.
@@ -326,7 +326,7 @@ static void _patioSwatMemberTick(Enemy* unusedEnemy, Task* task)
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            if ((viewGetMappedIndex() == DORMANT_SOUND_VIEW) && (work->command == SWAT_ANIMATION_DORMANT)) {
+            if ((viewGetMappedIndex() == DORMANT_SOUND_VIEW) && (work->command == PATIO_SWAT_MEMBER_ANIMATION_DORMANT)) {
                 pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
                 sndEvtRequestScriptStart(SOUND_AKROPOLIS_PATIO_STRANGER_DORMANT, pan,
                                          (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
@@ -417,22 +417,22 @@ static s32 _patioSwatMemberApplyCommand(Task* task, s32 messageId, const ActorCo
     if (command->context.key == PATIO_COMMAND_CONTEXT) {
         animationId = command->command;
         switch (animationId) {
-            case SWAT_ANIMATION_DORMANT:
+            case PATIO_SWAT_MEMBER_ANIMATION_DORMANT:
                 work->animId      = animationId;
                 work->animRequest = ANIM_REQUEST_RESET;
                 break;
 
-            case SWAT_ANIMATION_WARN:
+            case PATIO_SWAT_MEMBER_ANIMATION_WARN:
                 work->animId      = animationId;
                 work->animRequest = ANIM_REQUEST_BLEND;
                 break;
 
-            case SWAT_ANIMATION_SLUMP:
+            case PATIO_SWAT_MEMBER_ANIMATION_SLUMP:
                 work->animId      = animationId;
                 work->animRequest = ANIM_REQUEST_BLEND;
                 break;
 
-            case SWAT_ANIMATION_REST:
+            case PATIO_SWAT_MEMBER_ANIMATION_REST:
                 work->animId      = animationId;
                 work->animRequest = ANIM_REQUEST_BLEND;
                 break;
@@ -474,7 +474,7 @@ static void _patioSwatMemberPlayAnimation(Task* task)
     }
     // Retained branch: no request here selects animation 0x10, outside this bank.
     if (work->animId == 0x10 && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->animId      = SWAT_ANIMATION_REST;
+        work->animId      = PATIO_SWAT_MEMBER_ANIMATION_REST;
         work->animRequest = ANIM_REQUEST_BLEND;
     }
     _patioSwatMemberDriveAnimation(task);

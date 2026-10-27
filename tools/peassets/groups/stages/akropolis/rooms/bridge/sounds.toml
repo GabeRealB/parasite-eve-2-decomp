@@ -1,0 +1,103 @@
+# The assets of the group stages/akropolis/rooms/bridge/sounds, each named stages/akropolis/rooms/bridge/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/bridge/sounds/walk_surface_4_1",
+    "stages/akropolis/rooms/bridge/sounds/walk_surface_4_2",
+    "stages/akropolis/rooms/bridge/sounds/walk_surface_2_1",
+    "stages/akropolis/rooms/bridge/sounds/walk_surface_2_2",
+    "stages/akropolis/rooms/bridge/sounds/run_surface_2_1",
+    "stages/akropolis/rooms/bridge/sounds/run_surface_2_2",
+]
+sha1 = "d1f22b478e60b9f2c9be28e0785d75b8adfcc634"
+
+[bank_0.sounds]
+walk_surface_4_1 = 21
+walk_surface_4_2 = 22
+run_surface_4_1 = 23
+run_surface_4_2 = 24
+jump_surface_4_1 = 25
+jump_surface_4_2 = 26
+walk_surface_2_1 = 37
+walk_surface_2_2 = 38
+run_surface_2_1 = 39
+run_surface_2_2 = 40
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/bridge/sounds/keypad_beep",
+    "stages/akropolis/rooms/bridge/sounds/code_rejected",
+    "stages/akropolis/rooms/bridge/sounds/door_fire_escape_open",
+    "stages/akropolis/rooms/bridge/sounds/door_fire_escape_close",
+    "stages/akropolis/rooms/bridge/sounds/bridge_door_open",
+    "stages/akropolis/rooms/bridge/sounds/bridge_door_close",
+    "stages/akropolis/rooms/bridge/sounds/code_accepted",
+]
+sha1 = "3a6238eb41397d52e3d3579d19ea07549ab1d019"
+
+[bank_1.sounds]
+keypad_beep = 3
+code_rejected = 4
+door_fire_escape_open = 5
+door_fire_escape_close = 6
+door_promenade_open = 7
+door_promenade_close = 8
+code_accepted = 9
+
+[keypad_beep]
+type = "sound"
+mode = "high"
+sha1 = "67ff8d2c37c814334b9fdd1872eb3c4f4fc9cbd0"
+
+[code_accepted]
+type = "sound"
+mode = "high"
+sha1 = "9b2868b9e5b45895b13a711b04ccfbf119244d1f"
+
+[code_rejected]
+type = "sound"
+mode = "high"
+sha1 = "141620cc3512ab9e14da109734d1ba0960cac4fe"
+
+[run_surface_2_1]
+type = "sound"
+sha1 = "0766fcfcf69498fa2a51613ca33a06d278bf0d56"
+
+[run_surface_2_2]
+type = "sound"
+sha1 = "7e9011c8b5e8026a3012b6c975043bb664654085"
+
+[bridge_door_open]
+type = "sound"
+sha1 = "7699035a8aa17ae3c5e4cbf6c4aaef9b0783e5f0"
+
+[walk_surface_2_1]
+type = "sound"
+sha1 = "0afc27a9bde63a55077903d02d7212006ccdbfdd"
+
+[walk_surface_2_2]
+type = "sound"
+sha1 = "b99b8d236a0392f4524558c4d781615cbfd83d83"
+
+[walk_surface_4_1]
+type = "sound"
+sha1 = "c4e3c15dd1ea3f97089f7417f79e8edf5a9b54cb"
+
+[walk_surface_4_2]
+type = "sound"
+sha1 = "8cff3b8861177efe44150d428f661f23db2c94b2"
+
+[bridge_door_close]
+type = "sound"
+sha1 = "691e5fd6a5c05d75ff334ccd99fb8f777249486a"
+
+[door_fire_escape_open]
+type = "sound"
+sha1 = "09ea8a5071f88a17cbf5f86c2c1086c65a580b39"
+
+[door_fire_escape_close]
+type = "sound"
+sha1 = "d431093b45cb046357868d648353162b00211e59"

@@ -1,0 +1,21 @@
+# The assets of the group stages/akropolis/rooms/patio/scenes/ambush, each named stages/akropolis/rooms/patio/scenes/ambush/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_bank]
+type = "animation_bank"
+schema = "stages/akropolis/rooms/patio/scenes/ambush/player_schema"
+symbol = "_gAkropolisPatioAmbushPlayerAnimationSets"
+
+[player_bank.clips]
+slot_1 = "characters/aya/stand"
+slot_2 = "rooms/shelter/r47/player_look_at_map"
+slot_3 = "stages/akropolis/rooms/patio/scenes/ambush/player"
+slot_4 = "characters/aya/extended_aim/aim_enter"
+
+[player_schema]
+type = "animation_schema"
+slots = ["", "slot_1", "slot_2", "slot_3", "slot_4"]

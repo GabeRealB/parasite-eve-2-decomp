@@ -190,9 +190,9 @@ static void      _helicopterDepartureRupertRevolverTask(Task* task);
 static void      _helicopterDepartureRupertRadioTask(Task* task);
 static void      _helicopterDepartureRupertBodyTask(Task* task);
 
-static AnimationSet _gAkropolisHelicopterLandingPadRupertShootClip;
-static AnimationSet _gAkropolisHelicopterLandingPadRupertArriveClip;
-static AnimationSet _gAkropolisHelicopterLandingPadRupertDetonatorTalkClip;
+static AnimationSet _gAkropolisHelicopterDepartureRupertShootClip;
+static AnimationSet _gAkropolisHelicopterDepartureRupertArriveClip;
+static AnimationSet _gAkropolisHelicopterDepartureRupertDetonatorTalkClip;
 
 static s32  _helicopterDepartureRestartHelicopterSequence(Task* task, s32 messageId, s32 unusedRequest, s32 unusedArg);
 static s32  _helicopterDeparturePlaceHelicopter(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg);
@@ -212,7 +212,7 @@ static void      _helicopterDepartureHelicopterTask(Task* task);
 static void      _helicopterDepartureHelicopterRotorTask(Task* task);
 static void      _helicopterDepartureHelicopterSearchlightTask(Task* task);
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_1.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/clips_1.inc"
 
 TaskDesc gHelicopterDepartureHelicopterTaskDescriptors[4] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterTask, { .model = &_gHelicopterDepartureHelicopterHullModel } },
@@ -221,13 +221,13 @@ TaskDesc gHelicopterDepartureHelicopterTaskDescriptors[4] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_CONTROL } }, _helicopterDepartureHelicopterSearchlightTask, { .model = &_gAkropolisHelicopterLandingPadSearchlight } },
 };
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_hull.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/hull.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/main_rotor.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/main_rotor.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/tail_rotor.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/tail_rotor.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/searchlight.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/searchlight.inc"
 
 #include "assets/characters/rupert/body_2.inc"
 
@@ -235,7 +235,7 @@ TaskDesc gHelicopterDepartureHelicopterTaskDescriptors[4] = {
 
 #include "assets/characters/rupert/radio.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_2.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/clips_2.inc"
 
 /// Rupert's eye band in his face texture: its first row, its width in 16-bit VRAM words and its height in rows.
 enum {
@@ -285,7 +285,7 @@ static GpuImageUpload _gHelicopterDepartureRupertEyesClosedUploads[2] = {
 };
 
 /// Rupert's bank-0 clip sources, with NULL at 0 and loaded sets at IDs 1..3.
-#include "assets/rooms/akropolis/helicopter_landing_pad/rupert_bank.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/rupert_bank.inc"
 
 /// Animation-bank selector for Rupert's body; only bank index 0 is valid.
 static AnimationSet** _gHelicopterDepartureRupertAnimationBanks[1] = {
@@ -316,22 +316,22 @@ enum { HELICOPTER_SEQUENCE_FRAME_COUNT = 120 };
 
 /// Helicopter hull Euler rotations for sequence frames 0..119.
 static SVECTOR _gHelicopterDepartureHelicopterSequenceRotations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_rotation_track.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/rotation_track.inc"
 };
 
 /// Helicopter hull positions for sequence frames 0..119, in parent game units.
 static SVECTOR _gHelicopterDepartureHelicopterSequenceTranslations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_translation_track.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/translation_track.inc"
 };
 
 /// Searchlight Euler aim relative to the hull for sequence frames 0..119.
 static SVECTOR _gHelicopterDepartureHelicopterSearchlightRotations[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-#include "assets/rooms/akropolis/helicopter_landing_pad/searchlight_rotation_track.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/searchlight_rotation_track.inc"
 };
 
 /// Lit red-ramp endpoint of the helicopter's sixteen-colour flashing palette.
 static u8 _gHelicopterDepartureHelicopterFlashLitPalette[PALETTE_BYTES] = {
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_lit.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/palette_lit.inc"
 };
 
 /// Absolute VRAM row rewritten by the helicopter's flashing palette.
@@ -345,12 +345,12 @@ static GpuImageUpload _gHelicopterDepartureHelicopterFlashPaletteUploads[2] = {
 
 /// Dark endpoint of the helicopter's sixteen-colour flashing palette.
 static u8 _gHelicopterDepartureHelicopterFlashDarkPalette[PALETTE_BYTES] = {
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_palette_dark.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/palette_dark.inc"
 };
 
 /// Camera frames synchronized with the helicopter's view-24 hull and lamp poses.
 static ViewCamera _gHelicopterDepartureHelicopterSequenceCameras[HELICOPTER_SEQUENCE_FRAME_COUNT] = {
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_camera_track.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/camera_track.inc"
 };
 
 /// Terminated helicopter messages for sequence restart, placement and drawing.
@@ -422,7 +422,7 @@ static s32 _gHelicopterDepartureHelicopterChildDescriptorIndices[3] = {
 
 #include "assets/enemies/golem/no_9/akropolis_chest_piece.inc"
 
-#include "assets/rooms/akropolis/helicopter_landing_pad/helicopter_departure_clips_3.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/clips_3.inc"
 
 TaskDesc gHelicopterDepartureNo9GolemTaskDescriptors[4] = {
     { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR } }, _helicopterDepartureNo9GolemTask, { .model = &gGolemNo9BodyAkropolis } },
@@ -440,7 +440,7 @@ static TaskMessageEntry _gHelicopterDepartureNo9GolemMessages[4] = {
 };
 
 /// No. 9 GOLEM's fixed clip bank: zero is absent, clips 1..3 drive slots 1..18.
-#include "assets/rooms/akropolis/helicopter_landing_pad/no_9_bank.inc"
+#include "assets/stages/akropolis/actors/helicopter_departure/no_9_bank.inc"
 
 static void _helicopterDepartureTickHelicopterPaletteFlash(_HelicopterWork* work);
 

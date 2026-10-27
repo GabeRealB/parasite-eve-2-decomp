@@ -34,7 +34,7 @@
 #include "stages/akropolis/stage.h"
 #include "../../../../shared/room/backdrop_crossfade.h"
 
-#include "assets/rooms/mist/r18/declarations.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/declarations.inc"
 
 /// Packet placement and storage layout of this room's captions and captured backdrop.
 enum {
@@ -118,16 +118,16 @@ static void _mistR18CancelScene(void);
 static void _mistR18SetOrderingDepthShift(s8 depthShift);
 static void _mistR18OpenKeyItemMenu(void);
 
-static AnimationSet _gMistR18PlayerBriefingAnim01Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim02Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim03Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim04Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim05Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim06Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim07Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim08Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim09Clip;
-static AnimationSet _gMistR18PlayerBriefingAnim10Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim01Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim02Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim03Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim04Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim05Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim06Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim07Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim08Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim09Clip;
+static AnimationSet _gAkropolisMistR18BriefingPlayerAnim10Clip;
 static TmdSource    _gMistR18BriefingFile;
 static TmdSource    _gMistR18Laptop;
 static void         _mistR18CaptionTask(Task* task);
@@ -138,11 +138,11 @@ static void         _mistR18CrossfadeTask(Task* task);
 static void         _mistR18PlacePropTask(Task* task);
 static void         _mistR18ReleaseScriptPauseTask(Task* task);
 
-#include "assets/rooms/mist/r18/briefing_file.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/props/briefing_file.inc"
 
-#include "assets/rooms/mist/r18/laptop.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/props/laptop.inc"
 
-#include "assets/rooms/mist/r18/clips.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/clips.inc"
 
 /// Glyph-byte script for the briefing's two-line date and M.I.S.T. location caption.
 static u8 _gMistR18BriefingCaptionScript[60] = {
@@ -239,15 +239,15 @@ static TaskDesc _gMistR18TaskDescs[8] = {
 };
 
 /// Player-bank extension: NULL at slot 47, followed by briefing clips 48..57.
-#include "assets/rooms/mist/r18/player_briefing_bank.inc"
-#include "assets/rooms/mist/r18/events.inc"
-#include "assets/rooms/mist/r18/header.inc"
-#include "assets/rooms/mist/r18/geometry.inc"
-#include "assets/rooms/mist/r18/cameras.inc"
-#include "assets/rooms/mist/r18/sprites.inc"
-#include "assets/rooms/mist/r18/placements.inc"
-#include "assets/rooms/mist/r18/lights.inc"
-#include "assets/rooms/mist/r18/surfaces.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/scenes/briefing/player_bank.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/events.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/header.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/geometry.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/cameras.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/sprites.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/placements.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/lights.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/surfaces.inc"
 
 /// Encoded 8-bit sprite texture page at (960, 0), with its CLUT at (0, 255).
 enum {

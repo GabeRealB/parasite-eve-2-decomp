@@ -80,18 +80,18 @@ enum { ACTOR_213000_LIGHTING_PART = 1 };
 
 #include "assets/characters/eric/hand_right.inc"
 
-#include "assets/rooms/mist/r18/briefing_file.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/props/briefing_file.inc"
 
-#include "assets/rooms/mist/r18/laptop.inc"
+#include "assets/stages/akropolis/rooms/mist_r18/props/laptop.inc"
 
-#include "assets/rooms/mist/r18/eric_clips.inc"
+#include "assets/stages/akropolis/actors/mist_eric/clips.inc"
 
 /// Eric Baldwin's bank-0 clip sets, with loaded clips at indices 1..10.
 ///
 /// Slot 0 is NULL. Requests select bank 0 through the separate bank collection
 /// and then select a clip here by animationId. The rig borrows the table and
 /// its sets; the package must stay loaded throughout scripted playback.
-#include "assets/rooms/mist/r18/eric_bank.inc"
+#include "assets/stages/akropolis/actors/mist_eric/bank.inc"
 
 /// Eric Baldwin's animation-bank directory, selected by a playback request's source index.
 ///

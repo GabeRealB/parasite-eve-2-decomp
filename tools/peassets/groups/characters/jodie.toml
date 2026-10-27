@@ -61,7 +61,7 @@ pages = [
 slots = 7
 
 [[file.contents]]
-asset = "rooms/mist/parking/jodie"
+asset = "stages/akropolis/actors/parking_jodie/package"
 
 [body_2]
 type = "model"

@@ -1,0 +1,489 @@
+# The assets of the group stages/akropolis/rooms/helicopter_landing_pad, each named stages/akropolis/rooms/helicopter_landing_pad/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/helicopter_landing_pad/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/helicopter_landing_pad/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "aaf7fc2cc45fb1084d639c61339ac08f9a06cee8"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/helicopter_landing_pad/props/lift"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/helicopter_landing_pad/props/cable"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "8f52d6ca09354deea1c944d19a32ae6732721dd3"
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "sparkle"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_16"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "smudge"
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "ember"
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "lens_flare"
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_2"
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_3"
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_4"
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_5"
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_6"
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_7"
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_8"
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_9"
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_10"
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/west_elevator_hall/effect_atlas"
+variant = "fireball_11"
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_304"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x00009]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_2"
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_3"
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_4"
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_5"
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_6"
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "tongue_7"
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_2"
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_3"
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_4"
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_5"
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_6"
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_7"
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_8"
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_9"
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_10"
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "sparks"
+variant = "burning_11"
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x0000A]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "79242a86687b7d076198360707fb1a93c1e9e072"
+
+[[file.contents.pages]]
+texture = "sparks"
+region = "engine/vram/effect_sheet"
+offset = [0x000C0, 0x00000]
+
+[[file.contents.pages]]
+atlas = "stages/akropolis/rooms/helicopter_landing_pad/props/lift_page"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view2_palette",
+    "",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view4_palette",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view5_palette",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view6_palette",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view7_palette",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view8_palette",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view9_palette",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view10_palette",
+    "",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view15_palette",
+    "",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view17_palette",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view18_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/helicopter_landing_pad/views/view21_palette",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/helicopter_landing_pad/dialogue_0",
+]
+sha1 = "33c413287357346ce3ac0944e5f2f4c670e938df"
+
+[sparks]
+type = "texture"
+bpp = 4
+height = 256
+variants = [
+    "sparkle",
+    "ember",
+    "lens_flare",
+    "smudge",
+    "tongue_0",
+    "tongue_1",
+    "tongue_2",
+    "tongue_3",
+    "tongue_4",
+    "tongue_5",
+    "tongue_6",
+    "tongue_7",
+    "burning_0",
+    "burning_1",
+    "burning_2",
+    "burning_3",
+    "burning_4",
+    "burning_5",
+    "burning_6",
+    "burning_7",
+    "burning_8",
+    "burning_9",
+    "burning_10",
+    "burning_11",
+]
+width = 256
+
+[sparks.cells]
+burning_0 = [0, 160, 32, 48]
+burning_1 = [32, 160, 32, 48]
+burning_2 = [64, 160, 32, 48]
+burning_3 = [96, 160, 32, 48]
+burning_4 = [128, 160, 32, 48]
+burning_5 = [160, 160, 32, 48]
+burning_6 = [192, 160, 32, 48]
+burning_7 = [224, 160, 32, 48]
+burning_8 = [0, 208, 32, 48]
+burning_9 = [32, 208, 32, 48]
+burning_10 = [64, 208, 32, 48]
+burning_11 = [96, 208, 32, 48]
+ember_0 = [32, 40, 32, 32]
+ember_1 = [64, 40, 32, 32]
+ember_2 = [96, 40, 32, 32]
+ember_3 = [128, 40, 32, 32]
+ember_4 = [160, 40, 32, 32]
+ember_5 = [192, 40, 32, 32]
+flame_0 = [0, 0, 32, 40]
+flame_1 = [32, 0, 32, 40]
+flame_2 = [64, 0, 32, 40]
+flame_3 = [96, 0, 32, 40]
+flame_4 = [128, 0, 32, 40]
+flame_5 = [160, 0, 32, 40]
+flash_0 = [0, 72, 40, 40]
+flash_1 = [40, 72, 40, 40]
+flash_2 = [80, 72, 40, 40]
+flash_3 = [120, 72, 40, 40]
+flash_4 = [160, 72, 40, 40]
+flash_5 = [200, 72, 40, 40]
+smudge_0 = [128, 208, 32, 32]
+smudge_1 = [160, 208, 32, 32]
+smudge_2 = [192, 208, 32, 32]
+smudge_3 = [224, 208, 32, 32]
+tongue_0 = [0, 112, 32, 48]
+tongue_1 = [32, 112, 32, 48]
+tongue_2 = [64, 112, 32, 48]
+tongue_3 = [96, 112, 32, 48]
+tongue_4 = [128, 112, 32, 48]
+tongue_5 = [160, 112, 32, 48]
+tongue_6 = [192, 112, 32, 48]
+tongue_7 = [224, 112, 32, 48]
+
+[package]
+type = "package"
+load = { slot = "room" }
+package_name = "akropolis_helicopter_landing_pad"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "dc29089521da635762fcffefbbf44f6e4914266a"
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/helicopter_landing_pad/props/lift_platform"
+offset = 0x04E04
+size = 0x134C
+address = 0x801823C4
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/helicopter_landing_pad/scenes/departure/player_bank"
+offset = 0x06334
+size = 0xC
+address = 0x801838F4
+
+[[package.embedded]]
+name = "collision"
+offset = 0x07A34
+size = 0x9A4
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/helicopter_landing_pad/props/ammunition_pickup"
+offset = 0x0A828
+size = 0x18C
+address = 0x80187DE8
+
+[package.entries]
+actor_commands = [0x06414]
+animations = [0x062F8, 0x06348, 0x063AC, 0x07868, 0x0787C]
+markers = [0x078C0]
+scripts = [0x06444, 0x06474, 0x069E4, 0x06B64, 0x06EF4, 0x070BC, 0x07734]
+spare_draw_areas = [0x0A250]
+transforms = [0x04DD4, 0x04DEC, 0x061D8, 0x061F0, 0x07890]
+vibrations = [
+    { commands = 0x06178, segments = 0x06188 },
+    { commands = 0x0A774, segments = 0x0A77C, single = true },
+    { commands = 0x0A780, segments = 0x0A788 },
+    { commands = 0x0A790, segments = 0x0A7A0 },
+    { commands = 0x0A7A8, segments = 0x0A7B8 },
+]
+wide_view_masks = [0x07920]
+
+[package.exports]
+lift_task = { at = 0x003A4, symbol = "akropolisHelicopterLandingPadLiftTask" }
+lift_model = { at = 0x0612C, symbol = "gAkropolisHelicopterLandingPadLiftModel" }
+pickup_model_task = { at = 0x04CF0, symbol = "akropolisHelicopterLandingPadPickupModelTask" }
+ammunition_pickup_model = { at = 0x0A990, symbol = "gAkropolisHelicopterLandingPadAmmunitionPickupModel" }
+draw_lower_spark_line = { at = 0x034A4, symbol = "akropolisHelicopterLandingPadDrawLowerSparkLine" }
+
+[package.exports.lethal_strike_vibration_commands]
+at = 0x0A774
+symbol = "gAkropolisHelicopterLandingPadLethalStrikeVibrationCommands"
+
+[package.exports.lethal_strike_vibration_segment]
+at = 0x0A77C
+symbol = "gAkropolisHelicopterLandingPadLethalStrikeVibrationSegment"
+
+[package.slots]
+golem_no_9_akropolis = "enemies/golem/no_9/package_akropolis"
+helicopter_departure = "stages/akropolis/actors/helicopter_departure/package"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "35869d95e475cf288f964a767515e5bb3015c738"
+
+[dialogue_0]
+type = "cap"
+sha1 = "7cc03036e460f1950f425b62a52e9edb1081e2f5"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/helicopter_landing_pad/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "23990f33c35bfb8d0e83424e788a6cf4b6ecdfb5"

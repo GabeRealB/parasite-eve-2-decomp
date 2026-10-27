@@ -1,0 +1,55 @@
+# The assets of the group stages/akropolis/rooms/fire_escape, each named stages/akropolis/rooms/fire_escape/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "",
+    "stages/akropolis/rooms/fire_escape/views/view3_palette",
+    "",
+    "stages/akropolis/rooms/fire_escape/views/view5_palette",
+    "",
+    "stages/akropolis/rooms/fire_escape/views/view7_palette",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/fire_escape/dialogue_0",
+    "rooms/akropolis/story_calls",
+]
+sha1 = "bba4b123b927b03dded77bf32902642f029eb7a2"
+
+[package]
+type = "package"
+embedded = [{ name = "collision", offset = 0x048B4, size = 0x434 }]
+entries = { samples = [0x047BC], spare_batches = [0x05848] }
+load = { slot = "room" }
+package_name = "akropolis_fire_escape"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { stranger_lesser = "enemies/stranger/lesser/package" }
+sha1 = "b7511004662cffe54763d3d29b6dce61614e4451"
+
+[package.exports]
+collision_grid_normals = { at = 0x048B4, symbol = "gAkropolisFireEscapeCollisionGridNormals" }
+collision_grid_verts = { at = 0x04904, symbol = "gAkropolisFireEscapeCollisionGridVerts" }
+collision_grid_faces = { at = 0x04ABC, symbol = "gAkropolisFireEscapeCollisionGridFaces" }
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "d655bbdab49c9d9bb8a771af9cbfb8569eaac22b"
+
+[dialogue_0]
+type = "cap"
+sha1 = "6db5de4ea44ef373dde40258dfb282010b70ab99"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/fire_escape/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "815a5a96d6f0c01c1c16fc80ff22cc351490fdfe"

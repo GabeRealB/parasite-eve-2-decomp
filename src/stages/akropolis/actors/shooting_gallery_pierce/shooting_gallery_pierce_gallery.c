@@ -60,13 +60,13 @@
 #include "../../rooms/mist_shooting_gallery/config.h"
 
 #include "assets/engine/animation/player_schema.h"
-#include "assets/rooms/mist/shooting_gallery/pierce_schema.h"
-#include "assets/rooms/mist/shooting_gallery/player_conversation_schema.h"
-#include "assets/rooms/mist/shooting_gallery/player_gallery_schema.h"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/schema.h"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/player_conversation_schema.h"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/player_gallery_schema.h"
 #include "../../../../shared/walk/paced_walk.h"
 #include "../../../../shared/room/cap_captions_types.h"
 
-#include "assets/rooms/mist/shooting_gallery/pierce/declarations.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/declarations.inc"
 
 // Course selections are 1-based; the room controller receives selection minus one.
 enum {
@@ -135,28 +135,28 @@ static s32       _shootingGalleryPierceIgnoreCommand(Task* task, s32 messageId, 
 static void      _shootingGalleryPiercePierceTask(Task* task);
 static void      _pacedWalkSubModelTask(Task* task);
 
-static AnimationSet _gMistShootingGalleryPiercePhoneListenClip;
-static AnimationSet _gMistShootingGalleryPiercePhoneTalkClip;
-static AnimationSet _gMistShootingGalleryPierceQuipClip;
-static AnimationSet _gMistShootingGalleryPierceTeaseClip;
-static AnimationSet _gMistShootingGalleryPierceWarnClip;
-static AnimationSet _gMistShootingGalleryPierceStory3Clip;
-static AnimationSet _gMistShootingGalleryPierceStory4Clip;
-static AnimationSet _gMistShootingGalleryPierceTalkClip;
-static AnimationSet _gMistShootingGalleryPierceTalkEndClip;
-static AnimationSet _gMistShootingGalleryPierceCorrectHimselfClip;
-static AnimationSet _gMistShootingGalleryPierceCorrectHimselfEndClip;
+static AnimationSet _gAkropolisShootingGalleryPiercePhoneListenClip;
+static AnimationSet _gAkropolisShootingGalleryPiercePhoneTalkClip;
+static AnimationSet _gAkropolisShootingGalleryPierceQuipClip;
+static AnimationSet _gAkropolisShootingGalleryPierceTeaseClip;
+static AnimationSet _gAkropolisShootingGalleryPierceWarnClip;
+static AnimationSet _gAkropolisShootingGalleryPierceStory3Clip;
+static AnimationSet _gAkropolisShootingGalleryPierceStory4Clip;
+static AnimationSet _gAkropolisShootingGalleryPierceTalkClip;
+static AnimationSet _gAkropolisShootingGalleryPierceTalkEndClip;
+static AnimationSet _gAkropolisShootingGalleryPierceCorrectHimselfClip;
+static AnimationSet _gAkropolisShootingGalleryPierceCorrectHimselfEndClip;
 static AnimationSet _gSoldierBStrideWalkAnimAnim08Clip;
 static AnimationSet _gSoldierBStrideWalkAnimAnim09Clip;
 static AnimationSet _gSoldierBStrideWalkAnimAnim10Clip;
 static AnimationSet _gPierceStory17Clip;
-static AnimationSet _gMistShootingGalleryPierceGalleryIdleClip;
-static AnimationSet _gMistShootingGalleryPierceGalleryAskClip;
-static AnimationSet _gMistShootingGalleryPierceGalleryTalkClip;
-static AnimationSet _gMistShootingGalleryPierceGalleryTeaseClip;
-static AnimationSet _gMistShootingGalleryPierceGalleryReactClip;
-static AnimationSet _gMistShootingGalleryPierceLevelPromptClip;
-static AnimationSet _gMistShootingGalleryPierceLevelReplyClip;
+static AnimationSet _gAkropolisShootingGalleryPierceGalleryIdleClip;
+static AnimationSet _gAkropolisShootingGalleryPierceGalleryAskClip;
+static AnimationSet _gAkropolisShootingGalleryPierceGalleryTalkClip;
+static AnimationSet _gAkropolisShootingGalleryPierceGalleryTeaseClip;
+static AnimationSet _gAkropolisShootingGalleryPierceGalleryReactClip;
+static AnimationSet _gAkropolisShootingGalleryPierceLevelPromptClip;
+static AnimationSet _gAkropolisShootingGalleryPierceLevelReplyClip;
 
 static void _shootingGalleryPierceSetConversationCap(s32 enabled);
 
@@ -203,20 +203,20 @@ TaskDesc gShootingGalleryPierceGalleryTaskDescs[SHOOTING_GALLERY_PIERCE_GALLERY_
 
 /// Player animation extension for the gallery's introduction and course menus: player clips 47..57 (53..56 empty).
 /// Its bank-copy request reads past these eleven words into the requests that follow, so they keep their places.
-#include "assets/rooms/mist/shooting_gallery/player_gallery_bank.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/player_gallery_bank.inc"
 
 enum { GALLERY_MENU_BLEND_FRAMES = 6 };
 
-#include "assets/rooms/mist/shooting_gallery/pierce/events_1.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/events_1.inc"
 
-#include "assets/rooms/mist/shooting_gallery/pierce_clips_2.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/clips_2.inc"
 
 /// Player animation extension for Pierce's story and conversation scenes.
-#include "assets/rooms/mist/shooting_gallery/player_conversation_bank.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/player_conversation_bank.inc"
 
 enum { PIERCE_CONVERSATION_BLEND_FRAMES = 8 };
 
-#include "assets/rooms/mist/shooting_gallery/pierce/events_2.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/events_2.inc"
 
 #include "../../../../shared/room/cap_captions_settings.inc.c"
 
@@ -231,7 +231,7 @@ static TaskDesc _gCapCaptionScheduleTaskDesc = {
 
 #include "assets/characters/pierce/glasses.inc"
 
-#include "assets/rooms/mist/shooting_gallery/pierce_clips_3.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/clips_3.inc"
 
 /// Pierce's synchronous animation, paired-draw, placement, command and walk messages.
 static TaskMessageEntry _gShootingGalleryPiercePierceMessageTable[6] = {
@@ -249,7 +249,7 @@ TaskDesc gShootingGalleryPiercePierceTaskDescs[SHOOTING_GALLERY_PIERCE_PIERCE_TA
 };
 
 /// Pierce's body animation bank, indexed directly by scripted clip ID.
-#include "assets/rooms/mist/shooting_gallery/pierce_bank.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/bank.inc"
 
 /// Owned handle of the gallery introduction's repeated red-flash task.
 static Task* _gShootingGalleryPierceGalleryRedFlashLoopTask = NULL;

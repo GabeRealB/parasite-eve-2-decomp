@@ -1,0 +1,44 @@
+# The assets of the group stages/akropolis/rooms/east_elevator_hall/scenes/opening, each named stages/akropolis/rooms/east_elevator_hall/scenes/opening/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[player_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_main]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_lead_in]
+type = "clip"
+rig = "characters/aya/rig"
+
+[player_exit_bank]
+type = "animation_bank"
+clips = { slot_1 = "stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_exit" }
+schema = "stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_exit_schema"
+symbol = "_gAkropolisEastElevatorHallOpeningPlayerExitAnimationSets"
+
+[player_main_bank]
+type = "animation_bank"
+clips = { slot_1 = "stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_main" }
+schema = "stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_main_schema"
+symbol = "_gAkropolisEastElevatorHallOpeningPlayerMainAnimationSets"
+
+[player_exit_schema]
+type = "animation_schema"
+slots = ["", "slot_1"]
+
+[player_main_schema]
+type = "animation_schema"
+slots = ["", "slot_1"]
+
+[player_lead_in_bank]
+type = "animation_bank"
+clips = { slot_1 = "stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_lead_in" }
+schema = "stages/akropolis/rooms/east_elevator_hall/scenes/opening/player_lead_in_schema"
+symbol = "_gAkropolisEastElevatorHallOpeningPlayerLeadInAnimationSets"
+
+[player_lead_in_schema]
+type = "animation_schema"
+slots = ["", "slot_1"]

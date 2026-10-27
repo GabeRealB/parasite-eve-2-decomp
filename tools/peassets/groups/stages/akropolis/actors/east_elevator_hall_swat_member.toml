@@ -1,0 +1,57 @@
+# The assets of the group stages/akropolis/actors/east_elevator_hall_swat_member, each named stages/akropolis/actors/east_elevator_hall_swat_member/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/east_elevator_hall_swat_member/schema"
+symbol = "_gViewFigureAnimSets"
+
+[bank.clips]
+freeze = "stages/akropolis/actors/east_elevator_hall_swat_member/freeze"
+opening_talk = "stages/akropolis/actors/east_elevator_hall_swat_member/opening_talk"
+watch_your_back = "stages/akropolis/actors/east_elevator_hall_swat_member/watch_your_back"
+rest = "stages/akropolis/actors/east_elevator_hall_swat_member/rest"
+urge_hurry = "stages/akropolis/actors/east_elevator_hall_swat_member/urge_hurry"
+
+[rest]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[freeze]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "freeze", "opening_talk", "watch_your_back", "rest", "urge_hurry"]
+
+[package]
+type = "package"
+embedded = [
+    { asset = "characters/swat_member_2/body", offset = 0x0052C, size = 0x57C8, address = 0x8013234C },
+    { asset = "characters/swat_member_2/submachine_gun", offset = 0x05CF4, size = 0x408, address = 0x80137B14 },
+    { name = "freeze", offset = 0x060FC, size = 0x2C8, address = 0x80137F1C },
+    { name = "opening_talk", offset = 0x063C4, size = 0x155C, address = 0x801381E4 },
+    { name = "watch_your_back", offset = 0x07920, size = 0x460, address = 0x80139740 },
+    { name = "rest", offset = 0x07D80, size = 0x28C, address = 0x80139BA0 },
+    { name = "urge_hurry", offset = 0x0800C, size = 0x228, address = 0x80139E2C },
+    { name = "bank", offset = 0x08264, size = 0x1C, address = 0x8013A084 },
+]
+exports = { tasks = { at = 0x0824C, symbol = "gEastElevatorHallSwatMemberViewFigureTasks" } }
+load = { slot = "actor_1" }
+package_name = "east_elevator_hall_swat_member"
+required = true
+requires = ["gameplay"]
+sha1 = "a91d070619df6d567bb0700b391d7d6f40ef7763"
+
+[urge_hurry]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[opening_talk]
+type = "clip"
+rig = "characters/swat_member_2/rig"
+
+[watch_your_back]
+type = "clip"
+rig = "characters/swat_member_2/rig"

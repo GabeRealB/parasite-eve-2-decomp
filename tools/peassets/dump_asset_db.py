@@ -820,7 +820,7 @@ def _toml_record(local: str, rec: dict[str, Any]) -> list[str]:
 
 def write_groups(assets: dict[str, dict[str, Any]]) -> None:
     """Every group's assets into groups/<group>.toml, keyed by local name: the asset's path less its group's
-    (`rooms/akropolis/square/view3_background` is `view3_background`). A group file no asset uses any more is removed. A file's image and palette chunks are
+    (`stages/akropolis/rooms/square/views/view3_background` is `view3_background`). A group file no asset uses any more is removed. A file's image and palette chunks are
     written into its entries, not as tables (texture/declaration.py)."""
     from texture.declaration import texture_chunks as declared_chunks
 

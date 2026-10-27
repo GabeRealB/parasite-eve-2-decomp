@@ -74,14 +74,14 @@ static const TaskFuncTable3 _gMistRupertStates = { {
     enemyTaskExit,
 } };
 
-static AnimationSet _gMistR18RupertRestClip;
-static AnimationSet _gMistR18RupertBriefing1Clip;
-static AnimationSet _gMistR18RupertBriefing2Clip;
-static AnimationSet _gMistR18RupertCutTheCrapClip;
-static AnimationSet _gMistR18RupertAskAboutAkropolisClip;
-static AnimationSet _gMistR18RupertYesSirClip;
-static AnimationSet _gMistR18RupertDismissedClip;
-static AnimationSet _gMistR18RupertReminderClip;
+static AnimationSet _gAkropolisMistRupertRestClip;
+static AnimationSet _gAkropolisMistRupertBriefing1Clip;
+static AnimationSet _gAkropolisMistRupertBriefing2Clip;
+static AnimationSet _gAkropolisMistRupertCutTheCrapClip;
+static AnimationSet _gAkropolisMistRupertAskAboutAkropolisClip;
+static AnimationSet _gAkropolisMistRupertYesSirClip;
+static AnimationSet _gAkropolisMistRupertDismissedClip;
+static AnimationSet _gAkropolisMistRupertReminderClip;
 static TmdSource    _gRupertHurtBody;
 static s32          _mistRupertPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32          _mistRupertSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
@@ -90,7 +90,7 @@ static void         _mistRupertTask(Task* task);
 
 #include "assets/characters/rupert/hurt_body.inc"
 
-#include "assets/rooms/mist/r18/rupert_clips.inc"
+#include "assets/stages/akropolis/actors/mist_rupert/clips.inc"
 
 /// Packed open-eye texture pixels for the actor's face band.
 static u_long _gMistRupertOpenEyesPixels[256] = {
@@ -126,7 +126,7 @@ static GpuImageUpload _gMistRupertClosedEyesUploads[2] = {
 };
 
 /// Loaded animation sets for bank 0: clip IDs 1..8, with NULL at 0.
-#include "assets/rooms/mist/r18/rupert_bank.inc"
+#include "assets/stages/akropolis/actors/mist_rupert/bank.inc"
 
 /// Indexed animation banks; `AnimationPlayRequest.source.index` must be 0.
 static AnimationSet** _gMistRupertAnimationBanks[1] = {

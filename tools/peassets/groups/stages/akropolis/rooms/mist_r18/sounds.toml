@@ -1,0 +1,49 @@
+# The assets of the group stages/akropolis/rooms/mist_r18/sounds, each named stages/akropolis/rooms/mist_r18/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/fire_escape/sounds/unused_1",
+    "stages/akropolis/rooms/fire_escape/sounds/unused_2",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+]
+sha1 = "feb38c589b34fa7c58c99c27e97af4bc7d18d046"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/mist_r18/sounds/unused_1",
+    "stages/akropolis/rooms/mist_r18/sounds/unused_2",
+    "stages/akropolis/rooms/mist_r18/sounds/briefing_baldwin_gesture",
+    "stages/akropolis/rooms/mist_r18/sounds/briefing_held_model_reveal",
+    "stages/akropolis/rooms/mist_r18/sounds/unused_3",
+    "stages/akropolis/rooms/mist_r18/sounds/unused_4",
+]
+sounds = { briefing_baldwin_gesture = 3, briefing_held_model_reveal = 4 }
+sha1 = "a54ac39672d7d38643b4d5cf7321d5eb984eabf7"
+
+[unused_1]
+type = "sound"
+sha1 = "b231cbc075855c03d02727b78494ed6b9c909de0"
+
+[unused_2]
+type = "sound"
+sha1 = "6dcfc8494905173f769f85cbb19cad700915b1b4"
+
+[unused_3]
+type = "sound"
+sha1 = "f44c50674103fa573919a9afaf301a090eba2334"
+
+[unused_4]
+type = "sound"
+sha1 = "e27e0285b0be1e2120e3b8012a2a73cb9899a128"
+
+[briefing_baldwin_gesture]
+type = "sound"
+sha1 = "a3bec672712932ae6d547ed1038f5fa937308977"
+
+[briefing_held_model_reveal]
+type = "sound"
+sha1 = "9a4e1610cddefcd505dd76c089f256b30459c84a"

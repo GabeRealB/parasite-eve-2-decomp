@@ -1,0 +1,109 @@
+# The assets of the group stages/akropolis/actors/shooting_gallery_targets, each named stages/akropolis/actors/shooting_gallery_targets/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "image"
+sha1 = "374e63c641d1506b1136ce6be8f2e52556914427"
+slots = 6
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_1"
+region = "engine/vram/actor_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_2"
+region = "engine/vram/actor_sheet"
+offset = [0x00040, 0x00000]
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_3"
+region = "engine/vram/actor_sheet"
+offset = [0x00080, 0x00000]
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4"
+region = "engine/vram/actor_sheet"
+offset = [0x000C0, 0x00000]
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "4ffa84859521d609032e5227932ce51a9a07d976"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_1"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_2"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "c7d9d816c2602ab8003edb2c3043973710a120ca"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_3"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents]]
+chunk = "palette_3"
+sha1 = "8a35f7a3bdbb95c2395b86c34c7c8671f2fc4ab3"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/target_page_4"
+variant = "default"
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents.palettes]]
+name = "unread_row_249"
+entries = 256
+region = "engine/vram/actor_palettes"
+offset = [0x00000, 0x00004]
+
+[[file.contents]]
+chunk = "palette_4"
+sha1 = "c73a6ba8fcffb82cfcead13aa7ce862e11a2b16d"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/clock_digits"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00000]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/mist_shooting_gallery/props/bullseyes"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00001]
+
+[[file.contents]]
+chunk = "image_2"
+sha1 = "d7b31250d541a9806e84fd36da1c6644a9b0a365"
+
+[[file.contents.pages]]
+atlas = "stages/akropolis/rooms/mist_shooting_gallery/bullseye_page"
+region = "engine/vram/room_model_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "package"
+
+[package]
+type = "package"
+exports = { tasks = { at = 0x03174, symbol = "gShootingGalleryTargetsTaskDescriptors" } }
+load = { slot = "actor_1" }
+package_name = "shooting_gallery_targets"
+required = true
+requires = ["gameplay", "stages/akropolis/rooms/mist_shooting_gallery/package"]
+sha1 = "ee6e6aba8227822c577ad915a2116932fdcbd056"

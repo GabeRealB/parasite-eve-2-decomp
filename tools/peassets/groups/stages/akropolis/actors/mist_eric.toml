@@ -1,0 +1,181 @@
+# The assets of the group stages/akropolis/actors/mist_eric, each named stages/akropolis/actors/mist_eric/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/mist_eric/schema"
+symbol = "_gActor213000EricBaldwinAnimationSets"
+
+[bank.clips]
+rest = "stages/akropolis/actors/mist_eric/rest"
+well_actually = "stages/akropolis/actors/mist_eric/well_actually"
+show_article = "stages/akropolis/actors/mist_eric/show_article"
+explain_autopsies = "stages/akropolis/actors/mist_eric/explain_autopsies"
+explain_nmcs = "stages/akropolis/actors/mist_eric/explain_nmcs"
+hand_folder = "stages/akropolis/actors/mist_eric/hand_folder"
+departure_1 = "stages/akropolis/actors/mist_eric/departure_1"
+assign_clean_up = "stages/akropolis/actors/mist_eric/assign_clean_up"
+dismiss = "stages/akropolis/actors/mist_eric/dismiss"
+reminder = "stages/akropolis/actors/mist_eric/reminder"
+
+[rest]
+type = "clip"
+rig = "characters/eric/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "well_actually",
+    "show_article",
+    "explain_autopsies",
+    "explain_nmcs",
+    "hand_folder",
+    "departure_1",
+    "assign_clean_up",
+    "dismiss",
+    "reminder",
+]
+
+[dismiss]
+type = "clip"
+rig = "characters/eric/rig"
+
+[package]
+type = "package"
+exports = { tasks = { at = 0x0DFC0, symbol = "gActor213000EricBaldwinTaskDescriptors" } }
+load = { slot = "actor_2" }
+package_name = "actor_213000"
+parent = "stages/akropolis/rooms/mist_r18/package"
+required = true
+requires = ["gameplay"]
+sha1 = "ea8273b7341dd67f06108625be31c177a12ec40d"
+
+[[package.embedded]]
+asset = "characters/eric/body"
+offset = 0x00C2C
+size = 0x5BA8
+address = 0x8014AA4C
+
+[[package.embedded]]
+asset = "characters/eric/arm_right"
+offset = 0x067D4
+size = 0x634
+address = 0x801505F4
+
+[[package.embedded]]
+asset = "characters/eric/hand_right"
+offset = 0x06E08
+size = 0x384
+address = 0x80150C28
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/props/briefing_file"
+offset = 0x0718C
+size = 0x2CC
+address = 0x80150FAC
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_r18/props/laptop"
+offset = 0x07458
+size = 0x1F8
+address = 0x80151278
+
+[[package.embedded]]
+name = "rest"
+offset = 0x07650
+size = 0xA58
+address = 0x80151470
+
+[[package.embedded]]
+name = "well_actually"
+offset = 0x080A8
+size = 0x8CC
+address = 0x80151EC8
+
+[[package.embedded]]
+name = "show_article"
+offset = 0x08974
+size = 0x1490
+address = 0x80152794
+
+[[package.embedded]]
+name = "explain_autopsies"
+offset = 0x09E04
+size = 0x1300
+address = 0x80153C24
+
+[[package.embedded]]
+name = "explain_nmcs"
+offset = 0x0B104
+size = 0x990
+address = 0x80154F24
+
+[[package.embedded]]
+name = "hand_folder"
+offset = 0x0BA94
+size = 0xD5C
+address = 0x801558B4
+
+[[package.embedded]]
+name = "departure_1"
+offset = 0x0C7F0
+size = 0x420
+address = 0x80156610
+
+[[package.embedded]]
+name = "assign_clean_up"
+offset = 0x0CC10
+size = 0x7BC
+address = 0x80156A30
+
+[[package.embedded]]
+name = "dismiss"
+offset = 0x0D3CC
+size = 0x380
+address = 0x801571EC
+
+[[package.embedded]]
+name = "reminder"
+offset = 0x0D74C
+size = 0x844
+address = 0x8015756C
+
+[[package.embedded]]
+name = "bank"
+offset = 0x0DF90
+size = 0x2C
+address = 0x80157DB0
+
+[reminder]
+type = "clip"
+rig = "characters/eric/rig"
+
+[departure_1]
+type = "clip"
+rig = "characters/eric/rig"
+
+[hand_folder]
+type = "clip"
+rig = "characters/eric/rig"
+
+[explain_nmcs]
+type = "clip"
+rig = "characters/eric/rig"
+
+[show_article]
+type = "clip"
+rig = "characters/eric/rig"
+
+[well_actually]
+type = "clip"
+rig = "characters/eric/rig"
+
+[assign_clean_up]
+type = "clip"
+rig = "characters/eric/rig"
+
+[explain_autopsies]
+type = "clip"
+rig = "characters/eric/rig"

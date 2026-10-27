@@ -1,0 +1,50 @@
+# The assets of the group stages/akropolis/actors/patio_leaping_strangers, each named stages/akropolis/actors/patio_leaping_strangers/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/patio_leaping_strangers/schema"
+symbol = "_gPatioLeapingStrangersBodyAnimSets"
+
+[bank.clips]
+react = "enemies/stranger/react"
+leap = "enemies/stranger/odd/b_walk"
+run = "enemies/stranger/odd/b_run"
+strike = "enemies/stranger/strike"
+wait_1 = "stages/akropolis/actors/patio_leaping_strangers/wait_1"
+wait_2 = "enemies/stranger/leap_crouch"
+leap_start = "enemies/stranger/leap_start"
+land = "stages/akropolis/actors/patio_leaping_strangers/land"
+
+[land]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "react", "leap", "run", "strike", "wait_1", "wait_2", "leap_start", "land"]
+
+[wait_1]
+type = "clip"
+rig = "enemies/stranger/rig"
+
+[package]
+type = "package"
+embedded = [
+    { asset = "enemies/stranger/grinning/body", offset = 0x00F44, size = 0x5664, address = 0x80162D64 },
+    { asset = "enemies/stranger/react", offset = 0x065A8, size = 0x41C, address = 0x801683C8 },
+    { asset = "enemies/stranger/odd/b_walk", offset = 0x069C4, size = 0xB24, address = 0x801687E4 },
+    { asset = "enemies/stranger/odd/b_run", offset = 0x074E8, size = 0xA84, address = 0x80169308 },
+    { asset = "enemies/stranger/strike", offset = 0x07F6C, size = 0xFC4, address = 0x80169D8C },
+    { name = "wait_1", offset = 0x08F30, size = 0x1028, address = 0x8016AD50 },
+    { asset = "enemies/stranger/leap_crouch", offset = 0x09F58, size = 0x408, address = 0x8016BD78 },
+    { asset = "enemies/stranger/leap_start", offset = 0x0A360, size = 0x654, address = 0x8016C180 },
+    { name = "land", offset = 0x0A9B4, size = 0x748, address = 0x8016C7D4 },
+    { name = "bank", offset = 0x0B0FC, size = 0x24, address = 0x8016CF1C },
+]
+exports = { tasks = { at = 0x0B124, symbol = "gPatioLeapingStrangersTaskDesc" } }
+load = { slot = "actor_3" }
+package_name = "patio_leaping_strangers"
+required = true
+requires = ["gameplay"]
+sha1 = "1622e6d8e0ef76461aa05280b2f39570008a5802"

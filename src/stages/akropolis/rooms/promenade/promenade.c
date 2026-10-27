@@ -65,7 +65,7 @@
 #include "../../../../shared/room/bridge_model.h"
 #include "../../../../shared/effects/acropolis_glows.h"
 
-#include "assets/rooms/akropolis/promenade/declarations.inc"
+#include "assets/stages/akropolis/rooms/promenade/declarations.inc"
 #include "assets/engine/animation/player_schema.h"
 
 static void _akropolisPromenadeInitializeRoomTask(Task* task);
@@ -105,7 +105,7 @@ enum {
     MOVIE_SCENE_FADE_TASK = 4,
 };
 
-#include "assets/rooms/akropolis/bridge/water_surface.inc"
+#include "assets/stages/akropolis/rooms/bridge/props/water_surface.inc"
 
 /// Room-message handlers for exits, CAP commands, actions, key items and sounds.
 static TaskMessageEntry _gAkropolisPromenadeRoomMessages[6] = {
@@ -123,7 +123,7 @@ static TaskDesc _gAkropolisPromenadeTranslucentPlaneTaskDescriptors[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-#include "assets/rooms/akropolis/promenade/events.inc"
+#include "assets/stages/akropolis/rooms/promenade/events.inc"
 /// Warp-4 arrival movie latch (0 not started, 1 spawn already attempted).
 static s32 _gAkropolisPromenadeArrivalMovieStarted = ARRIVAL_MOVIE_NOT_STARTED;
 
@@ -141,7 +141,7 @@ static TaskDesc _gAkropolisPromenadeMovieTaskDescriptors[5] = {
 
 /// Player-root positions for the warp-4 arrival movie, in whole room units.
 static SVECTOR _gAkropolisPromenadeArrivalMoviePlayerPositions[300] = {
-#include "assets/rooms/akropolis/promenade/arrival_player_path.inc"
+#include "assets/stages/akropolis/rooms/promenade/arrival_player_path.inc"
 };
 
 /// X/Z unit signs of the ground-glow square's four corners in GPU strip order.
@@ -151,18 +151,18 @@ static EffectUnitQuadCorner _gAkropolisPromenadeGroundGlowUnitCorners[4] = {
     { -1, -1 },
     { 1, -1 },
 };
-#include "assets/rooms/akropolis/promenade/markers.inc"
-#include "assets/rooms/akropolis/promenade/view_masks.inc"
-#include "assets/rooms/akropolis/promenade/header.inc"
-#include "assets/rooms/akropolis/promenade/geometry.inc"
-#include "assets/rooms/akropolis/promenade/view_boundaries.inc"
-#include "assets/rooms/akropolis/promenade/action_triggers.inc"
-#include "assets/rooms/akropolis/promenade/placements.inc"
-#include "assets/rooms/akropolis/promenade/lights.inc"
-#include "assets/rooms/akropolis/promenade/sprites.inc"
-#include "assets/rooms/akropolis/promenade/cameras.inc"
-#include "assets/rooms/akropolis/promenade/vibrations.inc"
-#include "assets/rooms/akropolis/promenade/surfaces.inc"
+#include "assets/stages/akropolis/rooms/promenade/markers.inc"
+#include "assets/stages/akropolis/rooms/promenade/view_masks.inc"
+#include "assets/stages/akropolis/rooms/promenade/header.inc"
+#include "assets/stages/akropolis/rooms/promenade/geometry.inc"
+#include "assets/stages/akropolis/rooms/promenade/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/promenade/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/promenade/placements.inc"
+#include "assets/stages/akropolis/rooms/promenade/lights.inc"
+#include "assets/stages/akropolis/rooms/promenade/sprites.inc"
+#include "assets/stages/akropolis/rooms/promenade/cameras.inc"
+#include "assets/stages/akropolis/rooms/promenade/vibrations.inc"
+#include "assets/stages/akropolis/rooms/promenade/surfaces.inc"
 
 /// Last executed sanctuary-exit reply before bridge progress, with warp 3.
 static RoomEventMsg _gAkropolisPromenadeSanctuaryExitReply;

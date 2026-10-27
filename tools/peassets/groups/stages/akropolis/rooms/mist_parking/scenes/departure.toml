@@ -1,0 +1,12 @@
+# The assets of the group stages/akropolis/rooms/mist_parking/scenes/departure, each named stages/akropolis/rooms/mist_parking/scenes/departure/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[day_movie]
+type = "movie"
+folder = "mist_parking"
+stream = 100
+
+[night_movie]
+type = "movie"
+folder = "mist_parking"
+stream = 101

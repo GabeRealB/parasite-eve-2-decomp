@@ -62,7 +62,7 @@ pages = [
 slots = 6
 
 [[file.contents]]
-asset = "rooms/mist/r18/eric"
+asset = "stages/akropolis/actors/mist_eric/package"
 
 [arm_right]
 type = "model"

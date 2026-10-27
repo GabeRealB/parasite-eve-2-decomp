@@ -35,8 +35,8 @@
 // The officers are the plaza's: its movies time them and its sound bank holds their steps.
 #include "../../rooms/plaza/config.h"
 
-#include "assets/rooms/akropolis/plaza/police_rookie_schema.h"
-#include "assets/rooms/akropolis/plaza/police_sergeant_schema.h"
+#include "assets/stages/akropolis/actors/police_officers/rookie_schema.h"
+#include "assets/stages/akropolis/actors/police_officers/sergeant_schema.h"
 
 /* The Akropolis plaza's two police officers: the rookie at the tower's entrance and the sergeant at the barricade.
  *
@@ -151,16 +151,16 @@ static void      _policeOfficersSergeantCulledBodyTask(Task* task);
 
 #include "assets/characters/police_sergeant/culled_body.inc"
 
-#include "assets/rooms/akropolis/plaza/police_officers_clips.inc"
+#include "assets/stages/akropolis/actors/police_officers/clips.inc"
 
 /// The rookie's bank, for his body and culled body: its first five clips are the plaza's, the others this overlay's,
 /// so both stay loaded while a model plays from it.
-#include "assets/rooms/akropolis/plaza/police_rookie_bank.inc"
+#include "assets/stages/akropolis/actors/police_officers/rookie_bank.inc"
 
 /// The sergeant's bank, for his body and culled body: all its clips are the plaza's.
-#include "assets/rooms/akropolis/plaza/police_sergeant_bank.inc"
+#include "assets/stages/akropolis/actors/police_officers/sergeant_bank.inc"
 
-#include "assets/rooms/akropolis/plaza/police_scene_player_bank.inc"
+#include "assets/stages/akropolis/actors/police_officers/scene_player_bank.inc"
 
 /// A follow-up entry that ends the chain.
 enum { NO_FOLLOW_UP_ANIMATION = -1 };
@@ -182,54 +182,54 @@ static s16 _gPoliceOfficersPlayerFollowUps[12] = {
     NO_FOLLOW_UP_ANIMATION,
 };
 
-/// The rookie's follow-ups, by `POLICE_ROOKIE_ANIMATION_*`: the clip each clip settles into when it ends - his
+/// The rookie's follow-ups, by `ROOKIE_ANIMATION_*`: the clip each clip settles into when it ends - his
 /// idle, his idle aside, or his talk idle in the officers' talk.
 static s16 _gPoliceOfficersRookieFollowUps[16] = {
     0,
     NO_FOLLOW_UP_ANIMATION,
-    POLICE_ROOKIE_ANIMATION_SHIFT_STANCE,
-    POLICE_ROOKIE_ANIMATION_IDLE,
-    POLICE_ROOKIE_ANIMATION_IDLE,
-    POLICE_ROOKIE_ANIMATION_IDLE,
-    POLICE_ROOKIE_ANIMATION_ASIDE_IDLE,
-    POLICE_ROOKIE_ANIMATION_ASIDE_IDLE,
+    ROOKIE_ANIMATION_SHIFT_STANCE,
+    ROOKIE_ANIMATION_IDLE,
+    ROOKIE_ANIMATION_IDLE,
+    ROOKIE_ANIMATION_IDLE,
+    ROOKIE_ANIMATION_ASIDE_IDLE,
+    ROOKIE_ANIMATION_ASIDE_IDLE,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
-    POLICE_ROOKIE_ANIMATION_TALK_IDLE,
-    POLICE_ROOKIE_ANIMATION_TALK_IDLE,
-    POLICE_ROOKIE_ANIMATION_TALK_IDLE,
+    ROOKIE_ANIMATION_TALK_IDLE,
+    ROOKIE_ANIMATION_TALK_IDLE,
+    ROOKIE_ANIMATION_TALK_IDLE,
     NO_FOLLOW_UP_ANIMATION,
     0,
 };
 
-/// The sergeant's follow-ups, by `POLICE_SERGEANT_ANIMATION_*`: the clip each clip settles into when it ends - his
+/// The sergeant's follow-ups, by `SERGEANT_ANIMATION_*`: the clip each clip settles into when it ends - his
 /// idle at the barricade, his talk idle, or a turn of the head back.
 static s16 _gPoliceOfficersSergeantFollowUps[26] = {
     0,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
-    POLICE_SERGEANT_ANIMATION_TALK_IDLE,
-    POLICE_SERGEANT_ANIMATION_TALK_IDLE,
+    SERGEANT_ANIMATION_TALK_IDLE,
+    SERGEANT_ANIMATION_TALK_IDLE,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
-    POLICE_SERGEANT_ANIMATION_TALK_IDLE,
-    POLICE_SERGEANT_ANIMATION_IDLE,
-    POLICE_SERGEANT_ANIMATION_IDLE,
-    POLICE_SERGEANT_ANIMATION_IDLE,
-    POLICE_SERGEANT_ANIMATION_IDLE,
-    NO_FOLLOW_UP_ANIMATION,
-    NO_FOLLOW_UP_ANIMATION,
-    NO_FOLLOW_UP_ANIMATION,
+    SERGEANT_ANIMATION_TALK_IDLE,
+    SERGEANT_ANIMATION_IDLE,
+    SERGEANT_ANIMATION_IDLE,
+    SERGEANT_ANIMATION_IDLE,
+    SERGEANT_ANIMATION_IDLE,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
     NO_FOLLOW_UP_ANIMATION,
-    POLICE_SERGEANT_ANIMATION_TURNED_IDLE,
     NO_FOLLOW_UP_ANIMATION,
-    POLICE_SERGEANT_ANIMATION_TURN_HEAD_BACK,
+    NO_FOLLOW_UP_ANIMATION,
+    NO_FOLLOW_UP_ANIMATION,
+    SERGEANT_ANIMATION_TURNED_IDLE,
+    NO_FOLLOW_UP_ANIMATION,
+    SERGEANT_ANIMATION_TURN_HEAD_BACK,
     NO_FOLLOW_UP_ANIMATION,
     0,
 };
@@ -481,7 +481,7 @@ static inline void _policeOfficersSwapModel(Task* task, s32 culled)
                     placementId = POLICE_OFFICERS_PLACEMENT_SERGEANT;
                 } while (0);
                 controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersSergeantTaskDescriptors, culled ? MODEL_TASK_CULLED_BODY : MODEL_TASK_BODY,
-                                                                            culled ? POLICE_SERGEANT_ANIMATION_TALK_IDLE : (s32)controllerWork->bodyAnimationId, 0);
+                                                                            culled ? SERGEANT_ANIMATION_TALK_IDLE : (s32)controllerWork->bodyAnimationId, 0);
             } else if (task->spawnArg1.value == MODEL_SELECT_ROOKIE) {
                 do {
                     do {
@@ -489,7 +489,7 @@ static inline void _policeOfficersSwapModel(Task* task, s32 culled)
                     } while (0);
                 } while (0);
                 controllerWork->modelTask = taskSpawnFromTableOnDefaultList(gPoliceOfficersRookieTaskDescriptors, culled ? MODEL_TASK_CULLED_BODY : MODEL_TASK_BODY,
-                                                                            culled ? POLICE_ROOKIE_ANIMATION_ASIDE_IDLE : (s32)controllerWork->bodyAnimationId, 0);
+                                                                            culled ? ROOKIE_ANIMATION_ASIDE_IDLE : (s32)controllerWork->bodyAnimationId, 0);
             }
             _policeOfficersFinishModelSwap(task, controllerWork, placementId);
             break;
@@ -644,7 +644,7 @@ static void _policeOfficersRookieControllerTask(Task* task)
             if (modelVisible) {
                 work            = task->work;
                 placement       = _policeOfficersFindPlacement(POLICE_OFFICERS_PLACEMENT_ROOKIE);
-                modelTask       = taskSpawnFromTable(gPoliceOfficersRookieTaskDescriptors, MODEL_TASK_CULLED_BODY, POLICE_ROOKIE_ANIMATION_STAND, 0);
+                modelTask       = taskSpawnFromTable(gPoliceOfficersRookieTaskDescriptors, MODEL_TASK_CULLED_BODY, ROOKIE_ANIMATION_STAND, 0);
                 work->modelTask = modelTask;
                 _policeOfficersPlaceAt(modelTask, placement);
                 task->state++;
@@ -714,7 +714,7 @@ static void _policeOfficersSergeantControllerTask(Task* task)
                 return;
             }
             task->msgTable         = _gPoliceOfficersMessages;
-            work->spawnAnimationId = POLICE_SERGEANT_ANIMATION_IDLE;
+            work->spawnAnimationId = SERGEANT_ANIMATION_IDLE;
             task->state++;
             break;
         case CONTROLLER_HIDDEN:

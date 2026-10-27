@@ -1,0 +1,53 @@
+# The assets of the group stages/akropolis/rooms/east_elevator_hall/sounds, each named stages/akropolis/rooms/east_elevator_hall/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+]
+sounds = { walk_floor_1 = 17, walk_floor_2 = 18, run_floor_1 = 19, run_floor_2 = 20 }
+sha1 = "9b12b1948637a7bc5bd043d28ef25c10e26f516b"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/east_elevator_hall/sounds/opening_scene",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/opening_scene_2",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/opening_scene_3",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/elevator_depart",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/telephone_scene_3",
+]
+sounds = { elevator_depart = 1, elevator_arrive = 2, opening_scene = 3 }
+sha1 = "a215a647e2d1c212d9d612a56a188b1bfe135741"
+
+[walk_floor_1]
+type = "sound"
+sha1 = "2e2f59acbd05b478382ceb720aa7be50d25a1baf"
+
+[walk_floor_2]
+type = "sound"
+sha1 = "fc4dfebbdc122244d79509faff4756baec0f5468"
+
+[opening_scene]
+type = "sound"
+sha1 = "4f81c30895fbb4f844c5aeb8c68648b4b8032ec7"
+
+[elevator_depart]
+type = "sound"
+mode = "high"
+sha1 = "a4d5f7ab375059b143e34572aa6a3994fa4c977f"
+
+[opening_scene_2]
+type = "sound"
+sha1 = "7a0f5c8a94f97aa9c85173075a996499095b53ae"
+
+[opening_scene_3]
+type = "sound"
+sha1 = "30cce7c7c674572fafb487f0a66c1808297328fd"
+
+[telephone_scene_3]
+type = "sound"
+mode = "high"
+sha1 = "31722a384436b94677cfdd3583ac2e476e84aa03"

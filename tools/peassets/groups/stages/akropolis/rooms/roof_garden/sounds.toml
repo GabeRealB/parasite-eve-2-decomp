@@ -1,0 +1,114 @@
+# The assets of the group stages/akropolis/rooms/roof_garden/sounds, each named stages/akropolis/rooms/roof_garden/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/fountain/sounds/door_depart",
+    "stages/akropolis/rooms/fountain/sounds/door_arrive",
+    "stages/akropolis/rooms/patio/sounds/cafeteria_door_unlock",
+    "stages/akropolis/rooms/roof_garden/sounds/radio_chatter",
+    "stages/akropolis/rooms/roof_garden/sounds/radio_chatter_2",
+    "stages/akropolis/rooms/roof_garden/sounds/radio_click",
+]
+sounds = { door_open = 1, door_close = 2, door_lock = 3, radio_chatter_2 = 4, radio_chatter_1 = 5 }
+sha1 = "92308af89df3f0e9bd73bbe412866aec5ad743f7"
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/roof_garden/sounds/walk_surface_1_1",
+    "stages/akropolis/rooms/roof_garden/sounds/walk_surface_1_2",
+    "stages/akropolis/rooms/roof_garden/sounds/run_surface_1_1",
+    "stages/akropolis/rooms/roof_garden/sounds/run_surface_1_2",
+]
+sounds = { walk_surface_1_1 = 29, walk_surface_1_2 = 30, run_surface_1_1 = 31, run_surface_1_2 = 32 }
+sha1 = "1697c109ba0efd52a5ed34453e12aa9d00ca7abf"
+
+[bank_2]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/crawler_leap",
+    "stages/akropolis/rooms/roof_garden/sounds/radio_click",
+    "stages/akropolis/rooms/roof_garden/sounds/walk_surface_1_1",
+    "stages/akropolis/rooms/roof_garden/sounds/walk_surface_1_2",
+    "stages/akropolis/rooms/roof_garden/sounds/arrival_movement_1",
+    "stages/akropolis/rooms/roof_garden/sounds/arrival_movement_2",
+    "stages/akropolis/rooms/roof_garden/sounds/arrival_movement_3",
+    "stages/akropolis/rooms/roof_garden/sounds/arrival_movement_5",
+    "stages/akropolis/rooms/roof_garden/sounds/roof_garden_door_open",
+    "stages/akropolis/rooms/roof_garden/sounds/roof_garden_door_close",
+    "stages/akropolis/rooms/fire_escape/sounds/ambience",
+    "stages/akropolis/rooms/fire_escape/sounds/ambience_2",
+    "stages/akropolis/rooms/cafeteria/sounds/hallway_door_b_locked",
+]
+sha1 = "851fabed5af12d4425d7fb56a32d27e7504265ff"
+
+[bank_2.sounds]
+door_open = 1
+door_close = 2
+door_locked = 3
+ambience = 5
+arrival_movement_1 = 6
+arrival_movement_2 = 7
+arrival_movement_3 = 8
+arrival_movement_4 = 9
+arrival_movement_5 = 10
+figure_step_1 = 13
+figure_step_2 = 14
+step_1 = 15
+step_2 = 16
+radio_click = 17
+crawler_drop = 18
+
+[radio_click]
+type = "sound"
+sha1 = "7ccc5b43e00381dc1068a15a8112832bd57894f6"
+
+[radio_chatter]
+type = "sound"
+sha1 = "082596221ec371ecf5e12a61ef643eb68589235d"
+
+[radio_chatter_2]
+type = "sound"
+sha1 = "dd384cc9b2dad04a2c18128fcd6a66757bbf14b6"
+
+[run_surface_1_1]
+type = "sound"
+sha1 = "e1b1f2da81bf796f82306f6340e49af6bbc142eb"
+
+[run_surface_1_2]
+type = "sound"
+sha1 = "f6bdb6108fbdc66ce17e25fd5463aa3281465cc7"
+
+[walk_surface_1_1]
+type = "sound"
+sha1 = "fddfeb2efd5d17435f746ad66ec3f1012e9c8409"
+
+[walk_surface_1_2]
+type = "sound"
+sha1 = "e4ad033bf9aa4815df7e37f21a7938a780939e68"
+
+[arrival_movement_1]
+type = "sound"
+sha1 = "bcbd86660968f35224a21fb91aadff7fe07339ca"
+
+[arrival_movement_2]
+type = "sound"
+sha1 = "93af214b4e23a00b342a0616b69dd35fb0027546"
+
+[arrival_movement_3]
+type = "sound"
+sha1 = "63076c5f2b34e90769e3b4c8c5d740f02e388c5a"
+
+[arrival_movement_5]
+type = "sound"
+sha1 = "6a50230dcc06ac117d204a81f3818ee562fa5502"
+
+[roof_garden_door_open]
+type = "sound"
+sha1 = "6d4e79f0a49f2a7fb627823f7698b261f7c2b311"
+
+[roof_garden_door_close]
+type = "sound"
+sha1 = "a74f19fef3e8cc0a34bd87432019c099c932f5b9"

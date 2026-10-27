@@ -1,0 +1,68 @@
+# The assets of the group stages/akropolis/rooms/fountain, each named stages/akropolis/rooms/fountain/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "",
+    "stages/akropolis/rooms/fountain/views/view3_palette",
+    "stages/akropolis/rooms/security_room/views/view16_palette",
+    "stages/akropolis/rooms/fountain/views/view5_palette",
+    "stages/akropolis/rooms/fountain/views/view6_palette",
+    "stages/akropolis/rooms/fountain/views/view7_palette",
+    "stages/akropolis/rooms/fountain/views/view8_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/fountain/views/view11_palette",
+    "stages/akropolis/rooms/fountain/views/view12_palette",
+    "stages/akropolis/rooms/fountain/views/view13_palette",
+    "stages/akropolis/rooms/fountain/views/view14_palette",
+    "stages/akropolis/rooms/fountain/views/view7_palette",
+    "",
+    "stages/akropolis/rooms/fountain/views/view17_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/fountain/views/view20_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/fountain/dialogue_0",
+]
+sha1 = "c21a43de0467cd29377607d88d2196c1e4ba4dc0"
+
+[package]
+type = "package"
+embedded = [{ name = "collision", offset = 0x013C0, size = 0xC8C }]
+load = { slot = "room" }
+package_name = "akropolis_fountain"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "588e1219c3d1cdd079a9ce083670e94eaa0f12cf"
+
+[package.entries]
+action_triggers = [{ at = 0x011E4, single = true }]
+markers = [{ at = 0x01230, single = true }]
+spare_batches = [0x05E20]
+
+[package.slots]
+brute_and_mossback_3 = "encounters/brute_and_mossback/package_3"
+brute_and_mossback_recolor_1 = "encounters/brute_and_mossback/recolor_package_1"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "0c7ec5899d571567298b1f1e96befcff96353818"
+
+[dialogue_0]
+type = "cap"
+sha1 = "029fbe7552b0c5801f7d3aef587a1afebf8f6968"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/fountain/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "056dc86ae89ea7ed36fb24884a724f1a880bc152"

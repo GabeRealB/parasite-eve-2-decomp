@@ -1,0 +1,152 @@
+# The assets of the group stages/akropolis/rooms/mist_r18/views, each named stages/akropolis/rooms/mist_r18/views/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[view4_file]
+type = "file"
+
+[[view4_file.contents]]
+chunk = "view4_image"
+sha1 = "4b7566ec1740893ad5c41d28dee8b56003ed7644"
+pages = [{ texture = "view4_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view4_file.contents]]
+chunk = "view4_background"
+
+[[view4_file.contents]]
+chunk = "view4_palette"
+sha1 = "9f4586761add3983c0a1e5183ce7660fdfa71748"
+
+[[view4_file.contents.palettes]]
+texture = "view4_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view4_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view6_file]
+type = "file"
+
+[[view6_file.contents]]
+chunk = "view6_image"
+sha1 = "cac8eb14b74e95d920fac907c73289a21466debe"
+pages = [{ texture = "view6_page_1", region = "engine/vram/room_sprite_sheet", offset = [0x000C0, 0x00000] }]
+slots = 3
+
+[[view6_file.contents]]
+chunk = "view6_background"
+
+[[view6_file.contents]]
+chunk = "view6_palette"
+sha1 = "dba71ab8c222b5a4182dc189667900789dd46388"
+
+[[view6_file.contents.palettes]]
+texture = "view6_page_1"
+variant = "default"
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00000]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_1"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00001]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_2"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00002]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_3"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00003]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_4"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00004]
+
+[[view6_file.contents.palettes]]
+name = "unread_row_5"
+entries = 256
+region = "engine/vram/room_sprite_palettes"
+offset = [0x00000, 0x00005]
+
+[view4_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view6_page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[view1_background]
+type = "bs"
+sha1 = "8abf06327f8b842a919a8fef7107ef8a60877273"
+
+[view2_background]
+type = "bs"
+sha1 = "0f9a206daa9f91969ace4d9dac04e1b1718731b7"
+
+[view3_background]
+type = "bs"
+sha1 = "cc5158df0410c9abb952b0f178b9e730eb3ea9f1"
+
+[view4_background]
+type = "bs"
+sha1 = "f3a6798a48b04edcf51212d78fcc44224992315a"
+
+[view5_background]
+type = "bs"
+sha1 = "448363677d823c0840f822ffd9b48e6795d68488"
+
+[view6_background]
+type = "bs"
+sha1 = "e4cfa59e15d0581dba4c1b64946098eef0d693b1"
+
+[view7_background]
+type = "bs"
+sha1 = "961ac498b96d9bb61e3675e2e256b431c5a5ba81"
+
+[view10_background]
+type = "bs"
+sha1 = "c631b0e442ebd95d0ca020189f5120920df45bed"

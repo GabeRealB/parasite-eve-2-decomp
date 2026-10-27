@@ -34,7 +34,7 @@
 
 #include "stages/akropolis/rooms/square.h"
 
-#include "assets/rooms/akropolis/square/grinning_stranger_schema.h"
+#include "assets/stages/akropolis/actors/square_grinning_stranger/schema.h"
 #include "../../../../shared/actor/actor_contacts.h"
 
 /// Steps of `_Work::sequenceStep`, in the order the sequence runs them.
@@ -74,10 +74,10 @@ static void      _squareGrinningStrangerTask(Task* task);
 
 #include "assets/enemies/stranger/grinning/body.inc"
 
-#include "assets/rooms/akropolis/square/grinning_stranger_clips.inc"
+#include "assets/stages/akropolis/actors/square_grinning_stranger/clips.inc"
 
 /// Grinning Stranger body clips for its staged turn and departure sequence.
-#include "assets/rooms/akropolis/square/grinning_stranger_bank.inc"
+#include "assets/stages/akropolis/actors/square_grinning_stranger/bank.inc"
 
 TaskDesc gSquareGrinningStrangerTaskDesc = {
     .header   = { .fields = { .flags = (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), .priority = TASK_PRIORITY_CONTROL } },
@@ -149,7 +149,7 @@ static void _squareGrinningStrangerRunSequence(Task* task)
     _squareGrinningStrangerTickAnim(task);
     switch (work->sequenceStep) {
         case STEP_START:
-            _squareGrinningStrangerBlendBodyAnimation(task, GRINNING_STRANGER_ANIMATION_REACT, START_BLEND_FRAMES);
+            _squareGrinningStrangerBlendBodyAnimation(task, SQUARE_GRINNING_STRANGER_ANIMATION_REACT, START_BLEND_FRAMES);
             work->stepFrames = 0;
             work->sequenceStep++;
             break;
@@ -188,7 +188,7 @@ static void _squareGrinningStrangerRunSequence(Task* task)
         case STEP_SWING_HOLD:
             work->stepFrames++;
             if (work->stepFrames >= SWING_HOLD_UPDATES) {
-                _squareGrinningStrangerBlendBodyAnimation(task, GRINNING_STRANGER_ANIMATION_RUN_OFF, DEPART_BLEND_FRAMES);
+                _squareGrinningStrangerBlendBodyAnimation(task, SQUARE_GRINNING_STRANGER_ANIMATION_RUN_OFF, DEPART_BLEND_FRAMES);
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }
@@ -218,7 +218,7 @@ static inline void _squareGrinningStrangerStartIdleTracks(Task* task)
     work->slot1RecordIndex = 0;
     do {
         work->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work->rig.anim, (u16)slotIndex, GRINNING_STRANGER_ANIMATION_IDLE);
+        animationResetSlot(&work->rig.anim, (u16)slotIndex, SQUARE_GRINNING_STRANGER_ANIMATION_IDLE);
         slotIndex += 1;
     } while ((u32)((u16)slotIndex) < ARRAY_SIZE(work->rig.slots));
 }

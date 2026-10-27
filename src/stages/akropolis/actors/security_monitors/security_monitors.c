@@ -85,13 +85,13 @@ static void      _securityMonitorsSwatTask(Task* task);
 
 #include "assets/characters/swat_member_2/body.inc"
 
-#include "assets/rooms/akropolis/security_room/security_monitors_clips.inc"
+#include "assets/stages/akropolis/actors/security_monitors/clips.inc"
 
 /// Rupert's animation-set table for the security-monitor scene.
-#include "assets/rooms/akropolis/security_room/rupert_bank.inc"
+#include "assets/stages/akropolis/actors/security_monitors/rupert_bank.inc"
 
 /// The SWAT figure's animation-set table for the security-monitor scene.
-#include "assets/rooms/akropolis/security_room/swat_bank.inc"
+#include "assets/stages/akropolis/actors/security_monitors/swat_bank.inc"
 
 TaskDesc gSecurityMonitorsSwatTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = TASK_PRIORITY_ACTOR } },

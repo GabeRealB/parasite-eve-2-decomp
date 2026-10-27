@@ -50,7 +50,7 @@
 #include "rooms/room_common.h"
 #include "../../../../shared/effects/glow_draw.h"
 
-#include "assets/rooms/akropolis/west_elevator_hall/declarations.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/declarations.inc"
 
 /// Work block of one leaf of the elevator's sliding door, held in `Task::work`.
 typedef struct {
@@ -84,7 +84,7 @@ static const TaskFuncTable3 _gAkropolisWestElevatorHallRoomTaskStates = {
 static const TaskFuncTable3 _gAkropolisWestElevatorHallDoorLeafStates = {
     { _akropolisWestElevatorHallInitializeDoorLeaf, _akropolisWestElevatorHallUpdateDoorLeaf, taskKill },
 };
-#include "assets/rooms/akropolis/west_elevator_hall/markers.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/markers.inc"
 
 static s32 _akropolisWestElevatorHallOpenDoorMessage(Task* unusedTask, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static s32 _akropolisWestElevatorHallCloseDoorMessage(Task* unusedTask, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
@@ -111,7 +111,7 @@ enum {
     POSITIVE_LEAF_INDEX = 1,
 };
 
-static AnimationSet _gAkropolisWestElevatorHallPlayerStepOutClip;
+static AnimationSet _gAkropolisWestElevatorHallArrivalPlayerStepOutClip;
 static TmdSource    _gAkropolisWestElevatorHallDoorLeafLeftModel;
 static TmdSource    _gAkropolisWestElevatorHallDoorLeafRightModel;
 static void         _akropolisWestElevatorHallDoorLeafTask(Task* task);
@@ -130,11 +130,11 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
     return _gAkropolisWestElevatorHallReflectionTaskTable;
 }
 
-#include "assets/rooms/akropolis/west_elevator_hall/door_leaf_left.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/props/door_leaf_left.inc"
 
-#include "assets/rooms/akropolis/west_elevator_hall/door_leaf_right.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/props/door_leaf_right.inc"
 
-#include "assets/rooms/akropolis/west_elevator_hall/clips.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/clips.inc"
 
 /// The door's two leaves, as model tasks.
 static TaskDesc _gAkropolisWestElevatorHallDoorLeafTaskTable[3] = {
@@ -144,9 +144,9 @@ static TaskDesc _gAkropolisWestElevatorHallDoorLeafTaskTable[3] = {
 };
 
 /// Aya stepping out of the elevator, installed as clip 47 of her weapon bank.
-#include "assets/rooms/akropolis/west_elevator_hall/arrival_bank.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/scenes/arrival/player_bank.inc"
 
-#include "assets/rooms/akropolis/west_elevator_hall/events.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/events.inc"
 
 /// The arrival scene's phase in this visit.
 static s32 _gAkropolisWestElevatorHallArrivalPhase = ARRIVAL_WAITING;
@@ -171,7 +171,7 @@ static u16 _gAkropolisWestElevatorHallBayUnlitClut[256] = { 0 };
 
 /// The bay's palette lit.
 static u16 _gAkropolisWestElevatorHallBayLitClut[256] = {
-#include "assets/rooms/akropolis/west_elevator_hall/bay_lit_palette.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/bay_lit_palette.inc"
 };
 
 /// The bay's palette between the two, as uploaded.
@@ -183,14 +183,14 @@ static GpuImageUpload _gAkropolisWestElevatorHallBayClutUploads[2] = {
     { GPU_IMAGE_UPLOAD_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-#include "assets/rooms/akropolis/west_elevator_hall/header.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/geometry.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/view_boundaries.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/action_triggers.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/sprites.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/lights.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/cameras.inc"
-#include "assets/rooms/akropolis/west_elevator_hall/surfaces.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/header.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/geometry.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/sprites.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/lights.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/cameras.inc"
+#include "assets/stages/akropolis/rooms/west_elevator_hall/surfaces.inc"
 /// The door's two leaf tasks.
 static Task* _gAkropolisWestElevatorHallDoorLeafTasks[2] = { NULL };
 

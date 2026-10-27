@@ -20,7 +20,7 @@
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
 #include "assets/engine/animation/player_schema.h"
-#include "assets/rooms/mist/shooting_gallery/pierce_schema.h"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/schema.h"
 
 TaskDesc gShootingGalleryPierceGalleryDecisionTaskDescs[2] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, shootingGalleryPierceGalleryExitDecisionTask, { .value = 0 } },
@@ -48,7 +48,7 @@ static const AnimationPlayRequest _gShootingGalleryPierceRetainedBank1Clip0Reset
 /// Returns Pierce to his gallery idle twenty-two updates after the course-level reply's clip.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyIdleRequest = {
     .source               = { .index = 1 },
-    .animationId          = PIERCE_ANIMATION_GALLERY_IDLE,
+    .animationId          = SHOOTING_GALLERY_PIERCE_ANIMATION_GALLERY_IDLE,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -57,16 +57,16 @@ static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyIdleRequest 
 /// Retained reset requests for Pierce's `gallery_ask`, `gallery_talk`, `gallery_tease` and `gallery_react`, between his
 /// `gallery_idle` and `level_prompt` requests; nothing plays them.
 static const AnimationPlayRequest _gShootingGalleryPierceRetainedPierceGalleryResetRequests[4] SECTION(".data") = {
-    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_ASK, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_TALK, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_TEASE, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
-    { .source = { .index = 1 }, .animationId = PIERCE_ANIMATION_GALLERY_REACT, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = SHOOTING_GALLERY_PIERCE_ANIMATION_GALLERY_ASK, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = SHOOTING_GALLERY_PIERCE_ANIMATION_GALLERY_TALK, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = SHOOTING_GALLERY_PIERCE_ANIMATION_GALLERY_TEASE, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = SHOOTING_GALLERY_PIERCE_ANIMATION_GALLERY_REACT, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Starts Pierce's level prompt as the gallery course-level prompt begins.
 static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierceRequest SECTION(".data") = {
     .source               = { .index = 1 },
-    .animationId          = PIERCE_ANIMATION_LEVEL_PROMPT,
+    .animationId          = SHOOTING_GALLERY_PIERCE_ANIMATION_LEVEL_PROMPT,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -75,7 +75,7 @@ static const AnimationPlayRequest _gShootingGalleryPierceGalleryLevelPromptPierc
 /// Starts Pierce's level reply when the course-level reply countdown reaches zero.
 static AnimationPlayRequest _gShootingGalleryPierceGalleryLevelReplyRequest = {
     .source               = { .index = 1 },
-    .animationId          = PIERCE_ANIMATION_LEVEL_REPLY,
+    .animationId          = SHOOTING_GALLERY_PIERCE_ANIMATION_LEVEL_REPLY,
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
@@ -90,7 +90,7 @@ static s32 _gShootingGalleryPierceGalleryCoursesStagedCount = 0;
 
 s32 gShootingGalleryPierceGalleryExitInputCooldownTicks = 0;
 
-#include "assets/rooms/mist/shooting_gallery/pierce_clips_1.inc"
+#include "assets/stages/akropolis/actors/shooting_gallery_pierce/clips_1.inc"
 
 /// Advances the caption-reply animation timer without going below -1000.
 static inline void _shootingGalleryPierceUpdateLevelReplyAnimations(Task* task)

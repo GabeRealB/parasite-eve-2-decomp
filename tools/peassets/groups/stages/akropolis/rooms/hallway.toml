@@ -1,0 +1,100 @@
+# The assets of the group stages/akropolis/rooms/hallway, each named stages/akropolis/rooms/hallway/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/hallway/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/hallway/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "6d96de9e86f6d5fd5f017b444405edf9087daeeb"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/hallway/props/blue_key"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_row_264"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "9a59e0fd256fb6840cf1431891b7b4aa2e53283b"
+slots = 3
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/hallway/props/blue_key"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = ["stages/akropolis/rooms/hallway/dialogue_0"]
+sha1 = "92423036ef88e01be88b40f8691a15d95e36714a"
+
+[package]
+type = "package"
+load = { slot = "room" }
+package_name = "akropolis_hallway"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { rat_and_moth_3 = "encounters/rat_and_moth/package_3", stranger_odd_4 = "enemies/stranger/odd/package_4" }
+sha1 = "61c66d02ac5846016b72779cd0bd9dd5fe6a4b44"
+
+[[package.embedded]]
+name = "collision"
+offset = 0x00D98
+size = 0x278
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/hallway/props/blue_key_pickup"
+offset = 0x017A0
+size = 0xB20
+address = 0x8017ED60
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/hallway/props/pain_reliever_pickup"
+offset = 0x022C0
+size = 0x1CC
+address = 0x8017F880
+
+[package.exports]
+blue_key_pickup_task = { at = 0x00B60, symbol = "akropolisHallwayBlueKeyPickupTask" }
+blue_key_pickup_model = { at = 0x0229C, symbol = "gAkropolisHallwayBlueKeyPickupModel" }
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "714ac89148b162d147805b4eaa0a0d7bd6cca9fc"
+
+[dialogue_0]
+type = "cap"
+sha1 = "f861ec7c8eae2e7a657c2dc3daee0a736fbc2333"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/hallway/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "c2bd811ecf4e9ab5e4722c173f520f84d57c3093"

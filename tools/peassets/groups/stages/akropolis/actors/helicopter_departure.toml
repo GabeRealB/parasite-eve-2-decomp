@@ -1,0 +1,190 @@
+# The assets of the group stages/akropolis/actors/helicopter_departure, each named stages/akropolis/actors/helicopter_departure/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[hull]
+type = "model"
+slots = ["lamp", "helicopter_page_1", "helicopter_page_2"]
+symbol = "_gHelicopterDepartureHelicopterHullModel"
+sha1 = "287290885e659e103d74d7e5151a9035e63ce992"
+
+[lamp]
+type = "texture"
+bpp = 4
+height = 16
+variants = ["default"]
+width = 16
+
+[page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[page_2]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 120
+
+[package]
+type = "package"
+embedded = [
+    { name = "player_helipad_report_escape", offset = 0x02350, size = 0x29A0, address = 0x80134170 },
+    { name = "player_helipad_detonator_talk", offset = 0x04CF0, size = 0x2E14, address = 0x80136B10 },
+    { name = "hull", offset = 0x07B34, size = 0x21E0, address = 0x80139954 },
+    { name = "main_rotor", offset = 0x09D14, size = 0x3E8, address = 0x8013BB34 },
+    { name = "tail_rotor", offset = 0x0A0FC, size = 0x160, address = 0x8013BF1C },
+    { name = "searchlight", offset = 0x0A25C, size = 0x604, address = 0x8013C07C },
+    { asset = "characters/rupert/body_2", offset = 0x0A860, size = 0x5EF8, address = 0x8013C680 },
+    { asset = "characters/rupert/mongoose", offset = 0x10758, size = 0x558, address = 0x80142578 },
+    { asset = "characters/rupert/radio", offset = 0x10CB0, size = 0x1E4, address = 0x80142AD0 },
+    { name = "rupert_shoot", offset = 0x10E94, size = 0x3B0, address = 0x80142CB4 },
+    { name = "rupert_arrive", offset = 0x11244, size = 0x1EB8, address = 0x80143064 },
+    { name = "rupert_detonator_talk", offset = 0x130FC, size = 0x1A58, address = 0x80144F1C },
+    { name = "rupert_bank", offset = 0x154B4, size = 0x10, address = 0x801472D4 },
+    "stages/akropolis/actors/helicopter_departure/rotation_track",
+    "stages/akropolis/actors/helicopter_departure/translation_track",
+    "stages/akropolis/actors/helicopter_departure/searchlight_rotation_track",
+    "stages/akropolis/actors/helicopter_departure/palette_lit",
+    "stages/akropolis/actors/helicopter_departure/palette_dark",
+    { name = "camera_track", offset = 0x160C4, size = 0x10E0 },
+    { asset = "enemies/golem/no_9/body_akropolis", offset = 0x17240, size = 0x56CC, address = 0x80149060 },
+    { asset = "enemies/golem/no_9/akropolis_sword", offset = 0x1C90C, size = 0x2A4, address = 0x8014E72C },
+    { asset = "enemies/golem/no_9/akropolis_prop", offset = 0x1CBB0, size = 0x31C, address = 0x8014E9D0 },
+    { asset = "enemies/golem/no_9/akropolis_chest_piece", offset = 0x1CECC, size = 0x35C, address = 0x8014ECEC },
+    { name = "no_9_standoff", offset = 0x1D228, size = 0x36EC, address = 0x8014F048 },
+    { name = "no_9_times_up", offset = 0x20914, size = 0x15D0, address = 0x80152734 },
+    { name = "no_9_leap_away", offset = 0x21EE4, size = 0x136C, address = 0x80153D04 },
+    { name = "no_9_bank", offset = 0x232A0, size = 0x10, address = 0x801550C0 },
+]
+load = { slot = "actor_1" }
+package_name = "helicopter_departure"
+parent = "stages/akropolis/rooms/helicopter_landing_pad/package"
+required = true
+requires = ["gameplay"]
+sha1 = "e742256cbd375eff51b21ed26f4631946ba06139"
+
+[package.exports]
+player_helipad_report_escape = { at = 0x04CC8, symbol = "gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip" }
+no_9_tasks = { at = 0x23250, symbol = "gHelicopterDepartureNo9GolemTaskDescriptors" }
+rupert_tasks = { at = 0x154C8, symbol = "gHelicopterDepartureRupertTaskDescriptors" }
+helicopter_tasks = { at = 0x07B04, symbol = "gHelicopterDepartureHelicopterTaskDescriptors" }
+
+[package.exports.player_helipad_detonator_talk]
+at = 0x07ADC
+symbol = "gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip"
+
+[no_9_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/helicopter_departure/no_9_schema"
+symbol = "_gHelicopterDepartureNo9GolemAnimationSets"
+
+[no_9_bank.clips]
+standoff = "stages/akropolis/actors/helicopter_departure/no_9_standoff"
+times_up = "stages/akropolis/actors/helicopter_departure/no_9_times_up"
+leap_away = "stages/akropolis/actors/helicopter_departure/no_9_leap_away"
+
+[main_rotor]
+type = "model"
+slots = ["helicopter_page_1"]
+symbol = "_gAkropolisHelicopterLandingPadMainRotor"
+sha1 = "e3dd534d29fa8ee95acea9bb10891b882a9b6193"
+
+[tail_rotor]
+type = "model"
+slots = ["helicopter_page_1"]
+symbol = "_gAkropolisHelicopterLandingPadTailRotor"
+sha1 = "bf4f35b6238339de6d6d921ce04cc299fd51ed50"
+
+[no_9_schema]
+type = "animation_schema"
+slots = ["", "standoff", "times_up", "leap_away"]
+
+[rupert_bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/helicopter_departure/rupert_schema"
+symbol = "_gHelicopterDepartureRupertAnimationSets"
+
+[rupert_bank.clips]
+shoot = "stages/akropolis/actors/helicopter_departure/rupert_shoot"
+arrive = "stages/akropolis/actors/helicopter_departure/rupert_arrive"
+detonator_talk = "stages/akropolis/actors/helicopter_departure/rupert_detonator_talk"
+
+[searchlight]
+type = "model"
+slots = ["helicopter_page_1"]
+symbol = "_gAkropolisHelicopterLandingPadSearchlight"
+sha1 = "9b84935e9ebb4ab6aac314464c030687d5382f18"
+
+[camera_track]
+type = "camera_path"
+include = "layout"
+layout = "9h 2x 3i I"
+
+[hull_binding]
+type = "binding"
+model = "stages/akropolis/actors/helicopter_departure/hull"
+
+[hull_binding.textures]
+lamp = "stages/akropolis/actors/helicopter_departure/lamp.default"
+helicopter_page_1 = "stages/akropolis/actors/helicopter_departure/page_1.default"
+helicopter_page_2 = "stages/akropolis/actors/helicopter_departure/page_2.default"
+
+[page_2_sheet]
+type = "atlas"
+sprites = [{ texture = "page_2", at = [0x00008, 0x00000] }, { texture = "lamp", at = [0x00000, 0x00000] }]
+
+[rupert_shoot]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[no_9_standoff]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[no_9_times_up]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[rupert_arrive]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[rupert_schema]
+type = "animation_schema"
+slots = ["", "shoot", "arrive", "detonator_talk"]
+
+[no_9_leap_away]
+type = "clip"
+rig = "enemies/golem/no_9/rig"
+
+[main_rotor_binding]
+type = "binding"
+model = "stages/akropolis/actors/helicopter_departure/main_rotor"
+textures = { helicopter_page_1 = "stages/akropolis/actors/helicopter_departure/page_1.default" }
+
+[tail_rotor_binding]
+type = "binding"
+model = "stages/akropolis/actors/helicopter_departure/tail_rotor"
+textures = { helicopter_page_1 = "stages/akropolis/actors/helicopter_departure/page_1.default" }
+
+[searchlight_binding]
+type = "binding"
+model = "stages/akropolis/actors/helicopter_departure/searchlight"
+textures = { helicopter_page_1 = "stages/akropolis/actors/helicopter_departure/page_1.default" }
+
+[rupert_detonator_talk]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[player_helipad_report_escape]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip"
+
+[player_helipad_detonator_talk]
+type = "clip"
+rig = "characters/aya/rig"
+symbol = "gAkropolisHelicopterLandingPadPlayerHelipadDetonatorTalkClip"

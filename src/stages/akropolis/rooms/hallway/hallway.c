@@ -36,7 +36,7 @@
 #include "overlay.h"
 #include "../../../../shared/actor/actor_contacts.h"
 
-#include "assets/rooms/akropolis/hallway/declarations.inc"
+#include "assets/stages/akropolis/rooms/hallway/declarations.inc"
 
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -66,19 +66,19 @@ static TaskMessageEntry _gAkropolisHallwayRoomMessages[] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "assets/rooms/akropolis/hallway/header.inc"
-#include "assets/rooms/akropolis/hallway/geometry.inc"
-#include "assets/rooms/akropolis/hallway/view_boundaries.inc"
-#include "assets/rooms/akropolis/hallway/action_triggers.inc"
-#include "assets/rooms/akropolis/hallway/placements.inc"
-#include "assets/rooms/akropolis/hallway/lights.inc"
-#include "assets/rooms/akropolis/hallway/sprites.inc"
-#include "assets/rooms/akropolis/hallway/cameras.inc"
-#include "assets/rooms/akropolis/hallway/surfaces.inc"
+#include "assets/stages/akropolis/rooms/hallway/header.inc"
+#include "assets/stages/akropolis/rooms/hallway/geometry.inc"
+#include "assets/stages/akropolis/rooms/hallway/view_boundaries.inc"
+#include "assets/stages/akropolis/rooms/hallway/action_triggers.inc"
+#include "assets/stages/akropolis/rooms/hallway/placements.inc"
+#include "assets/stages/akropolis/rooms/hallway/lights.inc"
+#include "assets/stages/akropolis/rooms/hallway/sprites.inc"
+#include "assets/stages/akropolis/rooms/hallway/cameras.inc"
+#include "assets/stages/akropolis/rooms/hallway/surfaces.inc"
 
-#include "assets/rooms/akropolis/hallway/blue_key_pickup.inc"
+#include "assets/stages/akropolis/rooms/hallway/props/blue_key_pickup.inc"
 
-#include "assets/rooms/akropolis/hallway/pain_reliever_pickup.inc"
+#include "assets/stages/akropolis/rooms/hallway/props/pain_reliever_pickup.inc"
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 

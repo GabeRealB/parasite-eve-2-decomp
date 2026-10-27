@@ -1,0 +1,325 @@
+# The assets of the group stages/akropolis/rooms/roof_garden, each named stages/akropolis/rooms/roof_garden/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/roof_garden/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/roof_garden/sounds/bank_1"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/roof_garden/sounds/bank_2"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+sector_len = 1536
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "de9589216f35516dbbb247be764c6f179a1f7781"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/rooms/roof_garden/props/armory_cardkey"
+variant = "default"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+name = "unread_row_264"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents]]
+chunk = "palette_2"
+sha1 = "51e529aa7e08e8953f4f379e516c429941f2ca96"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/actors/roof_garden_swat_member/glows"
+variant = "glow_0"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/actors/roof_garden_swat_member/glows"
+variant = "glow_1"
+region = "engine/vram/effect_palettes"
+offset = [0x00010, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/actors/roof_garden_swat_member/glows"
+variant = "glow_2"
+region = "engine/vram/effect_palettes"
+offset = [0x00020, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_48"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00030, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_64"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00040, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_80"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00050, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_96"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00060, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_112"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00070, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_128"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00080, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_144"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00090, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_160"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000A0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_176"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000B0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_192"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000C0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_208"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000D0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_224"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000E0, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_240"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x000F0, 0x00009]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/actors/roof_garden_swat_member/glows"
+variant = "leaf"
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_304"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_row_271"
+entries = 256
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_256"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x0000A]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/actors/roof_garden_swat_member/glows"
+variant = "radio"
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x0000A]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "661768e41ae72812dd8abd476ad28a9ae9be0634"
+sector_len = 1536
+
+[[file.contents.pages]]
+texture = "stages/akropolis/actors/roof_garden_swat_member/glows"
+region = "engine/vram/effect_sheet"
+offset = [0x000C0, 0x00000]
+
+[[file.contents.pages]]
+texture = "stages/akropolis/rooms/roof_garden/props/armory_cardkey"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/roof_garden/views/view2_palette",
+    "stages/akropolis/rooms/roof_garden/views/view3_palette",
+    "stages/akropolis/rooms/roof_garden/views/view4_palette",
+    "stages/akropolis/rooms/roof_garden/views/view5_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/roof_garden/dialogue_0",
+]
+sha1 = "47316332c72fd1509886d58fe74ce23a02511beb"
+
+[package]
+type = "package"
+load = { slot = "room" }
+package_name = "akropolis_roof_garden"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "2217089fcd1f4f7bc3c77434cf461ce6644a824b"
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/roof_garden/scenes/arrival/player_anim_00"
+offset = 0x02C20
+size = 0x156C
+address = 0x801801E0
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/roof_garden/scenes/arrival/player_anim_01"
+offset = 0x0418C
+size = 0x1F98
+address = 0x8018174C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/roof_garden/scenes/arrival/player_anim_02"
+offset = 0x06124
+size = 0x4F8
+address = 0x801836E4
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/roof_garden/scenes/arrival/player_bank"
+offset = 0x066F8
+size = 0xC
+address = 0x80183CB8
+
+[[package.embedded]]
+asset = "characters/aya/stand"
+offset = 0x06D70
+size = 0x304
+address = 0x80184330
+
+[[package.embedded]]
+asset = "rooms/shelter/b2_north_maintenance_walkway/player_turn_to_stinger"
+offset = 0x07074
+size = 0x470
+address = 0x80184634
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/roof_garden/scenes/entrance/player_bank"
+offset = 0x074E4
+size = 0xC
+address = 0x80184AA4
+
+[[package.embedded]]
+name = "collision"
+offset = 0x0775C
+size = 0x788
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/roof_garden/props/armory_cardkey_pickup"
+offset = 0x09810
+size = 0xC4
+address = 0x80186DD0
+
+[package.entries]
+actor_commands = [0x06680]
+animations = [0x074F8, 0x07534]
+markers = [0x07638]
+samples = [0x0769C]
+scene_keys = [0x067AC]
+scripts = [0x067B4, 0x06BD4, 0x07548]
+transforms = [0x066C8]
+view_masks = [0x07688]
+
+[package.exports]
+pickup_model_task = { at = 0x02BA0, symbol = "akropolisRoofGardenPickupModelTask" }
+armory_cardkey_pickup_model = { at = 0x098B0, symbol = "gAkropolisRoofGardenArmoryCardkeyPickupModel" }
+
+[package.slots]
+rat_and_moth_2 = "encounters/rat_and_moth/package_2"
+crawler_caterpillar_1 = "enemies/crawler/caterpillar/package_1"
+crawler_caterpillar_2 = "enemies/crawler/caterpillar/package_2"
+crawler_maggot_1 = "enemies/crawler/maggot/package_1"
+crawler_maggot_2 = "enemies/crawler/maggot/package_2"
+swat_member = "stages/akropolis/actors/roof_garden_swat_member/package"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "99387c3150ab851bc2b2ff3391ca0825e4a60ea0"
+
+[dialogue_0]
+type = "cap"
+sha1 = "c3b6ad50dba9a09d50517ad5928484e250efb7e5"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/roof_garden/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "337a4232603dc1a16de339e47b4709f1ea7555aa"

@@ -1,0 +1,11 @@
+# The assets of the group stages/akropolis/rooms/observatory/sounds, each named stages/akropolis/rooms/observatory/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+]
+sounds = { walk_surface_1_1 = 17, walk_surface_1_2 = 18, run_surface_1_1 = 19, run_surface_1_2 = 20 }
+sha1 = "2234339e1f12a294a9d5abd766cd6f48d9c49219"

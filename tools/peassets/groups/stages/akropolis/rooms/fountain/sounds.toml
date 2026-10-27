@@ -1,0 +1,90 @@
+# The assets of the group stages/akropolis/rooms/fountain/sounds, each named stages/akropolis/rooms/fountain/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_1",
+    "stages/akropolis/rooms/forked_road/sounds/walk_floor_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_3_2",
+    "stages/akropolis/rooms/fountain/sounds/walk_surface_5_1",
+    "stages/akropolis/rooms/fountain/sounds/walk_surface_5_2",
+    "stages/akropolis/rooms/fountain/sounds/run_surface_5_1",
+    "stages/akropolis/rooms/fountain/sounds/run_surface_5_2",
+]
+sha1 = "57d8adf874e80955b2679b0cfeabe25ffc3aab0d"
+
+[bank_0.sounds]
+walk_surface_4_1 = 17
+walk_surface_4_2 = 18
+run_surface_4_1 = 19
+run_surface_4_2 = 20
+walk_surface_5_1 = 57
+walk_surface_5_2 = 58
+run_surface_5_1 = 59
+run_surface_5_2 = 60
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/fountain/sounds/unlock_movie_loop",
+    "stages/akropolis/rooms/fountain/sounds/ammo_case_open",
+    "stages/akropolis/rooms/fountain/sounds/door_unbar",
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_depart",
+    "stages/akropolis/rooms/forked_road/sounds/fountain_door_arrive",
+    "stages/akropolis/rooms/fountain/sounds/door_depart",
+    "stages/akropolis/rooms/fountain/sounds/door_arrive",
+    "stages/akropolis/rooms/fountain/sounds/ammo_case_close",
+]
+sha1 = "d8c2ac7b2afbdbe852e3a6038f21d922503b099a"
+
+[bank_1.sounds]
+fountain_water_loop = 1
+ammo_case_open = 3
+door_unbar = 4
+door_open = 5
+door_close = 6
+hallway_door_open = 7
+hallway_door_close = 8
+ammo_case_close = 9
+
+[door_unbar]
+type = "sound"
+sha1 = "86d2549b39c657dd1b3cde147a7c6b5692cd4be9"
+
+[door_arrive]
+type = "sound"
+sha1 = "5ab53df1b8bd299cedf98b724708b9fb9278efc7"
+
+[door_depart]
+type = "sound"
+sha1 = "ab6723512f370cb225524c36a5e4e84f35b0cb93"
+
+[ammo_case_open]
+type = "sound"
+sha1 = "25e46de8f6da9207f61f0e398348f01cb0d29132"
+
+[ammo_case_close]
+type = "sound"
+sha1 = "73459ecf3cdf01884ca8a6147742330471a1ec8b"
+
+[run_surface_5_1]
+type = "sound"
+sha1 = "15d0391fb9c42c3f31231a32bacd41b84fd77118"
+
+[run_surface_5_2]
+type = "sound"
+sha1 = "cf4059b2c12d82bbc7cf431a1fa6e8c67baba154"
+
+[walk_surface_5_1]
+type = "sound"
+sha1 = "c0e3e8b74d3f0e3ce21aeffe10382da4227664eb"
+
+[walk_surface_5_2]
+type = "sound"
+sha1 = "72f7a2e541153706203503b6e47f089aea165916"
+
+[unlock_movie_loop]
+type = "sound"
+sha1 = "00bb7760e2fdd4f112859dc95fb01c0b13910e3c"

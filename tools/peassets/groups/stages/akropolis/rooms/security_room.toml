@@ -1,0 +1,180 @@
+# The assets of the group stages/akropolis/rooms/security_room, each named stages/akropolis/rooms/security_room/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/security_room/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/security_room/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "ae879f1d2b055de10a045a730b6f54c4d2ad6b5d"
+
+[[file.contents.palettes]]
+texture = "lock_lamps_left"
+variant = "row_270"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00009]
+
+[[file.contents.palettes]]
+name = "falling_square"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x00009]
+
+[[file.contents.palettes]]
+name = "unread_270_304"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x00009]
+
+[[file.contents.palettes]]
+texture = "lock_lamps_left"
+variant = "row_271"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_256"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00100, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_272"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00110, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_288"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00120, 0x0000A]
+
+[[file.contents.palettes]]
+name = "unread_271_304"
+entries = 16
+region = "engine/vram/effect_palettes"
+offset = [0x00130, 0x0000A]
+
+[[file.contents]]
+chunk = "image_2"
+sha1 = "2751dd04724884f1175fd9fbb2ef6dcff263d715"
+pages = [
+    { texture = "lock_lamps_left", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] },
+    { texture = "lock_lamps_right", region = "engine/vram/room_sprite_sheet", offset = [0x00000, 0x00000] },
+]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/security_room/views/view2_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/security_room/views/view5_palette",
+    "stages/akropolis/rooms/security_room/views/view6_palette",
+    "",
+    "stages/akropolis/rooms/security_room/views/view5_palette",
+    "stages/akropolis/rooms/security_room/views/view5_palette",
+    "stages/akropolis/rooms/security_room/views/view5_palette",
+    "stages/akropolis/rooms/security_room/views/view5_palette",
+    "stages/akropolis/rooms/security_room/views/view5_palette",
+    "stages/akropolis/rooms/security_room/views/view5_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/security_room/views/view16_palette",
+    "stages/akropolis/rooms/security_room/dialogue_0",
+]
+sha1 = "0000774ccddd05b446721d8b10b4a0f8d7b719a3"
+
+[package]
+type = "package"
+embedded = [
+    "stages/akropolis/rooms/security_room/lamp_left_locked",
+    "stages/akropolis/rooms/security_room/lamp_left_released",
+    "stages/akropolis/rooms/security_room/lamp_right_locked",
+    "stages/akropolis/rooms/security_room/lamp_right_released",
+    { name = "collision", offset = 0x06468, size = 0x36C },
+    { asset = "rooms/item_box/model", offset = 0x07A00, size = 0x5E8, address = 0x80184FC0 },
+]
+exports = { item_box_model = { at = 0x07FC4, symbol = "gAkropolisSecurityRoomItemBoxModel" } }
+load = { slot = "room" }
+package_name = "akropolis_security_room"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+slots = { security_monitors = "stages/akropolis/actors/security_monitors/package" }
+sha1 = "e0f563a5df845e45721bcf02a30ddee1283ed722"
+
+[package.entries]
+animations = [0x05044]
+markers = [0x063D8]
+spare_batches = [{ at = 0x06F08, rows = 8 }]
+updates = [0x07990, 0x079B8, 0x079BC, 0x079C0]
+
+[collision]
+type = "collision"
+cell_face_list_macro = "AKROPOLIS_SECURITY_ROOM_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "925d6ad8500c0d8b5aa5962a4b7355b967627d90"
+
+[dialogue_0]
+type = "cap"
+sha1 = "7378b273f900679a024981377c21511c55b20f7c"
+
+[lock_lamps_left]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["row_270", "row_271", "locked", "released"]
+width = 128
+
+[lock_lamps_left.palettes_from]
+locked = "stages/akropolis/rooms/security_room/lamp_left_locked"
+released = "stages/akropolis/rooms/security_room/lamp_left_released"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/security_room/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "5360b94da1bb881aa13d21ca02fd7a13a0377e73"
+
+[lock_lamps_right]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["locked", "released"]
+width = 128
+
+[lock_lamps_right.palettes_from]
+locked = "stages/akropolis/rooms/security_room/lamp_right_locked"
+released = "stages/akropolis/rooms/security_room/lamp_right_released"

@@ -1,0 +1,408 @@
+# The assets of the group stages/akropolis/rooms/mist_parking, each named stages/akropolis/rooms/mist_parking/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/mist_parking/sounds/bank_0"
+
+[[file.contents]]
+asset = "stages/akropolis/rooms/mist_parking/sounds/bank_1"
+
+[[file.contents]]
+chunk = "dialogue_1_atlas"
+
+[[file.contents]]
+chunk = "dialogue_0_atlas"
+
+[[file.contents]]
+chunk = "dialogue_2_atlas"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "15b61ed756c83b45ea47a7a517df3854cd82ddaa"
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/actors/parking_pierce/props"
+variant = "row_263"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00002]
+
+[[file.contents.palettes]]
+texture = "stages/akropolis/actors/parking_pierce/props"
+variant = "row_264"
+region = "engine/vram/effect_palettes"
+offset = [0x00000, 0x00003]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "840c617453f38705c00bad7d66c14ffb0a79cacb"
+slots = 2
+
+[[file.contents.pages]]
+texture = "stages/akropolis/actors/parking_pierce/props"
+region = "engine/vram/room_sprite_sheet"
+offset = [0x00000, 0x00000]
+
+[[file.contents]]
+chunk = "package"
+
+[[file.contents]]
+chunk = "bundle"
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "stages/akropolis/rooms/mist_parking/views/view2_palette",
+    "",
+    "stages/akropolis/rooms/mist_parking/views/view4_palette",
+    "stages/akropolis/rooms/mist_parking/views/view5_palette",
+    "stages/akropolis/rooms/mist_parking/views/view6_palette",
+    "stages/akropolis/rooms/mist_parking/views/view7_palette",
+    "",
+    "",
+    "stages/akropolis/rooms/mist_parking/views/view10_palette",
+    "stages/akropolis/rooms/mist_parking/views/view11_palette",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "stages/akropolis/rooms/mist_parking/views/view18_palette",
+    "stages/akropolis/rooms/mist_parking/views/view19_palette",
+    "",
+    "stages/akropolis/rooms/mist_parking/dialogue_0",
+    "stages/akropolis/rooms/mist_parking/dialogue_1",
+    "stages/akropolis/rooms/mist_parking/dialogue_2",
+    "rooms/akropolis/story_calls",
+]
+sha1 = "01596c2f977b874beb385b68b9927f32f6517838"
+
+[package]
+type = "package"
+load = { slot = "room" }
+package_name = "mist_parking"
+required = true
+requires = ["gameplay", "rooms/akropolis/stage"]
+sha1 = "4f3789fd1543af7836b09e6cee5c09472fd0852e"
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/script/player_anim_00"
+offset = 0x0941C
+size = 0x1DC
+address = 0x801869DC
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/script/player_bank"
+offset = 0x09668
+size = 0x4
+address = 0x80186C28
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/props/hinged_panel"
+offset = 0x09A5C
+size = 0x29C
+address = 0x8018701C
+
+[[package.embedded]]
+asset = "characters/aya/stand"
+offset = 0x09CF8
+size = 0x304
+address = 0x801872B8
+
+[[package.embedded]]
+asset = "rooms/shelter/r47/player_look_at_map"
+offset = 0x09FFC
+size = 0x7A0
+address = 0x801875BC
+
+[[package.embedded]]
+asset = "rooms/shelter/b3_incinerator_control_room/player_flustered"
+offset = 0x0A79C
+size = 0x4E8
+address = 0x80187D5C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_04"
+offset = 0x0AC84
+size = 0x4DC
+address = 0x80188244
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_05"
+offset = 0x0B160
+size = 0x5C8
+address = 0x80188720
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_06"
+offset = 0x0B728
+size = 0x3B4
+address = 0x80188CE8
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_07"
+offset = 0x0BADC
+size = 0x6FC
+address = 0x8018909C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_08"
+offset = 0x0C1D8
+size = 0x4D8
+address = 0x80189798
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_09"
+offset = 0x0C6B0
+size = 0x6F8
+address = 0x80189C70
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_10"
+offset = 0x0CDA8
+size = 0x2E0
+address = 0x8018A368
+
+[[package.embedded]]
+asset = "characters/aya/introduce_herself"
+offset = 0x0D088
+size = 0x384
+address = 0x8018A648
+
+[[package.embedded]]
+asset = "characters/aya/anim_07"
+offset = 0x0D40C
+size = 0x2C0
+address = 0x8018A9CC
+
+[[package.embedded]]
+asset = "characters/aya/talk"
+offset = 0x0D6CC
+size = 0x3F0
+address = 0x8018AC8C
+
+[[package.embedded]]
+asset = "rooms/shelter/b6_growth_room/player_choice_start"
+offset = 0x0DABC
+size = 0x400
+address = 0x8018B07C
+
+[[package.embedded]]
+asset = "characters/aya/its_nothing"
+offset = 0x0DEBC
+size = 0x33C
+address = 0x8018B47C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_15"
+offset = 0x0E1F8
+size = 0x510
+address = 0x8018B7B8
+
+[[package.embedded]]
+asset = "characters/aya/on_my_way"
+offset = 0x0E708
+size = 0x32C
+address = 0x8018BCC8
+
+[[package.embedded]]
+asset = "characters/aya/talk_start"
+offset = 0x0EA34
+size = 0x3D4
+address = 0x8018BFF4
+
+[[package.embedded]]
+asset = "characters/aya/talk_end"
+offset = 0x0EE08
+size = 0x36C
+address = 0x8018C3C8
+
+[[package.embedded]]
+asset = "characters/aya/reply"
+offset = 0x0F174
+size = 0x428
+address = 0x8018C734
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_20"
+offset = 0x0F59C
+size = 0x27C
+address = 0x8018CB5C
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_21"
+offset = 0x0F818
+size = 0x470
+address = 0x8018CDD8
+
+[[package.embedded]]
+asset = "characters/aya/turn_pale"
+offset = 0x0FC88
+size = 0x1FC
+address = 0x8018D248
+
+[[package.embedded]]
+asset = "rooms/shelter/b1_pod_service_gantry/player_gantry_scene_7"
+offset = 0x0FE84
+size = 0x318
+address = 0x8018D444
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_bank"
+offset = 0x10208
+size = 0x64
+address = 0x8018D7C8
+
+[[package.embedded]]
+name = "pierce_collision"
+offset = 0x12694
+size = 0x64
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/shop/player_stand_copy"
+offset = 0x1271C
+size = 0x304
+address = 0x8018FCDC
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/shop/player_talk_start_copy"
+offset = 0x12A20
+size = 0x3D4
+address = 0x8018FFE0
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/conversation/player_anim_21_copy"
+offset = 0x12DF4
+size = 0x470
+address = 0x801903B4
+
+[[package.embedded]]
+asset = "stages/akropolis/rooms/mist_parking/scenes/shop/player_bank"
+offset = 0x132A0
+size = 0x10
+address = 0x80190860
+
+[[package.embedded]]
+name = "collision"
+offset = 0x14108
+size = 0xB3C
+
+[package.entries]
+animations = [
+    66164,
+    66204,
+    66384,
+    66464,
+    66524,
+    66604,
+    66812,
+    66852,
+    66952,
+    66992,
+    67132,
+    67232,
+    67412,
+    67452,
+    67512,
+    67684,
+    67724,
+    67804,
+    78520,
+    78604,
+    78624,
+    78744,
+    78924,
+    79340,
+    79380,
+    79460,
+]
+scripts = [
+    38556,
+    38916,
+    39228,
+    67956,
+    71676,
+    72228,
+    72420,
+    72660,
+    72900,
+    73140,
+    73452,
+    73764,
+    74340,
+    74724,
+    74892,
+    75132,
+    79540,
+    79780,
+    80068,
+    80500,
+    80788,
+    80980,
+    81220,
+    81412,
+]
+transforms = [0x1267C]
+
+[package.exports]
+set_pierce_collision_patch_lowered = { at = 0x065EC, symbol = "mistParkingSetPierceCollisionPatchLowered" }
+
+[package.slots]
+jodie = "stages/akropolis/actors/parking_jodie/package"
+pierce = "stages/akropolis/actors/parking_pierce/package"
+
+[collision]
+type = "collision"
+cell_face_list_macro = "MIST_PARKING_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "c3e6ce2879e194004b6b9e5aece85041ba72805a"
+
+[dialogue_0]
+type = "cap"
+sha1 = "2bf5d565075c1aed1f86bf546a927cc7f546725b"
+
+[dialogue_1]
+type = "cap"
+sha1 = "027c9d2bd51dceac5fda9cc39ed7269a5116e375"
+
+[dialogue_2]
+type = "cap"
+sha1 = "3031a87869c4451465d6a229750d9d4ba1a808f1"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/mist_parking/dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "8ccf3bfd29c457423fbe9d2272f4e76eedd5a59e"
+
+[dialogue_1_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/mist_parking/dialogue_1"
+h = 256
+w = 64
+x = 320
+y = 256
+sha1 = "654cf99a95b99f7eadffeb54147309f450c1d036"
+
+[dialogue_2_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "stages/akropolis/rooms/mist_parking/dialogue_2"
+h = 256
+w = 64
+x = 704
+y = 0
+sha1 = "a750953b680ad38ff8a51b1438c9f9623660c338"
+
+[pierce_collision]
+type = "collision"
+cell_face_list_macro = "MIST_PARKING_PIERCE_CELL_FACE_LIST_AT_OFFSET"
+sha1 = "881d9bdb2867aa550d23b3e55dbc1b7b30a84199"

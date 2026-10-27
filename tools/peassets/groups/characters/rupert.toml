@@ -133,7 +133,7 @@ pages = [
 slots = 6
 
 [[hurt_file.contents]]
-asset = "rooms/mist/r18/rupert"
+asset = "stages/akropolis/actors/mist_rupert/package"
 
 [body_binding]
 type = "binding"
@@ -180,7 +180,7 @@ sha1 = "72178a18fb3b2e1a51c3bd261395d27607dadb8d"
 [radio_binding]
 type = "binding"
 model = "characters/rupert/radio"
-textures = { radio = "rooms/akropolis/helicopter_landing_pad/radio.default" }
+textures = { radio = "stages/akropolis/rooms/helicopter_landing_pad/props/radio.default" }
 
 [body_2_binding]
 type = "binding"

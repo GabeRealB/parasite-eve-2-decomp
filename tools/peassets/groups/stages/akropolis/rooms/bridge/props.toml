@@ -1,0 +1,20 @@
+# The assets of the group stages/akropolis/rooms/bridge/props, each named stages/akropolis/rooms/bridge/props/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bridge]
+type = "texture"
+bpp = 4
+height = 256
+variants = ["default"]
+width = 256
+
+[water_surface]
+type = "model"
+slots = ["bridge"]
+symbol = "_gAkropolisBridgeWaterSurfaceModel"
+sha1 = "4905c8d01de551bde65b6ad41cf266643269689b"
+
+[water_surface_binding]
+type = "binding"
+model = "stages/akropolis/rooms/bridge/props/water_surface"
+textures = { bridge = "stages/akropolis/rooms/bridge/props/bridge.default" }

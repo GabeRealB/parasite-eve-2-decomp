@@ -1,0 +1,103 @@
+# The assets of the group stages/akropolis/rooms/plaza/sounds, each named stages/akropolis/rooms/plaza/sounds/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank_0]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_1",
+    "stages/akropolis/rooms/cafeteria/sounds/run_surface_3_2",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_1",
+    "stages/akropolis/rooms/cafeteria/sounds/walk_surface_1_2",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_1",
+    "stages/akropolis/rooms/east_elevator_hall/sounds/walk_floor_2",
+]
+sha1 = "e8d8270adfef92a6668c59f5d0aabee1e9431bcd"
+
+[bank_0.sounds]
+walk_surface_0_1 = 17
+walk_surface_0_2 = 18
+run_surface_0_1 = 19
+run_surface_0_2 = 20
+walk_surface_1_1 = 45
+walk_surface_1_2 = 46
+run_surface_1_1 = 47
+run_surface_1_2 = 48
+
+[bank_1]
+type = "sound_bank"
+samples = [
+    "stages/akropolis/rooms/plaza/sounds/entering_tower_cue",
+    "stages/akropolis/rooms/plaza/sounds/officer_ambience",
+    "stages/akropolis/rooms/plaza/sounds/officer_ambience_2",
+    "stages/akropolis/rooms/plaza/sounds/walk_ambience",
+    "stages/akropolis/rooms/plaza/sounds/entry_ambience",
+    "stages/akropolis/rooms/plaza/sounds/approach_ambience",
+    "stages/akropolis/rooms/plaza/sounds/approach_ambience_2",
+    "stages/akropolis/rooms/plaza/sounds/approach_ambience_3",
+    "stages/akropolis/rooms/plaza/sounds/approach_ambience_4",
+    "stages/akropolis/rooms/plaza/sounds/approach_ambience_5",
+    "stages/akropolis/rooms/plaza/sounds/police_step_1",
+    "stages/akropolis/rooms/plaza/sounds/police_step_2",
+]
+sha1 = "ef20a9de46a8ac145955ced1db1da18c21520413"
+
+[bank_1.sounds]
+officer_ambience = 1
+entry_ambience = 2
+entering_tower_cue = 3
+approach_ambience = 4
+walk_ambience = 5
+police_step_1 = 6
+police_step_2 = 7
+rookie_step_1 = 8
+rookie_step_2 = 9
+rookie_step_3 = 10
+officers_walk_in = 11
+
+[police_step_1]
+type = "sound"
+sha1 = "1157904a46fb62b99e7f12decb6ad0179d4278da"
+
+[police_step_2]
+type = "sound"
+sha1 = "aaac5e0327975fc81a5b68c0d5b701bedf2f3e00"
+
+[walk_ambience]
+type = "sound"
+sha1 = "d3dc862286ffbc3cab0f47ee6eba96b2c88a053b"
+
+[entry_ambience]
+type = "sound"
+sha1 = "8a58cf384757c161094f3ac856f7cdc466b9a94a"
+
+[officer_ambience]
+type = "sound"
+sha1 = "0483c62138c921048a65a5924fd3bdaf773133c5"
+
+[approach_ambience]
+type = "sound"
+sha1 = "5e9c21132d59209b70bfa23b764cae4b368e1f84"
+
+[entering_tower_cue]
+type = "sound"
+sha1 = "9820ab79577a80ea37e77c6c0eb9c5065df47dc4"
+
+[officer_ambience_2]
+type = "sound"
+sha1 = "2b9be465630c96e2aeec7634e6887f639df6a48f"
+
+[approach_ambience_2]
+type = "sound"
+sha1 = "2d5ddc388392301e1f44b6a1fccba63a2e6cb2d3"
+
+[approach_ambience_3]
+type = "sound"
+sha1 = "af35569f3546bfbd2d9079af3b3dfcfaf95659b8"
+
+[approach_ambience_4]
+type = "sound"
+sha1 = "96abe57ab41aa3f6fcd951eeb9b9380ad2840a48"
+
+[approach_ambience_5]
+type = "sound"
+sha1 = "bee2bb2b5cf420c2104a662346775aa6bea85f7a"

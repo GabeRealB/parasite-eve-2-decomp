@@ -1,0 +1,87 @@
+# The assets of the group stages/akropolis/actors/mist_rupert, each named stages/akropolis/actors/mist_rupert/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/mist_rupert/schema"
+symbol = "_gMistRupertAnimationSets"
+
+[bank.clips]
+rest = "stages/akropolis/actors/mist_rupert/rest"
+briefing_1 = "stages/akropolis/actors/mist_rupert/briefing_1"
+briefing_2 = "stages/akropolis/actors/mist_rupert/briefing_2"
+cut_the_crap = "stages/akropolis/actors/mist_rupert/cut_the_crap"
+ask_about_akropolis = "stages/akropolis/actors/mist_rupert/ask_about_akropolis"
+yes_sir = "stages/akropolis/actors/mist_rupert/yes_sir"
+dismissed = "stages/akropolis/actors/mist_rupert/dismissed"
+reminder = "stages/akropolis/actors/mist_rupert/reminder"
+
+[rest]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[schema]
+type = "animation_schema"
+slots = [
+    "",
+    "rest",
+    "briefing_1",
+    "briefing_2",
+    "cut_the_crap",
+    "ask_about_akropolis",
+    "yes_sir",
+    "dismissed",
+    "reminder",
+]
+
+[package]
+type = "package"
+embedded = [
+    { asset = "characters/rupert/hurt_body", offset = 0x00714, size = 0x53D0, address = 0x80132534 },
+    { name = "rest", offset = 0x05AE4, size = 0x2D8, address = 0x80137904 },
+    { name = "briefing_1", offset = 0x05DBC, size = 0x460, address = 0x80137BDC },
+    { name = "briefing_2", offset = 0x0621C, size = 0x388, address = 0x8013803C },
+    { name = "cut_the_crap", offset = 0x065A4, size = 0x794, address = 0x801383C4 },
+    { name = "ask_about_akropolis", offset = 0x06D38, size = 0x698, address = 0x80138B58 },
+    { name = "yes_sir", offset = 0x073D0, size = 0x510, address = 0x801391F0 },
+    { name = "dismissed", offset = 0x078E0, size = 0x5B4, address = 0x80139700 },
+    { name = "reminder", offset = 0x07E94, size = 0x278, address = 0x80139CB4 },
+    "characters/rupert/hurt_eyes_open",
+    "characters/rupert/hurt_eyes_half_open",
+    "characters/rupert/hurt_eyes_closed",
+    { name = "bank", offset = 0x08D6C, size = 0x24, address = 0x8013AB8C },
+]
+exports = { tasks = { at = 0x08D94, symbol = "gMistRupertTaskDesc" } }
+load = { slot = "actor_1" }
+package_name = "mist_rupert"
+required = true
+requires = ["gameplay"]
+sha1 = "7da2ff08b25be9f5b909f550f8e9c9287e0e87cc"
+
+[yes_sir]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[reminder]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[dismissed]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[briefing_1]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[briefing_2]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[cut_the_crap]
+type = "clip"
+rig = "characters/rupert/rig"
+
+[ask_about_akropolis]
+type = "clip"
+rig = "characters/rupert/rig"

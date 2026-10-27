@@ -1,0 +1,53 @@
+# The assets of the group stages/akropolis/actors/parking_jodie, each named stages/akropolis/actors/parking_jodie/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+schema = "stages/akropolis/actors/parking_jodie/schema"
+symbol = "_gActor213100BodyAnimSets"
+
+[bank.clips]
+talk = "characters/aya/stand"
+slot_2 = "characters/aya/talk_start"
+slot_3 = "characters/aya/talk"
+slot_4 = "characters/aya/talk_end"
+rest = "stages/akropolis/actors/parking_jodie/rest"
+slot_6 = "stages/akropolis/actors/parking_jodie/body_anim_06"
+greeting = "characters/aya/anim_06"
+shop_reply = "characters/aya/anim_07"
+shop_reply_end = "characters/aya/anim_08"
+
+[rest]
+type = "clip"
+rig = "characters/jodie/rig"
+
+[schema]
+type = "animation_schema"
+slots = ["", "talk", "slot_2", "slot_3", "slot_4", "rest", "slot_6", "greeting", "shop_reply", "shop_reply_end"]
+
+[package]
+type = "package"
+embedded = [
+    { asset = "characters/jodie/body", offset = 0x006E0, size = 0x5D08, address = 0x8014A500 },
+    { asset = "stages/akropolis/rooms/mist_r18/props/laptop", offset = 0x063E8, size = 0x1F8, address = 0x80150208 },
+    { asset = "characters/aya/stand", offset = 0x065E0, size = 0x304, address = 0x80150400 },
+    { asset = "characters/aya/talk_start", offset = 0x068E4, size = 0x3D4, address = 0x80150704 },
+    { asset = "characters/aya/talk", offset = 0x06CB8, size = 0x3F0, address = 0x80150AD8 },
+    { asset = "characters/aya/talk_end", offset = 0x070A8, size = 0x36C, address = 0x80150EC8 },
+    { name = "rest", offset = 0x07414, size = 0x550, address = 0x80151234 },
+    { name = "body_anim_06", offset = 0x07964, size = 0x3B0, address = 0x80151784 },
+    { asset = "characters/aya/anim_06", offset = 0x07D14, size = 0x1C4, address = 0x80151B34 },
+    { asset = "characters/aya/anim_07", offset = 0x07ED8, size = 0x2C0, address = 0x80151CF8 },
+    { asset = "characters/aya/anim_08", offset = 0x08198, size = 0x1C4, address = 0x80151FB8 },
+    { name = "bank", offset = 0x0835C, size = 0x28, address = 0x8015217C },
+]
+exports = { tasks = { at = 0x08388, symbol = "gActor213100JodieBouquetTaskDescriptors" } }
+load = { slot = "actor_2" }
+package_name = "actor_213100"
+required = true
+requires = ["gameplay"]
+sha1 = "a0a2a0caf5972a7735dd424f246e1a2b7b42e0bd"
+
+[body_anim_06]
+type = "clip"
+rig = "characters/aya/rig"

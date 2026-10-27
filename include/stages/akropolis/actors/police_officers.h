@@ -35,7 +35,7 @@ enum {
     POLICE_OFFICERS_CULLED_BODY_FREEZE   = 3,
 };
 
-/// Aya's clips in the officers' scenes (rooms/akropolis/plaza/police_scene_player_bank), indexed by
+/// Aya's clips in the officers' scenes (stages/akropolis/actors/police_officers/scene_player_bank), indexed by
 /// `POLICE_SCENE_PLAYER_ANIMATION_*`; slots 10 and 12 are empty.
 extern AnimationSet* gPoliceOfficersPlayerAnimSets[13];
 
