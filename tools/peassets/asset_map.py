@@ -40,7 +40,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 # The extraction whose decoded files the page shows (pictures, sounds, texts). Its packages and stored bytes are
 # read from ROOT/assets/USA whatever this is.
-EXTRACTED = ROOT / "assets" / "USA"
+import project  # noqa: E402
+EXTRACTED = project.root()          # the full extraction (project.py)
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_residency as residency  # noqa: E402
 import asset_schema  # noqa: E402
@@ -516,7 +517,7 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
     folder.mkdir(parents=True, exist_ok=True)
     have = {"mesh": [], "track": {}, "holds": defaultdict(list)}
     for package, (load, sources) in sorted(tmd.declared_records(ROOT).items()):
-        path = ROOT / "assets" / "USA" / "pe2pkg" / f"{package}.pe2pkg"
+        path = EXTRACTED / "pe2pkg" / f"{package}.pe2pkg"
         if not path.is_file():
             continue
         data = path.read_bytes()
@@ -550,7 +551,7 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
             packed = lambda value: json.dumps(value, separators=(",", ":"))  # noqa: E731
             target.write_text(f"MESH({json.dumps(key)},{packed(flat)},{packed(faces)},{packed(textures)},{packed(named)},{packed(parts)},{packed(bones)});\n", encoding="utf-8")
             have["mesh"].append(key)
-    raw = ROOT / "assets" / "USA" / "raw"
+    raw = EXTRACTED / "raw"
     for key, rec in embedded.items():
         where = RAW_DIR.get(rec.get("type"))
         source = raw / where[0] / f"{key}{where[1]}" if where else None
@@ -675,7 +676,7 @@ def animation_tables(embedded: dict) -> dict:
     blobs: dict[str, bytes] = {}
     for row in rows:
         key = banks.get((row["package"] + ".pe2pkg", row["offset"]))
-        path = ROOT / "assets" / "USA" / "pe2pkg" / f"{row['package']}.pe2pkg"
+        path = EXTRACTED / "pe2pkg" / f"{row['package']}.pe2pkg"
         if key is None or not path.is_file():
             continue
         data = blobs.setdefault(row["package"], path.read_bytes())

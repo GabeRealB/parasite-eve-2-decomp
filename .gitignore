@@ -55,3 +55,6 @@ configs/USA/generated/
 
 # Worktree setup log written by the demotion scripts.
 .setup.log
+
+# A project made from your discs (tools/pe2project.py create): your data, never committed
+/project/

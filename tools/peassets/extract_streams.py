@@ -353,10 +353,11 @@ def main(argv: list[str] | None = None) -> int:
         default=Path("rom/USA"),
         help="Path to rom/USA (disk1, disk2)",
     )
+    import project                            # the extraction tools default to (project.py)
     ap.add_argument(
         "--out",
         type=Path,
-        default=Path("assets/USA"),
+        default=project.root(),
         help="Assets root (writes raw/audio/ and audio/ underneath)",
     )
     ap.add_argument("--no-raw", action="store_true", help="Skip writing raw/audio/*.mts")

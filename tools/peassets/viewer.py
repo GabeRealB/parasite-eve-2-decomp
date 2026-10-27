@@ -3267,11 +3267,12 @@ class AssetViewer(tk.Tk):
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    import project                            # the extraction tools default to (project.py)
     parser.add_argument(
         "assets",
         type=Path,
         nargs="?",
-        default=Path("assets/USA"),
+        default=project.root(),
         help="Assets root (default: assets/USA)",
     )
     args = parser.parse_args(argv)

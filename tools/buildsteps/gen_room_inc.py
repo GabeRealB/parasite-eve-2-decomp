@@ -22,7 +22,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("name")
     ap.add_argument("outdir", type=Path)
-    ap.add_argument("--assets", type=Path, default=ROOT / "assets" / "USA")
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--assets", type=Path, default=project.root())
     args = ap.parse_args()
     args.outdir.mkdir(parents=True, exist_ok=True)
     for name, text in room.c_files(args.name, asset_data.ASSETS, asset_data.EMBEDDED_ASSETS, args.assets).items():

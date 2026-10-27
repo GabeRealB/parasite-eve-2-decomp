@@ -152,6 +152,14 @@ def packages_of(what: dict) -> list[str]:
 # a hook straight after the first sector is inflated, only keeps the address the chunk's header gives, which is
 # gone from the sector buffer by the time a longer package ends.
 
+def _data():
+    """The extraction the trace reads the game's images from (tools/peassets/project.py)."""
+    import sys
+    sys.path.insert(0, str(REPO / "tools" / "peassets"))
+    import project
+    return project.root()
+
+
 PACKAGE: dict = {}       # the package chunk being inflated: where it goes, and - once known - which package it is
 PACKAGE_IDS: dict = {}   # the id every package starts with -> its name
 
@@ -159,7 +167,7 @@ PACKAGE_IDS: dict = {}   # the id every package starts with -> its name
 def package_ids() -> dict:
     """Every package begins with its own id, a number no other has (the first word of the image)."""
     if not PACKAGE_IDS:
-        for path in (REPO / "assets" / "USA" / "pe2pkg").glob("*.pe2pkg"):
+        for path in (_data() / "pe2pkg").glob("*.pe2pkg"):
             with path.open("rb") as handle:
                 head = handle.read(4)
             if len(head) == 4:
@@ -479,7 +487,7 @@ def project(cfg):
     import asset_residency
     maps = {path.stem.removeprefix("sym."): path for path in sorted((REPO / "configs" / "USA").rglob("*.txt"))
             if "imports" not in path.name and not path.name.startswith("rel.")}
-    exe = REPO / "assets" / "USA" / "main.exe"
+    exe = _data() / "main.exe"
     if exe.is_file():                                # a PS-X EXE: its load address at 0x18, its code after a 0x800-byte header
         with exe.open("rb") as handle:
             load = struct.unpack_from("<I", handle.read(0x20), 0x18)[0]
@@ -488,7 +496,7 @@ def project(cfg):
     loads = {"gameplay": 0x80093800, "title": 0x80093800}       # the title screen's program takes gameplay's place
     loads.update(asset_residency.package_loads(tomllib.loads((REPO / "configs" / "USA" / "overlays.toml").read_text())))
     for name, load in loads.items():
-        image(name, load, REPO / "assets" / "USA" / "pe2pkg" / f"{name}.pe2pkg", maps.get(name, ()))
+        image(name, load, _data() / "pe2pkg" / f"{name}.pe2pkg", maps.get(name, ()))
 
 
 # ---- where a room load and a view change end

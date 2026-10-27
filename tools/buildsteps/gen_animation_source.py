@@ -171,7 +171,8 @@ def main() -> None:
     ap.add_argument("kind", choices=("clips", "bank", "schema"))
     ap.add_argument("name", help="clips: the package; bank or schema: the asset's name")
     ap.add_argument("output", type=Path)
-    ap.add_argument("--assets", type=Path, default=ROOT / "assets" / "USA")
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--assets", type=Path, default=project.root())
     args = ap.parse_args()
     text = (clips_source(args.name, args.assets) if args.kind == "clips" else
             bank_source(args.name) if args.kind == "bank" else schema_source(args.name))

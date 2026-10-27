@@ -22,7 +22,8 @@ from texture.files import (check_file, declared_atlases, declared_files, decode_
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=("decode", "encode", "check"))
-    ap.add_argument("--assets", type=Path, default=PEASSETS.parents[1] / "assets/USA")
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--assets", type=Path, default=project.root())
     ap.add_argument("--only")
     ap.add_argument("--out", type=Path, help="where encode writes the chunks")
     args = ap.parse_args(argv)

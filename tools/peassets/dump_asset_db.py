@@ -964,10 +964,11 @@ def emit_module(
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
+    import project                            # the extraction tools default to (project.py)
     ap.add_argument(
         "--assets",
         type=Path,
-        default=Path("assets/USA"),
+        default=project.root(),
         help="Extracted assets root (raw/ + stages.json)",
     )
     ap.add_argument(

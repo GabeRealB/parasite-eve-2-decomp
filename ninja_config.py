@@ -2002,8 +2002,6 @@ def extract_files(
         f"{target_rom}/disk2/STAGE5.CDF",
         "-o",
         target_assets,
-        "--release",
-        GAME_VERSIONS[version].metadata.version_dir,
     ]
     if raw_only:
         cmd.append("--raw-only")

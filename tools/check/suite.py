@@ -34,7 +34,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PEASSETS = ROOT / "tools" / "peassets"
 PY = str(ROOT / "venv" / "bin" / "python3")
-ASSETS = ROOT / "assets" / "USA"
+sys.path.insert(0, str(PEASSETS))
+import project  # noqa: E402
+ASSETS = project.root()             # the full extraction the checks run on (project.py)
 WORK = ROOT / "build" / "suite"
 
 

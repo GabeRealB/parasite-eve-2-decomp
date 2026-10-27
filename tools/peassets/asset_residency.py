@@ -51,6 +51,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_journal  # noqa: E402
 import asset_schema  # noqa: E402
+import project  # noqa: E402
 from model import declared  # noqa: E402
 
 DB = ROOT / "local" / "asset_residency.sqlite"
@@ -464,7 +465,7 @@ def write_pixels(db: sqlite3.Connection, folder: Path) -> int:
     """
     import base64
     import json
-    raw = ROOT / "assets" / "USA" / "raw"
+    raw = project.root() / "raw"
     folder.mkdir(parents=True, exist_ok=True)
     written = 0
     for asset, kind, code, x, y, w, h in db.execute("SELECT DISTINCT asset, kind, file LIKE 'code:%', x, y, w, h FROM footprint"):
@@ -505,7 +506,7 @@ def model_bounds(package: str, rec: dict) -> dict[tuple[int, int], list[int]]:
     from model import tmd
     if not _LOADS:
         for name, (load, _sources) in tmd.declared_records(ROOT).items():
-            path = ROOT / "assets" / "USA" / "pe2pkg" / f"{name}.pe2pkg"
+            path = project.root() / "pe2pkg" / f"{name}.pe2pkg"
             if path.is_file():
                 _LOADS[name] = (load, path.read_bytes())
     if package not in _LOADS:

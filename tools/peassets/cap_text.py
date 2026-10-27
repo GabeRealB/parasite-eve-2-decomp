@@ -39,7 +39,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bundle  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-ASSETS = ROOT / "assets" / "USA"
+import project  # noqa: E402
+ASSETS = project.root()             # the extraction this decodes into or reads (project.py)
 TABLE = Path(__file__).resolve().parent / "cap_glyphs.tsv"
 FIRST_TEXT_CELL = 25
 LINE, END = 0xFFFE, 0xFFFF

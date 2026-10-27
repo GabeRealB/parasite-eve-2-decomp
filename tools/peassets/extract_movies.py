@@ -714,7 +714,8 @@ def extract_all(
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--rom", type=Path, default=Path("rom/USA"))
-    ap.add_argument("--out", type=Path, default=Path("assets/USA"))
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--out", type=Path, default=project.root())
     ap.add_argument("--no-raw", action="store_true")
     ap.add_argument(
         "--no-mp4",

@@ -26,7 +26,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("font")
     ap.add_argument("out", type=Path)
-    ap.add_argument("--assets", type=Path, default=ROOT / "assets" / "USA")
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--assets", type=Path, default=project.root())
     args = ap.parse_args()
     data = declared.table_bytes(args.font, asset_data.ASSETS, args.assets)
     source = "its stored table"

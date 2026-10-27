@@ -413,10 +413,11 @@ def _compressed_cap_for_max_data(max_data: int) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
+    import project                            # the extraction tools default to (project.py)
     ap.add_argument(
         "--root",
         type=Path,
-        default=Path("assets/USA/raw"),
+        default=project.root() / "raw",
         help="Asset tree to scan (default assets/USA/raw)",
     )
     ap.add_argument("--limit", type=int, default=0, help="Max streams (0=all)")

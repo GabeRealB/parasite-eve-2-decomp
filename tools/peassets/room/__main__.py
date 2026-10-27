@@ -21,7 +21,8 @@ import room  # noqa: E402
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=("decode", "check", "sync-c", "check-order"))
-    ap.add_argument("--assets", type=Path, default=HERE.parents[2] / "assets" / "USA")
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--assets", type=Path, default=project.root())
     ap.add_argument("--only")
     args = ap.parse_args()
     failed = 0

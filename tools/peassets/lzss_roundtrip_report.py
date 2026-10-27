@@ -49,7 +49,8 @@ from lzss import (  # noqa: E402
 )
 
 CLUT_HEADER = 16
-REPO_USA = Path("assets/USA")
+import project  # noqa: E402
+REPO_USA = project.root()
 DEFAULT_RAW = REPO_USA / "raw"
 DEFAULT_STAGES = REPO_USA / "stages.json"
 

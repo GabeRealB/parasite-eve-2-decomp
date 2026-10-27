@@ -31,7 +31,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_schema  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-RAW = ROOT / "assets" / "USA" / "raw" / "spk"
+import project  # noqa: E402
+RAW = project.root() / "raw" / "spk"
 IMAGE = 0x800
 # `Loop` and `Wait` are eight-byte flow commands and `endL` is its tag alone (src/main/sndscript.c, `_SndScriptCmd`).
 CHUNK = {b"oneC": 0x10, b"oneV": 0x18, b"oneA": 0x08, b"oneE": 0x18, b"Loop": 0x08, b"Wait": 0x08, b"endL": 0x04}

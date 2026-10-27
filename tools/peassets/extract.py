@@ -1274,8 +1274,6 @@ def main():
     parser.add_argument("--stage4", "-s4", type=FileType("rb"))
     parser.add_argument("--stage5", "-s5", type=FileType("rb"))
     parser.add_argument("--output", "-o", type=Path, default=".")
-    parser.add_argument("--release", help="the release extracted (USA, ...), written into the project file; default: "
-                                          "the output directory's name")
     parser.add_argument(
         "--rom",
         type=Path,
@@ -1347,6 +1345,9 @@ def main():
 
     output_path: Path = args.output
     output_path.mkdir(parents=True, exist_ok=True)
+    import os
+    import project
+    os.environ[project.ENV] = str(output_path.absolute())   # every module's default root is what this writes
     validate_asset_db()
 
     # raw/{type}/     — unique clean on-disc payloads (ASSETS id or type_N)
@@ -1358,9 +1359,6 @@ def main():
     store = AssetStore(output_path)
     with shared_pool(args.jobs), ThreadPoolExecutor(max_workers=4) as background:
         _extract(args, output_path, store, background)
-    import project
-    if not (output_path / project.FILE).exists():     # the extraction is a project: its root, its project file
-        project.write(output_path, args.release or output_path.resolve().name, project.REPOSITORY)
 
 
 def _extract(args, output_path: Path, store: "AssetStore", background: ThreadPoolExecutor) -> None:

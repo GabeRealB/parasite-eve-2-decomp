@@ -177,7 +177,8 @@ def replace_text(path: Path, text: str) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--assets", type=Path, default=ROOT / "assets" / "USA", help="the root of the extraction")
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--assets", type=Path, default=project.root(), help="the root of the extraction")
     ap.add_argument("--table", type=Path, help="read the asset table from this file instead of asset_data.py")
     ap.add_argument("--dry-run", action="store_true", help="report what would be done; change nothing")
     ap.add_argument("-v", "--verbose", action="store_true", help="list every move")

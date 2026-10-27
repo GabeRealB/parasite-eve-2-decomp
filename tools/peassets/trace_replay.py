@@ -82,7 +82,8 @@ import spk_scripts  # noqa: E402
 
 TRACES = ROOT / "local" / "gametrace"
 OBSERVED = Path(__file__).with_name("observed.tsv")
-RAW = ROOT / "assets" / "USA" / "raw"
+import project  # noqa: E402
+RAW = project.root() / "raw"
 COLUMNS = ("asset", "how", "trace", "session", "stage", "room", "room_index", "variant", "view", "where", "file", "page", "row", "mode", "note", "ended")
 HEADER = """# Observed residency: what the traces of the running game (tools/gametrace) showed in memory, and in which context.
 # Written by `tools/peassets/trace_replay.py observe --write`, which merges: a trace observed again replaces its
@@ -211,7 +212,7 @@ class World:
         # A package's load address is in its chunk header, which the extraction keeps (assets/USA/stages.json);
         # the overlay manifest's is the fallback.
         self.address: dict[str, int] = {}
-        listing = ROOT / "assets" / "USA" / "stages.json"
+        listing = project.root() / "stages.json"
         if listing.is_file():
             def walk(node):
                 for key, value in node.items():
@@ -273,7 +274,7 @@ class World:
         return ("?", None)
 
     def length(self, package: str) -> int | None:
-        path = ROOT / "assets" / "USA" / "pe2pkg" / f"{package}.pe2pkg"
+        path = project.root() / "pe2pkg" / f"{package}.pe2pkg"
         return path.stat().st_size if path.is_file() else None
 
     def slot_end(self, address: int) -> int:
@@ -300,7 +301,7 @@ class World:
         sample's byte offset in the pool last) follow it."""
         if path not in self._sequences:
             stage, _slash, name = path.partition("/")
-            raw, found = ROOT / "assets" / "USA" / f"stage{stage}" / name / "raw.bin", None
+            raw, found = project.root() / f"stage{stage}" / name / "raw.bin", None
             if raw.is_file():
                 data = raw.read_bytes()
                 if len(data) >= 0x14:
@@ -327,7 +328,7 @@ class World:
         stream (assets/USA/audio/<stream>.json)."""
         if self._streams is None:
             self._streams = {}
-            folder_of = ROOT / "assets" / "USA" / "audio"
+            folder_of = project.root() / "audio"
             for path in sorted(folder_of.glob("*.json")) if folder_of.is_dir() else ():
                 try:
                     meta = json.loads(path.read_text(encoding="utf-8"))

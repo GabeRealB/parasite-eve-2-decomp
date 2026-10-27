@@ -20,7 +20,8 @@ import shape  # noqa: E402
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=("decode", "check"))
-    ap.add_argument("--assets", type=Path, default=PEASSETS.parents[1] / "assets/USA")
+    import project                            # the extraction tools default to (project.py)
+    ap.add_argument("--assets", type=Path, default=project.root())
     ap.add_argument("--only")
     args = ap.parse_args(argv)
     import asset_data
