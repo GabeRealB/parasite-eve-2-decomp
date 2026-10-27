@@ -360,7 +360,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "akropolis_cafeteria"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "0a43c68c82490299076973953db45213ed28437d"
 
 [[package.embedded]]

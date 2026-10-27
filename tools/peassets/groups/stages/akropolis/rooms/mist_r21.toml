@@ -15,7 +15,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "mist_r21"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "6575257434c123c3f4aefff45ab31fe4a0777874"
 
 [dialogue_0]

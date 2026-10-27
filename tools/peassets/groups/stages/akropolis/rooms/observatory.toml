@@ -88,7 +88,7 @@ embedded = [
 load = { slot = "room" }
 package_name = "akropolis_observatory"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "68dd1721f0677347cfcdbd4ef610e125572ef4fd"
 
 [package.entries]

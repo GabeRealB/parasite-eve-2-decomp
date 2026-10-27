@@ -34,7 +34,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "mist_shooting_gallery"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "57df52b9e88832b4ecfd2898406c57ca89827ed7"
 
 [[package.embedded]]

@@ -15,7 +15,7 @@ chunk = "dialogue_0_atlas"
 sector_len = 1536
 
 [[file.contents]]
-asset = "rooms/akropolis/bridge_model_palette"
+asset = "stages/akropolis/bridge_model_palette"
 sha1 = "82bbdfc9a19bd207c929469cdaf0de47ea916795"
 
 [[file.contents.palettes]]
@@ -229,7 +229,7 @@ embedded = [
 load = { slot = "room" }
 package_name = "akropolis_promenade"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "61de7cf0d94d0b266b70a85befb299273b7b42ac"
 
 [package.entries]

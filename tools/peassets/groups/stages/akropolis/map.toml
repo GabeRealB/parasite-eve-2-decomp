@@ -1,4 +1,4 @@
-# The assets of the group rooms/akropolis/map, each named rooms/akropolis/map/<table name>.
+# The assets of the group stages/akropolis/map, each named stages/akropolis/map/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
 [patio]
@@ -127,7 +127,7 @@ sha1 = "6af17e1f03610f49823bee065c89154c358f0eaf"
 
 [patio_binding]
 type = "binding"
-model = "rooms/akropolis/map/patio"
+model = "stages/akropolis/map/patio"
 
 [security_room]
 type = "model"
@@ -137,31 +137,31 @@ sha1 = "7f45daea2d916d8122ede90c27dc3846eb626323"
 
 [bridge_binding]
 type = "binding"
-model = "rooms/akropolis/map/bridge"
+model = "stages/akropolis/map/bridge"
 
 [square_binding]
 type = "binding"
-model = "rooms/akropolis/map/square"
+model = "stages/akropolis/map/square"
 
 [hallway_binding]
 type = "binding"
-model = "rooms/akropolis/map/hallway"
+model = "stages/akropolis/map/hallway"
 
 [fountain_binding]
 type = "binding"
-model = "rooms/akropolis/map/fountain"
+model = "stages/akropolis/map/fountain"
 
 [cafeteria_binding]
 type = "binding"
-model = "rooms/akropolis/map/cafeteria"
+model = "stages/akropolis/map/cafeteria"
 
 [promenade_binding]
 type = "binding"
-model = "rooms/akropolis/map/promenade"
+model = "stages/akropolis/map/promenade"
 
 [sanctuary_binding]
 type = "binding"
-model = "rooms/akropolis/map/sanctuary"
+model = "stages/akropolis/map/sanctuary"
 
 [east_elevator_hall]
 type = "model"
@@ -177,23 +177,23 @@ sha1 = "a640806c7d97ed9495f3897ea10a82e892107cae"
 
 [fire_escape_binding]
 type = "binding"
-model = "rooms/akropolis/map/fire_escape"
+model = "stages/akropolis/map/fire_escape"
 
 [forked_road_binding]
 type = "binding"
-model = "rooms/akropolis/map/forked_road"
+model = "stages/akropolis/map/forked_road"
 
 [observatory_binding]
 type = "binding"
-model = "rooms/akropolis/map/observatory"
+model = "stages/akropolis/map/observatory"
 
 [roof_garden_binding]
 type = "binding"
-model = "rooms/akropolis/map/roof_garden"
+model = "stages/akropolis/map/roof_garden"
 
 [security_room_binding]
 type = "binding"
-model = "rooms/akropolis/map/security_room"
+model = "stages/akropolis/map/security_room"
 
 [helicopter_landing_pad]
 type = "model"
@@ -203,12 +203,12 @@ sha1 = "4de3a1184358b67d43a42c5c7f3629e77e517471"
 
 [east_elevator_hall_binding]
 type = "binding"
-model = "rooms/akropolis/map/east_elevator_hall"
+model = "stages/akropolis/map/east_elevator_hall"
 
 [west_elevator_hall_binding]
 type = "binding"
-model = "rooms/akropolis/map/west_elevator_hall"
+model = "stages/akropolis/map/west_elevator_hall"
 
 [helicopter_landing_pad_binding]
 type = "binding"
-model = "rooms/akropolis/map/helicopter_landing_pad"
+model = "stages/akropolis/map/helicopter_landing_pad"

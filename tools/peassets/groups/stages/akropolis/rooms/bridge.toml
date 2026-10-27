@@ -14,7 +14,7 @@ asset = "stages/akropolis/rooms/bridge/sounds/bank_1"
 chunk = "dialogue_0_atlas"
 
 [[file.contents]]
-asset = "rooms/akropolis/bridge_model_palette"
+asset = "stages/akropolis/bridge_model_palette"
 sha1 = "82bbdfc9a19bd207c929469cdaf0de47ea916795"
 
 [[file.contents]]
@@ -122,7 +122,7 @@ embedded = [
 load = { slot = "room" }
 package_name = "akropolis_bridge"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "c24f91488b8fd9a1555870bbd30bb4e08d72bb8a"
 
 [package.entries]

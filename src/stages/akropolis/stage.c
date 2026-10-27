@@ -65,10 +65,10 @@
 
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
-#include "assets/rooms/akropolis/declarations.inc"
+#include "assets/stages/akropolis/declarations.inc"
 
 /* The Akropolis stage overlay (stage 1: Akropolis and the MIST), resident while any of its rooms is loaded: the
- * per-stage tables gameplay and main index by stage (decoded data, rooms/akropolis/stage.toml, included below), the
+ * per-stage tables gameplay and main index by stage (decoded data, stages/akropolis/stage.toml, included below), the
  * placed objects' spawn recipes and the rooms' tasks, the movie buffer layout per area and the MIST briefing's
  * key-item menu.
  */
@@ -345,12 +345,12 @@ s32 akropolisStageWasDryfieldMapSelected(void)
     return _gAkropolisStageDryfieldMapOpened;
 }
 
-#include "assets/rooms/akropolis/memory.inc"
-#include "assets/rooms/akropolis/map_1.inc"
-#include "assets/rooms/akropolis/spawns_1.inc"
-#include "assets/rooms/akropolis/object_places_1.inc"
-#include "assets/rooms/akropolis/spawns_2.inc"
-#include "assets/rooms/akropolis/objects.inc"
+#include "assets/stages/akropolis/memory.inc"
+#include "assets/stages/akropolis/map_1.inc"
+#include "assets/stages/akropolis/spawns_1.inc"
+#include "assets/stages/akropolis/object_places_1.inc"
+#include "assets/stages/akropolis/spawns_2.inc"
+#include "assets/stages/akropolis/objects.inc"
 TaskDesc gAkropolisStageRoomTaskDescriptors[21] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisSquareRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0) } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisEastElevatorHallRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, 0) } },
@@ -429,12 +429,12 @@ static TaskDesc _gAkropolisStageKeyItemMenuTaskDescriptor = {
     .header   = { .fields = { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } },
     .callback = _akropolisStageKeyItemMenuTask,
 };
-#include "assets/rooms/akropolis/map_2.inc"
-#include "assets/rooms/akropolis/tables.inc"
-#include "assets/rooms/akropolis/placements.inc"
-#include "assets/rooms/akropolis/object_places_2.inc"
-#include "assets/rooms/akropolis/rewards.inc"
-#include "assets/rooms/akropolis/music.inc"
+#include "assets/stages/akropolis/map_2.inc"
+#include "assets/stages/akropolis/tables.inc"
+#include "assets/stages/akropolis/placements.inc"
+#include "assets/stages/akropolis/object_places_2.inc"
+#include "assets/stages/akropolis/rewards.inc"
+#include "assets/stages/akropolis/music.inc"
 
 /// NUL-terminated title displayed above the briefing's key-item list.
 ///

@@ -408,7 +408,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "akropolis_helicopter_landing_pad"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "dc29089521da635762fcffefbbf44f6e4914266a"
 
 [[package.embedded]]

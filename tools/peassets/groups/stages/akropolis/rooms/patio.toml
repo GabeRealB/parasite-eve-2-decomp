@@ -14,11 +14,11 @@ asset = "stages/akropolis/rooms/patio/sounds/bank_1"
 chunk = "dialogue_0_atlas"
 
 [[file.contents]]
-asset = "rooms/akropolis/flare_palette"
+asset = "stages/akropolis/flare_palette"
 sha1 = "11f13d3614ea702762a1173c116f478133fb96e1"
 
 [[file.contents.palettes]]
-texture = "rooms/akropolis/flare"
+texture = "stages/akropolis/flare"
 variant = "flare_0"
 region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x00009]
@@ -30,7 +30,7 @@ region = "engine/vram/effect_palettes"
 offset = [0x00000, 0x00009]
 
 [[file.contents.palettes]]
-texture = "rooms/akropolis/flare"
+texture = "stages/akropolis/flare"
 variant = "flare_1"
 region = "engine/vram/effect_palettes"
 offset = [0x00010, 0x00009]
@@ -42,7 +42,7 @@ region = "engine/vram/effect_palettes"
 offset = [0x00010, 0x00009]
 
 [[file.contents.palettes]]
-texture = "rooms/akropolis/flare"
+texture = "stages/akropolis/flare"
 variant = "flare_2"
 region = "engine/vram/effect_palettes"
 offset = [0x00020, 0x00009]
@@ -186,9 +186,9 @@ region = "engine/vram/effect_palettes"
 offset = [0x00130, 0x0000A]
 
 [[file.contents]]
-asset = "rooms/akropolis/flare_image"
+asset = "stages/akropolis/flare_image"
 sha1 = "d79499a872c4488b4528176f94b638599d414fb5"
-pages = [{ texture = "rooms/akropolis/flare", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] }]
+pages = [{ texture = "stages/akropolis/flare", region = "engine/vram/effect_sheet", offset = [0x000C0, 0x00000] }]
 slots = 2
 
 [[file.contents]]
@@ -228,7 +228,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "akropolis_patio"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "a1d21b9d3d98c6ee720aa24c2f879af7387fd92a"
 
 [[package.embedded]]

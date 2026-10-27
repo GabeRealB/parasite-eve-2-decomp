@@ -227,7 +227,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "akropolis_roof_garden"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "2217089fcd1f4f7bc3c77434cf461ce6644a824b"
 
 [[package.embedded]]

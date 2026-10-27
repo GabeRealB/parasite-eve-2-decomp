@@ -128,7 +128,7 @@ exports = { item_box_model = { at = 0x07FC4, symbol = "gAkropolisSecurityRoomIte
 load = { slot = "room" }
 package_name = "akropolis_security_room"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 slots = { security_monitors = "stages/akropolis/actors/security_monitors/package" }
 sha1 = "e0f563a5df845e45721bcf02a30ddee1283ed722"
 

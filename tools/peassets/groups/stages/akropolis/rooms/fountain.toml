@@ -36,7 +36,7 @@ embedded = [{ name = "collision", offset = 0x013C0, size = 0xC8C }]
 load = { slot = "room" }
 package_name = "akropolis_fountain"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "588e1219c3d1cdd079a9ce083670e94eaa0f12cf"
 
 [package.entries]

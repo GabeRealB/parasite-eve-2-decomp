@@ -77,7 +77,7 @@ resources = [
     "stages/akropolis/rooms/mist_parking/dialogue_0",
     "stages/akropolis/rooms/mist_parking/dialogue_1",
     "stages/akropolis/rooms/mist_parking/dialogue_2",
-    "rooms/akropolis/story_calls",
+    "stages/akropolis/story_calls",
 ]
 sha1 = "01596c2f977b874beb385b68b9927f32f6517838"
 
@@ -86,7 +86,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "mist_parking"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 sha1 = "4f3789fd1543af7836b09e6cee5c09472fd0852e"
 
 [[package.embedded]]

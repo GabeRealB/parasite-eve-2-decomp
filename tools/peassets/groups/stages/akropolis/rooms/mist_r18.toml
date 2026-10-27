@@ -208,7 +208,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "mist_r18"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 slots = { eric = "stages/akropolis/actors/mist_eric/package", rupert = "stages/akropolis/actors/mist_rupert/package" }
 sha1 = "72d08008a6f9c1f371d03dc8d79a70aea31c66c7"
 

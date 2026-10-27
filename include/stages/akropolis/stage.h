@@ -226,7 +226,7 @@ extern ViewIndexTable gAkropolisStageViewIndexTable;
 /// tables remain borrowed for that overlay's lifetime.
 extern WorldCollisionSurfaceProperties** gAkropolisStageSurfacePropertiesByArea[GAME_AREA_MIST_SHOOTING_GALLERY];
 
-// The placement lists of the rooms' variants (decoded data: rooms/akropolis/stage.toml). Each ends with
+// The placement lists of the rooms' variants (decoded data: stages/akropolis/stage.toml). Each ends with
 // AREA_PLACEMENT_END, and the actors placed borrow their records while the stage overlay is loaded.
 
 /// One Grinning Stranger for the Square opening layout.

@@ -5893,9 +5893,9 @@ TREE = {
             'kyle_death_2': {"id": 20934, "chunks": {'bank': 'sounds/kyle_death/bank_2'}},
             'kyle_death_3': {"id": 20935, "chunks": {'bank': 'sounds/kyle_death/bank_3'}},
             'ending': {"id": 21000, "chunks": {'glyph_palette_block': 'ui/font/glyph_palette_block', 'translucent_palette': 'dialogue/translucent_palette', 'logo_palettes': 'ending/logo_palettes', 'logo_image': 'ending/logo_image', 'font_image_0': 'ending/font_image_0', 'font_image_1': 'ending/font_image_1', 'package': 'ending/package', 'bundle': 'ending/bundle'}},
-            'akropolis_map_page_0': {"id": 30100, "chunks": {'pe2img_189': 'pe2img_189', 'pe2clut_183': 'pe2clut_183', 'package': 'rooms/akropolis/map/page_1'}},
-            'akropolis_map_page_1': {"id": 30101, "chunks": {'pe2img_189': 'pe2img_189', 'pe2clut_183': 'pe2clut_183', 'package': 'rooms/akropolis/map/page_1'}},
-            'akropolis_map_page_2': {"id": 30102, "chunks": {'pe2img_190': 'pe2img_190', 'pe2clut_184': 'pe2clut_184', 'package': 'rooms/akropolis/map/page_2'}},
+            'akropolis_map_page_0': {"id": 30100, "chunks": {'pe2img_189': 'pe2img_189', 'pe2clut_183': 'pe2clut_183', 'package': 'stages/akropolis/map/page_1'}},
+            'akropolis_map_page_1': {"id": 30101, "chunks": {'pe2img_189': 'pe2img_189', 'pe2clut_183': 'pe2clut_183', 'package': 'stages/akropolis/map/page_1'}},
+            'akropolis_map_page_2': {"id": 30102, "chunks": {'pe2img_190': 'pe2img_190', 'pe2clut_184': 'pe2clut_184', 'package': 'stages/akropolis/map/page_2'}},
             'akropolis_map_page_3': {"id": 30103, "chunks": {'pe2img_191': 'pe2img_191', 'pe2clut_185': 'pe2clut_185'}},
             'file30200': {"id": 30200, "chunks": {'pe2clut_186': 'pe2clut_186', 'pe2img_192': 'pe2img_192', 'mappic_s2_00': 'mappic_s2_00'}},
             'file30201': {"id": 30201, "chunks": {'pe2clut_186': 'pe2clut_186', 'pe2img_192': 'pe2img_192', 'mappic_s2_00': 'mappic_s2_00'}},
@@ -6296,8 +6296,8 @@ TREE = {
             'akropolis_square': {"id": 801000, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'bundle': 'attract_demo_1_bundle'}},
             'dryfield_main_street': {"id": 801100, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'bundle': 'attract_demo_2_bundle'}},
             'dryfield_underpass': {"id": 801200, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'bundle': 'attract_demo_3_bundle'}},
-            'file900000': {"id": 900000, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'pe2img_302': 'stages/akropolis/rooms/west_elevator_hall/image', 'pe2clut_307': 'stages/akropolis/rooms/west_elevator_hall/palette', 'map_akropolis': 'rooms/akropolis/stage'}},
-            'file900001': {"id": 900001, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'pe2img_302': 'stages/akropolis/rooms/west_elevator_hall/image', 'pe2clut_307': 'stages/akropolis/rooms/west_elevator_hall/palette', 'map_akropolis': 'rooms/akropolis/stage'}},
+            'file900000': {"id": 900000, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'pe2img_302': 'stages/akropolis/rooms/west_elevator_hall/image', 'pe2clut_307': 'stages/akropolis/rooms/west_elevator_hall/palette', 'map_akropolis': 'stages/akropolis/package'}},
+            'file900001': {"id": 900001, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'pe2img_302': 'stages/akropolis/rooms/west_elevator_hall/image', 'pe2clut_307': 'stages/akropolis/rooms/west_elevator_hall/palette', 'map_akropolis': 'stages/akropolis/package'}},
             'map_dryfield': {"id": 900002, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'pe2img_302': 'stages/akropolis/rooms/west_elevator_hall/image', 'pe2clut_307': 'stages/akropolis/rooms/west_elevator_hall/palette', 'package': 'map_dryfield'}},
             'map_dryfield_full': {"id": 900003, "chunks": {'logo_palette': 'attract_demos/logo_palette', 'logo_shadow_palette': 'attract_demos/logo_shadow_palette', 'logo': 'attract_demos/logo', 'logo_shadow': 'attract_demos/logo_shadow', 'spk_151': 'spk_151', 'pe2img_302': 'stages/akropolis/rooms/west_elevator_hall/image', 'pe2clut_307': 'stages/akropolis/rooms/west_elevator_hall/palette', 'package': 'map_dryfield_full'}},
             'map_shelter': {"id": 900004, "chunks": {'pe2img_302': 'stages/akropolis/rooms/west_elevator_hall/image', 'pe2clut_307': 'stages/akropolis/rooms/west_elevator_hall/palette', 'package': 'map_shelter'}},
@@ -6316,7 +6316,7 @@ TREE = {
                 'file6': {"id": 6, "chunks": {'view6_image': 'stages/akropolis/rooms/square/views/view6_image', 'view6_background': 'stages/akropolis/rooms/square/views/view6_background'}},
                 'file7': {"id": 7, "chunks": {'view7_image': 'stages/akropolis/rooms/square/views/view7_image', 'view7_background': 'stages/akropolis/rooms/square/views/view7_background'}},
                 'file8': {"id": 8, "chunks": {'view8_image': 'stages/akropolis/rooms/square/views/view8_image', 'view8_background': 'stages/akropolis/rooms/square/views/view8_background'}},
-                'file9': {"id": 9, "chunks": {'dialogue_1_atlas': 'rooms/akropolis/story_calls_atlas', 'view9_background': 'stages/akropolis/rooms/square/views/view9_background'}},
+                'file9': {"id": 9, "chunks": {'dialogue_1_atlas': 'stages/akropolis/story_calls_atlas', 'view9_background': 'stages/akropolis/rooms/square/views/view9_background'}},
                 'file10': {"id": 10, "chunks": {'view10_background': 'stages/akropolis/rooms/square/views/view10_background'}},
                 'file11': {"id": 11, "chunks": {'view11_background': 'stages/akropolis/rooms/square/views/view11_background'}},
                 'file12': {"id": 12, "chunks": {'view12_background': 'stages/akropolis/rooms/square/views/view12_background'}},
@@ -6335,7 +6335,7 @@ TREE = {
                 'file7': {"id": 7, "chunks": {'pe2img_317': 'stages/akropolis/rooms/east_elevator_hall/views/view7_image', 'bs_62': 'stages/akropolis/rooms/east_elevator_hall/views/view7_background'}},
             }},
             'akropolis_patio': {"id": 301, "files": {
-                'file0': {"id": 0, "chunks": {'spk_156': 'stages/akropolis/rooms/patio/sounds/bank_0', 'spk_157': 'stages/akropolis/rooms/patio/sounds/bank_1', 'akropolis_patio_dialogue_0_atlas': 'stages/akropolis/rooms/patio/dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'stages/akropolis/rooms/patio/package', 'bundle': 'stages/akropolis/rooms/patio/bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_156': 'stages/akropolis/rooms/patio/sounds/bank_0', 'spk_157': 'stages/akropolis/rooms/patio/sounds/bank_1', 'akropolis_patio_dialogue_0_atlas': 'stages/akropolis/rooms/patio/dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'stages/akropolis/rooms/patio/package', 'bundle': 'stages/akropolis/rooms/patio/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_63': 'stages/akropolis/rooms/patio/views/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_320': 'stages/akropolis/rooms/patio/views/view2_image', 'bs_64': 'stages/akropolis/rooms/patio/views/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_321': 'stages/akropolis/rooms/patio/views/view3_image', 'bs_65': 'stages/akropolis/rooms/patio/views/view3_background'}},
@@ -6414,7 +6414,7 @@ TREE = {
                 'file5': {"id": 5, "chunks": {'bs_126': 'stages/akropolis/rooms/hallway/views/view5_background'}},
             }},
             'akropolis_fountain': {"id": 801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_166': 'stages/akropolis/rooms/fountain/sounds/bank_0', 'spk_167': 'stages/akropolis/rooms/fountain/sounds/bank_1', 'akropolis_fountain_dialogue_0_atlas': 'stages/akropolis/rooms/fountain/dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'stages/akropolis/rooms/fountain/package', 'bundle': 'stages/akropolis/rooms/fountain/bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_166': 'stages/akropolis/rooms/fountain/sounds/bank_0', 'spk_167': 'stages/akropolis/rooms/fountain/sounds/bank_1', 'akropolis_fountain_dialogue_0_atlas': 'stages/akropolis/rooms/fountain/dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'stages/akropolis/rooms/fountain/package', 'bundle': 'stages/akropolis/rooms/fountain/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_127': 'stages/akropolis/rooms/fountain/views/view1_background'}},
                 'file2': {"id": 2, "chunks": {'bs_128': 'stages/akropolis/rooms/fountain/views/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_354': 'stages/akropolis/rooms/fountain/views/view3_image', 'bs_129': 'stages/akropolis/rooms/fountain/views/view3_background'}},
@@ -6465,7 +6465,7 @@ TREE = {
                 'file8': {"id": 8, "chunks": {'pe2img_378': 'stages/akropolis/rooms/observatory/views/view8_image', 'bs_168': 'stages/akropolis/rooms/observatory/views/view8_background'}},
             }},
             'akropolis_promenade': {"id": 1101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_171': 'stages/akropolis/rooms/promenade/sounds/bank_0', 'spk_172': 'stages/akropolis/rooms/promenade/sounds/bank_1', 'akropolis_promenade_dialogue_0_atlas': 'stages/akropolis/rooms/promenade/dialogue_0_atlas', 'pe2clut_319': 'rooms/akropolis/bridge_model_palette', 'pe2clut_320': 'stages/akropolis/rooms/promenade/palette_2', 'pe2img_380': 'stages/akropolis/rooms/promenade/image', 'package': 'stages/akropolis/rooms/promenade/package', 'bundle': 'stages/akropolis/rooms/promenade/bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_171': 'stages/akropolis/rooms/promenade/sounds/bank_0', 'spk_172': 'stages/akropolis/rooms/promenade/sounds/bank_1', 'akropolis_promenade_dialogue_0_atlas': 'stages/akropolis/rooms/promenade/dialogue_0_atlas', 'pe2clut_319': 'stages/akropolis/bridge_model_palette', 'pe2clut_320': 'stages/akropolis/rooms/promenade/palette_2', 'pe2img_380': 'stages/akropolis/rooms/promenade/image', 'package': 'stages/akropolis/rooms/promenade/package', 'bundle': 'stages/akropolis/rooms/promenade/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_169': 'stages/akropolis/rooms/promenade/views/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_381': 'stages/akropolis/rooms/promenade/views/view2_image', 'bs_170': 'stages/akropolis/rooms/promenade/views/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_382': 'stages/akropolis/rooms/promenade/views/view3_image', 'bs_171': 'stages/akropolis/rooms/promenade/views/view3_background'}},
@@ -6481,7 +6481,7 @@ TREE = {
                 'file13': {"id": 13, "chunks": {'bs_181': 'stages/akropolis/rooms/promenade/views/view13_background'}},
             }},
             'akropolis_sanctuary': {"id": 1201, "files": {
-                'file0': {"id": 0, "chunks": {'spk_173': 'stages/akropolis/rooms/sanctuary/sounds/bank_0', 'spk_174': 'stages/akropolis/rooms/sanctuary/sounds/bank_1', 'akropolis_sanctuary_dialogue_0_atlas': 'stages/akropolis/rooms/sanctuary/dialogue_0_atlas', 'pe2clut_321': 'stages/akropolis/rooms/sanctuary/palette', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_390': 'stages/akropolis/rooms/sanctuary/image', 'pe2img_391': 'stages/akropolis/rooms/sanctuary/image_2', 'package': 'stages/akropolis/rooms/sanctuary/package', 'bundle': 'stages/akropolis/rooms/sanctuary/bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_173': 'stages/akropolis/rooms/sanctuary/sounds/bank_0', 'spk_174': 'stages/akropolis/rooms/sanctuary/sounds/bank_1', 'akropolis_sanctuary_dialogue_0_atlas': 'stages/akropolis/rooms/sanctuary/dialogue_0_atlas', 'pe2clut_321': 'stages/akropolis/rooms/sanctuary/palette', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_390': 'stages/akropolis/rooms/sanctuary/image', 'pe2img_391': 'stages/akropolis/rooms/sanctuary/image_2', 'package': 'stages/akropolis/rooms/sanctuary/package', 'bundle': 'stages/akropolis/rooms/sanctuary/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_182': 'stages/akropolis/rooms/sanctuary/views/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_392': 'stages/akropolis/rooms/sanctuary/views/view2_image', 'bs_183': 'stages/akropolis/rooms/sanctuary/views/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_393': 'stages/akropolis/rooms/sanctuary/views/view3_image', 'bs_184': 'stages/akropolis/rooms/sanctuary/views/view3_background'}},
@@ -6510,7 +6510,7 @@ TREE = {
                 'file7': {"id": 7, "chunks": {'bs_204': 'stages/akropolis/rooms/roof_garden/views/view7_background'}},
             }},
             'akropolis_bridge': {"id": 1401, "files": {
-                'file0': {"id": 0, "chunks": {'spk_178': 'stages/akropolis/rooms/bridge/sounds/bank_0', 'spk_179': 'stages/akropolis/rooms/bridge/sounds/bank_1', 'akropolis_bridge_dialogue_0_atlas': 'stages/akropolis/rooms/bridge/dialogue_0_atlas', 'pe2clut_319': 'rooms/akropolis/bridge_model_palette', 'pe2clut_324': 'stages/akropolis/rooms/bridge/palette_2', 'pe2img_412': 'stages/akropolis/rooms/bridge/image', 'package': 'stages/akropolis/rooms/bridge/package', 'bundle': 'stages/akropolis/rooms/bridge/bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_178': 'stages/akropolis/rooms/bridge/sounds/bank_0', 'spk_179': 'stages/akropolis/rooms/bridge/sounds/bank_1', 'akropolis_bridge_dialogue_0_atlas': 'stages/akropolis/rooms/bridge/dialogue_0_atlas', 'pe2clut_319': 'stages/akropolis/bridge_model_palette', 'pe2clut_324': 'stages/akropolis/rooms/bridge/palette_2', 'pe2img_412': 'stages/akropolis/rooms/bridge/image', 'package': 'stages/akropolis/rooms/bridge/package', 'bundle': 'stages/akropolis/rooms/bridge/bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_205': 'stages/akropolis/rooms/bridge/views/view1_background'}},
                 'file2': {"id": 2, "chunks": {'pe2img_413': 'stages/akropolis/rooms/bridge/views/view2_image', 'bs_206': 'stages/akropolis/rooms/bridge/views/view2_background'}},
                 'file3': {"id": 3, "chunks": {'pe2img_414': 'stages/akropolis/rooms/bridge/views/view3_image', 'pe2img_415': 'stages/akropolis/rooms/bridge/views/view3_image_2', 'bs_207': 'stages/akropolis/rooms/bridge/views/view3_background'}},
@@ -6532,7 +6532,7 @@ TREE = {
                 'file6': {"id": 6, "chunks": {'bs_220': 'stages/akropolis/rooms/fire_escape/views/view6_background'}},
                 'file7': {"id": 7, "chunks": {'pe2img_429': 'stages/akropolis/rooms/fire_escape/views/view7_image', 'bs_221': 'stages/akropolis/rooms/fire_escape/views/view7_background'}},
                 'file8': {"id": 8, "chunks": {'bs_222': 'stages/akropolis/rooms/fire_escape/views/view8_background'}},
-                'file9': {"id": 9, "chunks": {'akropolis_square_dialogue_1_atlas': 'rooms/akropolis/story_calls_atlas', 'bs_223': 'stages/akropolis/rooms/fire_escape/views/view9_background'}},
+                'file9': {"id": 9, "chunks": {'akropolis_square_dialogue_1_atlas': 'stages/akropolis/story_calls_atlas', 'bs_223': 'stages/akropolis/rooms/fire_escape/views/view9_background'}},
                 'file10': {"id": 10, "chunks": {'bs_224': 'stages/akropolis/rooms/fire_escape/views/view10_background'}},
             }},
             'akropolis_helicopter_landing_pad': {"id": 1601, "files": {
@@ -6594,7 +6594,7 @@ TREE = {
                 'file6': {"id": 6, "chunks": {'pe2img_465': 'stages/akropolis/rooms/mist_parking/views/view6_image', 'bs_267': 'stages/akropolis/rooms/mist_parking/views/view6_background'}},
                 'file7': {"id": 7, "chunks": {'pe2img_466': 'stages/akropolis/rooms/mist_parking/views/view7_image', 'bs_268': 'stages/akropolis/rooms/mist_parking/views/view7_background'}},
                 'file8': {"id": 8, "chunks": {'bs_269': 'stages/akropolis/rooms/mist_parking/views/view8_background'}},
-                'file9': {"id": 9, "chunks": {'akropolis_square_dialogue_1_atlas': 'rooms/akropolis/story_calls_atlas', 'bs_270': 'stages/akropolis/rooms/mist_parking/views/view9_background'}},
+                'file9': {"id": 9, "chunks": {'akropolis_square_dialogue_1_atlas': 'stages/akropolis/story_calls_atlas', 'bs_270': 'stages/akropolis/rooms/mist_parking/views/view9_background'}},
                 'file10': {"id": 10, "chunks": {'pe2img_467': 'stages/akropolis/rooms/mist_parking/views/view10_image', 'bs_271': 'stages/akropolis/rooms/mist_parking/views/view10_background'}},
                 'file11': {"id": 11, "chunks": {'pe2img_468': 'stages/akropolis/rooms/mist_parking/views/view11_image', 'bs_272': 'stages/akropolis/rooms/mist_parking/views/view11_background'}},
                 'file12': {"id": 12, "chunks": {'bs_273': 'stages/akropolis/rooms/mist_parking/views/view12_background'}},
@@ -6827,7 +6827,7 @@ TREE = {
                 'file5': {"id": 5, "chunks": {'bs_440': 'bs_440'}},
             }},
             'dryfield_saloon_g_r': {"id": 1801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_220': 'spk_220', 'spk_221': 'spk_221', 'dryfield_saloon_g_r_dialogue_0_atlas': 'dryfield_saloon_g_r_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_saloon_g_r', 'bundle': 'dryfield_saloon_g_r_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_220': 'spk_220', 'spk_221': 'spk_221', 'dryfield_saloon_g_r_dialogue_0_atlas': 'dryfield_saloon_g_r_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_saloon_g_r', 'bundle': 'dryfield_saloon_g_r_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_441': 'bs_441'}},
                 'file2': {"id": 2, "chunks": {'pe2img_578': 'pe2img_578', 'bs_442': 'bs_442'}},
                 'file3': {"id": 3, "chunks": {'pe2img_579': 'pe2img_579', 'bs_443': 'bs_443'}},
@@ -7051,7 +7051,7 @@ TREE = {
                 'file20': {"id": 20, "chunks": {'bs_615': 'bs_615'}},
             }},
             'dryfield_cellar': {"id": 3401, "files": {
-                'file0': {"id": 0, "chunks": {'spk_250': 'spk_250', 'spk_251': 'spk_251', 'dryfield_cellar_dialogue_0_atlas': 'dryfield_cellar_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_cellar', 'bundle': 'dryfield_cellar_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_250': 'spk_250', 'spk_251': 'spk_251', 'dryfield_cellar_dialogue_0_atlas': 'dryfield_cellar_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_cellar', 'bundle': 'dryfield_cellar_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_616': 'bs_616'}},
                 'file2': {"id": 2, "chunks": {'pe2img_697': 'pe2img_697', 'bs_617': 'bs_617'}},
                 'file3': {"id": 3, "chunks": {'pe2img_698': 'pe2img_698', 'bs_618': 'bs_618'}},
@@ -7065,7 +7065,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'bs_626': 'bs_626'}},
             }},
             'dryfield_underpass': {"id": 3801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_252': 'spk_252', 'spk_253': 'spk_253', 'dryfield_underpass_dialogue_0_atlas': 'dryfield_underpass_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_underpass', 'bundle': 'dryfield_underpass_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_252': 'spk_252', 'spk_253': 'spk_253', 'dryfield_underpass_dialogue_0_atlas': 'dryfield_underpass_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_underpass', 'bundle': 'dryfield_underpass_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_627': 'bs_627'}},
                 'file2': {"id": 2, "chunks": {'bs_628': 'bs_628'}},
                 'file3': {"id": 3, "chunks": {'pe2img_706': 'pe2img_706', 'bs_629': 'bs_629'}},
@@ -7098,7 +7098,7 @@ TREE = {
     3: {
         "folders": {
             'dryfield_night_gas_station': {"id": 101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_254': 'spk_254', 'spk_255': 'spk_255', 'dryfield_gas_station_dialogue_0_atlas': 'dryfield_gas_station_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_gas_station', 'bundle': 'dryfield_night_gas_station_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_254': 'spk_254', 'spk_255': 'spk_255', 'dryfield_gas_station_dialogue_0_atlas': 'dryfield_gas_station_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_gas_station', 'bundle': 'dryfield_night_gas_station_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_302': 'bs_302'}},
                 'file2': {"id": 2, "chunks": {'pe2img_714': 'pe2img_714', 'bs_653': 'bs_653'}},
                 'file3': {"id": 3, "chunks": {'pe2img_715': 'pe2img_715', 'bs_654': 'bs_654'}},
@@ -7169,7 +7169,7 @@ TREE = {
                 'file16': {"id": 16, "chunks": {'bs_344': 'bs_344'}},
             }},
             'dryfield_night_back_street': {"id": 501, "files": {
-                'file0': {"id": 0, "chunks": {'spk_262': 'spk_262', 'spk_263': 'spk_263', 'dryfield_back_street_dialogue_0_atlas': 'dryfield_back_street_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_back_street', 'bundle': 'dryfield_night_back_street_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_262': 'spk_262', 'spk_263': 'spk_263', 'dryfield_back_street_dialogue_0_atlas': 'dryfield_back_street_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_back_street', 'bundle': 'dryfield_night_back_street_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_710': 'bs_710'}},
                 'file2': {"id": 2, "chunks": {'bs_711': 'bs_711'}},
                 'file3': {"id": 3, "chunks": {'bs_712': 'bs_712'}},
@@ -7190,7 +7190,7 @@ TREE = {
                 'file4': {"id": 4, "chunks": {'pe2img_758': 'pe2img_758', 'bs_720': 'bs_720'}},
             }},
             'dryfield_night_r08': {"id": 801, "files": {
-                'file0': {"id": 0, "chunks": {'pe2img_759': 'pe2img_759', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_r08', 'bundle': 'dryfield_night_r08_bundle'}},
+                'file0': {"id": 0, "chunks": {'pe2img_759': 'pe2img_759', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_r08', 'bundle': 'dryfield_night_r08_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_721': 'bs_721'}},
                 'file2': {"id": 2, "chunks": {'bs_722': 'bs_722'}},
                 'file3': {"id": 3, "chunks": {'bs_723': 'bs_723'}},
@@ -7216,7 +7216,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'pe2img_768': 'pe2img_768', 'bs_740': 'bs_740'}},
             }},
             'dryfield_night_motel_room_1': {"id": 1101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_270': 'spk_270', 'spk_271': 'spk_271', 'dryfield_motel_room_1_dialogue_0_atlas': 'dryfield_motel_room_1_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_motel_room_1', 'bundle': 'dryfield_night_motel_room_1_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_270': 'spk_270', 'spk_271': 'spk_271', 'dryfield_motel_room_1_dialogue_0_atlas': 'dryfield_motel_room_1_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_motel_room_1', 'bundle': 'dryfield_night_motel_room_1_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_389': 'bs_389'}},
                 'file2': {"id": 2, "chunks": {'bs_741': 'bs_741'}},
                 'file3': {"id": 3, "chunks": {'bs_742': 'bs_742'}},
@@ -7228,7 +7228,7 @@ TREE = {
                 'file9': {"id": 9, "chunks": {'pe2img_773': 'pe2img_773', 'bs_748': 'bs_748'}},
             }},
             'dryfield_night_motel_room_2': {"id": 1201, "files": {
-                'file0': {"id": 0, "chunks": {'spk_272': 'spk_272', 'spk_273': 'spk_273', 'dryfield_motel_room_2_dialogue_0_atlas': 'dryfield_motel_room_2_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_motel_room_2', 'bundle': 'dryfield_night_motel_room_2_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_272': 'spk_272', 'spk_273': 'spk_273', 'dryfield_motel_room_2_dialogue_0_atlas': 'dryfield_motel_room_2_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_motel_room_2', 'bundle': 'dryfield_night_motel_room_2_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_398': 'bs_398'}},
                 'file2': {"id": 2, "chunks": {'pe2img_774': 'pe2img_774', 'bs_749': 'bs_749'}},
                 'file3': {"id": 3, "chunks": {'pe2img_775': 'pe2img_775', 'bs_750': 'bs_750'}},
@@ -7237,7 +7237,7 @@ TREE = {
                 'file6': {"id": 6, "chunks": {'pe2img_778': 'pe2img_778', 'bs_753': 'bs_753'}},
             }},
             'dryfield_night_motel_room_3': {"id": 1301, "files": {
-                'file0': {"id": 0, "chunks": {'spk_274': 'spk_274', 'spk_275': 'spk_275', 'dryfield_motel_room_3_dialogue_0_atlas': 'dryfield_motel_room_3_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_motel_room_3', 'bundle': 'dryfield_night_motel_room_3_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_274': 'spk_274', 'spk_275': 'spk_275', 'dryfield_motel_room_3_dialogue_0_atlas': 'dryfield_motel_room_3_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_motel_room_3', 'bundle': 'dryfield_night_motel_room_3_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_404': 'bs_404'}},
                 'file2': {"id": 2, "chunks": {'bs_405': 'bs_405'}},
                 'file3': {"id": 3, "chunks": {'bs_754': 'bs_754'}},
@@ -7251,7 +7251,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'pe2img_784': 'pe2img_784', 'bs_762': 'bs_762'}},
             }},
             'dryfield_night_motel_room_4': {"id": 1401, "files": {
-                'file0': {"id": 0, "chunks": {'spk_276': 'spk_276', 'spk_277': 'spk_277', 'dryfield_motel_room_4_dialogue_0_atlas': 'dryfield_motel_room_4_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_motel_room_4', 'bundle': 'dryfield_night_motel_room_4_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_276': 'spk_276', 'spk_277': 'spk_277', 'dryfield_motel_room_4_dialogue_0_atlas': 'dryfield_motel_room_4_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_motel_room_4', 'bundle': 'dryfield_night_motel_room_4_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_412': 'bs_412'}},
                 'file2': {"id": 2, "chunks": {'pe2img_785': 'pe2img_785', 'bs_763': 'bs_763'}},
                 'file3': {"id": 3, "chunks": {'pe2img_786': 'pe2img_786', 'bs_764': 'bs_764'}},
@@ -7260,7 +7260,7 @@ TREE = {
                 'file6': {"id": 6, "chunks": {'pe2img_789': 'pe2img_789', 'bs_767': 'bs_767'}},
             }},
             'dryfield_night_parking_lot': {"id": 1501, "files": {
-                'file0': {"id": 0, "chunks": {'spk_278': 'spk_278', 'spk_279': 'spk_279', 'dryfield_parking_lot_dialogue_0_atlas': 'dryfield_parking_lot_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_parking_lot', 'bundle': 'dryfield_night_parking_lot_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_278': 'spk_278', 'spk_279': 'spk_279', 'dryfield_parking_lot_dialogue_0_atlas': 'dryfield_parking_lot_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_parking_lot', 'bundle': 'dryfield_night_parking_lot_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_418': 'bs_418'}},
                 'file2': {"id": 2, "chunks": {'pe2img_790': 'pe2img_790', 'bs_768': 'bs_768'}},
                 'file3': {"id": 3, "chunks": {'pe2img_791': 'pe2img_791', 'bs_769': 'bs_769'}},
@@ -7274,7 +7274,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'bs_776': 'bs_776'}},
             }},
             'dryfield_night_toilet': {"id": 1601, "files": {
-                'file0': {"id": 0, "chunks": {'spk_280': 'spk_280', 'spk_281': 'spk_281', 'dryfield_toilet_dialogue_0_atlas': 'dryfield_toilet_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_toilet', 'bundle': 'dryfield_night_toilet_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_280': 'spk_280', 'spk_281': 'spk_281', 'dryfield_toilet_dialogue_0_atlas': 'dryfield_toilet_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_toilet', 'bundle': 'dryfield_night_toilet_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_425': 'bs_425'}},
                 'file2': {"id": 2, "chunks": {'pe2img_796': 'pe2img_796', 'bs_777': 'bs_777'}},
                 'file3': {"id": 3, "chunks": {'pe2img_797': 'pe2img_797', 'bs_778': 'bs_778'}},
@@ -7286,7 +7286,7 @@ TREE = {
                 'file9': {"id": 9, "chunks": {'bs_784': 'bs_784'}},
             }},
             'dryfield_night_motel_lobby': {"id": 1701, "files": {
-                'file0': {"id": 0, "chunks": {'spk_282': 'spk_282', 'spk_283': 'spk_283', 'dryfield_motel_lobby_dialogue_0_atlas': 'dryfield_motel_lobby_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_motel_lobby', 'bundle': 'dryfield_night_motel_lobby_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_282': 'spk_282', 'spk_283': 'spk_283', 'dryfield_motel_lobby_dialogue_0_atlas': 'dryfield_motel_lobby_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_motel_lobby', 'bundle': 'dryfield_night_motel_lobby_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_785': 'bs_785'}},
                 'file2': {"id": 2, "chunks": {'pe2img_800': 'pe2img_800', 'bs_786': 'bs_786'}},
                 'file3': {"id": 3, "chunks": {'pe2img_801': 'pe2img_801', 'bs_787': 'bs_787'}},
@@ -7296,7 +7296,7 @@ TREE = {
                 'file7': {"id": 7, "chunks": {'bs_791': 'bs_791'}},
             }},
             'dryfield_night_saloon_g_r': {"id": 1801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_284': 'spk_284', 'spk_285': 'spk_285', 'dryfield_saloon_g_r_dialogue_0_atlas': 'dryfield_saloon_g_r_dialogue_0_atlas', 'pe2clut_352': 'pe2clut_352', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_806': 'pe2img_806', 'package': 'dryfield_night_saloon_g_r', 'bundle': 'dryfield_night_saloon_g_r_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_284': 'spk_284', 'spk_285': 'spk_285', 'dryfield_saloon_g_r_dialogue_0_atlas': 'dryfield_saloon_g_r_dialogue_0_atlas', 'pe2clut_352': 'pe2clut_352', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_806': 'pe2img_806', 'package': 'dryfield_night_saloon_g_r', 'bundle': 'dryfield_night_saloon_g_r_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_792': 'bs_792'}},
                 'file2': {"id": 2, "chunks": {'pe2img_807': 'pe2img_807', 'bs_793': 'bs_793'}},
                 'file3': {"id": 3, "chunks": {'pe2img_808': 'pe2img_808', 'bs_794': 'bs_794'}},
@@ -7318,7 +7318,7 @@ TREE = {
                 'file3': {"id": 3, "chunks": {'bs_806': 'bs_806'}},
             }},
             'dryfield_night_water_tower': {"id": 2001, "files": {
-                'file0': {"id": 0, "chunks": {'spk_288': 'spk_288', 'spk_289': 'spk_289', 'dryfield_water_tower_dialogue_0_atlas': 'dryfield_water_tower_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_water_tower', 'bundle': 'dryfield_night_water_tower_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_288': 'spk_288', 'spk_289': 'spk_289', 'dryfield_water_tower_dialogue_0_atlas': 'dryfield_water_tower_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_water_tower', 'bundle': 'dryfield_night_water_tower_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_807': 'bs_807'}},
                 'file2': {"id": 2, "chunks": {'pe2img_817': 'pe2img_817', 'bs_808': 'bs_808'}},
                 'file3': {"id": 3, "chunks": {'pe2img_818': 'pe2img_818', 'bs_809': 'bs_809'}},
@@ -7340,7 +7340,7 @@ TREE = {
                 'file6': {"id": 6, "chunks": {'bs_822': 'bs_822'}},
             }},
             'dryfield_night_breezeway': {"id": 2201, "files": {
-                'file0': {"id": 0, "chunks": {'spk_292': 'spk_292', 'spk_293': 'spk_293', 'dryfield_breezeway_dialogue_0_atlas': 'dryfield_breezeway_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_breezeway', 'bundle': 'dryfield_night_breezeway_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_292': 'spk_292', 'spk_293': 'spk_293', 'dryfield_breezeway_dialogue_0_atlas': 'dryfield_breezeway_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_breezeway', 'bundle': 'dryfield_night_breezeway_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_823': 'bs_823'}},
                 'file2': {"id": 2, "chunks": {'pe2img_830': 'pe2img_830', 'bs_824': 'bs_824'}},
                 'file3': {"id": 3, "chunks": {'pe2img_831': 'pe2img_831', 'bs_825': 'bs_825'}},
@@ -7403,7 +7403,7 @@ TREE = {
                 'file10': {"id": 10, "chunks": {'pe2img_855': 'pe2img_855', 'bs_872': 'bs_872'}},
             }},
             'dryfield_night_junk_yard': {"id": 2601, "files": {
-                'file0': {"id": 0, "chunks": {'spk_300': 'spk_300', 'spk_301': 'spk_301', 'dryfield_junk_yard_dialogue_0_atlas': 'dryfield_junk_yard_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_junk_yard', 'bundle': 'dryfield_night_junk_yard_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_300': 'spk_300', 'spk_301': 'spk_301', 'dryfield_junk_yard_dialogue_0_atlas': 'dryfield_junk_yard_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_junk_yard', 'bundle': 'dryfield_night_junk_yard_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_873': 'bs_873'}},
                 'file2': {"id": 2, "chunks": {'pe2img_858': 'pe2img_858', 'bs_874': 'bs_874'}},
                 'file3': {"id": 3, "chunks": {'pe2img_859': 'pe2img_859', 'bs_875': 'bs_875'}},
@@ -7426,7 +7426,7 @@ TREE = {
                 'file8': {"id": 8, "chunks": {'pe2img_803': 'dryfield_night_motel_lobby_dialogue_1_atlas', 'dryfield_night_motel_lobby_dialogue_2_atlas': 'dryfield_night_motel_lobby_dialogue_2_atlas', 'bs_548': 'bs_548'}},
             }},
             'dryfield_night_motel_room_5': {"id": 2801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_304': 'spk_304', 'spk_305': 'spk_305', 'dryfield_motel_room_5_dialogue_0_atlas': 'dryfield_motel_room_5_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_motel_room_5', 'bundle': 'dryfield_night_motel_room_5_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_304': 'spk_304', 'spk_305': 'spk_305', 'dryfield_motel_room_5_dialogue_0_atlas': 'dryfield_motel_room_5_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_motel_room_5', 'bundle': 'dryfield_night_motel_room_5_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_888': 'bs_888'}},
                 'file2': {"id": 2, "chunks": {'pe2img_873': 'pe2img_873', 'bs_889': 'bs_889'}},
                 'file3': {"id": 3, "chunks": {'pe2img_874': 'pe2img_874', 'bs_890': 'bs_890'}},
@@ -7482,7 +7482,7 @@ TREE = {
                 'file39': {"id": 39, "chunks": {'pe2img_914': 'pe2img_914', 'bs_936': 'bs_936'}},
             }},
             'dryfield_night_motel_room_6': {"id": 3001, "files": {
-                'file0': {"id": 0, "chunks": {'spk_308': 'spk_308', 'spk_309': 'spk_309', 'dryfield_motel_room_6_dialogue_0_atlas': 'dryfield_motel_room_6_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_motel_room_6', 'bundle': 'dryfield_night_motel_room_6_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_308': 'spk_308', 'spk_309': 'spk_309', 'dryfield_motel_room_6_dialogue_0_atlas': 'dryfield_motel_room_6_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_motel_room_6', 'bundle': 'dryfield_night_motel_room_6_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_937': 'bs_937'}},
                 'file2': {"id": 2, "chunks": {'pe2img_915': 'pe2img_915', 'bs_938': 'bs_938'}},
                 'file3': {"id": 3, "chunks": {'pe2img_916': 'pe2img_916', 'bs_939': 'bs_939'}},
@@ -7497,7 +7497,7 @@ TREE = {
                 'file12': {"id": 12, "chunks": {'pe2img_803': 'dryfield_night_motel_lobby_dialogue_1_atlas', 'dryfield_night_motel_lobby_dialogue_2_atlas': 'dryfield_night_motel_lobby_dialogue_2_atlas', 'bs_948': 'bs_948'}},
             }},
             'dryfield_night_motel_loft': {"id": 3101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_310': 'spk_310', 'spk_311': 'spk_311', 'dryfield_motel_loft_dialogue_0_atlas': 'dryfield_motel_loft_dialogue_0_atlas', 'pe2clut_353': 'pe2clut_353', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_921': 'pe2img_921', 'package': 'dryfield_night_motel_loft', 'bundle': 'dryfield_night_motel_loft_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_310': 'spk_310', 'spk_311': 'spk_311', 'dryfield_motel_loft_dialogue_0_atlas': 'dryfield_motel_loft_dialogue_0_atlas', 'pe2clut_353': 'pe2clut_353', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_921': 'pe2img_921', 'package': 'dryfield_night_motel_loft', 'bundle': 'dryfield_night_motel_loft_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_949': 'bs_949'}},
                 'file2': {"id": 2, "chunks": {'bs_950': 'bs_950'}},
                 'file3': {"id": 3, "chunks": {'pe2img_922': 'pe2img_922', 'bs_951': 'bs_951'}},
@@ -7542,7 +7542,7 @@ TREE = {
                 'file26': {"id": 26, "chunks": {'bs_975': 'bs_975'}},
             }},
             'dryfield_night_cellar': {"id": 3401, "files": {
-                'file0': {"id": 0, "chunks": {'spk_314': 'spk_314', 'spk_315': 'spk_315', 'dryfield_cellar_dialogue_0_atlas': 'dryfield_cellar_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_cellar', 'bundle': 'dryfield_night_cellar_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_314': 'spk_314', 'spk_315': 'spk_315', 'dryfield_cellar_dialogue_0_atlas': 'dryfield_cellar_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_cellar', 'bundle': 'dryfield_night_cellar_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_616': 'bs_616'}},
                 'file2': {"id": 2, "chunks": {'pe2img_697': 'pe2img_697', 'bs_617': 'bs_617'}},
                 'file3': {"id": 3, "chunks": {'pe2img_698': 'pe2img_698', 'bs_618': 'bs_618'}},
@@ -7556,7 +7556,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'bs_626': 'bs_626'}},
             }},
             'dryfield_night_underpass': {"id": 3801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_316': 'spk_316', 'spk_317': 'spk_317', 'dryfield_underpass_dialogue_0_atlas': 'dryfield_underpass_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'dryfield_night_underpass', 'bundle': 'dryfield_night_underpass_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_316': 'spk_316', 'spk_317': 'spk_317', 'dryfield_underpass_dialogue_0_atlas': 'dryfield_underpass_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'dryfield_night_underpass', 'bundle': 'dryfield_night_underpass_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_627': 'bs_627'}},
                 'file2': {"id": 2, "chunks": {'bs_628': 'bs_628'}},
                 'file3': {"id": 3, "chunks": {'pe2img_706': 'pe2img_706', 'bs_629': 'bs_629'}},
@@ -7589,7 +7589,7 @@ TREE = {
     4: {
         "folders": {
             'mine_mesa': {"id": 101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_318': 'spk_318', 'spk_319': 'spk_319', 'mine_mesa_dialogue_0_atlas': 'mine_mesa_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'mine_mesa', 'bundle': 'mine_mesa_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_318': 'spk_318', 'spk_319': 'spk_319', 'mine_mesa_dialogue_0_atlas': 'mine_mesa_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'mine_mesa', 'bundle': 'mine_mesa_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_980': 'bs_980'}},
                 'file2': {"id": 2, "chunks": {'pe2img_930': 'pe2img_930', 'bs_981': 'bs_981'}},
                 'file3': {"id": 3, "chunks": {'pe2img_931': 'pe2img_931', 'bs_982': 'bs_982'}},
@@ -7603,7 +7603,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'bs_990': 'bs_990'}},
             }},
             'mine_cavern': {"id": 201, "files": {
-                'file0': {"id": 0, "chunks": {'spk_320': 'spk_320', 'spk_321': 'spk_321', 'mine_cavern_dialogue_0_atlas': 'mine_cavern_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'pe2clut_358': 'pe2clut_358', 'pe2img_938': 'pe2img_938', 'package': 'mine_cavern', 'bundle': 'mine_cavern_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_320': 'spk_320', 'spk_321': 'spk_321', 'mine_cavern_dialogue_0_atlas': 'mine_cavern_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'pe2clut_358': 'pe2clut_358', 'pe2img_938': 'pe2img_938', 'package': 'mine_cavern', 'bundle': 'mine_cavern_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_991': 'bs_991'}},
                 'file2': {"id": 2, "chunks": {'pe2img_939': 'pe2img_939', 'bs_992': 'bs_992'}},
                 'file3': {"id": 3, "chunks": {'pe2img_940': 'pe2img_940', 'bs_993': 'bs_993'}},
@@ -7631,7 +7631,7 @@ TREE = {
                 'file25': {"id": 25, "chunks": {'pe2img_942': 'pe2img_942', 'bs_1015': 'bs_1015'}},
             }},
             'mine_tunnel_entrance': {"id": 301, "files": {
-                'file0': {"id": 0, "chunks": {'spk_322': 'spk_322', 'spk_323': 'spk_323', 'mine_tunnel_entrance_dialogue_0_atlas': 'mine_tunnel_entrance_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'mine_tunnel_entrance', 'bundle': 'mine_tunnel_entrance_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_322': 'spk_322', 'spk_323': 'spk_323', 'mine_tunnel_entrance_dialogue_0_atlas': 'mine_tunnel_entrance_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'mine_tunnel_entrance', 'bundle': 'mine_tunnel_entrance_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1016': 'bs_1016'}},
                 'file2': {"id": 2, "chunks": {'pe2img_954': 'pe2img_954', 'bs_1017': 'bs_1017'}},
                 'file3': {"id": 3, "chunks": {'pe2img_955': 'pe2img_955', 'bs_1018': 'bs_1018'}},
@@ -7640,7 +7640,7 @@ TREE = {
                 'file6': {"id": 6, "chunks": {'pe2img_957': 'pe2img_957', 'bs_1021': 'bs_1021'}},
             }},
             'mine_tunnel': {"id": 401, "files": {
-                'file0': {"id": 0, "chunks": {'spk_324': 'spk_324', 'spk_325': 'spk_325', 'mine_tunnel_dialogue_0_atlas': 'mine_tunnel_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'mine_tunnel', 'bundle': 'mine_tunnel_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_324': 'spk_324', 'spk_325': 'spk_325', 'mine_tunnel_dialogue_0_atlas': 'mine_tunnel_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'mine_tunnel', 'bundle': 'mine_tunnel_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1022': 'bs_1022'}},
                 'file2': {"id": 2, "chunks": {'pe2img_959': 'pe2img_959', 'bs_1023': 'bs_1023'}},
                 'file3': {"id": 3, "chunks": {'pe2img_960': 'pe2img_960', 'bs_1024': 'bs_1024'}},
@@ -7648,7 +7648,7 @@ TREE = {
                 'file5': {"id": 5, "chunks": {'pe2img_962': 'pe2img_962', 'bs_1026': 'bs_1026'}},
             }},
             'mine_gorge': {"id": 501, "files": {
-                'file0': {"id": 0, "chunks": {'spk_326': 'spk_326', 'spk_327': 'spk_327', 'mine_gorge_dialogue_0_atlas': 'mine_gorge_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'mine_gorge', 'bundle': 'mine_gorge_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_326': 'spk_326', 'spk_327': 'spk_327', 'mine_gorge_dialogue_0_atlas': 'mine_gorge_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'mine_gorge', 'bundle': 'mine_gorge_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1027': 'bs_1027'}},
                 'file2': {"id": 2, "chunks": {'pe2img_964': 'pe2img_964', 'bs_1028': 'bs_1028'}},
                 'file3': {"id": 3, "chunks": {'pe2img_965': 'pe2img_965', 'bs_1029': 'bs_1029'}},
@@ -7662,7 +7662,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'bs_1037': 'bs_1037'}},
             }},
             'mine_refuge': {"id": 601, "files": {
-                'file0': {"id": 0, "chunks": {'spk_328': 'spk_328', 'spk_329': 'spk_329', 'mine_refuge_dialogue_0_atlas': 'mine_refuge_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'pe2img_972': 'pe2img_972', 'package': 'mine_refuge', 'bundle': 'mine_refuge_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_328': 'spk_328', 'spk_329': 'spk_329', 'mine_refuge_dialogue_0_atlas': 'mine_refuge_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'pe2img_972': 'pe2img_972', 'package': 'mine_refuge', 'bundle': 'mine_refuge_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1038': 'bs_1038'}},
                 'file2': {"id": 2, "chunks": {'pe2img_973': 'pe2img_973', 'bs_1039': 'bs_1039'}},
                 'file3': {"id": 3, "chunks": {'pe2img_974': 'pe2img_974', 'bs_1040': 'bs_1040'}},
@@ -7672,7 +7672,7 @@ TREE = {
                 'file7': {"id": 7, "chunks": {'bs_1044': 'bs_1044'}},
             }},
             'mine_forked_tunnel': {"id": 701, "files": {
-                'file0': {"id": 0, "chunks": {'spk_330': 'spk_330', 'spk_331': 'spk_331', 'mine_forked_tunnel_dialogue_0_atlas': 'mine_forked_tunnel_dialogue_0_atlas', 'pe2clut_250': 'pe2clut_250', 'pe2img_252': 'pe2img_252', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'mine_forked_tunnel', 'bundle': 'mine_forked_tunnel_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_330': 'spk_330', 'spk_331': 'spk_331', 'mine_forked_tunnel_dialogue_0_atlas': 'mine_forked_tunnel_dialogue_0_atlas', 'pe2clut_250': 'pe2clut_250', 'pe2img_252': 'pe2img_252', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'mine_forked_tunnel', 'bundle': 'mine_forked_tunnel_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1045': 'bs_1045'}},
                 'file2': {"id": 2, "chunks": {'pe2img_976': 'pe2img_976', 'bs_1046': 'bs_1046'}},
                 'file3': {"id": 3, "chunks": {'pe2img_977': 'pe2img_977', 'bs_1047': 'bs_1047'}},
@@ -7682,7 +7682,7 @@ TREE = {
                 'file7': {"id": 7, "chunks": {'bs_1051': 'bs_1051'}},
             }},
             'mine_secret_passage': {"id": 801, "files": {
-                'file0': {"id": 0, "chunks": {'spk_332': 'spk_332', 'spk_333': 'spk_333', 'mine_secret_passage_dialogue_0_atlas': 'mine_secret_passage_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'mine_secret_passage', 'bundle': 'mine_secret_passage_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_332': 'spk_332', 'spk_333': 'spk_333', 'mine_secret_passage_dialogue_0_atlas': 'mine_secret_passage_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'mine_secret_passage', 'bundle': 'mine_secret_passage_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1052': 'bs_1052'}},
                 'file2': {"id": 2, "chunks": {'bs_1053': 'bs_1053'}},
                 'file3': {"id": 3, "chunks": {'pe2img_981': 'pe2img_981', 'bs_1054': 'bs_1054'}},
@@ -7693,7 +7693,7 @@ TREE = {
                 'file8': {"id": 8, "chunks": {'bs_1059': 'bs_1059'}},
             }},
             'shelter_b1_elevator_hall': {"id": 901, "files": {
-                'file0': {"id": 0, "chunks": {'spk_334': 'spk_334', 'spk_335': 'spk_335', 'shelter_b1_elevator_hall_dialogue_0_atlas': 'shelter_b1_elevator_hall_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'shelter_b1_elevator_hall', 'bundle': 'shelter_b1_elevator_hall_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_334': 'spk_334', 'spk_335': 'spk_335', 'shelter_b1_elevator_hall_dialogue_0_atlas': 'shelter_b1_elevator_hall_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'shelter_b1_elevator_hall', 'bundle': 'shelter_b1_elevator_hall_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1060': 'bs_1060'}},
                 'file2': {"id": 2, "chunks": {'pe2img_987': 'pe2img_987', 'bs_1061': 'bs_1061'}},
                 'file3': {"id": 3, "chunks": {'bs_1062': 'bs_1062'}},
@@ -7763,7 +7763,7 @@ TREE = {
                 'file11': {"id": 11, "chunks": {'bs_1111': 'bs_1111'}},
             }},
             'shelter_b1_main_corridor': {"id": 1501, "files": {
-                'file0': {"id": 0, "chunks": {'spk_346': 'spk_346', 'spk_347': 'spk_347', 'shelter_b1_main_corridor_dialogue_0_atlas': 'shelter_b1_main_corridor_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'shelter_b1_main_corridor', 'bundle': 'shelter_b1_main_corridor_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_346': 'spk_346', 'spk_347': 'spk_347', 'shelter_b1_main_corridor_dialogue_0_atlas': 'shelter_b1_main_corridor_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'shelter_b1_main_corridor', 'bundle': 'shelter_b1_main_corridor_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_721': 'bs_721'}},
                 'file2': {"id": 2, "chunks": {'bs_1112': 'bs_1112'}},
                 'file3': {"id": 3, "chunks": {'bs_1113': 'bs_1113'}},
@@ -8386,7 +8386,7 @@ TREE = {
                 'file3': {"id": 3, "chunks": {'pe2img_1288': 'pe2img_1288', 'bs_1539': 'bs_1539'}},
             }},
             'neo_ark_observatory': {"id": 701, "files": {
-                'file0': {"id": 0, "chunks": {'spk_421': 'spk_421', 'spk_422': 'spk_422', 'neo_ark_observatory_dialogue_0_atlas': 'neo_ark_observatory_dialogue_0_atlas', 'neo_ark_observatory_dialogue_1_atlas': 'neo_ark_observatory_dialogue_1_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'neo_ark_observatory', 'bundle': 'neo_ark_observatory_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_421': 'spk_421', 'spk_422': 'spk_422', 'neo_ark_observatory_dialogue_0_atlas': 'neo_ark_observatory_dialogue_0_atlas', 'neo_ark_observatory_dialogue_1_atlas': 'neo_ark_observatory_dialogue_1_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'neo_ark_observatory', 'bundle': 'neo_ark_observatory_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1540': 'bs_1540'}},
                 'file2': {"id": 2, "chunks": {'bs_1541': 'bs_1541'}},
                 'file3': {"id": 3, "chunks": {'pe2img_1291': 'pe2img_1291', 'bs_1542': 'bs_1542'}},
@@ -8536,7 +8536,7 @@ TREE = {
                 'file8': {"id": 8, "chunks": {'bs_1646': 'bs_1646'}},
             }},
             'neo_ark_shrine': {"id": 2101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_449': 'spk_449', 'spk_450': 'spk_450', 'neo_ark_shrine_dialogue_0_atlas': 'neo_ark_shrine_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'neo_ark_shrine', 'bundle': 'neo_ark_shrine_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_449': 'spk_449', 'spk_450': 'spk_450', 'neo_ark_shrine_dialogue_0_atlas': 'neo_ark_shrine_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'neo_ark_shrine', 'bundle': 'neo_ark_shrine_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1647': 'bs_1647'}},
                 'file2': {"id": 2, "chunks": {'bs_1648': 'bs_1648'}},
                 'file3': {"id": 3, "chunks": {'pe2img_1374': 'pe2img_1374', 'bs_1649': 'bs_1649'}},
@@ -8598,7 +8598,7 @@ TREE = {
                 'file5': {"id": 5, "chunks": {'bs_1696': 'bs_1696'}},
             }},
             'shelter_b6_training_room': {"id": 2501, "files": {
-                'file0': {"id": 0, "chunks": {'spk_457': 'spk_457', 'spk_458': 'spk_458', 'shelter_b6_training_room_dialogue_0_atlas': 'shelter_b6_training_room_dialogue_0_atlas', 'pe2clut_309': 'rooms/akropolis/flare_palette', 'pe2img_319': 'rooms/akropolis/flare_image', 'package': 'shelter_b6_training_room', 'bundle': 'shelter_b6_training_room_bundle'}},
+                'file0': {"id": 0, "chunks": {'spk_457': 'spk_457', 'spk_458': 'spk_458', 'shelter_b6_training_room_dialogue_0_atlas': 'shelter_b6_training_room_dialogue_0_atlas', 'pe2clut_309': 'stages/akropolis/flare_palette', 'pe2img_319': 'stages/akropolis/flare_image', 'package': 'shelter_b6_training_room', 'bundle': 'shelter_b6_training_room_bundle'}},
                 'file1': {"id": 1, "chunks": {'bs_1697': 'bs_1697'}},
                 'file2': {"id": 2, "chunks": {'bs_1698': 'bs_1698'}},
                 'file3': {"id": 3, "chunks": {'pe2img_1407': 'pe2img_1407', 'bs_1699': 'bs_1699'}},

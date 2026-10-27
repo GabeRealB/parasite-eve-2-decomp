@@ -149,7 +149,7 @@ def tasks(jobs: int, skip: set[str]) -> list[tuple[str, str, tuple, tuple[str, .
         # that are gone.
         out.append(("map", "map", (run_command, ([PY, str(PEASSETS / "asset_map.py")],)), () if "build" in skip else ("residency",)))
         out.append(("smoke", "smoke", (run_command, (["node", str(PEASSETS / "asset_map_smoke.js"), "local/asset_map.html",
-                                                      "a.rooms/akropolis/patio/package"],)), ("map",)))
+                                                      "a.stages/akropolis/rooms/patio/package"],)), ("map",)))
     for kind in ("texture", "animation", "room", "model", "shape", "font"):
         if kind in skip:
             continue

@@ -1,4 +1,4 @@
-# The assets of the group rooms/akropolis, each named rooms/akropolis/<table name>.
+# The assets of the group stages/akropolis, each named stages/akropolis/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
 [flare]
@@ -9,7 +9,7 @@ height = 256
 variants = ["flare_0", "flare_1", "flare_2"]
 width = 256
 
-[stage]
+[package]
 type = "package"
 load = { slot = "stage" }
 package_name = "akropolis_stage"
@@ -17,7 +17,7 @@ required = true
 requires = ["gameplay"]
 sha1 = "abf6f6196ba05d45f48b59d4981cab5a01dc7d98"
 
-[stage.entries]
+[package.entries]
 image_slots = [0x006F8]
 map_areas = [0x00804]
 map_icons = [0x00A3C]
@@ -30,7 +30,7 @@ music = [0x02864, 0x029B4]
 page_flags = [0x007FC]
 rewards = [0x0278C, 0x0281C]
 
-[stage.exports]
+[package.exports]
 square_variant_1_placements = { at = 0x0136C, symbol = "gAkropolisStageSquareVariant1Placements" }
 east_elevator_hall_variant_1_placements = { at = 0x0138C, symbol = "gAkropolisStageEastElevatorHallVariant1Placements" }
 patio_variant_1_placements = { at = 0x013AC, symbol = "gAkropolisStagePatioVariant1Placements" }
@@ -93,17 +93,17 @@ mist_r18_placements = { at = 0x0243C, symbol = "gAkropolisStageMistR18Placements
 mist_parking_placements = { at = 0x0246C, symbol = "gAkropolisStageMistParkingPlacements" }
 mist_shooting_gallery_placements = { at = 0x0249C, symbol = "gAkropolisStageMistShootingGalleryPlacements" }
 
-[stage.exports.helicopter_landing_pad_variant_1_placements]
+[package.exports.helicopter_landing_pad_variant_1_placements]
 at = 0x023DC
 symbol = "gAkropolisStageHelicopterLandingPadVariant1Placements"
 
-[stage.exports.helicopter_landing_pad_variant_2_placements]
+[package.exports.helicopter_landing_pad_variant_2_placements]
 at = 0x023FC
 symbol = "gAkropolisStageHelicopterLandingPadVariant2Placements"
 
-[stage.slots]
-map_page_1 = "rooms/akropolis/map/page_1"
-map_page_2 = "rooms/akropolis/map/page_2"
+[package.slots]
+map_page_1 = "stages/akropolis/map/page_1"
+map_page_2 = "stages/akropolis/map/page_2"
 square = "stages/akropolis/rooms/square/package"
 east_elevator_hall = "stages/akropolis/rooms/east_elevator_hall/package"
 patio = "stages/akropolis/rooms/patio/package"
@@ -134,7 +134,7 @@ sha1 = "496c4c23e92b612542126dcf54099315cf88a6f7"
 [story_calls_atlas]
 type = "font_atlas"
 bpp = 4
-generated_by = "rooms/akropolis/story_calls"
+generated_by = "stages/akropolis/story_calls"
 h = 256
 w = 64
 x = 960

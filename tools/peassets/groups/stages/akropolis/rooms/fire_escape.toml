@@ -15,7 +15,7 @@ resources = [
     "",
     "",
     "stages/akropolis/rooms/fire_escape/dialogue_0",
-    "rooms/akropolis/story_calls",
+    "stages/akropolis/story_calls",
 ]
 sha1 = "bba4b123b927b03dded77bf32902642f029eb7a2"
 
@@ -26,7 +26,7 @@ entries = { samples = [0x047BC], spare_batches = [0x05848] }
 load = { slot = "room" }
 package_name = "akropolis_fire_escape"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 slots = { stranger_lesser = "enemies/stranger/lesser/package" }
 sha1 = "b7511004662cffe54763d3d29b6dce61614e4451"
 

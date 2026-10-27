@@ -19,7 +19,7 @@ resources = [
     "",
     "",
     "stages/akropolis/rooms/square/dialogue_0",
-    "rooms/akropolis/story_calls",
+    "stages/akropolis/story_calls",
 ]
 sha1 = "b12e305ec25b7cf40339d3db913c9725d5888c38"
 
@@ -31,7 +31,7 @@ exports = { start_telephone_scene = { at = 0x04DA0, symbol = "akropolisSquareSta
 load = { slot = "room" }
 package_name = "akropolis_square"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 slots = { grinning_stranger = "stages/akropolis/actors/square_grinning_stranger/package" }
 sha1 = "aea68621481901e24a676f92121f06fea4c688f3"
 

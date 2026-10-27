@@ -55,7 +55,7 @@ type = "package"
 load = { slot = "room" }
 package_name = "akropolis_hallway"
 required = true
-requires = ["gameplay", "rooms/akropolis/stage"]
+requires = ["gameplay", "stages/akropolis/package"]
 slots = { rat_and_moth_3 = "encounters/rat_and_moth/package_3", stranger_odd_4 = "enemies/stranger/odd/package_4" }
 sha1 = "61c66d02ac5846016b72779cd0bd9dd5fe6a4b44"
 
