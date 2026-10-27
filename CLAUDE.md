@@ -41,18 +41,24 @@ shows under that name in every package carrying it.
 and stage-0 files that contain them — are *named in the extractor* (`tools/peassets/asset_data.py`, preserved across
 `dump_asset_db.py` regeneration by sha1), so they extract as `m93r.pe2pkg`
 rather than `pe2pkg_2.pe2pkg`. The manifest key is that name and the config is
-built from `assets/USA/pe2pkg/<key>.pe2pkg` — file ids appear nowhere in the
+built from the package in the data the build reads (`assets/USA/pe2pkg/<key>.pe2pkg`, reached through
+the link `build/USA/project`) — file ids appear nowhere in the
 decomp. Several stage-0 ids can load one package (the extractor dedups by
 SHA-1, so `10500` and `10600` are one file); naming it once in the extractor is
 what makes it one thing here. The generator errors if two entries resolve to the
 same package.
 
 Packages the decomp builds are marked `"required": True` in `asset_data.py`, so
-`python3 ninja_config.py -iso_min` materialises exactly that set — 237 overlays
-in ~12s, which is the CI/matching extract. `stages.json` and the ISO manifests
-are written in **every** extraction mode: the content tree comes from the
-HED/CDF plus the extract-time chunk map, so it does not depend on having
-inflated anything, and the viewer and `dump_asset_db.py` both need it.
+`python3 ninja_config.py --iso_build` materialises exactly that set — 237 overlays —
+with the rest of what the build reads (the stored chunks, the executables, the
+instances of the data compiled into overlays, the folders' streaming lists) into
+`assets/USA`: the CI/matching extract, and nothing a repack alone needs. The full
+extraction - every asset's editable form, `stages.json` and the ISO manifests,
+which the viewer, `dump_asset_db.py` and the repack need - is a project's:
+`python3 tools/pe2project.py create --roms rom/image` makes one in `project/`
+(gitignored), and every asset tool defaults to it (`tools/peassets/project.py`).
+`ninja_config.py --project [DIR]` builds a project's data instead of
+`assets/USA`. See `local/project_design.md`.
 
 **The `.text` span is derived, and rarely wrong.** A `0x03E00008` word inside a
 data block can extend the span past the end of the code; splat then emits a
@@ -333,12 +339,13 @@ overlay.
   have to check, so finish unscoped. `--clean` wipes `asm/`, `linkers/` and
   `build/` and splits everything, as every run used to.
 - `python3 tools/check/suite.py [--jobs N] [--skip STEP ...]` the full check suite
-  over the current extraction (it never extracts): asset-table stability, the
+  over the project's extraction (`project/`; it never extracts): asset-table stability, the
   repack of both discs, every declared texture, model, clip, shape, font and
   room encoding back (one task an asset), the build with the room order check,
   residency, declarations and the asset map with its smoke test - a work graph
-  on one pool of workers, about 2.5 minutes. Re-extract (`ninja_config.py
-  -iso_e`) only after changing the asset table's schema or a decoder.
+  on one pool of workers, about 2.5 minutes. Re-extract (`tools/pe2project.py
+  extract`, and `ninja_config.py --iso_build` for the build's data) only after
+  changing the asset table's schema or a decoder.
 - `PE2_JOBS=N` caps the parallelism of the build (`ninja_config.py`'s split
   pool and `ninja`) and of the libclang refactor tools, which otherwise use
   every CPU. Set it when several trees build at once: the naming pass sets it
@@ -643,8 +650,8 @@ disc images or copyrighted assets, and `.gitignore` enforces it: `rom/`,
 own discs. Anything you move out of those trees and into `src/` or `include/`
 is being committed, so that move is a licensing decision, not a formatting one.
 
-Game content lives in files, not in the executable: `assets/USA/pe2img`
-(textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `cap` (dialogue),
+Game content lives in files, not in the executable - in a project's game layer
+(`project/.game/`): `pe2img` (textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `cap` (dialogue),
 `audio`, `movie`, `bs`. See [`doc/ASSET_FORMATS.md`](doc/ASSET_FORMATS.md).
 
 **Only assets have to stay out of `src/` and `include/`.** Everything else a
@@ -674,7 +681,8 @@ authored - the per-state collision, view maps, view counts and lighting, the
 warps, cameras, sprite views, triggers, occluders, lights and ambient levels,
 surfaces, placements and actor resources, area updates, vibration scripts, and
 the world points (`markers`), view masks and sample curves effect code reads -
-is decoded from the binary into `assets/USA/<room group>/room.toml` and
+is decoded from the binary into the extraction's `<room group>/room.toml` (the
+build's in `assets/USA`, the project's in its game layer) and
 written back to C by the build, one include per module
 (`assets/<group>/<module>.inc`, plus `declarations.inc`;
 `tools/buildsteps/gen_room_inc.py`). The room package's record has

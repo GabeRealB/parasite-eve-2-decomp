@@ -108,13 +108,15 @@ The original PSX GCC 2.8.1 compiler ships under `tools/linux/` (and equivalents 
 
    Each `.cue` file must reference the matching `.bin` by name (e.g. `FILE "SLUS-01042.bin" BINARY`). Dump tools often leave the original dump filename in the cue sheet; if extraction fails, open the `.cue` in a text editor and fix the `FILE` line so it matches the renamed `.bin`.
 
-3. Extract disc contents:
+3. Extract what the build reads:
 
    ```bash
-   python3 ninja_config.py --iso_extract
+   python3 ninja_config.py --iso_build
    ```
 
-   This uses `dumpsxiso` and writes files under `rom/USA/disk1/` and `rom/USA/disk2/`, and the executable, packages and other assets under `assets/USA/`. `--iso_extract_minimal` extracts only what the build needs and is much quicker.
+   This uses `dumpsxiso` to write the disc's files under `rom/USA/disk1/` and `rom/USA/disk2/`, then writes what the build reads - the executables, the packages, the stored chunks and the instances of the data compiled into overlays - under `assets/USA/`.
+
+   For the full extraction, with every asset in an editable form (PNG, WAV, USD, ...), make a project instead: `python3 tools/pe2project.py create --roms rom/image` writes one to `project/` (see `local/project_design.md`), which the asset tools then work on.
 
 ## Building
 
@@ -150,9 +152,8 @@ A scoped run splits, builds and checksums only those units, and says so in its s
 
 | Flag | Meaning |
 |---|---|
-| `-iso_e` / `--iso_extract` | Extract everything from the disc images |
-| `-iso_min` / `--iso_extract_minimal` | Extract only what the build needs (what CI uses) |
-| `-iso_raw` / `--iso_extract_raw` | Extract the raw files only, without inflating or converting |
+| `--iso_build` | Extract what the build reads into `assets/<release>` (what CI uses) |
+| `--project [DIR]` | Build a project's data (`project/` without a DIR) instead of `assets/<release>` |
 | `-o` / `--only` | Split and build only the named families or overlays |
 | `--fresh` | Ignore the split cache and split everything selected |
 | `-c` / `--clean` | Clean build and permuter outputs |

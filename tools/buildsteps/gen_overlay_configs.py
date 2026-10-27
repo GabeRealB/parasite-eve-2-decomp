@@ -599,7 +599,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
                 f"{family}/{name}: {target} not found.\n"
                 f"  Package names come from tools/peassets/asset_data.py. The asset\n"
                 f"  tree is incomplete - most often because an extraction is running\n"
-                f"  right now, since `ninja_config.py -iso_min` deletes assets/ and\n"
+                f"  right now, since `ninja_config.py --iso_build` deletes assets/ and\n"
                 f"  rom/ before rebuilding them, and every sweep worktree symlinks\n"
                 f"  those from the main checkout. Wait for it to finish and retry.\n"
                 f"  Do not start an extraction yourself while other sweeps are\n"

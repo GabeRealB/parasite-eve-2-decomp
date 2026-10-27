@@ -758,7 +758,7 @@ codec may read other instances through its context (`shape.Context`): the
 catalog's tables are assembled from the items', so its instance is decoded
 after theirs and every shape include depends on every instance.
 
-A new record needs a re-extraction (`python3 ninja_config.py -iso_min`) before
+A new record needs a re-extraction (`python3 ninja_config.py --iso_build`) before
 the build can read its `raw/` file.
 
 Adding another embedded asset means one `EMBEDDED_ASSETS` entry plus, if it is
@@ -1236,7 +1236,7 @@ descriptors), seek/play path, extract pitfalls:
 
 **→ [`STREAM_FORMATS.md`](STREAM_FORMATS.md)** (§3 movies, §2 audio)
 
-Full `extract.py` (and `ninja_config.py --iso_extract`) writes these after
+Full `extract.py` (and `tools/pe2project.py extract`) writes these after
 stage chunks. `--raw-only` keeps `raw/audio` + `raw/movie` without WAV/MP4;
 `--minimal-inflate` skips streams (CI). Standalone tools still work for a
 re-extract:

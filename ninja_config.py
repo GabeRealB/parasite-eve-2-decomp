@@ -368,10 +368,13 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
 
 
 def shape_instances(version: str) -> set[str]:
-    """Every shaped asset's instance (tools/peassets/shape/)."""
+    """The instances of the shaped assets the build reads (shape.build_inputs: the catalog and the items it reads)."""
     data, schema = asset_tables()
-    return {str(project_dir(version) / schema.asset_dir(k, r) / f"{schema.file_name(k)}.toml")
-            for k, r in data.ASSETS.items() if r.get("type") == "shaped"}
+    if str(TOOLS_DIR / "peassets") not in sys.path:
+        sys.path.insert(0, str(TOOLS_DIR / "peassets"))
+    import shape
+    return {str(project_dir(version) / schema.asset_dir(k, data.ASSETS[k]) / f"{schema.file_name(k)}.toml")
+            for k in shape.build_inputs(data.ASSETS)}
 
 
 _ASSET_TABLES: list = []
@@ -1953,20 +1956,9 @@ def clean_working_files(clean_build_files: bool, clean_target_files: bool):
         shutil.rmtree(EXPECTED_DIR, ignore_errors=True)
 
 
-def extract_files(
-    version: int, *, raw_only: bool = False, minimal_inflate: bool = False
-):
-    print(f"Extracting files for version {GAME_VERSIONS[version].version_name}")
-    if raw_only:
-        print(
-            "  (raw-only: raw/{type}/ + raw/audio + raw/movie; "
-            "skip inflate/WAV/MP4/manifests)"
-        )
-    elif minimal_inflate:
-        print(
-            "  (minimal-inflate: raw + required pe2pkg overlays only; "
-            "skip CD streams)"
-        )
+def extract_files(version: int):
+    """Tier 1's extraction (--iso_build): what the build reads, into assets/<release>, rewritten."""
+    print(f"Extracting what the build reads, for {GAME_VERSIONS[version].version_name}")
 
     target_assets = ASSETS_DIR / GAME_VERSIONS[version].metadata.version_dir
     target_rom = ROM_DIR / GAME_VERSIONS[version].metadata.version_dir
@@ -2003,10 +1995,7 @@ def extract_files(
         "-o",
         target_assets,
     ]
-    if raw_only:
-        cmd.append("--raw-only")
-    elif minimal_inflate:
-        cmd.append("--minimal-inflate")
+    cmd.append("--minimal-inflate")
     subprocess.check_call(cmd)   # a failed extraction has already removed the old assets: fail loudly
 
 
@@ -2019,31 +2008,12 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "-iso_e",
-        "--iso_extract",
+        "--iso_build",
         help=(
-            "Extract game files (ISO → rom/ + type-store assets, "
-            "including MTS audio and STR movies)"
-        ),
-        action="store_true",
-    )
-    parser.add_argument(
-        "-iso_raw",
-        "--iso_extract_raw",
-        help=(
-            "Extract game files: raw/{type}/ plus raw/audio and raw/movie "
-            "(skip inflate, WAV/MP4, stages/ISO manifests). Implies --iso_extract."
-        ),
-        action="store_true",
-    )
-    parser.add_argument(
-        "-iso_min",
-        "--iso_extract_minimal",
-        help=(
-            "Extract game files for CI/matching: raw/{type}/ plus inflate only "
-            "required decomp overlays (pe2pkg/title, pe2pkg/gameplay). "
-            "Skip images/full inflate, CD audio/movie streams, and "
-            "stages/ISO manifests. Implies --iso_extract."
+            "Extract what the build reads, from the release's disc images in rom/image: the stored chunks, the "
+            "inflated overlays, the executables, the disc manifests, and the instances of the data compiled into "
+            "overlays - no editable forms - into assets/<release> (rewritten). A project with the full extraction "
+            "is made by tools/pe2project.py."
         ),
         action="store_true",
     )
@@ -2123,16 +2093,8 @@ def main():
         clean_working_files(False, False)
         return
 
-    if args.iso_extract or args.iso_extract_raw or args.iso_extract_minimal:
-        if args.iso_extract_raw and args.iso_extract_minimal:
-            parser.error(
-                "--iso_extract_raw and --iso_extract_minimal are mutually exclusive"
-            )
-        extract_files(
-            game_version_option,
-            raw_only=bool(args.iso_extract_raw),
-            minimal_inflate=bool(args.iso_extract_minimal),
-        )
+    if args.iso_build:
+        extract_files(game_version_option)
         return
 
     version_dir = GAME_VERSIONS[game_version_option].metadata.version_dir
@@ -2170,6 +2132,7 @@ def main():
             clean_scoped_files(selected)
         else:
             clean_working_files(True, objdiff_config_option)
+            project_tool().link(version_dir, args.project or ASSETS_DIR / version_dir)   # build/ held the link
     else:
         # build/ is kept: ninja tracks every input of every object, including
         # the .s files INCLUDE_ASM assembles in (see the `as` rules).

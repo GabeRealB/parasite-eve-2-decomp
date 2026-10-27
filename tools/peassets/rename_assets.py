@@ -23,7 +23,8 @@ What it rewrites:
   and the names of its parts, everywhere they are written (a source's forward declaration, a symbol map), and a
   schema's constants (schema_prefix) in the sources that include its header.
 
-It does not touch the extraction: extract again (`ninja_config.py -iso_e`), which lays every asset, instance and
+It does not touch the extractions: extract again (`tools/pe2project.py extract` for the project, `ninja_config.py
+--iso_build` for the build's), which lays every asset, instance and
 manifest out by the table, then rebuild with --clean - a renamed include's old file stays in build/include and would
 hide a source that still names it.
 
@@ -217,7 +218,7 @@ def main() -> int:
     if args.dry_run:
         return 0
     dump_asset_db.write_module(assets, tree, embedded)
-    print("extract again (ninja_config.py -iso_e), then build with --clean")
+    print("extract again (tools/pe2project.py extract; ninja_config.py --iso_build), then build with --clean")
     return 0
 
 

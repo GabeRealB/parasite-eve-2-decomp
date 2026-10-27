@@ -90582,7 +90582,7 @@ hidden parameter, write the one-argument form and rescore it.
 
 Every overlay lane works in its own worktree, but `assets/` and `rom/` are
 gitignored and per-tree, so a lane with no store extracts its own: `rom/USA`
-gets symlinked to the main checkout's disc dump and `ninja_config.py -iso_min`
+gets symlinked to the main checkout's disc dump and `ninja_config.py --iso_build`
 is run once. That command starts by `shutil.rmtree`-ing the target tree's
 `assets/USA`, and each lane does it on its own schedule, so a
 `build-and-verify.sh` that overlaps another lane's extraction dies inside
@@ -90591,7 +90591,7 @@ is run once. That command starts by `shutil.rmtree`-ing the target tree's
 ```
 weapons/as12: assets/USA/pe2pkg/as12.pe2pkg not found.
   Package names come from tools/peassets/asset_data.py; extract with
-  `python3 ninja_config.py -iso_min` to materialise the required set.
+  `python3 ninja_config.py --iso_build` to materialise the required set.
 ```
 
 The package count is the readiness signal, not the directory's existence:

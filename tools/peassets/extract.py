@@ -1153,8 +1153,10 @@ def extract_stage_n(data: BinaryIO, *, stage: int, store: AssetStore):
 
 
 
-def write_pack_manifests(args, output_path: Path, store: "AssetStore", rom_root) -> None:
-    """Emit stages.json + iso_disk*.json and the pack sidecars under stage*/.
+def write_pack_manifests(args, output_path: Path, store: "AssetStore", rom_root, *, streaming_only: bool = False) -> None:
+    """Emit stages.json + iso_disk*.json and the pack sidecars under stage*/; with `streaming_only` (the build's
+    extraction, --minimal-inflate) only the folders' streaming lists, which the build reads, and nothing a repack alone
+    needs.
 
     Runs in **every** extraction mode. stages.json is the content tree - which
     chunk lives in which file of which stage - and that is derived from the
@@ -1189,6 +1191,7 @@ def write_pack_manifests(args, output_path: Path, store: "AssetStore", rom_root)
                     4: Path(args.stage4.name),
                     5: Path(args.stage5.name),
                 },
+                streaming_only=streaming_only,
             )
         else:
             logging.warning(
@@ -1426,7 +1429,7 @@ def _extract(args, output_path: Path, store: "AssetStore", background: ThreadPoo
         ]
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)
-        write_pack_manifests(args, output_path, store, rom_root)    # the stage decode sizes by the folders' movies
+        write_pack_manifests(args, output_path, store, rom_root, streaming_only=True)   # the stage decode sizes movies
         decode_declared(output_path, native_only=True)   # the instances the build generates C from
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return

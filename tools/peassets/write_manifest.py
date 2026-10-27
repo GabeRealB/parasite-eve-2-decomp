@@ -196,8 +196,15 @@ def _dump_streaming_json(path: Path, entries: list[dict[str, Any]]) -> None:
         f.write("\n")
 
 
+# The build's extraction (--iso_build) writes only what the build reads of these: each folder's streaming list, for the
+# movies' frame sizes (movie.py). Everything else here is for the repack.
+_STREAMING_ONLY = False
+
+
 def _write_bytes(assets_dir: Path, rel: Path | str, data: bytes) -> None:
     """Write a binary pack sidecar under the stage tree (``stage0/…``)."""
+    if _STREAMING_ONLY:
+        return
     path = assets_dir / Path(rel)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(data)
@@ -205,6 +212,8 @@ def _write_bytes(assets_dir: Path, rel: Path | str, data: bytes) -> None:
 
 def _write_json(assets_dir: Path, rel: Path | str, obj: Any) -> None:
     """Write a JSON pack sidecar under the stage tree."""
+    if _STREAMING_ONLY and Path(rel).name != "streaming.json":
+        return
     path = assets_dir / Path(rel)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, indent=2) + "\n", encoding="utf-8")
@@ -519,13 +528,28 @@ def write_manifest(
     stage_cdfs: dict[int, Path] | None = None,
     stages_path: Path | None = None,
     iso_dir: Path | None = None,
+    streaming_only: bool = False,
 ) -> dict[str, Path]:
     """Write stages.json + per-disk ISO manifests. Returns paths written.
+
+    ``streaming_only`` (the build's extraction): write each folder's streaming list, which the build reads, and none
+    of what only a repack needs - no stages.json, ISO manifests, layouts, trailers or stream data.
 
     ``chunk_map`` is the extract-time map (canonical chunk key → store entry
     with ``path``, ``chunk_type``, ``sector_len``, …). Pass it from extract;
     without it, content paths in ``stages.json`` will be empty (sidecars only).
     """
+    global _STREAMING_ONLY
+    _STREAMING_ONLY = streaming_only
+    try:
+        return _write_manifest(rom_dir, assets_dir, chunk_map, disk1_name, disk2_name, stage0_hed, stage0_cdf,
+                               stage_cdfs, stages_path, iso_dir)
+    finally:
+        _STREAMING_ONLY = False
+
+
+def _write_manifest(rom_dir, assets_dir, chunk_map, disk1_name, disk2_name, stage0_hed, stage0_cdf, stage_cdfs,
+                    stages_path, iso_dir) -> dict[str, Path]:
     rom_dir = rom_dir.resolve()
     assets_dir = assets_dir.resolve()
     assets_dir.mkdir(parents=True, exist_ok=True)
@@ -567,6 +591,8 @@ def write_manifest(
             idx, path, assets_dir, chunk_map
         )
 
+    if _STREAMING_ONLY:
+        return {}
     stages_path = stages_path or (assets_dir / "stages.json")
     dump_json(stages_path, stages_manifest)
 

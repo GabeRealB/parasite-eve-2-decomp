@@ -15,7 +15,7 @@ Two things shape the design:
   the result.
 * **The manifest is the index.** Overlay names are manifest keys and a package
   is ``assets/USA/pe2pkg/<key>.pe2pkg``, so nothing here needs stages.json or a
-  disc id - the tree still works after a ``-iso_min`` extract.
+  disc id - the tree still works after an ``--iso_build`` extract.
 """
 
 from __future__ import annotations
