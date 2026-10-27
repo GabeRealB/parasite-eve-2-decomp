@@ -201,6 +201,14 @@ def _stage_placements(stage: int, assets: dict, embedded: dict, assets_root: Pat
 
 
 _ROOM_ROLES: dict[tuple[int, int], dict[str, str]] = {}
+# A stage's tables with a row per area, by role: (the index of area 1 less one, the entries a row, whether a closing
+# record ends them). Area names are indexed from area 1 (menu_actions.c), the rest from area 0; a room's row is its
+# room's, area 0's and the closing record are the stage's. The area music is the role's first table (the second, the
+# countdown music, is indexed by scene).
+AREA_ROWS = {"map_areas": (0, 1, True), "map_shapes": (0, 1, False), "map_names": (-1, 1, False),
+             "image_slots": (0, 1, False), "movie_workspaces": (0, 1, False), "music": (0, 8, False),
+             "objects": (0, 1, True)}
+ROOM_ROW = "room"                                         # in a stage's per-area table: this area's room holds the row
 TABLE_ROLES = ("collision", "view_maps", "view_counts", "lighting", "cameras", "sprite_views", "warps", "surfaces")
 
 
@@ -311,6 +319,23 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
                 for field in ("callback", "data"):           # its task, and its model (a word: a number unnamed)
                     if isinstance(task.get(field), int) and task[field]:
                         task[field] = package_decl.resolve_export_of(name, assets, room, task[field] & 0xFFFFFFFF) or task[field]
+        objects = {s: (m, r) for m, objs in modules.items() for s, r in objs.items()}
+        for role, (offset, width, closed) in AREA_ROWS.items():    # each room's row of a per-area table: its room's
+            ref = entry.get(role)
+            sym = ref[0] if isinstance(ref, list) else ref
+            if sym not in objects or "values" not in objects[sym][1]:
+                continue
+            rec = objects[sym][1]
+            vals = rec["values"]
+            body = len(vals) - (1 if closed else 0)
+            rows = [vals[i:i + width] if width > 1 else vals[i] for i in range(0, body, width)] + vals[body:]
+            for area, room in rooms_of_area.items():
+                i = area + offset
+                if kind_of(room, assets) == "room" and 0 <= i < body // width:
+                    parts.setdefault(room, {}).setdefault("rows", {})[sym] = rows[i]
+                    rows[i] = ROOM_ROW
+            rec.clear()
+            rec.update({"area_rows": {"offset": offset, "width": width}, "values": rows})
         for module in list(modules):
             for sym in list(modules[module]):
                 rooms = by_name.get(sym, set())
@@ -347,18 +372,27 @@ def to_toml(name: str, room: dict[str, Any]) -> str:
     lines = [f"# {name}: the room, decoded from its package (tools/peassets/room).", f"area = {room['area']}",
              f"states = {room['states']}", "", "[entry]"] + [f"{r} = {_toml(v)}" for r, v in room["entry"].items()]
     sections = [("", room["modules"])] + ([("stage.", room["stage"])] if room.get("stage") else [])
+    rows_lines: list[str] = []
     for prefix, modules in sections:                     # its own objects, then its part of the stage overlay
         for module, objects in modules.items():
             for sym, rec in objects.items():
+                if module == "rows" and prefix:            # a room's row of a stage table: [stage.rows] symbol = row
+                    rows_lines.append(f"{sym} = {_toml(rec)}")
+                    continue
                 lines += ["", f"[{prefix}{module}.{sym}]"]
                 if "count" in rec:
                     lines.append(f"count = {rec['count']}")
                 elif "areas" in rec:
                     lines.append(f"areas = {rec['areas']}  # each area's room's object of this role (its [entry])")
+                elif "area_rows" in rec:
+                    lines += [f"area_rows = {_toml(rec['area_rows'])}  # \"{ROOM_ROW}\": that area's room holds the row",
+                              "values = ["] + [f"    {_toml(e)}," for e in rec["values"]] + ["]"]
                 elif "value" in rec:
                     lines.append(f"value = {_toml(rec['value'])}")
                 else:
                     lines += ["values = ["] + [f"    {_toml(e)}," for e in rec["values"]] + ["]"]
+    if rows_lines:
+        lines += ["", "[stage.rows]"] + rows_lines
     return "\n".join(lines) + "\n"
 
 
@@ -369,9 +403,24 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
     room = tomllib.loads(instance_path(name, assets, assets_root).read_text())
     modules = {k: v for k, v in room.items() if k not in ("area", "states", "entry", "stage")}
     if is_stage(name, assets):                           # with its rooms' parts
-        for part in stage_parts(name, assets, assets_root).values():
+        parts = stage_parts(name, assets, assets_root)
+        for part in parts.values():
             for module, objs in part.items():
-                modules.setdefault(module, {}).update(objs)
+                if module != "rows":
+                    modules.setdefault(module, {}).update(objs)
+        stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))
+        room_of = dict(stage_rooms(stage, assets))
+        for objs in modules.values():                    # a per-area table: each room's row from its room
+            for sym, rec in objs.items():
+                if "area_rows" in rec:
+                    offset, width = rec["area_rows"]["offset"], rec["area_rows"]["width"]
+                    flat = []
+                    for i, row in enumerate(rec.pop("values")):
+                        if row == ROOM_ROW:
+                            row = parts[room_of[i - offset]]["rows"][sym]
+                        flat += row if width > 1 and isinstance(row, list) else [row]
+                    rec.pop("area_rows")
+                    rec["values"] = flat
     epath = events_path(name, assets, assets_root)
     if epath.exists():
         names = event_names(name, assets, set())
