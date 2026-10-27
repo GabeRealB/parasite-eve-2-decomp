@@ -15,7 +15,6 @@ load = { slot = "stage" }
 package_name = "akropolis_stage"
 required = true
 requires = ["gameplay"]
-slots = { map_page_1 = "rooms/akropolis/map/page_1", map_page_2 = "rooms/akropolis/map/page_2" }
 sha1 = "abf6f6196ba05d45f48b59d4981cab5a01dc7d98"
 
 [stage.entries]
@@ -101,6 +100,31 @@ symbol = "gAkropolisStageHelicopterLandingPadVariant1Placements"
 [stage.exports.helicopter_landing_pad_variant_2_placements]
 at = 0x023FC
 symbol = "gAkropolisStageHelicopterLandingPadVariant2Placements"
+
+[stage.slots]
+map_page_1 = "rooms/akropolis/map/page_1"
+map_page_2 = "rooms/akropolis/map/page_2"
+square = "rooms/akropolis/square/package"
+east_elevator_hall = "rooms/akropolis/east_elevator_hall/package"
+patio = "rooms/akropolis/patio/package"
+cafeteria = "rooms/akropolis/cafeteria/package"
+plaza = "rooms/akropolis/plaza/package"
+security_room = "rooms/akropolis/security_room/package"
+hallway = "rooms/akropolis/hallway/package"
+fountain = "rooms/akropolis/fountain/package"
+forked_road = "rooms/akropolis/forked_road/package"
+observatory = "rooms/akropolis/observatory/package"
+promenade = "rooms/akropolis/promenade/package"
+sanctuary = "rooms/akropolis/sanctuary/package"
+roof_garden = "rooms/akropolis/roof_garden/package"
+bridge = "rooms/akropolis/bridge/package"
+fire_escape = "rooms/akropolis/fire_escape/package"
+helicopter_landing_pad = "rooms/akropolis/helicopter_landing_pad/package"
+west_elevator_hall = "rooms/akropolis/west_elevator_hall/package"
+mist_r18 = "rooms/mist/r18/package"
+mist_parking = "rooms/mist/parking/package"
+mist_shooting_gallery = "rooms/mist/shooting_gallery/package"
+mist_r21 = "rooms/mist/r21/package"
 
 [story_calls]
 type = "cap"

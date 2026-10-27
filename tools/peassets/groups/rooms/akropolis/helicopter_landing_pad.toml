@@ -442,6 +442,10 @@ vibrations = [
 wide_view_masks = [0x07920]
 
 [package.exports]
+lift_task = { at = 0x003A4, symbol = "akropolisHelicopterLandingPadLiftTask" }
+lift_model = { at = 0x0612C, symbol = "gAkropolisHelicopterLandingPadLiftModel" }
+pickup_model_task = { at = 0x04CF0, symbol = "akropolisHelicopterLandingPadPickupModelTask" }
+ammunition_pickup_model = { at = 0x0A990, symbol = "gAkropolisHelicopterLandingPadAmmunitionPickupModel" }
 draw_lower_spark_line = { at = 0x034A4, symbol = "akropolisHelicopterLandingPadDrawLowerSparkLine" }
 
 [package.exports.lethal_strike_vibration_commands]

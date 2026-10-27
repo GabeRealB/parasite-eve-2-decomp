@@ -178,6 +178,10 @@ scripts = [0x067B4, 0x06BD4, 0x07548]
 transforms = [0x066C8]
 view_masks = [0x07688]
 
+[package.exports]
+pickup_model_task = { at = 0x02BA0, symbol = "akropolisRoofGardenPickupModelTask" }
+armory_cardkey_pickup_model = { at = 0x098B0, symbol = "gAkropolisRoofGardenArmoryCardkeyPickupModel" }
+
 [package.slots]
 rat_and_moth_2 = "encounters/rat_and_moth/package_2"
 crawler_caterpillar_1 = "enemies/crawler/caterpillar/package_1"

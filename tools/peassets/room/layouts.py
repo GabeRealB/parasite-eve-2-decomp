@@ -371,6 +371,8 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
         return "NULL"
     if isinstance(value, int):
         return f"(void*)0x{value:08X}"                   # an address nothing names (stale bytes)
+    if kind[0] == "ptr" and kind[1] == "fn":
+        return pointer(value, function=True)              # a function, by its name
     return pointer(value)
 
 
@@ -402,7 +404,7 @@ def pointer_targets(value, kind):
         if isinstance(value, str) and len(kind) > 3:
             yield value, kind[3]
         return
-    if isinstance(value, str) and kind[1] != "ref":
+    if isinstance(value, str) and kind[1] not in ("ref", "fn"):
         yield value, kind[1]
 
 
@@ -444,7 +446,18 @@ LAYOUTS.update({
     "ViewCountTable": ("ViewCountTable", [("viewCounts", ("ptr", "AreaTableViewCount"))]),
     "ViewCameraTable": ("ViewCameraTable", [("cameras", ("ptr", "AreaTableViewCamera"))]),
     "SpriteAreaTable": ("SpriteAreaTable", [("areaViews", ("ptr", "AreaTableSpriteView"))]),
-    "AreaObjectRoom": ("AreaObjectRoom", [("places", ("word", "sentinel", "list", "AreaObjectPlace")), ("spawns", ("ptr", "ref"))]),
+    "AreaObjectRoom": ("AreaObjectRoom", [("places", ("word", "sentinel", "list", "AreaObjectPlace")),
+                                          ("spawns", ("ptr", "AreaObjectSpawn"))]),
+    # How a room spawns its placed objects of one kind: the kind, and the task it spawns (main/task_types.h). A task's
+    # callback is a function, its data a model or a number.
+    "TaskDescFields": ("", [("flags", ("bits", "H", [("body", 0, 8, {0: "TASK_BODY_NONE", 1: "TASK_BODY_TMD", 2: "TASK_BODY_COORD"}),
+                                                    ("skipModelBuffer", 8, 1, None)])),
+                            ("priority", ("named", "H", {0x20: "TASK_PRIORITY_SCENE", 0x50: "TASK_PRIORITY_MODEL",
+                                                         0x60: "TASK_PRIORITY_ACTOR", 0x62: "TASK_PRIORITY_REDRAW",
+                                                         0x70: "TASK_PRIORITY_EFFECT", 0xC0: "TASK_PRIORITY_CONTROL"}))]),
+    "TaskDesc": ("TaskDesc", [("header", ("union", "fields", "TaskDescFields")), ("callback", ("ptr", "fn")),
+                              ("data", ("word", "value", "model"))]),
+    "AreaObjectSpawn": ("AreaObjectSpawn", [("kind", "H"), ("taskDesc", "TaskDesc")]),
     "AreaObjectPlace": ("AreaObjectPlace", [
         ("flagIndex", "H"), ("kind", "H"), ("placeKeyHigh", "H"), ("state", "H"), ("x", "h"), ("y", "h"), ("z", "h"),
         ("yaw", "H")]),
@@ -458,14 +471,14 @@ LAYOUTS.update({
     "StageMusicEntry": ("StageMusicEntry", [("sequenceId", ("named", "B", SEQUENCES)), ("startMode", "B")]),
     "InventoryBattleReward": ("InventoryBattleReward", [("areaLayoutKey", "i"), ("items", ("arr", "H", 4))]),
 })
-for _layout, _size in (("AreaObjectRoom", 8), ("AreaObjectPlace", 16), ("MenuMapArea", 14), ("MenuMapAreaShape", 8),
+for _layout, _size in (("AreaObjectRoom", 8), ("AreaObjectPlace", 16), ("TaskDesc", 12), ("AreaObjectSpawn", 16), ("MenuMapArea", 14), ("MenuMapAreaShape", 8),
                        ("MenuMapMarker", 6), ("MenuMapIcon", 8), ("MenuMapAreaName", 0x20), ("GfxImageSlot", 8),
                        ("StageMusicEntry", 2), ("InventoryBattleReward", 12)):
     assert size(_layout) == _size, _layout
 MODULE_OF.update({**{f"AreaTable{k}": "tables" for k in AREA_TABLES},
                   **{k: "tables" for k in ("WorldCollisionStageResources", "ViewIndexTable", "ViewCountTable",
                                            "ViewCameraTable", "SpriteAreaTable")},
-                  "AreaObjectRoom": "objects", "AreaObjectPlace": "object_places",
+                  "AreaObjectRoom": "objects", "AreaObjectPlace": "object_places", "AreaObjectSpawn": "spawns",
                   **{k: "map" for k in ("MenuMapArea", "MenuMapAreaShape", "MenuMapMarker", "MenuMapIcon", "MenuMapAreaName")},
                   "GfxImageSlot": "memory", "StageMusicEntry": "music", "InventoryBattleReward": "rewards"})
 

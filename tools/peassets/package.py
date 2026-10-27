@@ -157,6 +157,16 @@ def required_exports(name: str, assets: dict[str, dict[str, Any]]) -> dict[int, 
     return out
 
 
+def resolve_export_of(name: str, assets: dict[str, dict[str, Any]], package: str, address: int) -> str | None:
+    """`<binding>.<export>` for the export of `package`, bound by `name`, at `address`: where several packages share
+    a slot (a stage's rooms), the one the referring object belongs with."""
+    binding = next((b for b, p in bindings(name, assets).items() if p == package), None)
+    if binding is None:
+        return None
+    base = load_address(package, assets)
+    return next((f"{binding}.{e}" for e, x in (assets[package].get("exports") or {}).items() if base + x["at"] == address), None)
+
+
 def export_of(name: str, assets: dict[str, dict[str, Any]], ref: str) -> tuple[int, str] | None:
     """(address, C symbol) of `<binding>.<export>` or `<required package>.<export>`, or None where `ref` is no such
     reference."""

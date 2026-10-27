@@ -34,8 +34,6 @@ gAkropolisPatioSpriteViews = 0x80186360; // absolute:True owner=akropolis_patio 
 gAkropolisPatioViewCameras = 0x80186D5C; // absolute:True owner=akropolis_patio
 gAkropolisPatioSurfacePropertiesByClass = 0x8018703C; // absolute:True owner=akropolis_patio
 akropolisCafeteriaRoomTask = 0x8017E424; // type:func absolute:True owner=akropolis_cafeteria shared=rooms
-akropolisCafeteriaMendelPickupTask = 0x801827C4; // type:func absolute:True owner=akropolis_cafeteria
-akropolisCafeteriaStimPickupTask = 0x8018286C; // type:func absolute:True owner=akropolis_cafeteria
 gAkropolisCafeteriaCollisionRooms = 0x8018753C; // absolute:True owner=akropolis_cafeteria
 gAkropolisCafeteriaViewMaps = 0x801875AC; // absolute:True owner=akropolis_cafeteria
 gAkropolisCafeteriaViewCounts = 0x801875BC; // absolute:True owner=akropolis_cafeteria
@@ -44,8 +42,6 @@ gAkropolisCafeteriaWarps = 0x801875E4; // absolute:True owner=akropolis_cafeteri
 gAkropolisCafeteriaSpriteViews = 0x8018C48C; // absolute:True owner=akropolis_cafeteria
 gAkropolisCafeteriaViewCameras = 0x8018C5AC; // absolute:True owner=akropolis_cafeteria
 gAkropolisCafeteriaSurfacePropertiesByClass = 0x8018CA2C; // absolute:True owner=akropolis_cafeteria
-gAkropolisCafeteriaStimPickupModel = 0x8018D230; // absolute:True owner=akropolis_cafeteria
-gAkropolisCafeteriaMendelJournalModel = 0x8018D57C; // absolute:True owner=akropolis_cafeteria
 gAkropolisPlazaRoomCollisionResources = 0x801988B8; // absolute:True owner=akropolis_plaza
 gAkropolisPlazaViewMaps = 0x801988C8; // absolute:True owner=akropolis_plaza
 gAkropolisPlazaViewCounts = 0x801988CC; // absolute:True owner=akropolis_plaza
@@ -63,9 +59,7 @@ gAkropolisSecurityRoomWarpEntries = 0x801839F0; // absolute:True owner=akropolis
 gAkropolisSecurityRoomSpriteViews = 0x80184C50; // absolute:True owner=akropolis_security_room
 gAkropolisSecurityRoomViewCameras = 0x80184D10; // absolute:True owner=akropolis_security_room shared=rooms
 gAkropolisSecurityRoomSurfacePropertiesByClass = 0x80184FA0; // absolute:True owner=akropolis_security_room
-gAkropolisSecurityRoomItemBoxModel = 0x80185584; // absolute:True owner=akropolis_security_room shared=rooms
 akropolisHallwayRoomTask = 0x8017D7D0; // type:func absolute:True owner=akropolis_hallway
-akropolisHallwayBlueKeyPickupTask = 0x8017E120; // type:func absolute:True owner=akropolis_hallway
 gAkropolisHallwayRoomCollisionResources = 0x8017E258; // absolute:True owner=akropolis_hallway
 gAkropolisHallwayViewMaps = 0x8017E268; // absolute:True owner=akropolis_hallway
 gAkropolisHallwayViewCounts = 0x8017E26C; // absolute:True owner=akropolis_hallway
@@ -74,7 +68,6 @@ gAkropolisHallwayWarpEntries = 0x8017E278; // absolute:True owner=akropolis_hall
 gAkropolisHallwaySpriteViews = 0x8017EC2C; // absolute:True owner=akropolis_hallway shared=rooms
 gAkropolisHallwayViewCameras = 0x8017EC68; // absolute:True owner=akropolis_hallway
 gAkropolisHallwaySurfacePropertiesByClass = 0x8017ED40; // absolute:True owner=akropolis_hallway
-gAkropolisHallwayBlueKeyPickupModel = 0x8017F85C; // absolute:True owner=akropolis_hallway
 akropolisFountainRoomTask = 0x8017D9C4; // type:func absolute:True owner=akropolis_fountain
 gAkropolisFountainRoomCollisionResources = 0x8017E814; // absolute:True owner=akropolis_fountain
 gAkropolisFountainViewMaps = 0x8017E84C; // absolute:True owner=akropolis_fountain shared=rooms
@@ -112,7 +105,6 @@ gAkropolisPromenadeSpriteViews = 0x80185FB4; // absolute:True owner=akropolis_pr
 gAkropolisPromenadeViewCameras = 0x80186050; // absolute:True owner=akropolis_promenade
 gAkropolisPromenadeSurfacePropertiesByClass = 0x801862B0; // absolute:True owner=akropolis_promenade
 akropolisSanctuaryRoomTask = 0x8017D9E8; // type:func absolute:True owner=akropolis_sanctuary shared=rooms
-akropolisSanctuaryItemVisibilityTask = 0x80180264; // type:func absolute:True owner=akropolis_sanctuary
 gAkropolisSanctuaryRoomCollisionResources = 0x801827EC; // absolute:True owner=akropolis_sanctuary shared=rooms
 gAkropolisSanctuaryViewMaps = 0x801827FC; // absolute:True owner=akropolis_sanctuary
 gAkropolisSanctuaryViewCounts = 0x80182800; // absolute:True owner=akropolis_sanctuary
@@ -121,10 +113,7 @@ gAkropolisSanctuaryWarpEntries = 0x8018280C; // absolute:True owner=akropolis_sa
 gAkropolisSanctuarySpriteViews = 0x801860C8; // absolute:True owner=akropolis_sanctuary
 gAkropolisSanctuaryViewCameras = 0x80186188; // absolute:True owner=akropolis_sanctuary
 gAkropolisSanctuarySurfacePropertiesByClass = 0x801863F8; // absolute:True owner=akropolis_sanctuary
-gAkropolisSanctuaryItemBoxModel = 0x80186A08; // absolute:True owner=akropolis_sanctuary
-gAkropolisSanctuaryRedKeyPickupModel = 0x80186C68; // absolute:True owner=akropolis_sanctuary shared=rooms
 akropolisRoofGardenRoomTask = 0x8017DC74; // type:func absolute:True owner=akropolis_roof_garden
-akropolisRoofGardenPickupModelTask = 0x80180160; // type:func absolute:True owner=akropolis_roof_garden
 gAkropolisRoofGardenCollisionRoomResources = 0x80184C8C; // absolute:True owner=akropolis_roof_garden
 gAkropolisRoofGardenViewMaps = 0x80184C9C; // absolute:True owner=akropolis_roof_garden
 gAkropolisRoofGardenViewCounts = 0x80184CA0; // absolute:True owner=akropolis_roof_garden shared=rooms
@@ -133,7 +122,6 @@ gAkropolisRoofGardenWarpEntries = 0x80184CAC; // absolute:True owner=akropolis_r
 gAkropolisRoofGardenSpriteViews = 0x80186648; // absolute:True owner=akropolis_roof_garden
 gAkropolisRoofGardenViewCameras = 0x80186BF4; // absolute:True owner=akropolis_roof_garden
 gAkropolisRoofGardenSurfacePropertiesByClass = 0x80186DB0; // absolute:True owner=akropolis_roof_garden
-gAkropolisRoofGardenArmoryCardkeyPickupModel = 0x80186E70; // absolute:True owner=akropolis_roof_garden shared=rooms
 akropolisBridgeRoomTask = 0x8017DA0C; // type:func absolute:True owner=akropolis_bridge shared=rooms
 gAkropolisBridgeRoomCollisionResources = 0x80189A54; // absolute:True owner=akropolis_bridge
 gAkropolisBridgeViewMaps = 0x80189A80; // absolute:True owner=akropolis_bridge shared=rooms
@@ -152,10 +140,7 @@ gAkropolisFireEscapeWarpEntries = 0x80181DCC; // absolute:True owner=akropolis_f
 gAkropolisFireEscapeSpriteViews = 0x80182E18; // absolute:True owner=akropolis_fire_escape shared=rooms
 gAkropolisFireEscapeViewCameras = 0x80182E90; // absolute:True owner=akropolis_fire_escape
 gAkropolisFireEscapeSurfacePropertiesByClass = 0x80183020; // absolute:True owner=akropolis_fire_escape shared=rooms
-akropolisHelicopterLandingPadLiftTask = 0x8017D964; // type:func absolute:True owner=akropolis_helicopter_landing_pad shared=rooms
 akropolisHelicopterLandingPadRoomTask = 0x8017EB00; // type:func absolute:True owner=akropolis_helicopter_landing_pad
-akropolisHelicopterLandingPadPickupModelTask = 0x801822B0; // type:func absolute:True owner=akropolis_helicopter_landing_pad
-gAkropolisHelicopterLandingPadLiftModel = 0x801836EC; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadCollisionRoomResources = 0x80184F10; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadViewMaps = 0x80184F3C; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadViewCounts = 0x80184F40; // absolute:True owner=akropolis_helicopter_landing_pad shared=rooms
@@ -164,7 +149,6 @@ gAkropolisHelicopterLandingPadWarps = 0x80184F4C; // absolute:True owner=akropol
 gAkropolisHelicopterLandingPadSpriteViews = 0x80187824; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadViewCameras = 0x80187968; // absolute:True owner=akropolis_helicopter_landing_pad
 gAkropolisHelicopterLandingPadSurfacePropertiesByClass = 0x80187DC8; // absolute:True owner=akropolis_helicopter_landing_pad
-gAkropolisHelicopterLandingPadAmmunitionPickupModel = 0x80187F50; // absolute:True owner=akropolis_helicopter_landing_pad
 akropolisWestElevatorHallRoomTask = 0x8017F5F4; // type:func absolute:True owner=akropolis_west_elevator_hall
 gAkropolisWestElevatorHallCollisionRoomResources = 0x80185024; // absolute:True owner=akropolis_west_elevator_hall
 gAkropolisWestElevatorHallViewMaps = 0x80185034; // absolute:True owner=akropolis_west_elevator_hall

@@ -332,106 +332,12 @@ s32 akropolisStageWasDryfieldMapSelected(void)
     return _gAkropolisStageDryfieldMapOpened;
 }
 
-/// Object kinds the spawn tables pair recipes with: an item's catalog id, or a room prop's key.
-enum {
-    KIND_STIM               = 0x4,
-    KIND_LANDING_PAD_PICKUP = 0xA4, // an empty catalog slot; no place selects it
-    KIND_LANDING_PAD_LIFT   = 0x204,
-    KIND_SECURITY_ROOM_LID  = 0x701,
-    KIND_SANCTUARY_LID      = 0x702,
-};
-
 #include "assets/rooms/akropolis/memory.inc"
 #include "assets/rooms/akropolis/map_1.inc"
-
-/// The square's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStageSquareObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The east elevator hall's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStageEastElevatorHallObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The cafeteria's object spawns: the Stim and Mendel's journal.
-static AreaObjectSpawn _gAkropolisStageCafeteriaObjectSpawns[3] = {
-    { KIND_STIM, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisCafeteriaStimPickupTask, { &gAkropolisCafeteriaStimPickupModel } } },
-    { INVENTORY_COLLECTION_ID_MENDEL_JOURNAL, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisCafeteriaMendelPickupTask, { &gAkropolisCafeteriaMendelJournalModel } } },
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The security room's object spawns: the item box lid, which no place selects.
-static AreaObjectSpawn _gAkropolisStageSecurityRoomObjectSpawns[2] = {
-    { KIND_SECURITY_ROOM_LID, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gAkropolisSecurityRoomItemBoxModel } } },
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The hallway's object spawns: the blue key.
-static AreaObjectSpawn _gAkropolisStageHallwayObjectSpawns[2] = {
-    { INVENTORY_COLLECTION_ID_BLUE_KEY, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, akropolisHallwayBlueKeyPickupTask, { &gAkropolisHallwayBlueKeyPickupModel } } },
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The fountain's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStageFountainObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The forked road's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStageForkedRoadObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The observatory's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStageObservatoryObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The promenade's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStagePromenadeObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The sanctuary's object spawns: the red key, and the item box lid, which no place selects.
-static AreaObjectSpawn _gAkropolisStageSanctuaryObjectSpawns[3] = {
-    { INVENTORY_COLLECTION_ID_RED_KEY, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisSanctuaryItemVisibilityTask, { &gAkropolisSanctuaryRedKeyPickupModel } } },
-    { KIND_SANCTUARY_LID, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, itemPickupContainerLidTask, { &gAkropolisSanctuaryItemBoxModel } } },
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The roof garden's object spawns: the armory cardkey.
-static AreaObjectSpawn _gAkropolisStageRoofGardenObjectSpawns[2] = {
-    { INVENTORY_COLLECTION_ID_ARMORY_CARDKEY, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, akropolisRoofGardenPickupModelTask, { &gAkropolisRoofGardenArmoryCardkeyPickupModel } } },
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The fire escape's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStageFireEscapeObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The west elevator hall's object spawns: none, and no places.
-static AreaObjectSpawn _gAkropolisStageWestElevatorHallObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
-/// The MIST parking lot's object spawns: none; its places only seed object states.
-static AreaObjectSpawn _gAkropolisStageMistParkingObjectSpawns[1] = {
-    { AREA_OBJECT_SPAWN_END },
-};
-
+#include "assets/rooms/akropolis/spawns_1.inc"
 #include "assets/rooms/akropolis/object_places_1.inc"
-
-/// The landing pad's object spawns: the lift, and the pickup, which no place selects.
-static AreaObjectSpawn _gAkropolisStageHelicopterLandingPadObjectSpawns[3] = {
-    { KIND_LANDING_PAD_LIFT, { { { TASK_BODY_TMD, TASK_PRIORITY_REDRAW } }, akropolisHelicopterLandingPadLiftTask, { &gAkropolisHelicopterLandingPadLiftModel } } },
-    { KIND_LANDING_PAD_PICKUP, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), TASK_PRIORITY_REDRAW } }, akropolisHelicopterLandingPadPickupModelTask, { &gAkropolisHelicopterLandingPadAmmunitionPickupModel } } },
-    { AREA_OBJECT_SPAWN_END },
-};
-
+#include "assets/rooms/akropolis/spawns_2.inc"
 #include "assets/rooms/akropolis/objects.inc"
-
 TaskDesc gAkropolisStageRoomTaskDescriptors[21] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisSquareRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0) } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, akropolisEastElevatorHallRoomTask, { .value = OBJECT_TASK_ROOM_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, 0) } },

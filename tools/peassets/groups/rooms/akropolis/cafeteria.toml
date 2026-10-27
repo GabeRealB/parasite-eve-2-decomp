@@ -277,7 +277,6 @@ embedded = [
     { name = "stim_pickup", offset = 0x0F48C, size = 0x808, address = 0x8018CA4C },
     { name = "mendel_journal", offset = 0x0FC94, size = 0x34C, address = 0x8018D254 },
 ]
-exports = { scene_tasks = { at = 0x05518, symbol = "gAkropolisCafeteriaSceneTasks" } }
 load = { slot = "room" }
 package_name = "akropolis_cafeteria"
 required = true
@@ -292,6 +291,13 @@ scripts = [0x058B4, 0x05BFC, 0x05D4C, 0x05F14, 0x0607C, 0x067FC, 0x068EC, 0x0697
 spare_batches = [0x0DDC4, 0x0ED28]
 transforms = [0x05654]
 updates = [0x0F414]
+
+[package.exports]
+scene_tasks = { at = 0x05518, symbol = "gAkropolisCafeteriaSceneTasks" }
+stim_pickup_task = { at = 0x052AC, symbol = "akropolisCafeteriaStimPickupTask" }
+stim_pickup_model = { at = 0x0FC70, symbol = "gAkropolisCafeteriaStimPickupModel" }
+mendel_pickup_task = { at = 0x05204, symbol = "akropolisCafeteriaMendelPickupTask" }
+mendel_journal_model = { at = 0x0FFBC, symbol = "gAkropolisCafeteriaMendelJournalModel" }
 
 [package.slots]
 golem_rook_grenade_launcher_1 = "enemies/golem/rook/grenade_launcher/package_1"

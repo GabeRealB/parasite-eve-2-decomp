@@ -181,6 +181,11 @@ transforms = [0x032B4]
 updates = [0x08E58]
 view_masks = [0x05214]
 
+[package.exports]
+item_visibility_task = { at = 0x02CA4, symbol = "akropolisSanctuaryItemVisibilityTask" }
+red_key_pickup_model = { at = 0x096A8, symbol = "gAkropolisSanctuaryRedKeyPickupModel" }
+item_box_model = { at = 0x09448, symbol = "gAkropolisSanctuaryItemBoxModel" }
+
 [sounds_0]
 type = "sound_bank"
 samples = [

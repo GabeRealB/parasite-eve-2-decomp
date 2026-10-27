@@ -296,10 +296,21 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
     if is_stage(name, assets):
         by_name = {im.names[a]: rooms for a, rooms in owners.items() if a in im.names}
         rooms_of_area = dict(stage_rooms(im.stage, assets))
-        for table in modules.get("objects", {}).values():     # an area's object places: its room's
+        for table in modules.get("objects", {}).values():     # an area's object places and spawns: its room's
             for area, row in enumerate(table.get("values", [])):
-                if isinstance(row, dict) and isinstance(row.get("places"), str) and area in rooms_of_area:
-                    by_name.setdefault(row["places"], set()).add(rooms_of_area[area])
+                for field in ("places", "spawns"):
+                    if isinstance(row, dict) and isinstance(row.get(field), str) and area in rooms_of_area:
+                        by_name.setdefault(row[field], set()).add(rooms_of_area[area])
+        for sym, rec in modules.get("spawns", {}).items():   # what a spawn table names in its room: the room's exports
+            rooms = by_name.get(sym, set())
+            if len(rooms) != 1:
+                continue
+            room = next(iter(rooms))
+            for spawn in rec.get("values", []):
+                task = spawn.get("taskDesc", {})
+                for field in ("callback", "data"):           # its task, and its model (a word: a number unnamed)
+                    if isinstance(task.get(field), int) and task[field]:
+                        task[field] = package_decl.resolve_export_of(name, assets, room, task[field] & 0xFFFFFFFF) or task[field]
         for module in list(modules):
             for sym in list(modules[module]):
                 rooms = by_name.get(sym, set())
@@ -558,8 +569,11 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
 
     uses: dict[str, set[str]] = {"types": set(), "symbols": set()}    # what the file being written needs declared
 
-    def pointer(ref: str) -> str:
+    def pointer(ref: str, function: bool = False) -> str:
         export = package_decl.export_of(name, assets, ref)
+        if export and function:                           # a function another package exports
+            uses["symbols"].add(export[1])
+            return export[1]
         if export:                                        # an export of a bound or required package, by its C symbol
             uses["symbols"].add(export[1])
             owner = ref.partition(".")[0]
@@ -572,6 +586,8 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
         m = re.fullmatch(r"(\w+)(?:\[(\d+)\])?", ref)
         if m.group(1) not in objects:
             uses["symbols"].add(m.group(1))
+        if function:
+            return m.group(1)
         if m.group(2):
             return f"&{m.group(1)}[{m.group(2)}]"
         if m.group(1) in objects:

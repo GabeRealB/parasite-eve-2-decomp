@@ -52,6 +52,10 @@ requires = ["gameplay", "rooms/akropolis/stage"]
 slots = { rat_and_moth_3 = "encounters/rat_and_moth/package_3", stranger_odd_4 = "enemies/stranger/odd/package_4" }
 sha1 = "61c66d02ac5846016b72779cd0bd9dd5fe6a4b44"
 
+[package.exports]
+blue_key_pickup_task = { at = 0x00B60, symbol = "akropolisHallwayBlueKeyPickupTask" }
+blue_key_pickup_model = { at = 0x0229C, symbol = "gAkropolisHallwayBlueKeyPickupModel" }
+
 [blue_key]
 type = "texture"
 bpp = 8

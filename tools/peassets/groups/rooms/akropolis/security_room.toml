@@ -124,6 +124,7 @@ embedded = [
     { name = "collision", offset = 0x06468, size = 0x36C },
     { asset = "rooms/item_box/model", offset = 0x07A00, size = 0x5E8, address = 0x80184FC0 },
 ]
+exports = { item_box_model = { at = 0x07FC4, symbol = "gAkropolisSecurityRoomItemBoxModel" } }
 load = { slot = "room" }
 package_name = "akropolis_security_room"
 required = true

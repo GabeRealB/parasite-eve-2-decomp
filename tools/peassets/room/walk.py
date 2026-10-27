@@ -43,6 +43,7 @@ END_MARKS = {
     "AreaApplyRec": lambda d, o: d[o] == 0xFF,
     "PadScriptCmd": lambda d, o: struct.unpack_from("<I", d, o)[0] == 0,
     "AreaObjectPlace": lambda d, o: struct.unpack_from("<H", d, o)[0] == 0xFFFF,
+    "AreaObjectSpawn": lambda d, o: struct.unpack_from("<H", d, o)[0] == 0xFFFF,
     "AreaObjectRoom": lambda d, o: struct.unpack_from("<I", d, o)[0] == 0xFFFFFFFF,
 }
 
