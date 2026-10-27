@@ -273,10 +273,39 @@ def _decode_refs(data: bytes, off: int, kind) -> list:
     return refs
 
 
+# Layouts written in their own terms where the stored fields follow from them: {layout: (decode, encode, c)}.
+# `decode(raw)` gives the value, or None where the bytes are not in that form (written field by field then);
+# `encode(value)` the stored fields; `c(value, pointer)` the initializer. Fixed places in RAM they name are memory
+# slots (groups/engine/memory.toml), which the room tools give them (`SLOTS`: {local name: (address, C symbol)}).
+FORMS: dict[str, tuple] = {}
+SLOTS: dict[str, tuple[int, str]] = {}
+
+
+def _image_slot_decode(raw: dict):
+    """An image slot: the bytes below the resident image workspace its region covers (main/gfx_types.h), 0 for an
+    empty slot."""
+    if raw["regionBase"] == 0 and raw["byteExtent"] == 0:
+        return 0
+    if raw["regionBase"] and raw["regionBase"] + raw["byteExtent"] == SLOTS["image_workspace"][0]:
+        return raw["byteExtent"]
+    return None
+
+
+FORMS["GfxImageSlot"] = (
+    _image_slot_decode,
+    lambda value: {"regionBase": SLOTS["image_workspace"][0] - value if value else 0, "byteExtent": value},
+    lambda value, pointer: "{ 0 }" if value == 0 else (pointer(SLOTS["image_workspace"][1]), f"GRAPHICS_IMAGE_SLOT({value})")[1],
+)
+
+
 def named(value, kind, name_of):
     """The value with its pointers as names (`name_of(address)`)."""
     if isinstance(kind, str) and kind in FORMATS:
         return value
+    if isinstance(kind, str) and kind in FORMS:
+        form = FORMS[kind][0](value)
+        if form is not None:
+            return form
     if isinstance(kind, str):
         fields = list(_fields(kind))
         if fields[0][0] == "":
@@ -309,6 +338,8 @@ def encode_value(value, kind, address_of) -> bytes:
     """The bytes of a value whose pointers are names (`address_of(name)`)."""
     if isinstance(kind, str) and kind in FORMATS:
         return _struct.pack("<" + kind, value)
+    if isinstance(kind, str) and kind in FORMS and not isinstance(value, dict):
+        value = FORMS[kind][1](value)
     if isinstance(kind, str):
         fields = list(_fields(kind))
         if fields[0][0] == "":
@@ -339,6 +370,8 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
     chained ones, so a union is `.field = { .member = ... }`."""
     if isinstance(kind, str) and kind in FORMATS:
         return f"0x{value:X}" if kind == "I" and value >= 0x80000000 else str(value)
+    if isinstance(kind, str) and kind in FORMS and not isinstance(value, dict):
+        return FORMS[kind][2](value, pointer)
     if isinstance(kind, str):
         fields = list(_fields(kind))
         if fields[0][0] == "":
@@ -379,6 +412,8 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
 def pointer_targets(value, kind):
     """(name, target kind) of every named pointer in a value whose pointers are names."""
     if isinstance(kind, str) and kind in FORMATS:
+        return
+    if isinstance(kind, str) and kind in FORMS and not isinstance(value, dict):
         return
     if isinstance(kind, str):
         fields = list(_fields(kind))

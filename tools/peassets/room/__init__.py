@@ -134,11 +134,19 @@ def _place(name: str, tree: dict) -> tuple[int, int]:
     raise SystemExit(f"{name} is in no room folder")
 
 
+def _memory_slots(assets: dict) -> None:
+    """The layouts' fixed places in RAM, from the memory slots that name a C symbol."""
+    from . import layouts
+    layouts.SLOTS.update({k.rsplit("/", 1)[1]: (r["at"], r["symbol"]) for k, r in assets.items()
+                          if r.get("type") == "memory_slot" and "symbol" in r})
+
+
 def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[Images, int]:
     """The images a room or a stage overlay is decoded in, and the room's area (0 for a stage overlay). A stage
     overlay's images also know its rooms' symbols by name (their addresses coincide)."""
     import asset_data
     import shape
+    _memory_slots(assets)
     ctx = shape.Context(assets, embedded, assets_root)
     if is_stage(name, assets):
         stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))

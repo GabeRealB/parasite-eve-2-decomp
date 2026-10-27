@@ -114,8 +114,8 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # it is part of it (texture/declaration.py).
     "vram_region": {"payload": (), "stored": ("within", "shares", "at", "size")},
     # A place in RAM one package occupies at a time: its address, and the overlays.toml families or splat configs
-    # linked for it (package.py).
-    "memory_slot": {"payload": (), "stored": ("at", "families", "configs")},
+    # linked for it (package.py); or a fixed region no image supplies (the image workspace), by its C `symbol`.
+    "memory_slot": {"payload": (), "stored": ("at", "families", "configs", "symbol")},
     # Data of a declared shape (tools/peassets/shape/): its `shape`, and in `outputs` the stored asset each of the
     # shape's outputs is. Its instance, `<group>/<local name>.toml`, is decoded from them and encodes back exactly.
     "shaped": {"payload": (), "stored": ("shape", "outputs", "include")},

@@ -60,3 +60,8 @@ families = ["options"]
 type = "memory_slot"
 at = 0x80093800
 configs = ["gameplay", "title"]
+
+[image_workspace]
+type = "memory_slot"
+at = 0x801D7000
+symbol = "gFsImageWorkspace"
