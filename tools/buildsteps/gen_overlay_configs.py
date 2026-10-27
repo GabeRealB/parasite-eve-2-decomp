@@ -12,7 +12,7 @@ Everything checkable is derived from the package rather than written down:
 ``sha1`` / ``size``
     Read off the file, so a config cannot drift from the data it describes.
 An overlay **is** an extracted package. The manifest key is the package's name
-and the config is built from ``assets/USA/pe2pkg/<key>.pe2pkg``; file ids do not
+and the config is built from the project's ``pe2pkg/<key>.pe2pkg`` (through ``build/USA/project``); file ids do not
 appear. Several stage-0 ids load one package - the extractor dedups by SHA-1, so
 `10500` and `10600` are a single file - but that is the extractor's business,
 and naming the package there (``tools/peassets/asset_data.py``) is what makes it
@@ -36,7 +36,7 @@ import tomllib
 from pathlib import Path
 
 MANIFEST = Path("configs/USA/overlays.toml")
-PACKAGE_DIR = Path("assets/USA/pe2pkg")
+PACKAGE_DIR = Path("build/USA/project/pe2pkg")     # the project's packages, through the build's link (project.py)
 TEMPLATE = Path("configs/USA/overlay.template.yaml")
 OUT_DIR = Path("configs/USA/generated")
 
@@ -574,7 +574,8 @@ def export_symbols(package: str) -> list[tuple[str, int, str]]:
                 if r.get("type") == "package" and r.get("package_name", k) == package), None)
     if key is None:
         return []
-    return packages.link_symbols(key, asset_data.ASSETS, asset_data.EMBEDDED_ASSETS, root / "assets" / "USA")
+    import project
+    return packages.link_symbols(key, asset_data.ASSETS, asset_data.EMBEDDED_ASSETS, project.root())
 
 
 def write_if_changed(dest: Path, text: str) -> None:

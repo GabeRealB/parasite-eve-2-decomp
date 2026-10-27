@@ -37,7 +37,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ASSETS = ROOT / "assets" / "USA"
+import project  # noqa: E402
+ASSETS = project.root()
 RAW = ASSETS / "raw" / "pe2bundle"
 SLOTS, FIRST, ENTRY = 50, 0x7F0, 16
 RESOURCE_IMAGE, RESOURCE_DATA = 2, 3

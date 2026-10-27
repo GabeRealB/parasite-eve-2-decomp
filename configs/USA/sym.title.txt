@@ -1,5 +1,5 @@
 // Symbols for the title / demo / main-menu overlay.
-// Load address 0x80093800. Retail asset: assets/USA/pe2pkg/title.pe2pkg.
+// Load address 0x80093800. Retail asset: <project>/pe2pkg/title.pe2pkg.
 //
 // Overlay-local names. This yaml is splat'd without main, so these are
 // ordinary (non-overlay) symbols. Main-exe imports live in

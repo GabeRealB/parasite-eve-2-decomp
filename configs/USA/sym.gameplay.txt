@@ -1,7 +1,7 @@
 // C-owned subword globals use defined:True where splat's word scan would
 // otherwise replace their definitions with absolute linker fallbacks.
 // Symbols for the resident gameplay overlay.
-// Load address 0x80093800. Retail asset: assets/USA/pe2pkg/gameplay.pe2pkg.
+// Load address 0x80093800. Retail asset: <project>/pe2pkg/gameplay.pe2pkg.
 //
 // Overlay-local names. This yaml is splat'd without main, so these are
 // ordinary (non-overlay) symbols. Main-exe imports live in

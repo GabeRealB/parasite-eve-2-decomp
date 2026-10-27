@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Format project sources, then build and verify the matching binary.
 #
-# Usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]
+# Usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean] [--project DIR]
 #
 # With --only, splits and builds just those units and checksums only what it
 # built - a family (core, weapons) or a single basename (gameplay, m93r).
@@ -12,6 +12,9 @@
 # Both re-split only the units whose split would change (tools/split_cache.py)
 # and rebuild incrementally. --clean wipes asm/, linkers/ and build/ and splits
 # everything, as every run used to.
+#
+# --project DIR builds the project in DIR instead of the extraction's data in
+# assets/<release>, reached through the link build/<release>/project.
 #
 # Formats:
 #   - src/**/*.{c,h}
@@ -26,6 +29,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 SCOPE_ARGS=()
+PROJECT_ARGS=()
 SCOPE_LABEL=""
 CLEAN=0
 while [[ $# -gt 0 ]]; do
@@ -37,11 +41,14 @@ while [[ $# -gt 0 ]]; do
             SCOPE_ARGS+=(--only "${1#*=}"); SCOPE_LABEL="${SCOPE_LABEL:+$SCOPE_LABEL,}${1#*=}"; shift ;;
         --clean)
             CLEAN=1; shift ;;
+        --project)
+            [[ $# -ge 2 ]] || { echo "build-and-verify.sh: --project needs a directory" >&2; exit 2; }
+            PROJECT_ARGS=(--project "$2"); shift 2 ;;
         -h|--help)
             sed -n "2,16p" "$0"; exit 0 ;;
         *)
             echo "build-and-verify.sh: unknown argument '$1'" >&2
-            echo "usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]" >&2
+            echo "usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean] [--project DIR]" >&2
             exit 2 ;;
     esac
 done
@@ -139,7 +146,7 @@ fi
 # like the error. Keep it, and print it when the build fails.
 NINJA_LOG="$(mktemp -t pe2-ninja-XXXXXX.log)"
 ninja_failed=0
-"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" "${FRESH_ARGS[@]+"${FRESH_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
+"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" "${FRESH_ARGS[@]+"${FRESH_ARGS[@]}"}" "${PROJECT_ARGS[@]+"${PROJECT_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
 if [[ $ninja_failed -eq 0 ]]; then
     # PE2_JOBS caps parallelism when several trees build at once (the naming
     # pass's workers); ninja's own default is every CPU plus two.

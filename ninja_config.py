@@ -208,7 +208,7 @@ def overlay_family_imports() -> dict[str, str]:
     return {family: spec["imports"] for family, spec in manifest.items()}
 
 # Directories
-ASSETS_DIR = Path("assets")
+ASSETS_DIR = Path("assets")      # where the extraction writes the repository's own project, assets/<release>
 ASM_DIR = Path("asm")
 LINKER_DIR = Path("linkers")
 EXPECTED_DIR = Path("expected")
@@ -252,7 +252,7 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
         if rec.get("include") and aid not in font_tables:
             # The store files a raw asset by extension; the extension follows from the type.
             ext = schema.stored_ext(rec)
-            raw = ASSETS_DIR / version / "raw" / schema.type_dir_for_ext(ext) / f"{aid}{ext}"
+            raw = project_dir(version) / "raw" / schema.type_dir_for_ext(ext) / f"{aid}{ext}"
             # "layout" names a record of mixed member widths, spelled in the
             # record's own `layout` (see gen_asset_inc.py).
             width = (rec["layout"] if rec["include"] == "layout" else
@@ -270,7 +270,7 @@ def font_includes(version: str) -> list[tuple[str, list[Path], Path]]:
     for key, rec in data.ASSETS.items():
         if rec.get("type") == "font" and "table" in rec and data.EMBEDDED_ASSETS.get(rec["table"], {}).get("include"):
             table = data.EMBEDDED_ASSETS[rec["table"]]
-            stored = ASSETS_DIR / version / schema.raw_rel(rec["table"], table, tables=tables)
+            stored = project_dir(version) / schema.raw_rel(rec["table"], table, tables=tables)
             out.append((key, [stored], BUILD_DIR / "include" / "assets" / f"{rec['table']}.inc"))
     return out
 
@@ -282,9 +282,24 @@ def shape_includes(version: str) -> list[tuple[str, Path, Path]]:
     out = []
     for key, rec in data.ASSETS.items():
         if rec.get("type") == "shaped" and rec.get("include"):
-            instance = ASSETS_DIR / version / schema.asset_dir(key, rec) / f"{schema.file_name(key)}.toml"
+            instance = project_dir(version) / schema.asset_dir(key, rec) / f"{schema.file_name(key)}.toml"
             out.append((key, instance, BUILD_DIR / "include" / "assets" / f"{key}.inc"))
     return out
+
+
+def project_dir(version: str) -> Path:
+    """The project a build reads its data from, through its link (tools/peassets/project.py): every data path the
+    build writes - into its rules, the splat configs' targets, the overlay configs - goes through it, so the project is
+    the link's target (`--project`, else assets/<release>) and nothing else."""
+    return BUILD_DIR / version / "project"
+
+
+def project_tool():
+    """tools/peassets/project.py (imported once, by path)."""
+    if str(TOOLS_DIR / "peassets") not in sys.path:
+        sys.path.insert(0, str(TOOLS_DIR / "peassets"))
+    import project
+    return project
 
 
 def room_tool():
@@ -333,13 +348,13 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
         if kind is None:
             continue
         own = room_tool().own_dir(key, data.ASSETS)
-        instance = ASSETS_DIR / version / own / ("stage.toml" if kind == "stage" else "room.toml")
+        instance = project_dir(version) / own / ("stage.toml" if kind == "stage" else "room.toml")
         if not instance.exists():
             continue
         modules = {k for k, v in tomllib.loads(instance.read_text()).items() if isinstance(v, dict)
                    and k not in ("entry", "stage")}       # a room's part of its stage overlay is the stage's C
         if kind == "stage":                              # the stage's C: with its rooms' parts
-            parts = list(room_tool().stage_room_instances(key, data.ASSETS, ASSETS_DIR / version).values())
+            parts = list(room_tool().stage_room_instances(key, data.ASSETS, project_dir(version)).values())
             modules |= {m for p in parts for m in tomllib.loads(p.read_text()).get("stage", {})}
         if (instance.parent / "events.evs").exists():
             modules |= {"events", "updates"}
@@ -355,7 +370,7 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
 def shape_instances(version: str) -> set[str]:
     """Every shaped asset's instance (tools/peassets/shape/)."""
     data, schema = asset_tables()
-    return {str(ASSETS_DIR / version / schema.asset_dir(k, r) / f"{schema.file_name(k)}.toml")
+    return {str(project_dir(version) / schema.asset_dir(k, r) / f"{schema.file_name(k)}.toml")
             for k, r in data.ASSETS.items() if r.get("type") == "shaped"}
 
 
@@ -428,7 +443,7 @@ def model_source_includes(version: str) -> list[tuple[str, list[Path], Path]]:
             continue
         seen.add(name)
         data, schema = asset_tables()
-        stored = ASSETS_DIR / version / schema.raw_rel(name, data.EMBEDDED_ASSETS[name],
+        stored = project_dir(version) / schema.raw_rel(name, data.EMBEDDED_ASSETS[name],
                                                        tables=(data.ASSETS, data.EMBEDDED_ASSETS))
         out.append((name, [stored], BUILD_DIR / "include" / "assets" / include))
     return out
@@ -445,7 +460,7 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
     placements = declared_model_placements()
     models = [m for m in declared_models(manifest) + declared_resident_models(resident)
               if m["in_c"] and (m["package"], m["model"]) not in placements]
-    raw_of = lambda package: ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg"
+    raw_of = lambda package: project_dir(version) / "pe2pkg" / f"{package}.pe2pkg"
     cache: dict[str, bytes] = {}
     def read(package: str) -> bytes:
         if package not in cache:
@@ -492,7 +507,7 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
                 stem = "clips" if local == "package" else f"{local.removesuffix('_package')}_clips"
                 # One include per run of back-to-back clips: `clips.inc`, or `clips_1.inc`, `clips_2.inc`, ...
                 for k, run in enumerate(runs, 1):
-                    usd = [ASSETS_DIR / version / schema.raw_rel(n, data.EMBEDDED_ASSETS[n], tables=tables)
+                    usd = [project_dir(version) / schema.raw_rel(n, data.EMBEDDED_ASSETS[n], tables=tables)
                            for n in run]                                  # their native forms
                     name = rec.get("package_name", key) + (f":{k}" if len(runs) > 1 else "")
                     inc = f"{stem}.inc" if len(runs) == 1 else f"{stem}_{k}.inc"
@@ -513,7 +528,7 @@ def animation_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
     for resource in declared_animations(manifest):
         if not resource["in_c"] or resource["package"] in declared:
             continue
-        raw = ASSETS_DIR / version / "pe2pkg" / f"{resource['package']}.pe2pkg"
+        raw = project_dir(version) / "pe2pkg" / f"{resource['package']}.pe2pkg"
         data = raw.read_bytes()
         for source in resource["sets"]:
             parts = components(data, resource["load"], source)
@@ -534,7 +549,7 @@ def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, l
     for grid in declared_collisions(manifest):
         if not grid["in_c"]:
             continue
-        raw = ASSETS_DIR / version / "pe2pkg" / f"{grid['package']}.pe2pkg"
+        raw = project_dir(version) / "pe2pkg" / f"{grid['package']}.pe2pkg"
         parts = components(raw.read_bytes(), grid["load"], grid["source"])
         if parts[0]["offset"] != grid["grid"]:              # a declared placement ends where its header begins
             raise SystemExit(f"{grid['package']}: the grid header at 0x{grid['source']:X} describes a grid at "
@@ -546,7 +561,7 @@ def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, l
     from tools.buildsteps.gen_collision_inc import patch_pieces
     from tools.buildsteps.gen_overlay_configs import declared_collision_patches
     for patch in declared_collision_patches(manifest):
-        raw = ASSETS_DIR / version / "pe2pkg" / f"{patch['package']}.pe2pkg"
+        raw = project_dir(version) / "pe2pkg" / f"{patch['package']}.pe2pkg"
         outputs = [BUILD_DIR / "include" / "assets" / f"{patch['package']}_collision_{part['offset']:05X}.inc"
                    for part in patch_pieces(patch["offset"], patch["pieces"])]
         out.append((raw, outputs, patch["load"], patch["offset"], patch["pieces"]))
@@ -1269,17 +1284,17 @@ def ninja_build(
     ninja_rules_file.rule(
         "shape-inc",
         description="shape-inc $name",
-        command=f"{PYTHON} {GEN_SHAPE_INC} $name $out --assets {ASSETS_DIR / 'USA'}",
+        command=f"{PYTHON} {GEN_SHAPE_INC} $name $out --assets {project_dir('USA')}",
     )
     ninja_rules_file.rule(
         "room-inc",
         description="room-inc $name",
-        command=f"{PYTHON} {GEN_ROOM_INC} $name $outdir --assets {ASSETS_DIR / 'USA'}",
+        command=f"{PYTHON} {GEN_ROOM_INC} $name $outdir --assets {project_dir('USA')}",
     )
     ninja_rules_file.rule(
         "font-inc",
         description="font-inc $name",
-        command=f"{PYTHON} {GEN_FONT_INC} $name $out --assets {ASSETS_DIR / 'USA'}",
+        command=f"{PYTHON} {GEN_FONT_INC} $name $out --assets {project_dir('USA')}",
     )
     ninja_rules_file.rule(
         "model-inc",
@@ -1289,7 +1304,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "model-source",
         description="model-source $name",
-        command=f"{PYTHON} {GEN_MODEL_SOURCE} $name $out --assets {ASSETS_DIR / 'USA'}",
+        command=f"{PYTHON} {GEN_MODEL_SOURCE} $name $out --assets {project_dir('USA')}",
     )
     ninja_rules_file.rule(
         "collision-inc",
@@ -1299,7 +1314,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "animation-source",
         description="animation-source $kind $name",
-        command=f"{PYTHON} {GEN_ANIMATION_SOURCE} $kind $name $out --assets {ASSETS_DIR / 'USA'}",
+        command=f"{PYTHON} {GEN_ANIMATION_SOURCE} $kind $name $out --assets {project_dir('USA')}",
     )
     ninja_rules_file.rule(
         "sound-header",
@@ -1317,13 +1332,13 @@ def ninja_build(
     # Images whose file is longer than what the linker lays out, by the length
     # the file has to reach. The executable is one: a PS-X EXE is padded to a
     # whole number of 2048-byte sectors, and the padding is not a section.
-    padded_sizes = {"main": (ASSETS_DIR / version / "main.exe").stat().st_size}
+    padded_sizes = {"main": (project_dir(version) / "main.exe").stat().st_size}
     overlay_manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     for spec in overlay_manifest.values():
         for package, slot, entry in slot_packages(spec):
             objects = slot.get("objects") or entry["objects"]
             if any("bss_size" in obj for obj in objects):
-                raw = (ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg").read_bytes()
+                raw = (project_dir(version) / "pe2pkg" / f"{package}.pe2pkg").read_bytes()
                 serialized_bss_tail(package, objects, raw)
                 padded_sizes[package] = len(raw)
     ASSET_INC_OUTPUTS.clear()
@@ -1987,6 +2002,8 @@ def extract_files(
         f"{target_rom}/disk2/STAGE5.CDF",
         "-o",
         target_assets,
+        "--release",
+        GAME_VERSIONS[version].metadata.version_dir,
     ]
     if raw_only:
         cmd.append("--raw-only")
@@ -2072,6 +2089,12 @@ def main():
         default=int(os.environ.get("PE2_JOBS") or 0),
     )
     parser.add_argument(
+        "--project",
+        help="build the project in DIR (project/ when no DIR is given) instead of the extraction's native forms in "
+             "assets/<release>; the build reaches it through the link build/<release>/project",
+        type=Path, nargs="?", const=Path("project"), metavar="DIR",
+    )
+    parser.add_argument(
         "-ver",
         "--game_version",
         help="Extract and work under a specific version of the game",
@@ -2114,6 +2137,8 @@ def main():
         )
         return
 
+    version_dir = GAME_VERSIONS[game_version_option].metadata.version_dir
+    project_tool().link(version_dir, args.project or ASSETS_DIR / version_dir)    # before anything reads the data
     subprocess.check_call([PYTHON, str(TOOLS_DIR / "buildsteps" / "gen_overlay_configs.py")])
     family_imports = overlay_family_imports()
     ordered = all_overlays()

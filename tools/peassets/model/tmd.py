@@ -363,7 +363,11 @@ def _declared_streams() -> dict[str, str]:
             from ..asset_data import ASSETS, EMBEDDED_ASSETS
         except ImportError:
             from asset_data import ASSETS, EMBEDDED_ASSETS
-        packages = Path(__file__).resolve().parents[3] / "assets" / "USA" / "pe2pkg"
+        try:
+            from .. import project
+        except ImportError:
+            import project
+        packages = project.root() / "pe2pkg"
         _DECLARED_STREAMS = {}
         for aid, rec in ASSETS.items():
             place = EMBEDDED_ASSETS.get(aid)

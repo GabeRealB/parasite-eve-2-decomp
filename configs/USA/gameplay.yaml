@@ -1,12 +1,12 @@
 # Resident in-game overlay (actors, combat, inventory, …)
-# Source: stage0/gameplay/gameplay.pe2pkg → assets/USA/pe2pkg/gameplay.pe2pkg
+# Source: stage0/gameplay/gameplay.pe2pkg → <project>/pe2pkg/gameplay.pe2pkg
 # Load address: 0x80093800  size: 0x81F69 (532329)
 name: Gameplay Overlay
 sha1: 6bc1c60a5d58025bf670c41a8ab3050a52cf4ac4
 options:
   extensions_path: tools/splat_ext
   basename: gameplay
-  target_path: assets/USA/pe2pkg/gameplay.pe2pkg
+  target_path: build/USA/project/pe2pkg/gameplay.pe2pkg   # the project, through the build's link
   base_path: ../..
   platform: psx
   compiler: PSYQ

@@ -417,7 +417,8 @@ class Project:
 
     def package(self, owner: str) -> bytes | None:
         if owner not in self._pkg:
-            path = ROOT / "assets/USA/pe2pkg" / f"{owner}.pe2pkg"
+            import project
+            path = project.root() / "pe2pkg" / f"{owner}.pe2pkg"
             self._pkg[owner] = path.read_bytes() if path.exists() else None
         return self._pkg[owner]
 
