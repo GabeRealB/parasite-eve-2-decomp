@@ -1148,6 +1148,11 @@ height = 256
 variants = ["default"]
 width = 128
 
+[day_departure]
+type = "movie"
+folder = "mist_parking"
+stream = 100
+
 [pierce_schema]
 type = "animation_schema"
 slots = [
@@ -1292,6 +1297,11 @@ rig = "characters/pierce/rig"
 [pierce_ask_why]
 type = "clip"
 rig = "characters/pierce/rig"
+
+[night_departure]
+type = "movie"
+folder = "mist_parking"
+stream = 101
 
 [talk_start_copy]
 type = "clip"

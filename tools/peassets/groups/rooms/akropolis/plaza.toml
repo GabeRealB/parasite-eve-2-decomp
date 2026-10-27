@@ -59,6 +59,11 @@ type = "pe2bundle"
 resources = ["rooms/akropolis/plaza/dialogue_0"]
 sha1 = "aeb19f6425491cab36f2759ebecf8903c2e2a4dd"
 
+[opening]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 100
+
 [package]
 type = "package"
 embedded = [
@@ -225,6 +230,41 @@ sha1 = "1157904a46fb62b99e7f12decb6ad0179d4278da"
 [police_step_2]
 type = "sound"
 sha1 = "aaac5e0327975fc81a5b68c0d5b701bedf2f3e00"
+
+[view2_movie_0]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+
+[view2_movie_1]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 1
+
+[view2_movie_2]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 2
+
+[view2_movie_3]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 3
+
+[view2_movie_4]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 4
+
+[view2_movie_5]
+type = "movie"
+folder = "akropolis_plaza"
+stream = 2
+sub = 5
 
 [walk_ambience]
 type = "sound"

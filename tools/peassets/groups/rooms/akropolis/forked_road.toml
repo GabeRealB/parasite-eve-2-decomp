@@ -496,6 +496,16 @@ contents = [
     { chunk = "view3_palette", sha1 = "4834b12aa4d87256014a8c58bafefbb6099f97a8" },
 ]
 
+[view7_movie]
+type = "movie"
+folder = "akropolis_forked_road"
+stream = 7
+
+[view8_movie]
+type = "movie"
+folder = "akropolis_forked_road"
+stream = 8
+
 [crawler_leap]
 type = "sound"
 sha1 = "748fde9c68fc7dea83d9e614789cc5f8ac3d2ebc"

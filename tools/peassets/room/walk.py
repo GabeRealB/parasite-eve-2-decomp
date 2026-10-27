@@ -304,7 +304,7 @@ WRAPPERS = {"WorldCollisionRoomResources": "WorldCollisionStageResources", "View
 STAGE_ROLES = {"map_areas": ("MenuMapArea", "map"), "map_shapes": ("MenuMapAreaShape", "map"),
                "map_markers": ("MenuMapMarker", "map"), "map_icons": ("MenuMapIcon", "map"),
                "map_names": ("MenuMapAreaName", "map"), "page_flags": ("u8", "map"), "marker_flags": ("u16", "map"),
-               "image_slots": ("GfxImageSlot", "memory"), "movie_workspaces": ("s32", "memory"),
+               "image_slots": ("GfxImageSlot", "memory"), "movie_workspaces": ("StreamMovieWorkspace", "memory"),
                "music": ("StageMusicEntry", "music"), "rewards": ("InventoryBattleReward", "rewards")}
 STAGE_ROLE_KINDS = {**{f"{r}_table": f"AreaTable{k}" for k, r in IMPLICIT_ROLES.items() if k != "AreaVariant"},
                     **{f"{IMPLICIT_ROLES[k]}_wrapper": w for k, w in WRAPPERS.items()},

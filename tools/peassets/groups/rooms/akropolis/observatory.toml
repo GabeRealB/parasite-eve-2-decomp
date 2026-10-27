@@ -570,6 +570,16 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
+[view6_movie]
+type = "movie"
+folder = "akropolis_observatory"
+stream = 6
+
+[view7_movie]
+type = "movie"
+folder = "akropolis_observatory"
+stream = 7
+
 [view2_page_1]
 type = "texture"
 bpp = 8

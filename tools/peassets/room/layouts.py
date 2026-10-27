@@ -275,10 +275,13 @@ def _decode_refs(data: bytes, off: int, kind) -> list:
 
 # Layouts written in their own terms where the stored fields follow from them: {layout: (decode, encode, c)}.
 # `decode(raw)` gives the value, or None where the bytes are not in that form (written field by field then);
-# `encode(value)` the stored fields; `c(value, pointer)` the initializer. Fixed places in RAM they name are memory
-# slots (groups/engine/memory.toml), which the room tools give them (`SLOTS`: {local name: (address, C symbol)}).
+# `encode(value)` the stored fields and `c(value, pointer)` the initializer, each None for a value not in the form.
+# Fixed places in RAM they name are memory slots (groups/engine/memory.toml) and the movies they are sized for are
+# movies (movie.py), which the room tools give them (`SLOTS`: {local name: (address, C symbol)}; `MOVIES`: {name:
+# (width, height)}).
 FORMS: dict[str, tuple] = {}
 SLOTS: dict[str, tuple[int, str]] = {}
+MOVIES: dict[str, tuple[int, int]] = {}
 
 
 def _image_slot_decode(raw: dict):
@@ -293,8 +296,46 @@ def _image_slot_decode(raw: dict):
 
 FORMS["GfxImageSlot"] = (
     _image_slot_decode,
-    lambda value: {"regionBase": SLOTS["image_workspace"][0] - value if value else 0, "byteExtent": value},
-    lambda value, pointer: "{ 0 }" if value == 0 else (pointer(SLOTS["image_workspace"][1]), f"GRAPHICS_IMAGE_SLOT({value})")[1],
+    lambda value: None if isinstance(value, dict) else
+    {"regionBase": SLOTS["image_workspace"][0] - value if value else 0, "byteExtent": value},
+    lambda value, pointer: None if isinstance(value, dict) else "{ 0 }" if value == 0 else
+    (pointer(SLOTS["image_workspace"][1]), f"GRAPHICS_IMAGE_SLOT({value})")[1],
+)
+
+# An area's movie workspace is sized for its largest movie, in the arrangement the stage's code gives the area's movie
+# buffers: {layout: the workspace's bytes per pixel of a frame, as (numerator, denominator)}. An RGB16 frame is two
+# bytes a pixel; the VLC input the arrangement keeps in the workspace comes first. The stage's C writes a layout
+# MOVIE_WORKSPACE_<LAYOUT>(width, height), which it defines (src/stages/akropolis/stage.c).
+MOVIE_LAYOUTS = {
+    "vlc_half_frame_and_shared_frame": (3, 1),           # half a frame of input, one frame both outputs share
+    "two_frames": (4, 1),                                 # the input stays after the movie ring
+    "vlc_three_quarter_frame_and_two_frames": (11, 2),
+    "vlc_frame_and_two_frames": (6, 1),
+}
+
+
+def _movie_workspace_bytes(value: dict) -> int:
+    w, h = MOVIES[value["movie"]]
+    num, den = MOVIE_LAYOUTS[value["layout"]]
+    return w * h * num // den
+
+
+def movie_workspace(value: int, movies: list[str]):
+    """An area's movie workspace in its own terms - the movie it is sized for (the largest of its room's `movies`, the
+    first of equals) and the layout - or the number where no layout gives it."""
+    if not value or not movies:
+        return value
+    largest = max(movies, key=lambda m: MOVIES[m][0] * MOVIES[m][1])
+    return next(({"movie": largest, "layout": layout} for layout in MOVIE_LAYOUTS
+                 if _movie_workspace_bytes({"movie": largest, "layout": layout}) == value), value)
+
+
+LAYOUTS["StreamMovieWorkspace"] = ("s32", [("", "i")])
+FORMS["StreamMovieWorkspace"] = (
+    lambda raw: None,                                     # in its room's terms: decode_room, which knows the room
+    lambda value: _movie_workspace_bytes(value) if isinstance(value, dict) else None,
+    lambda value, pointer: (f"MOVIE_WORKSPACE_{value['layout'].upper()}({MOVIES[value['movie']][0]}, "
+                            f"{MOVIES[value['movie']][1]}) /* {value['movie']} */") if isinstance(value, dict) else None,
 )
 
 
@@ -338,8 +379,8 @@ def encode_value(value, kind, address_of) -> bytes:
     """The bytes of a value whose pointers are names (`address_of(name)`)."""
     if isinstance(kind, str) and kind in FORMATS:
         return _struct.pack("<" + kind, value)
-    if isinstance(kind, str) and kind in FORMS and not isinstance(value, dict):
-        value = FORMS[kind][1](value)
+    if isinstance(kind, str) and kind in FORMS and (stored := FORMS[kind][1](value)) is not None:
+        value = stored
     if isinstance(kind, str):
         fields = list(_fields(kind))
         if fields[0][0] == "":
@@ -370,8 +411,8 @@ def c_value(value, kind, pointer, layout: str = "") -> str:
     chained ones, so a union is `.field = { .member = ... }`."""
     if isinstance(kind, str) and kind in FORMATS:
         return f"0x{value:X}" if kind == "I" and value >= 0x80000000 else str(value)
-    if isinstance(kind, str) and kind in FORMS and not isinstance(value, dict):
-        return FORMS[kind][2](value, pointer)
+    if isinstance(kind, str) and kind in FORMS and (c := FORMS[kind][2](value, pointer)) is not None:
+        return c
     if isinstance(kind, str):
         fields = list(_fields(kind))
         if fields[0][0] == "":
@@ -413,7 +454,7 @@ def pointer_targets(value, kind):
     """(name, target kind) of every named pointer in a value whose pointers are names."""
     if isinstance(kind, str) and kind in FORMATS:
         return
-    if isinstance(kind, str) and kind in FORMS and not isinstance(value, dict):
+    if isinstance(kind, str) and kind in FORMS and FORMS[kind][1](value) is not None:
         return
     if isinstance(kind, str):
         fields = list(_fields(kind))

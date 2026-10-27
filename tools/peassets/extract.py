@@ -1423,18 +1423,18 @@ def _extract(args, output_path: Path, store: "AssetStore", background: ThreadPoo
         ]
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)
+        write_pack_manifests(args, output_path, store, rom_root)    # the stage decode sizes by the folders' movies
         decode_declared(output_path)        # the build reads declared models from their USD
-        write_pack_manifests(args, output_path, store, rom_root)
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return
 
     n = store.materialize_inflated(jobs=args.jobs)
     logging.info("Materialized %d inflated assets", n)
+    write_pack_manifests(args, output_path, store, rom_root)    # the stage decode sizes by the folders' movies
     decode_declared(output_path)
 
     if streams is not None:
         streams.result()
-    write_pack_manifests(args, output_path, store, rom_root)
     decode_dialogues()
 
     logging.info("All done!")

@@ -134,11 +134,16 @@ def _place(name: str, tree: dict) -> tuple[int, int]:
     raise SystemExit(f"{name} is in no room folder")
 
 
-def _memory_slots(assets: dict) -> None:
-    """The layouts' fixed places in RAM, from the memory slots that name a C symbol."""
+def _layout_terms(assets: dict, assets_root: Path) -> None:
+    """What the layouts' forms name: the fixed places in RAM (the memory slots that name a C symbol), and the
+    movies' frame sizes."""
+    import asset_data
+    import movie
     from . import layouts
     layouts.SLOTS.update({k.rsplit("/", 1)[1]: (r["at"], r["symbol"]) for k, r in assets.items()
                           if r.get("type") == "memory_slot" and "symbol" in r})
+    layouts.MOVIES.update({k: movie.frame_size(k, assets, asset_data.TREE, assets_root) for k, r in assets.items()
+                           if r.get("type") == "movie" and k not in layouts.MOVIES})
 
 
 def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[Images, int]:
@@ -146,7 +151,7 @@ def images(name: str, assets: dict, embedded: dict, assets_root: Path) -> tuple[
     overlay's images also know its rooms' symbols by name (their addresses coincide)."""
     import asset_data
     import shape
-    _memory_slots(assets)
+    _layout_terms(assets, assets_root)
     ctx = shape.Context(assets, embedded, assets_root)
     if is_stage(name, assets):
         stage = next(k for k, v in STAGES.items() if v[0] == assets[name].get("package_name", name))
@@ -328,6 +333,15 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
                     if isinstance(task.get(field), int) and task[field]:
                         task[field] = package_decl.resolve_export_of(name, assets, room, task[field] & 0xFFFFFFFF) or task[field]
         objects = {s: (m, r) for m, objs in modules.items() for s, r in objs.items()}
+        import asset_data
+        from . import layouts
+        folders = {f["id"] // 100: k for k, f in asset_data.TREE[im.stage]["folders"].items() if f["id"] % 100 == 1}
+        movies_of_area: dict[int, list[str]] = {}
+        for k, r in sorted(assets.items(), key=lambda kr: (kr[1].get("stream", 0), kr[1].get("sub", 0))):
+            if r.get("type") == "movie":
+                area_of = next((a for a, f in folders.items() if f == r["folder"]), None)
+                if area_of is not None:
+                    movies_of_area.setdefault(area_of, []).append(k)
         for role, (offset, width, closed) in AREA_ROWS.items():    # each room's row of a per-area table: its room's
             ref = entry.get(role)
             sym = ref[0] if isinstance(ref, list) else ref
@@ -340,7 +354,10 @@ def decode_room(name: str, assets: dict, embedded: dict, assets_root: Path) -> d
             for area, room in rooms_of_area.items():
                 i = area + offset
                 if kind_of(room, assets) == "room" and 0 <= i < body // width:
-                    parts.setdefault(room, {}).setdefault("rows", {})[sym] = rows[i]
+                    row = rows[i]
+                    if role == "movie_workspaces":         # sized for one of the room's movies
+                        row = layouts.movie_workspace(row, movies_of_area.get(area, []))
+                    parts.setdefault(room, {}).setdefault("rows", {})[sym] = row
                     rows[i] = ROOM_ROW
             rec.clear()
             rec.update({"area_rows": {"offset": offset, "width": width}, "values": rows})
@@ -408,6 +425,7 @@ def read(name: str, assets: dict, assets_root: Path) -> dict[str, Any]:
     """The instance, each object's `kind` filled in: an entry point's from its role, an effect table's from its
     `type`, every other object's from the pointer field that reaches it, and a grid's cell lists the geometry no
     field names."""
+    _layout_terms(assets, assets_root)
     room = tomllib.loads(instance_path(name, assets, assets_root).read_text())
     modules = {k: v for k, v in room.items() if k not in ("area", "states", "entry", "stage")}
     if is_stage(name, assets):                           # with its rooms' parts

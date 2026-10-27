@@ -190,6 +190,19 @@ void akropolisStageSetupMovieBuffers(const GameLocationKey* location)
     gGameSession->field_7E      = 0;
 }
 
+/// An area's movie workspace in bytes, for its largest movie of `widthPixels` by `heightRows`, in the arrangement
+/// akropolisStageSetupMovieBuffers gives the area: the VLC input it keeps in the workspace, then its RGB16 frames of
+/// `widthPixels * heightRows * 2` bytes. Integer constant expressions.
+///
+/// Half a frame of input, and one frame both outputs share (the plaza).
+#define MOVIE_WORKSPACE_VLC_HALF_FRAME_AND_SHARED_FRAME(widthPixels, heightRows) ((widthPixels) * (heightRows) * 3)
+/// Two frames; the input stays after the movie ring (the fountain, the bridge).
+#define MOVIE_WORKSPACE_TWO_FRAMES(widthPixels, heightRows) ((widthPixels) * (heightRows) * 4)
+/// Three quarters of a frame of input, and two frames (the promenade).
+#define MOVIE_WORKSPACE_VLC_THREE_QUARTER_FRAME_AND_TWO_FRAMES(widthPixels, heightRows) ((widthPixels) * (heightRows) * 11 / 2)
+/// A frame of input, and two frames (the security room, the forked road, the observatory).
+#define MOVIE_WORKSPACE_VLC_FRAME_AND_TWO_FRAMES(widthPixels, heightRows) ((widthPixels) * (heightRows) * 6)
+
 /// Draws, previews and opens the current row of the MIST briefing's key-item list.
 ///
 /// The list supplies a valid index into the four-item briefing table and row

@@ -526,6 +526,11 @@ type = "collision"
 cell_face_list_macro = "AKROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET"
 sha1 = "35869d95e475cf288f964a767515e5bb3015c738"
 
+[departure]
+type = "movie"
+folder = "akropolis_helicopter_landing_pad"
+stream = 100
+
 [lift_move]
 type = "sound"
 sha1 = "dd8bb6403f195387658248078d50760a10b29bca"

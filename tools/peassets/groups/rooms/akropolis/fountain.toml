@@ -876,6 +876,31 @@ entries = 256
 region = "engine/vram/room_sprite_palettes"
 offset = [0x00000, 0x00005]
 
+[view3_movie]
+type = "movie"
+folder = "akropolis_fountain"
+stream = 3
+
+[view4_movie]
+type = "movie"
+folder = "akropolis_fountain"
+stream = 4
+
+[view5_movie]
+type = "movie"
+folder = "akropolis_fountain"
+stream = 5
+
+[view6_movie]
+type = "movie"
+folder = "akropolis_fountain"
+stream = 6
+
+[view7_movie]
+type = "movie"
+folder = "akropolis_fountain"
+stream = 7
+
 [view3_page_1]
 type = "texture"
 bpp = 8

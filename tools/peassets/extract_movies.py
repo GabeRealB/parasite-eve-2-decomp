@@ -8,6 +8,9 @@ Writes under the assets root (default ``assets/USA``)::
     movie/{stem}.json      meta / descriptor
     movie/movies.json      catalog
 
+A declared movie (movie.py) is written under its name instead: ``{name}.mp4`` and ``{name}.json`` in its group,
+``raw/movie/{name}.str``, and its catalog entry's ``stem`` is the name.
+
 Play with VLC/mpv/MPC-HC — not Windows Media Player (no H.264 4:4:4 / ALAC).
 
 Also invoked from extract.py after stage-chunk extract (unless
@@ -497,6 +500,9 @@ def _extract_one_job(job: dict[str, Any]) -> dict[str, Any]:
 
         movie_dir = Path(job["movie_dir"])
         raw_dir = Path(job["raw_dir"]) if job["raw_dir"] else None
+        for d in (movie_dir, raw_dir):                  # a declared movie's name is a path in its group
+            if d is not None:
+                (d / stem).parent.mkdir(parents=True, exist_ok=True)
 
         # XA audio (INTER only) — demux before mux so extract_movie_asset can embed it.
         pcm_chs: list[list[int]] | None = None
@@ -549,6 +555,10 @@ def _extract_one_job(job: dict[str, Any]) -> dict[str, Any]:
         meta["aligned_nsectors"] = align_nsec
         if xa_meta is not None:
             meta["xa"] = xa_meta
+        if job.get("declared"):                         # in its group, not under movie/
+            meta["name"] = stem
+            if meta.get("mp4"):
+                meta["mp4"] = f"{stem}.mp4"
 
         # Drop legacy loose wav/webp next to mp4
         for legacy in (
@@ -564,7 +574,7 @@ def _extract_one_job(job: dict[str, Any]) -> dict[str, Any]:
         (movie_dir / f"{stem}.json").write_text(
             json.dumps(meta, indent=2) + "\n", encoding="utf-8"
         )
-        meta["meta"] = f"{MOVIE_DIR}/{stem}.json"
+        meta["meta"] = f"{stem}.json" if job.get("declared") else f"{MOVIE_DIR}/{stem}.json"
         return {"ok": True, "meta": meta, "stem": stem}
     except Exception as ex:
         return {
@@ -603,20 +613,25 @@ def extract_all(
     logging.info("Extracting %d movie stream(s) with %d worker(s)", len(refs), n_jobs)
     _resolve_sector_spans(refs)
     container_starts = _container_starts(refs)
+    import asset_data
+    import movie
+    declared = movie.located(asset_data.ASSETS, asset_data.TREE)
 
     work: list[dict[str, Any]] = []
     for ref in refs:
         hard = _hard_end_for(ref, container_starts)
+        name = declared.get((ref.stage, ref.folder_id, ref.entry.stream_id, ref.entry.stream_sub_id))
         work.append(
             {
-                "stem": _stem_for(ref),
+                "stem": name or _stem_for(ref),
+                "declared": name is not None,
                 "container": str(ref.container.resolve()),
                 "container_name": ref.container.name,
                 "source": ref.source,
                 "start_offset": ref.start_offset,
                 "nsectors": ref.nsectors,
                 "hard_end": hard,
-                "movie_dir": str(movie_dir),
+                "movie_dir": str(assets_root if name else movie_dir),
                 "raw_dir": str(raw_dir) if write_raw else None,
                 "write_raw": write_raw,
                 "write_mp4": write_mp4,

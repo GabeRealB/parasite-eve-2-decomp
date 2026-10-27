@@ -1395,6 +1395,11 @@ type = "clip"
 rig = "characters/aya/rig"
 symbol = "gAkropolisCafeteriaPlayerOpeningClip"
 
+[transformation]
+type = "movie"
+folder = "akropolis_cafeteria"
+stream = 100
+
 [run_surface_3_1]
 type = "sound"
 sha1 = "85fef7c50dedd805c86faa806b010771d06c4daa"

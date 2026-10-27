@@ -116,6 +116,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # A place in RAM one package occupies at a time: its address, and the overlays.toml families or splat configs
     # linked for it (package.py); or a fixed region no image supplies (the image workspace), by its C `symbol`.
     "memory_slot": {"payload": (), "stored": ("at", "families", "configs", "symbol")},
+    # A movie a stage folder's streaming list names: its `folder`, and the `stream` id (and `sub` id) the room plays
+    # it by (movie.py).
+    "movie": {"payload": (), "stored": ("folder", "stream", "sub")},
     # Data of a declared shape (tools/peassets/shape/): its `shape`, and in `outputs` the stored asset each of the
     # shape's outputs is. Its instance, `<group>/<local name>.toml`, is decoded from them and encodes back exactly.
     "shaped": {"payload": (), "stored": ("shape", "outputs", "include")},
@@ -215,7 +218,7 @@ EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type",
 # older kinds the `package` type replaces).
 PACKAGE_TYPES = frozenset({"pe2pkg", "room", "stage", "package"})
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
-DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "memory_slot", "rig", "clip", "camera_path", "animation_schema",
+DECLARED_TYPES = frozenset({"binding", "texture", "file", "atlas", "font", "vram_region", "memory_slot", "movie", "rig", "clip", "camera_path", "animation_schema",
                             "animation_bank", "sound_bank", "sound", "shaped", "room", "stage"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
@@ -591,7 +594,7 @@ def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | No
       only form, and that is the directory answered here - except a model that declares its `slots`, which
       model/ decodes to USD and so lives in its group.
     * what is not a manifest asset at all, and so has no group to carry: `main.exe`, the CD streams in `audio/`
-      and `movie/`, the pack sidecars under `stage<N>/`, `stages.json` and the ISO manifests.
+      and the movies no group declares in `movie/` (a declared one is in its group, movie.py), the pack sidecars under `stage<N>/`, `stages.json` and the ISO manifests.
 
     A group may not start with a name the extraction already uses at its root (`reserved_roots`), so a group
     directory never has to be told apart from a type's.
@@ -1010,6 +1013,9 @@ def validate(assets: dict, embedded: dict) -> list[str]:
         if kind == "memory_slot":
             import package
             problems += package.check_memory_slot(key, rec, assets)
+        if kind == "movie":
+            import movie
+            problems += movie.check(key, rec, assets, load_tree())
         if kind == "package":
             import package
             problems += package.check_package(key, rec, assets)
