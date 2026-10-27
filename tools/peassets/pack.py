@@ -709,7 +709,7 @@ def build_files_stage(
     retail_offsets: dict[int, int] | None = None
     if layout_path.exists():
         retail_offsets = {
-            parse_int(e["file_id"]): parse_int(e["offset"]) for e in load_json(layout_path)
+            parse_int(e["file_id"]): parse_int(e["offset"]) for e in load_json(layout_path) if "offset" in e
         }
 
     cdf = bytearray()
@@ -808,7 +808,7 @@ def build_stage_n_folder(
         meta = load_json(layout_path)
         if "files" in meta:
             retail_offsets = {
-                parse_int(e["file_id"]): parse_int(e["offset"]) for e in meta["files"]
+                parse_int(e["file_id"]): parse_int(e["offset"]) for e in meta["files"] if "offset" in e
             }
         if "folder_size" in meta:
             retail_folder_size = parse_int(meta["folder_size"])

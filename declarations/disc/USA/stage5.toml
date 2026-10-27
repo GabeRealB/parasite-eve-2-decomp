@@ -5,2848 +5,1622 @@
 [[folder]]
 name = "shelter_1f_parking_garage"
 id = 101
-size = 0x2E000
-content_end = 0x2E000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801819B0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x13800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x15800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x1E000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x28000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "shelter_1f_vehicular_airlock"
 id = 201
-size = 0x29800
-content_end = 0x29800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80182AC0 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x1B000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x1D000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x23000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "shelter_1f_bulwark"
 id = 301
-size = 0x2B800
-content_end = 0x2B800
+streams = 1
 stream_data = false
-streaming = [
-    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xB7CE800, offset_folder_space = "absolute", offset_inter = 0xB7A3000, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x46E, unknown6 = 0x0, unknown7 = 0x1, movie_number = 11, unknown8 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80180EE0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x14800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x1A000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x22000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "shelter_1f_heliport"
 id = 401
-size = 0x85800
-content_end = 0x85800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80182CC0 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x28800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x2F800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x3A000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x41000
-chunks = [
-    { type = "image" },
-    { type = "clut" },
-    { type = "room_background" },
-]
+slots = 3
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x48800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x50800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x58000
-chunks = [
-    { type = "image" },
-    { type = "clut" },
-    { type = "room_background" },
-]
+slots = 3
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x60000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0x66800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file10"
 id = 10
-offset = 0x6D000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file11"
 id = 11
-offset = 0x75800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file12"
 id = 12
-offset = 0x7F000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "shelter_1f_airlock"
 id = 501
-size = 0x39800
-content_end = 0x39800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x8017F870 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0xE800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x10000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x16000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x23000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x30800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "shelter_1f_guardroom"
 id = 601
-size = 0x27800
-content_end = 0x27800
+streams = 1
 stream_data = false
-streaming = [
-    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xCE8B800, offset_folder_space = "absolute", offset_inter = 0xCE64000, unknown2 = 0x1, stream_id = 3, stream_sub_id = 0, picture_width = 144, picture_height = 160, unknown3 = 0x5F, unknown4 = 0x0, unknown5 = 0x3C, unknown6 = 0x0, unknown7 = 0x0, movie_number = 35, unknown8 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x8017E020 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0xF000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x10000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x18000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_observatory"
 id = 701
-size = 0x161800
-content_end = 0x161800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80187A40 },
-]
+slots = 8
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x3D000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x41000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x47000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x53000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x5E800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x6B800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x82800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x98800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0xAA000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file10"
 id = 10
-offset = 0xBE800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file11"
 id = 11
-offset = 0xD4000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file12"
 id = 12
-offset = 0xE9000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file13"
 id = 13
-offset = 0xF8000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file14"
 id = 14
-offset = 0xFF000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file15"
 id = 15
-offset = 0x10C000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file16"
 id = 16
-offset = 0x113000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file17"
 id = 17
-offset = 0x11B800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file18"
 id = 18
-offset = 0x12A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file19"
 id = 19
-offset = 0x140800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file20"
 id = 20
-offset = 0x155000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file21"
 id = 21
-offset = 0x15C000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_eve_access_tunnel"
 id = 801
-size = 0x54800
-content_end = 0x54800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801807C0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x14000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x16800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x22000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x2E800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x39800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x47000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x4E800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_eve_elevator"
 id = 901
-size = 0x2C000
-content_end = 0x2C000
+streams = 1
 stream_data = false
-streaming = [
-    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xCFEE000, offset_folder_space = "absolute", offset_inter = 0xCFC2000, unknown2 = 0x0, stream_id = 2, stream_sub_id = 0, picture_width = 320, picture_height = 240, unknown3 = 0x0, unknown4 = 0x0, unknown5 = 0x136, unknown6 = 0x10000, unknown7 = 0x0, movie_number = 36, unknown8 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x8017DC50 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0xF000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x17000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x1D000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x24800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_north_promenade"
 id = 1001
-size = 0x5B000
-content_end = 0x5B000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80183310 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x13000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x17000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x1F800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x27800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x3A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x49000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_forest_zone"
 id = 1101
-size = 0x61800
-content_end = 0x61800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80182E60 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x26800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x29000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x34800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x3F800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x4B800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x59000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_submarine_tunnel"
 id = 1201
-size = 0x770000
-content_end = 0xCE000
+streams = 2
 stream_data = true
-streaming = [
-    { stream_type = "audio", unknown1 = 0x53, offset_stage = 0xCE000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x0, stage_number = 5, stream_id = 60, stream_sub_id = 11, unknown3 = 0xB4, unknown4 = 0x20, unknown5 = 0x1, unknown6 = 0x0, unknown7 = 0x0 },
-    { stream_type = "audio", unknown1 = 0x152, offset_stage = 0x143000, offset_stage_space = "stream", offset_stage_stream_rel = 479232, unknown2 = 0x0, stage_number = 5, stream_id = 11, stream_sub_id = 11, unknown3 = 0xC24, unknown4 = 0x20, unknown5 = 0x1, unknown6 = 0x12901000, unknown7 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80187A30 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x22800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x28800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x3E800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x53800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x6A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x80000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x88800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x9A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0xAF800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file10"
 id = 10
-offset = 0xC6000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_pavilion"
 id = 1301
-size = 0xAA800
-content_end = 0xAA800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80187A30 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x20000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x28800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x40000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x55000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x6D000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x81800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x97800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_island"
 id = 1401
-size = 0x6B800
-content_end = 0x6B800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80184010 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x1F800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x27000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x37800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x49000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x63800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_garden"
 id = 1501
-size = 0x6C800
-content_end = 0x6C800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80182C10 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x24000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x2C000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x3C800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x4C000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x56000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x5D800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x65800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_power_plant_2"
 id = 1601
-size = 0x7D800
-content_end = 0x7D800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80182FB0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x24800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x29000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x39800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x44800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x50000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x5C000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x65800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x6B800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0x72800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_power_plant_1"
 id = 1701
-size = 0x81800
-content_end = 0x81800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80181C10 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x26000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x2B800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x36800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x40800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x4C800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x5B000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x65800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x70000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0x7A800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_savanna_zone"
 id = 1801
-size = 0x40000
-content_end = 0x40000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801809B0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x16800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x19000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x24800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x33000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_south_promenade"
 id = 1901
-size = 0x46800
-content_end = 0x46800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801809D0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x11800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x15800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x24000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x37000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x3F000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_altar"
 id = 2001
-size = 0x67000
-content_end = 0x67000
+streams = 3
 stream_data = false
-streaming = [
-    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xD668800, offset_folder_space = "absolute", offset_inter = 0xD601800, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x1C0, unknown6 = 0x0, unknown7 = 0x1, movie_number = 37, unknown8 = 0x0 },
-    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xDF5F800, offset_folder_space = "absolute", offset_inter = 0xDEF8800, unknown2 = 0x0, stream_id = 101, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x1C0, unknown6 = 0x0, unknown7 = 0x1, movie_number = 38, unknown8 = 0x0 },
-    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xE856800, offset_folder_space = "absolute", offset_inter = 0xE7EF800, unknown2 = 0x0, stream_id = 102, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0xE6, unknown6 = 0x0, unknown7 = 0x1, movie_number = 39, unknown8 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801800E0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x1F000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x23000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x2D000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x34800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x3F800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x4B000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x53000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x5E800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_shrine"
 id = 2101
-size = 0x107000
-content_end = 0x107000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80186910 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x25000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x27800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x2E800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x49000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x5A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x64800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x7C800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x84800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0x93800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file10"
 id = 10
-offset = 0xA1000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file11"
 id = 11
-offset = 0xAB800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file12"
 id = 12
-offset = 0xB8000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file13"
 id = 13
-offset = 0xBD800
-chunks = [
-    { type = "clut" },
-    { type = "image" },
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 4
 
 [[folder.file]]
 name = "file14"
 id = 14
-offset = 0xD1000
-chunks = [
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 3
 
 [[folder.file]]
 name = "file15"
 id = 15
-offset = 0xDA000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file16"
 id = 16
-offset = 0xE1800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file17"
 id = 17
-offset = 0xF2800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file18"
 id = 18
-offset = 0xFC800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "shelter_b6_nursery"
 id = 2201
-size = 0x34F000
-content_end = 0xBA000
+streams = 1
 stream_data = true
-streaming = [
-    { stream_type = "audio", unknown1 = 0x151, offset_stage = 0xBA000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x5800, stage_number = 5, stream_id = 9, stream_sub_id = 11, unknown3 = 0x4F3, unknown4 = 0x20, unknown5 = 0x1, unknown6 = 0x8000800, unknown7 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "image" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80187A00 },
-]
+slots = 8
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x2E000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x31800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x38000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x41000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x4A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x53000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x5C800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x62000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0x69000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file10"
 id = 10
-offset = 0x70000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file11"
 id = 11
-offset = 0x78000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file12"
 id = 12
-offset = 0x7D800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file13"
 id = 13
-offset = 0x83000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file14"
 id = 14
-offset = 0x8A800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file15"
 id = 15
-offset = 0x90800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file16"
 id = 16
-offset = 0x9A000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file17"
 id = 17
-offset = 0xA2000
-chunks = [
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 3
 
 [[folder.file]]
 name = "file18"
 id = 18
-offset = 0xAD800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file19"
 id = 19
-offset = 0xB4800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "shelter_b6_growth_room"
 id = 2301
-size = 0x5A000
-content_end = 0x5A000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801808B0 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x21800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x24000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x2E800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x36800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x3D800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x44000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x4B800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x51800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "shelter_b6_corridor"
 id = 2401
-size = 0x3D000
-content_end = 0x3D000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801851C0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x16000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x19000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x24800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x2F800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x35800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "shelter_b6_training_room"
 id = 2501
-size = 0x58800
-content_end = 0x58800
+streams = 1
 stream_data = false
-streaming = [
-    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xECF7800, offset_folder_space = "absolute", offset_inter = 0xEC9F000, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x2F0, unknown6 = 0x0, unknown7 = 0x1, movie_number = 10, unknown8 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80185CA0 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x1A000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x1C800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x25000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x2E800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x35800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x3D800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x45800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x50000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_r26"
 id = 2601
-size = 0x30000
-content_end = 0x30000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "image" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x8017EA50 },
-]
+slots = 6
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0xC800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x13800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x20000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x29000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_bridge"
 id = 2701
-size = 0x7D800
-content_end = 0x7D800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80184C00 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x20000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x27800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x36000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x47000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x5E800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x6F800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "shelter_1f_tent"
 id = 2801
-size = 0x87800
-content_end = 0x87800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801843E0 },
-]
+slots = 6
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x2D000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x35000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x40800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x49800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x54800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x5C000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x63800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x6A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0x75000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file10"
 id = 10
-offset = 0x7F000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_woodland_path"
 id = 2901
-size = 0xDF000
-content_end = 0xDF000
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80184A70 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x28800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x2A800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x3B000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x46800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x60800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x7C000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x93000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0xAA000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file9"
 id = 9
-offset = 0xBF000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file10"
 id = 10
-offset = 0xD2000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_submarine_gallery"
 id = 3001
-size = 0x92800
-content_end = 0x92800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "clut" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80185930 },
-]
+slots = 7
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x22800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x29000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x41800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x51800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x68800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x80000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x88000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_r31"
 id = 3101
-size = 0x5DA800
-content_end = 0x11000
+streams = 1
 stream_data = true
-streaming = [
-    { stream_type = "audio", unknown1 = 0x100, offset_stage = 0x11000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x8800, stage_number = 6, stream_id = 18, stream_sub_id = 11, unknown3 = 0x0, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x30003000, unknown7 = 0x0 },
-]
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x8017DC60 },
-]
+slots = 3
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x4000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x5000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x9800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder]]
 name = "neo_ark_pyramid"
 id = 3201
-size = 0x71800
-content_end = 0x71800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x801818B0 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x1B800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x1F800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x26800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x32000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x40000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x4C000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x5A000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x62000
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder]]
 name = "neo_ark_substation"
 id = 3301
-size = 0x5A800
-content_end = 0x5A800
+streams = 0
 stream_data = false
 
 [[folder.file]]
 name = "file0"
 id = 0
-offset = 0x800
-chunks = [
-    { type = "music" },
-    { type = "music" },
-    { type = "image" },
-    { type = "room_pkg", load = 0x8017D5C0 },
-    { type = "bundle", load = 0x80180350 },
-]
+slots = 5
 
 [[folder.file]]
 name = "file1"
 id = 1
-offset = 0x14000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file2"
 id = 2
-offset = 0x17800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file3"
 id = 3
-offset = 0x25800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file4"
 id = 4
-offset = 0x34800
-chunks = [
-    { type = "image" },
-    { type = "room_background" },
-]
+slots = 2
 
 [[folder.file]]
 name = "file5"
 id = 5
-offset = 0x3E000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file6"
 id = 6
-offset = 0x44800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file7"
 id = 7
-offset = 0x4B800
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
 
 [[folder.file]]
 name = "file8"
 id = 8
-offset = 0x53000
-chunks = [
-    { type = "room_background" },
-]
+slots = 1
