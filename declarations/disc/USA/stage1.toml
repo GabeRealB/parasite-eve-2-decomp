@@ -1,0 +1,2788 @@
+# The disc description (tools/declarations/disc.py): structure only, no game data.
+# STAGE1.CDF: the folders in order, each with its files.
+
+
+[[folder]]
+name = "akropolis_square"
+id = 101
+size = 0xC3800
+content_end = 0xC3800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80188920 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x23000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x46000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x51000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x60800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x6F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x7B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x85800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x8C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x93800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0x9B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xA2800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xA9000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_east_elevator_hall"
+id = 201
+size = 0x29B000
+content_end = 0x56800
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x310, offset_stage = 0x56800, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x0, stage_number = 1, stream_id = 3, stream_sub_id = 11, unknown3 = 0x461, unknown4 = 0x20, unknown5 = 0x20000, unknown6 = 0xF140800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80187BA0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x18800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x1E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x26000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x2F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x3B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x45000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x4D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_patio"
+id = 301
+size = 0x17C800
+content_end = 0xEF000
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x17, offset_stage = 0xEF000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x0, stage_number = 1, stream_id = 29, stream_sub_id = 11, unknown3 = 0xD2, unknown4 = 0x20, unknown5 = 0x2, unknown6 = 0x0, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80187070 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x33000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x42000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x55800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x65000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6E800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x79800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x88800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x97000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x9F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xA5800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xAD800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xB8800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xBF000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xC6000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xCE000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xD8000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xE3800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_cafeteria"
+id = 401
+size = 0x469800
+content_end = 0x12A800
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x2588800, offset_folder_space = "absolute", offset_inter = 0x245E000, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x2D6, unknown6 = 0x0, unknown7 = 0x1, movie_number = 4, unknown8 = 0x0 },
+    { stream_type = "audio", unknown1 = 0x111, offset_stage = 0x12A800, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x6000, stage_number = 1, stream_id = 6, stream_sub_id = 11, unknown3 = 0x667, unknown4 = 0x20, unknown5 = 0x1, unknown6 = 0xAC00800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8018D6C0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x3B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x41800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x4D800
+chunks = [
+    { type = "room_background" },
+    { type = "image" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x5C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x64800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x6D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x81000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x89000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x8F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x96000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x9D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xA8000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xB0800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xB9000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xC5000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xD2000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xE1000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xE8000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xEE000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0xF5000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file21"
+id = 21
+offset = 0xFC800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file22"
+id = 22
+offset = 0x10B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file23"
+id = 23
+offset = 0x117000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file24"
+id = 24
+offset = 0x121800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_plaza"
+id = 501
+size = 0x179C000
+content_end = 0x40000
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x40000, offset_folder_space = "stream", offset_folder_stream_rel = 0, offset_inter = 0x0, unknown2 = 0x0, stream_id = 2, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x190, unknown6 = 0x0, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x842000, offset_folder_space = "stream", offset_folder_stream_rel = 8396800, offset_inter = 0x802000, unknown2 = 0x0, stream_id = 2, stream_sub_id = 1, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x190, unknown6 = 0x0, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x1044000, offset_folder_space = "stream", offset_folder_stream_rel = 16793600, offset_inter = 0x1004000, unknown2 = 0x0, stream_id = 2, stream_sub_id = 2, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x78, unknown6 = 0x0, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x12CE000, offset_folder_space = "stream", offset_folder_stream_rel = 19456000, offset_inter = 0x128E000, unknown2 = 0x0, stream_id = 2, stream_sub_id = 3, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x96, unknown6 = 0x0, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x15EE000, offset_folder_space = "stream", offset_folder_stream_rel = 22732800, offset_inter = 0x15AE000, unknown2 = 0x0, stream_id = 2, stream_sub_id = 4, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x10, unknown6 = 0x0, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x1670000, offset_folder_space = "stream", offset_folder_stream_rel = 23265280, offset_inter = 0x1630000, unknown2 = 0x0, stream_id = 2, stream_sub_id = 5, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x32, unknown6 = 0x0, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x3303000, offset_folder_space = "absolute", offset_inter = 0x32C3000, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x28F, unknown6 = 0x0, unknown7 = 0x1, movie_number = 3, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80199F50 },
+]
+
+[[folder]]
+name = "akropolis_security_room"
+id = 601
+size = 0xD3800
+content_end = 0xD3800
+stream_data = false
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x4098800, offset_folder_space = "absolute", offset_inter = 0x3FC5000, unknown2 = 0x1, stream_id = 14, stream_sub_id = 0, picture_width = 144, picture_height = 176, unknown3 = 0x58, unknown4 = 0x40, unknown5 = 0x3C, unknown6 = 0x0, unknown7 = 0x0, movie_number = 22, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x41F8800, offset_folder_space = "absolute", offset_inter = 0x4125000, unknown2 = 0x1, stream_id = 16, stream_sub_id = 0, picture_width = 176, picture_height = 144, unknown3 = 0x4D, unknown4 = 0x11, unknown5 = 0xB4, unknown6 = 0x10000, unknown7 = 0x0, movie_number = 23, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801855C0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x29800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2C800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x37000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x47800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x54800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x5F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x65000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x73000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x80800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x8D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x9B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xA7000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xB5000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xBC000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xC2000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_hallway"
+id = 701
+size = 0x3C000
+content_end = 0x3C000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017FA60 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x15800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x1A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x23000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x2B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x34000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_fountain"
+id = 801
+size = 0x20E5000
+content_end = 0x128000
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x128000, offset_folder_space = "stream", offset_folder_stream_rel = 0, offset_inter = 0x0, unknown2 = 0x1, stream_id = 3, stream_sub_id = 0, picture_width = 48, picture_height = 32, unknown3 = 0x280, unknown4 = 0x100, unknown5 = 0x13B, unknown6 = 0x10001, unknown7 = 0x0, movie_number = 0, unknown8 = 0x1 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x781000, offset_folder_space = "stream", offset_folder_stream_rel = 6656000, offset_inter = 0x659000, unknown2 = 0x1, stream_id = 4, stream_sub_id = 0, picture_width = 176, picture_height = 144, unknown3 = 0x4D, unknown4 = 0x11, unknown5 = 0x13B, unknown6 = 0x10001, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xDDA000, offset_folder_space = "stream", offset_folder_stream_rel = 13312000, offset_inter = 0xCB2000, unknown2 = 0x1, stream_id = 5, stream_sub_id = 0, picture_width = 112, picture_height = 64, unknown3 = 0x280, unknown4 = 0x100, unknown5 = 0x13B, unknown6 = 0x10001, unknown7 = 0x0, movie_number = 0, unknown8 = 0x1 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x1433000, offset_folder_space = "stream", offset_folder_stream_rel = 19968000, offset_inter = 0x130B000, unknown2 = 0x1, stream_id = 6, stream_sub_id = 0, picture_width = 112, picture_height = 192, unknown3 = 0x0, unknown4 = 0x0, unknown5 = 0x13B, unknown6 = 0x10001, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x1A8C000, offset_folder_space = "stream", offset_folder_stream_rel = 26624000, offset_inter = 0x1964000, unknown2 = 0x1, stream_id = 7, stream_sub_id = 0, picture_width = 176, picture_height = 128, unknown3 = 0x0, unknown4 = 0x8, unknown5 = 0x13B, unknown6 = 0x10001, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80183BC0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x24000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x32800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x40800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x52800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x61000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x7F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x92800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x98800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0xA0000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xAE000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xC1000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xD0000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xDA800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xEE800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xF6000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0x100800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0x106800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0x10C000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file21"
+id = 21
+offset = 0x117000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file22"
+id = 22
+offset = 0x11F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_forked_road"
+id = 901
+size = 0x8A800
+content_end = 0x8A800
+stream_data = false
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x456F800, offset_folder_space = "absolute", offset_inter = 0x44E5000, unknown2 = 0x0, stream_id = 7, stream_sub_id = 0, picture_width = 144, picture_height = 176, unknown3 = 0x58, unknown4 = 0x40, unknown5 = 0x12C, unknown6 = 0x0, unknown7 = 0x0, movie_number = 24, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x4B7F800, offset_folder_space = "absolute", offset_inter = 0x4AF5000, unknown2 = 0x0, stream_id = 8, stream_sub_id = 0, picture_width = 80, picture_height = 144, unknown3 = 0x78, unknown4 = 0x4A, unknown5 = 0x12C, unknown6 = 0x10000, unknown7 = 0x0, movie_number = 25, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801850D0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x22000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x32800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x43800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x4D000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x54000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x5F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x6B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x73000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x79800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x81000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_observatory"
+id = 1001
+size = 0x7F000
+content_end = 0x7F000
+stream_data = false
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x5184000, offset_folder_space = "absolute", offset_inter = 0x5105000, unknown2 = 0x0, stream_id = 6, stream_sub_id = 0, picture_width = 112, picture_height = 128, unknown3 = 0x76, unknown4 = 0x70, unknown5 = 0x12C, unknown6 = 0x10000, unknown7 = 0x0, movie_number = 26, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x5794000, offset_folder_space = "absolute", offset_inter = 0x5715000, unknown2 = 0x0, stream_id = 7, stream_sub_id = 0, picture_width = 128, picture_height = 144, unknown3 = 0x4A, unknown4 = 0x60, unknown5 = 0x12C, unknown6 = 0x10000, unknown7 = 0x0, movie_number = 27, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80183500 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0xE800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x16000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x25800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x35000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x43800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x49000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x5D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x70000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_promenade"
+id = 1101
+size = 0xD9000
+content_end = 0xD9000
+stream_data = false
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x5DFE000, offset_folder_space = "absolute", offset_inter = 0x5D25000, unknown2 = 0x0, stream_id = 7, stream_sub_id = 0, picture_width = 144, picture_height = 208, unknown3 = 0x5C, unknown4 = 0x0, unknown5 = 0x12C, unknown6 = 0x10000, unknown7 = 0x0, movie_number = 28, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image", sector_len = 0x600 },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image", sector_len = 0x600 },
+    { type = "room_pkg", load = 0x8017D5C0, sector_len = 0x600 },
+    { type = "bundle", load = 0x801862E0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x27000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x4C800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x6F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x82800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x97000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0xA7000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0xBB000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0xC3800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xCB000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xD1000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_sanctuary"
+id = 1201
+size = 0x47B000
+content_end = 0xDC800
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x12, offset_stage = 0xDC800, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x5800, stage_number = 1, stream_id = 7, stream_sub_id = 11, unknown3 = 0x70C, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x0, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image", sector_len = 0x600 },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image", sector_len = 0x600 },
+    { type = "image", sector_len = 0x600 },
+    { type = "room_pkg", load = 0x8017D5C0, sector_len = 0x600 },
+    { type = "bundle", load = 0x80186CA0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2D000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x35000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x45000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x54000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x61000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x6D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x79800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x86000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x8F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x97800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x9D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xAB000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xB4000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xBE000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xC6800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xCC800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_roof_garden"
+id = 1301
+size = 0x77800
+content_end = 0x77800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "music" },
+    { type = "image", sector_len = 0x600 },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image", sector_len = 0x600 },
+    { type = "room_pkg", load = 0x8017D5C0, sector_len = 0x600 },
+    { type = "bundle", load = 0x80186EA0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x35800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x4E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x68800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_bridge"
+id = 1401
+size = 0x18B000
+content_end = 0xED800
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x6422800, offset_folder_space = "absolute", offset_inter = 0x6335000, unknown2 = 0x1, stream_id = 9, stream_sub_id = 0, picture_width = 192, picture_height = 176, unknown3 = 0x36, unknown4 = 0x40, unknown5 = 0xB4, unknown6 = 0x0, unknown7 = 0x0, movie_number = 29, unknown8 = 0x0 },
+    { stream_type = "audio", unknown1 = 0x16, offset_stage = 0xED800, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x0, stage_number = 1, stream_id = 11, stream_sub_id = 11, unknown3 = 0x104, unknown4 = 0x20, unknown5 = 0x2, unknown6 = 0x0, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801917B0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x32800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x45800
+chunks = [
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x5E800
+chunks = [
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x77000
+chunks = [
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x90000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0xA4000
+chunks = [
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0xBE000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0xCC800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0xD3000
+chunks = [
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_fire_escape"
+id = 1501
+size = 0x73800
+content_end = 0x73800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80183060 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x20800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x25800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x41800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x4B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x52000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x5D000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x63800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x6D000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_helicopter_landing_pad"
+id = 1601
+size = 0x942800
+content_end = 0x11C800
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x6809800, offset_folder_space = "absolute", offset_inter = 0x66ED000, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0xE7, unknown6 = 0x0, unknown7 = 0x1, movie_number = 5, unknown8 = 0x0 },
+    { stream_type = "audio", unknown1 = 0x113, offset_stage = 0x11C800, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x6800, stage_number = 1, stream_id = 9, stream_sub_id = 11, unknown3 = 0x467, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x8000800, unknown7 = 0x0 },
+    { stream_type = "audio", unknown1 = 0x114, offset_stage = 0x36F000, offset_stage_space = "stream", offset_stage_stream_rel = 2435072, unknown2 = 0x7000, stage_number = 1, stream_id = 9, stream_sub_id = 21, unknown3 = 0x217, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x8000800, unknown7 = 0x0 },
+    { stream_type = "audio", unknown1 = 0x115, offset_stage = 0x499800, offset_stage_space = "stream", offset_stage_stream_rel = 3657728, unknown2 = 0x8000, stage_number = 1, stream_id = 10, stream_sub_id = 11, unknown3 = 0x0, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x10001000, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80187FA0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x31800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3D000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x44800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x51000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x5D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x65800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x78000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x81800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x8C000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x98800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xA0800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xA8000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xAE000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xB6800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xBD000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xC3800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xCA800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xDB000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0xE3800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file21"
+id = 21
+offset = 0xEB800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file22"
+id = 22
+offset = 0xF0000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file23"
+id = 23
+offset = 0xF6000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file24"
+id = 24
+offset = 0xFE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file25"
+id = 25
+offset = 0x103800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file26"
+id = 26
+offset = 0x104800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file27"
+id = 27
+offset = 0x109800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "akropolis_west_elevator_hall"
+id = 1701
+size = 0x67800
+content_end = 0x67800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80186AF0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2C800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x32800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3C800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x47000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x55000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "mist_r18"
+id = 1801
+size = 0x143000
+content_end = 0x66000
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x118, offset_stage = 0x66000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x5800, stage_number = 1, stream_id = 30, stream_sub_id = 11, unknown3 = 0x188, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x8000800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80186EB0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x23800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x32800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x38000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x43000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x4B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x57800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x5F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "mist_parking"
+id = 1901
+size = 0xED800
+content_end = 0xED800
+stream_data = false
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x6C94800, offset_folder_space = "absolute", offset_inter = 0x6BA7000, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0xBE, unknown6 = 0x0, unknown7 = 0x1, movie_number = 30, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x7086800, offset_folder_space = "absolute", offset_inter = 0x6F99000, unknown2 = 0x0, stream_id = 101, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0xBE, unknown6 = 0x0, unknown7 = 0x1, movie_number = 31, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "image" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80195360 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x38000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x3D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x4C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x54000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x62800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x6F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x7D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x86800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x8C800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x95000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x9D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xA5000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xAA800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xB2000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xB8800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xC0800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xC7000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xCD000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xDA000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0xE7800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "mist_shooting_gallery"
+id = 2001
+size = 0xEC800
+content_end = 0xEC800
+stream_data = false
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x748B800, offset_folder_space = "absolute", offset_inter = 0x739F000, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x575, unknown6 = 0x0, unknown7 = 0x1, movie_number = 7, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8018E0D0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x3F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x45000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x4B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x52000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5C000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x67000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x7A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x87000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x8F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x9A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xA6000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xB3800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xBD800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xC6800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xD3000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xDD000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xE6800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "mist_r21"
+id = 2101
+size = 0xE800
+content_end = 0xE800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017D7B0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x5000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x9000
+chunks = [
+    { type = "room_background" },
+]

@@ -1,0 +1,8226 @@
+# The disc description (tools/declarations/disc.py): structure only, no game data.
+# STAGE0.HED and STAGE0.CDF: the HED's streaming list, the files in disc order.
+
+streaming = [
+    { stream_type = "movie", unknown1 = 0x8000, offset_folder = 0x20D800, offset_folder_space = "absolute", offset_inter = 0x0, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 240, unknown3 = 0x0, unknown4 = 0x0, unknown5 = 0x73A, unknown6 = 0x0, unknown7 = 0x1, movie_number = 1, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x8000, offset_folder = 0x20D800, offset_folder_space = "absolute", offset_inter = 0x0, unknown2 = 0x0, stream_id = 101, stream_sub_id = 0, picture_width = 320, picture_height = 240, unknown3 = 0x0, unknown4 = 0x0, unknown5 = 0x73A, unknown6 = 0x0, unknown7 = 0x1, movie_number = 1, unknown8 = 0x0 },
+    { stream_type = "audio", unknown1 = 0x806A, offset_stage = 0x87C000, offset_stage_space = "absolute", unknown2 = 0x0, stage_number = 0, stream_id = 1, stream_sub_id = 11, unknown3 = 0x0, unknown4 = 0x20, unknown5 = 0x2, unknown6 = 0x0, unknown7 = 0x0 },
+]
+stream_data = false
+
+[[file]]
+name = "gameplay"
+id = 0
+offset = 0x0
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x80093800 },
+]
+
+[[file]]
+name = "title"
+id = 1
+offset = 0x65800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80093800 },
+]
+
+[[file]]
+name = "title_screen"
+id = 2
+offset = 0x7C000
+chunks = [
+    { type = "room_background" },
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "load_screen_detailed_caption"
+id = 3
+offset = 0x87000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "load_screen_dryfield_motel_room_6"
+id = 4
+offset = 0x8A800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_acropolis_square"
+id = 5
+offset = 0x94800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_acropolis_other"
+id = 6
+offset = 0x9E800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_mist_arrival"
+id = 7
+offset = 0xA9000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_mist_departure"
+id = 8
+offset = 0xB3800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_unselected_9"
+id = 9
+offset = 0xBD800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "load_screen_dryfield_main_street"
+id = 10
+offset = 0xC1000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_trailer_coach"
+id = 11
+offset = 0xCD000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_lobby_chapter_3"
+id = 12
+offset = 0xD7800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_trailer_chapter_3"
+id = 13
+offset = 0xE1000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_other_chapter_3"
+id = 14
+offset = 0xEB000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_other_chapter_4"
+id = 15
+offset = 0xF4800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_mine_refuge_chapter_4"
+id = 16
+offset = 0xFC800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_sterilization_chapter_4"
+id = 17
+offset = 0x106000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_incinerator_chapter_4"
+id = 18
+offset = 0x111800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_lobby_chapter_4"
+id = 19
+offset = 0x11B000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_trailer_chapter_4"
+id = 20
+offset = 0x126800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_laboratory_chapter_4"
+id = 21
+offset = 0x130000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_pod_chapter_4"
+id = 22
+offset = 0x13A800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_mine_refuge_chapter_5"
+id = 23
+offset = 0x145800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_sterilization_chapter_5"
+id = 24
+offset = 0x14E800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_incinerator_chapter_5"
+id = 25
+offset = 0x158000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_lobby_chapter_5"
+id = 26
+offset = 0x162800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_trailer_chapter_5"
+id = 27
+offset = 0x16D800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_laboratory_chapter_5"
+id = 28
+offset = 0x176000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_pod_chapter_5"
+id = 29
+offset = 0x17E800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_nursery"
+id = 30
+offset = 0x189000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_parking_chapter_5"
+id = 31
+offset = 0x194000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_night_other_chapter_5"
+id = 32
+offset = 0x19F000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_unselected_33"
+id = 33
+offset = 0x1A9800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "load_screen_unselected_34"
+id = 34
+offset = 0x1AD000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "load_screen_shelter_heliport"
+id = 35
+offset = 0x1B0800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_sterilization_chapter_6"
+id = 36
+offset = 0x1BA000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_laboratory_chapter_6"
+id = 37
+offset = 0x1C4000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_parking_chapter_6"
+id = 38
+offset = 0x1CF800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_dryfield_other"
+id = 39
+offset = 0x1DA000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "load_screen_shelter_parking_chapter_4"
+id = 40
+offset = 0x1E5800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "mode_splash_replay"
+id = 41
+offset = 0x1EF000
+chunks = [
+    { type = "room_background" },
+]
+
+[[file]]
+name = "mode_splash_bounty"
+id = 42
+offset = 0x1F7800
+chunks = [
+    { type = "room_background" },
+]
+
+[[file]]
+name = "mode_splash_scavenger"
+id = 43
+offset = 0x1FF000
+chunks = [
+    { type = "room_background" },
+]
+
+[[file]]
+name = "mode_splash_nightmare"
+id = 44
+offset = 0x206800
+chunks = [
+    { type = "room_background" },
+]
+
+[[file]]
+name = "aya_10200"
+id = 10200
+offset = 0x20D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80115770 },
+]
+
+[[file]]
+name = "aya_10300"
+id = 10300
+offset = 0x21D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80115770 },
+]
+
+[[file]]
+name = "p08_snail"
+id = 10301
+offset = 0x22E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m93r"
+id = 10302
+offset = 0x242000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m950"
+id = 10303
+offset = 0x257000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "p08"
+id = 10304
+offset = 0x26C800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "p229"
+id = 10305
+offset = 0x280800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "unused_85"
+id = 10306
+offset = 0x295000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "unused_86"
+id = 10307
+offset = 0x2A0800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "unused_87"
+id = 10308
+offset = 0x2AC000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "mongoose"
+id = 10309
+offset = 0x2B7800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "unused_89"
+id = 10310
+offset = 0x2CB000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "grenade_pistol"
+id = 10311
+offset = 0x2D6800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "mm1"
+id = 10312
+offset = 0x2E2800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "pa3"
+id = 10313
+offset = 0x2F0000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "sp12"
+id = 10314
+offset = 0x2FC800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "as12"
+id = 10315
+offset = 0x309000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1"
+id = 10316
+offset = 0x316000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m249"
+id = 10317
+offset = 0x32A800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "unused_91"
+id = 10318
+offset = 0x341000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "tonfa_baton"
+id = 10319
+offset = 0x34C800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1_p1"
+id = 10320
+offset = 0x361000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1_p2"
+id = 10321
+offset = 0x375800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "hypervelocity"
+id = 10322
+offset = 0x38A000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "gunblade"
+id = 10323
+offset = 0x3A2000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "unused_97"
+id = 10324
+offset = 0x3B0000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1_hammer"
+id = 10325
+offset = 0x3BB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1_bayonet"
+id = 10326
+offset = 0x3D1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1_grenade"
+id = 10327
+offset = 0x3E7000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1_pyke"
+id = 10328
+offset = 0x3F5800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "m4a1_javelin"
+id = 10329
+offset = 0x40C000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "mp5a5"
+id = 10330
+offset = 0x422800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "mp5a5_p1"
+id = 10331
+offset = 0x437800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "mp5a5_p2"
+id = 10332
+offset = 0x44C800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "music" },
+    { type = "room_pkg", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "aya_10400"
+id = 10400
+offset = 0x461800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80115770 },
+]
+
+[[file]]
+name = "file10500"
+id = 10500
+offset = 0x472800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80115770 },
+]
+
+[[file]]
+name = "file10600"
+id = 10600
+offset = 0x482800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80115770 },
+]
+
+[[file]]
+name = "file11000"
+id = 11000
+offset = 0x492800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11001"
+id = 11001
+offset = 0x492800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11002"
+id = 11002
+offset = 0x49B000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11003"
+id = 11003
+offset = 0x4A3000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11004"
+id = 11004
+offset = 0x4AC000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11005"
+id = 11005
+offset = 0x4B4000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11006"
+id = 11006
+offset = 0x4BD000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11007"
+id = 11007
+offset = 0x4C5800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11008"
+id = 11008
+offset = 0x4CE800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11009"
+id = 11009
+offset = 0x4D7000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11010"
+id = 11010
+offset = 0x4DF800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11011"
+id = 11011
+offset = 0x4E8800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11012"
+id = 11012
+offset = 0x4F1000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11013"
+id = 11013
+offset = 0x4FA000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11014"
+id = 11014
+offset = 0x503000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11015"
+id = 11015
+offset = 0x50B800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11016"
+id = 11016
+offset = 0x514000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11017"
+id = 11017
+offset = 0x51D000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11018"
+id = 11018
+offset = 0x526000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11019"
+id = 11019
+offset = 0x52F000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11020"
+id = 11020
+offset = 0x537800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file11021"
+id = 11021
+offset = 0x540800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "options"
+id = 20100
+offset = 0x548800
+chunks = [
+    { type = "room_pkg", load = 0x801D4000 },
+]
+
+[[file]]
+name = "p08_snail_preview"
+id = 20101
+offset = 0x54A000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m93r_preview"
+id = 20102
+offset = 0x54C800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m950_preview"
+id = 20103
+offset = 0x54F000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "p08_preview"
+id = 20104
+offset = 0x551800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "p229_preview"
+id = 20105
+offset = 0x554000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mongoose_preview"
+id = 20109
+offset = 0x556800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "grenade_pistol_preview"
+id = 20111
+offset = 0x559000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mm1_preview"
+id = 20112
+offset = 0x55B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pa3_preview"
+id = 20113
+offset = 0x55E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "sp12_preview"
+id = 20114
+offset = 0x560800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "as12_preview"
+id = 20115
+offset = 0x563000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_preview"
+id = 20116
+offset = 0x565800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m249_preview"
+id = 20117
+offset = 0x568000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "tonfa_baton_preview"
+id = 20119
+offset = 0x56A800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_p1_preview"
+id = 20120
+offset = 0x56C800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_p2_preview"
+id = 20121
+offset = 0x56F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "hypervelocity_preview"
+id = 20122
+offset = 0x572800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "gunblade_preview"
+id = 20123
+offset = 0x575800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_hammer_preview"
+id = 20125
+offset = 0x578000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_bayonet_preview"
+id = 20126
+offset = 0x57B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_grenade_preview"
+id = 20127
+offset = 0x57D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_pyke_preview"
+id = 20128
+offset = 0x580000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m4a1_javelin_preview"
+id = 20129
+offset = 0x582800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mp5a5_preview"
+id = 20130
+offset = 0x585800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mp5a5_p1_preview"
+id = 20131
+offset = 0x588000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mp5a5_p2_preview"
+id = 20132
+offset = 0x58B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "disc_swap_1"
+id = 20160
+offset = 0x58E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "disc_swap_2"
+id = 20161
+offset = 0x598800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[file]]
+name = "ui"
+id = 20162
+offset = 0x5A3000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "stub_20200"
+id = 20200
+offset = 0x5AA800
+chunks = [
+    { type = "room_pkg", load = 0x801D4000 },
+]
+
+[[file]]
+name = "parthenon_key"
+id = 20201
+offset = 0x5AB000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "micro_device"
+id = 20202
+offset = 0x5AD800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "red_key"
+id = 20203
+offset = 0x5B0000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "blue_key"
+id = 20204
+offset = 0x5B2800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "armory_cardkey"
+id = 20205
+offset = 0x5B5000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mist_badge"
+id = 20206
+offset = 0x5B7800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mendel_sept_issue"
+id = 20207
+offset = 0x5BA800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "clipboard"
+id = 20208
+offset = 0x5BE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mist_search_warrant"
+id = 20209
+offset = 0x5C0800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "nmc_photo"
+id = 20210
+offset = 0x5C3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "manual"
+id = 20211
+offset = 0x5C7000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "dryfield_map"
+id = 20212
+offset = 0x5C9000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_10d"
+id = 20213
+offset = 0x5CC800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_10e"
+id = 20214
+offset = 0x5CC800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "motel_key_no6"
+id = 20215
+offset = 0x5CC800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "saloon_key"
+id = 20216
+offset = 0x5CF000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "monkey_wrench"
+id = 20217
+offset = 0x5D1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lobby_key"
+id = 20218
+offset = 0x5D4000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "bronco_masterkey"
+id = 20219
+offset = 0x5D6800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "wire_rope"
+id = 20220
+offset = 0x5D9000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "factory_key"
+id = 20221
+offset = 0x5DC000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "truck_key"
+id = 20222
+offset = 0x5DE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "jerry_can"
+id = 20223
+offset = 0x5E0800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "gasoline"
+id = 20224
+offset = 0x5E3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "ice_bag"
+id = 20225
+offset = 0x5E6800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "bag_of_water"
+id = 20226
+offset = 0x5E9000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "bottlecap_magnet"
+id = 20227
+offset = 0x5EB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "suv_key"
+id = 20230
+offset = 0x5EE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "oak_board"
+id = 20231
+offset = 0x5F0800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "jumper_plug"
+id = 20232
+offset = 0x5F3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "bowmans_card"
+id = 20233
+offset = 0x5F6000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "yoshidas_card"
+id = 20234
+offset = 0x5F8800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "electric_car_key"
+id = 20235
+offset = 0x5FB000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "teddy_bear"
+id = 20236
+offset = 0x5FD800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pierces_memo"
+id = 20237
+offset = 0x600800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_126"
+id = 20238
+offset = 0x603800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "aeris_sept_issue"
+id = 20239
+offset = 0x605800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mr_douglas_letter"
+id = 20240
+offset = 0x608000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_129"
+id = 20241
+offset = 0x60A800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_12a"
+id = 20242
+offset = 0x60D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_12b"
+id = 20243
+offset = 0x60F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "jumper_plug_12c"
+id = 20244
+offset = 0x611800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "micro_device_12d"
+id = 20245
+offset = 0x614000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "recovery1_0"
+id = 20300
+offset = 0x616800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "recovery1"
+id = 20301
+offset = 0x616800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "recovery2"
+id = 20302
+offset = 0x619800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "recovery3"
+id = 20303
+offset = 0x61C000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "stim"
+id = 20304
+offset = 0x61E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "cola"
+id = 20305
+offset = 0x620000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mp_boost1"
+id = 20306
+offset = 0x622800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "mp_boost2"
+id = 20307
+offset = 0x624800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "penicillin"
+id = 20308
+offset = 0x626800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "smg_clip_holder"
+id = 20309
+offset = 0x629000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "rifle_clip_holder"
+id = 20310
+offset = 0x62B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lipstick"
+id = 20311
+offset = 0x62E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "snail_magazine"
+id = 20312
+offset = 0x630000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "belt_pouch"
+id = 20313
+offset = 0x632000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "md_player"
+id = 20314
+offset = 0x634800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyrokinesis_level1_shop"
+id = 20315
+offset = 0x637000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyrokinesis_level2_shop"
+id = 20316
+offset = 0x639000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyrokinesis_level3_shop"
+id = 20317
+offset = 0x63B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combustion_level1_shop"
+id = 20318
+offset = 0x63D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combustion_level2_shop"
+id = 20319
+offset = 0x63F000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combustion_level3_shop"
+id = 20320
+offset = 0x641000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "inferno_level1_shop"
+id = 20321
+offset = 0x643000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "inferno_level2_shop"
+id = 20322
+offset = 0x645000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "inferno_level3_shop"
+id = 20323
+offset = 0x647000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "necrosis_level1_shop"
+id = 20324
+offset = 0x649000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "necrosis_level2_shop"
+id = 20325
+offset = 0x64B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "necrosis_level3_shop"
+id = 20326
+offset = 0x64D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "plasma_level1_shop"
+id = 20327
+offset = 0x64F000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "plasma_level2_shop"
+id = 20328
+offset = 0x651000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "plasma_level3_shop"
+id = 20329
+offset = 0x653000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "apobiosis_level1_shop"
+id = 20330
+offset = 0x655000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "apobiosis_level2_shop"
+id = 20331
+offset = 0x657000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "apobiosis_level3_shop"
+id = 20332
+offset = 0x659000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "metabolism_level1_shop"
+id = 20333
+offset = 0x65B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "metabolism_level2_shop"
+id = 20334
+offset = 0x65D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "metabolism_level3_shop"
+id = 20335
+offset = 0x65F000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "healing_level1_shop"
+id = 20336
+offset = 0x661000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "healing_level2_shop"
+id = 20337
+offset = 0x663000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "healing_level3_shop"
+id = 20338
+offset = 0x665000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lifedrain_level1_shop"
+id = 20339
+offset = 0x667000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lifedrain_level2_shop"
+id = 20340
+offset = 0x669000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lifedrain_level3_shop"
+id = 20341
+offset = 0x66B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "antibody_level1_shop"
+id = 20342
+offset = 0x66D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "antibody_level2_shop"
+id = 20343
+offset = 0x66F000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "antibody_level3_shop"
+id = 20344
+offset = 0x671000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyshot_level1_shop"
+id = 20345
+offset = 0x673000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyshot_level2_shop"
+id = 20346
+offset = 0x675000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyshot_level3_shop"
+id = 20347
+offset = 0x677000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyball_level1_shop"
+id = 20348
+offset = 0x679000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyball_level2_shop"
+id = 20349
+offset = 0x67B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyball_level3_shop"
+id = 20350
+offset = 0x67D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_33"
+id = 20351
+offset = 0x67F000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_34"
+id = 20352
+offset = 0x681000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "unused_35"
+id = 20353
+offset = 0x683000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "skull_crystal"
+id = 20354
+offset = 0x685000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "medicine_wheel"
+id = 20355
+offset = 0x687800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "holy_water"
+id = 20356
+offset = 0x68A000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "ofuda"
+id = 20357
+offset = 0x68C000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "flare"
+id = 20358
+offset = 0x68E800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pepper_spray"
+id = 20359
+offset = 0x691000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "protein_capsule"
+id = 20360
+offset = 0x693800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "ringers_solution"
+id = 20361
+offset = 0x696000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "eau_de_toilette"
+id = 20362
+offset = 0x698800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "hunter_goggles"
+id = 20363
+offset = 0x69A800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "gps"
+id = 20364
+offset = 0x69D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combat_light"
+id = 20365
+offset = 0x69F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "hammer"
+id = 20366
+offset = 0x6A2000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyke"
+id = 20367
+offset = 0x6A4800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "javelin"
+id = 20368
+offset = 0x6A7000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m203"
+id = 20369
+offset = 0x6AA000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "m9"
+id = 20370
+offset = 0x6AC000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "9mm_pb_0"
+id = 20400
+offset = 0x6AE800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "9mm_pb"
+id = 20401
+offset = 0x6AE800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "9mm_hydra"
+id = 20402
+offset = 0x6B1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "9mm_spartan"
+id = 20403
+offset = 0x6B4800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "44_magnum"
+id = 20407
+offset = 0x6B7800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "44_maeda_sp"
+id = 20408
+offset = 0x6BB000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "44_poison"
+id = 20409
+offset = 0x6BE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "grenade"
+id = 20410
+offset = 0x6C1000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "airburst"
+id = 20411
+offset = 0x6C4000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "riot"
+id = 20412
+offset = 0x6C6800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "buckshot"
+id = 20413
+offset = 0x6C9800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "firefly"
+id = 20414
+offset = 0x6CC800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "rifled_slug"
+id = 20415
+offset = 0x6D0000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "5_56_rifle"
+id = 20416
+offset = 0x6D3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "paralizer"
+id = 20417
+offset = 0x6D6800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "flashbomb"
+id = 20418
+offset = 0x6D9800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "battery"
+id = 20422
+offset = 0x6DC800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "hypervelocity_battery"
+id = 20426
+offset = 0x6DF800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "hammer_battery"
+id = 20428
+offset = 0x6E2800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "fuel"
+id = 20430
+offset = 0x6E5800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "javelin_battery"
+id = 20431
+offset = 0x6E8800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "leather_jacket_0"
+id = 20500
+offset = 0x6EB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "leather_jacket"
+id = 20501
+offset = 0x6EB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "tactical_armor"
+id = 20502
+offset = 0x6EE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combat_armor"
+id = 20503
+offset = 0x6F0800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "assault_suit"
+id = 20504
+offset = 0x6F3000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pasgt_vest"
+id = 20505
+offset = 0x6F5800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "tactical_vest"
+id = 20506
+offset = 0x6F8800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "eod_suit"
+id = 20507
+offset = 0x6FB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "turtle_vest"
+id = 20508
+offset = 0x6FE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "chicken_plate"
+id = 20509
+offset = 0x700800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "nbc_suit"
+id = 20510
+offset = 0x703000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "psysuit"
+id = 20511
+offset = 0x705800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "aya_special"
+id = 20512
+offset = 0x708000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "shoulder_holster"
+id = 20513
+offset = 0x70A800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "monk_robe"
+id = 20514
+offset = 0x70D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "nmc_names"
+id = 20600
+offset = 0x70F800
+chunks = [
+    { type = "room_pkg", load = 0x801D6000 },
+]
+
+[[file]]
+name = "enemy_rat"
+id = 20601
+offset = 0x710000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_moth"
+id = 20602
+offset = 0x712000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_bass"
+id = 20603
+offset = 0x714000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_bat"
+id = 20604
+offset = 0x716800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_scorpion"
+id = 20605
+offset = 0x718800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_black_beetle"
+id = 20606
+offset = 0x71B000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_maggot"
+id = 20607
+offset = 0x71D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_green_amoeba"
+id = 20608
+offset = 0x71F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_red_amoeba"
+id = 20609
+offset = 0x722000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_chicken_man_a"
+id = 20610
+offset = 0x724800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_chicken_man_b"
+id = 20611
+offset = 0x727000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_chicken_walker"
+id = 20612
+offset = 0x729800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_chicken_rider"
+id = 20613
+offset = 0x72B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_chicken_hopper"
+id = 20614
+offset = 0x72D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_cone_head"
+id = 20615
+offset = 0x72F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_turtle_head"
+id = 20616
+offset = 0x731800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_parasite_baby"
+id = 20617
+offset = 0x733800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_blood_suckler"
+id = 20618
+offset = 0x735800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_desert_chaser"
+id = 20619
+offset = 0x737800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_stealth_punisher"
+id = 20620
+offset = 0x739800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_doppel_punisher"
+id = 20621
+offset = 0x73B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_night_singer"
+id = 20622
+offset = 0x73D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_parasite_flyer"
+id = 20623
+offset = 0x73F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_stalker"
+id = 20624
+offset = 0x741800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_sea_diver"
+id = 20625
+offset = 0x743800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_smart_cone"
+id = 20626
+offset = 0x745800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_cone_walker"
+id = 20627
+offset = 0x747800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_half_desert"
+id = 20628
+offset = 0x749800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_parasite_dama"
+id = 20629
+offset = 0x74B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_stealth_head"
+id = 20630
+offset = 0x74D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_laser_turret_1"
+id = 20631
+offset = 0x74F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_laser_turret_2"
+id = 20632
+offset = 0x751800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_laser_turret_3"
+id = 20633
+offset = 0x753800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_laser_turret_4"
+id = 20634
+offset = 0x755800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_laser_turret_machine_gun"
+id = 20635
+offset = 0x757800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_pawn_golem_beam_sword"
+id = 20636
+offset = 0x759800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_pawn_golem_grenade_launcher"
+id = 20637
+offset = 0x75B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_rook_golem_beam_sword"
+id = 20638
+offset = 0x75D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_rook_golem_grenade_launcher"
+id = 20639
+offset = 0x75F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_knight_golem"
+id = 20640
+offset = 0x761800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_bishop_golem"
+id = 20641
+offset = 0x763800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_glasses_woman"
+id = 20642
+offset = 0x765800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_gunther_1"
+id = 20643
+offset = 0x767800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_gunther_2"
+id = 20644
+offset = 0x769800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_blizzard_chaser"
+id = 20645
+offset = 0x76B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_zombie_blizzard_chaser"
+id = 20646
+offset = 0x76D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_gigant_sapiens"
+id = 20647
+offset = 0x76F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_glutton_first_encounter"
+id = 20648
+offset = 0x771800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_glutton_second_encounter"
+id = 20649
+offset = 0x773800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_amplifier_a"
+id = 20650
+offset = 0x775800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_amplifier_b"
+id = 20651
+offset = 0x777800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_giant_stalker"
+id = 20652
+offset = 0x779800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_brahman_a"
+id = 20653
+offset = 0x77B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_brahman_b"
+id = 20654
+offset = 0x77D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_brahman_c"
+id = 20655
+offset = 0x77F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_brahman_d"
+id = 20656
+offset = 0x781800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_clear_brahman_a"
+id = 20657
+offset = 0x783800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_clear_brahman_b"
+id = 20658
+offset = 0x785800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_clear_brahman_c"
+id = 20659
+offset = 0x787800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_clear_brahman_d"
+id = 20660
+offset = 0x789800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_sabotender"
+id = 20661
+offset = 0x78B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "enemy_chocobo"
+id = 20662
+offset = 0x78D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyrokinesis_level1_menu_0"
+id = 20700
+offset = 0x78F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyrokinesis_level1_menu"
+id = 20701
+offset = 0x78F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyrokinesis_level2_menu"
+id = 20702
+offset = 0x791800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "pyrokinesis_level3_menu"
+id = 20703
+offset = 0x793800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combustion_level1_menu"
+id = 20704
+offset = 0x795800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combustion_level2_menu"
+id = 20705
+offset = 0x797800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "combustion_level3_menu"
+id = 20706
+offset = 0x799800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "inferno_level1_menu"
+id = 20707
+offset = 0x79B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "inferno_level2_menu"
+id = 20708
+offset = 0x79D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "inferno_level3_menu"
+id = 20709
+offset = 0x79F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "necrosis_level1_menu"
+id = 20710
+offset = 0x7A1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "necrosis_level2_menu"
+id = 20711
+offset = 0x7A3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "necrosis_level3_menu"
+id = 20712
+offset = 0x7A5800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "plasma_level1_menu"
+id = 20713
+offset = 0x7A7800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "plasma_level2_menu"
+id = 20714
+offset = 0x7A9800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "plasma_level3_menu"
+id = 20715
+offset = 0x7AB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "apobiosis_level1_menu"
+id = 20716
+offset = 0x7AD800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "apobiosis_level2_menu"
+id = 20717
+offset = 0x7AF800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "apobiosis_level3_menu"
+id = 20718
+offset = 0x7B1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "metabolism_level1_menu"
+id = 20719
+offset = 0x7B3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "metabolism_level2_menu"
+id = 20720
+offset = 0x7B5800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "metabolism_level3_menu"
+id = 20721
+offset = 0x7B7800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "healing_level1_menu"
+id = 20722
+offset = 0x7B9800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "healing_level2_menu"
+id = 20723
+offset = 0x7BB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "healing_level3_menu"
+id = 20724
+offset = 0x7BD800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lifedrain_level1_menu"
+id = 20725
+offset = 0x7BF800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lifedrain_level2_menu"
+id = 20726
+offset = 0x7C1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "lifedrain_level3_menu"
+id = 20727
+offset = 0x7C3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "antibody_level1_menu"
+id = 20728
+offset = 0x7C5800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "antibody_level2_menu"
+id = 20729
+offset = 0x7C7800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "antibody_level3_menu"
+id = 20730
+offset = 0x7C9800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyshot_level1_menu"
+id = 20731
+offset = 0x7CB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyshot_level2_menu"
+id = 20732
+offset = 0x7CD800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyshot_level3_menu"
+id = 20733
+offset = 0x7CF800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyball_level1_menu"
+id = 20734
+offset = 0x7D1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyball_level2_menu"
+id = 20735
+offset = 0x7D3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "energyball_level3_menu"
+id = 20736
+offset = 0x7D5800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20800"
+id = 20800
+offset = 0x7D7800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20801"
+id = 20801
+offset = 0x7D7800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20802"
+id = 20802
+offset = 0x7D8000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20803"
+id = 20803
+offset = 0x7D8800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20804"
+id = 20804
+offset = 0x7D9000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20805"
+id = 20805
+offset = 0x7D9800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20806"
+id = 20806
+offset = 0x7DA000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20807"
+id = 20807
+offset = 0x7DA800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20808"
+id = 20808
+offset = 0x7DB000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20809"
+id = 20809
+offset = 0x7DB800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20810"
+id = 20810
+offset = 0x7DC000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20811"
+id = 20811
+offset = 0x7DC800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20812"
+id = 20812
+offset = 0x7DD000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20813"
+id = 20813
+offset = 0x7DD800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20814"
+id = 20814
+offset = 0x7DE000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20815"
+id = 20815
+offset = 0x7DE800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20816"
+id = 20816
+offset = 0x7DF000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20817"
+id = 20817
+offset = 0x7DF800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20818"
+id = 20818
+offset = 0x7E0000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20819"
+id = 20819
+offset = 0x7E0800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20820"
+id = 20820
+offset = 0x7E1000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20821"
+id = 20821
+offset = 0x7E1800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20822"
+id = 20822
+offset = 0x7E2000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20823"
+id = 20823
+offset = 0x7E2800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20824"
+id = 20824
+offset = 0x7E3000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20825"
+id = 20825
+offset = 0x7E3800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20826"
+id = 20826
+offset = 0x7E4000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20827"
+id = 20827
+offset = 0x7E4800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20828"
+id = 20828
+offset = 0x7E5000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20829"
+id = 20829
+offset = 0x7E5800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20830"
+id = 20830
+offset = 0x7E6000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20831"
+id = 20831
+offset = 0x7E6800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20832"
+id = 20832
+offset = 0x7E7000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20833"
+id = 20833
+offset = 0x7E7800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20834"
+id = 20834
+offset = 0x7E8000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20835"
+id = 20835
+offset = 0x7E8800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20836"
+id = 20836
+offset = 0x7E9000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20837"
+id = 20837
+offset = 0x7E9800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20838"
+id = 20838
+offset = 0x7EA000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20839"
+id = 20839
+offset = 0x7EA800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20840"
+id = 20840
+offset = 0x7EB000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20841"
+id = 20841
+offset = 0x7EB800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20842"
+id = 20842
+offset = 0x7EC000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20843"
+id = 20843
+offset = 0x7EC800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20844"
+id = 20844
+offset = 0x7ED000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20845"
+id = 20845
+offset = 0x7ED800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20846"
+id = 20846
+offset = 0x7EE000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20847"
+id = 20847
+offset = 0x7EE800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20848"
+id = 20848
+offset = 0x7EF000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20849"
+id = 20849
+offset = 0x7EF800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20850"
+id = 20850
+offset = 0x7F0000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20851"
+id = 20851
+offset = 0x7F0800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20852"
+id = 20852
+offset = 0x7F1000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20853"
+id = 20853
+offset = 0x7F1800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20854"
+id = 20854
+offset = 0x7F2000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20855"
+id = 20855
+offset = 0x7F2800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20856"
+id = 20856
+offset = 0x7F3000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20857"
+id = 20857
+offset = 0x7F3800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20858"
+id = 20858
+offset = 0x7F4000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20859"
+id = 20859
+offset = 0x7F4800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20860"
+id = 20860
+offset = 0x7F5000
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "file20861"
+id = 20861
+offset = 0x7F5800
+chunks = [
+    { type = "ascii" },
+]
+
+[[file]]
+name = "game_over"
+id = 20900
+offset = 0x7F6000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80115770 },
+]
+
+[[file]]
+name = "aya_death_1"
+id = 20930
+offset = 0x7FA000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "aya_death_2"
+id = 20931
+offset = 0x801000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "aya_death_3"
+id = 20932
+offset = 0x806800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "kyle_death_1"
+id = 20933
+offset = 0x80C000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "kyle_death_2"
+id = 20934
+offset = 0x811800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "kyle_death_3"
+id = 20935
+offset = 0x817800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "ending"
+id = 21000
+offset = 0x81C800
+trailer = true
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80115770 },
+    { type = "bundle", load = 0x8011D1C0 },
+]
+
+[[file]]
+name = "akropolis_map_page_0"
+id = 30100
+offset = 0x139E000
+chunks = [
+    { type = "image", sector_len = 0x600 },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x600 },
+]
+
+[[file]]
+name = "akropolis_map_page_1"
+id = 30101
+offset = 0x139E000
+chunks = [
+    { type = "image", sector_len = 0x600 },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x600 },
+]
+
+[[file]]
+name = "akropolis_map_page_2"
+id = 30102
+offset = 0x13AD800
+chunks = [
+    { type = "image", sector_len = 0x600 },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x600 },
+]
+
+[[file]]
+name = "akropolis_map_page_3"
+id = 30103
+offset = 0x13B7800
+chunks = [
+    { type = "image", sector_len = 0x600 },
+    { type = "clut" },
+]
+
+[[file]]
+name = "file30200"
+id = 30200
+offset = 0x13C2000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30201"
+id = 30201
+offset = 0x13C2000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s2_02"
+id = 30202
+offset = 0x13CD000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s2_03"
+id = 30203
+offset = 0x13DD800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30300"
+id = 30300
+offset = 0x13E8000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30301"
+id = 30301
+offset = 0x13E8000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s3_02"
+id = 30302
+offset = 0x13F3000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s3_03"
+id = 30303
+offset = 0x1403800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30400"
+id = 30400
+offset = 0x140E000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30401"
+id = 30401
+offset = 0x140E000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s4_02"
+id = 30402
+offset = 0x1418800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s4_03"
+id = 30403
+offset = 0x1425000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s4_04"
+id = 30404
+offset = 0x1435800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s4_05"
+id = 30405
+offset = 0x1444000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30406"
+id = 30406
+offset = 0x1450000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30407"
+id = 30407
+offset = 0x145B800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30500"
+id = 30500
+offset = 0x1466800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30501"
+id = 30501
+offset = 0x1466800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s5_02"
+id = 30502
+offset = 0x1478000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "mappic_s5_03"
+id = 30503
+offset = 0x1483000
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file30504"
+id = 30504
+offset = 0x1491800
+chunks = [
+    { type = "clut" },
+    { type = "image", sector_len = 0x500 },
+    { type = "room_pkg", load = 0x8012EF30, sector_len = 0x500 },
+]
+
+[[file]]
+name = "file40105"
+id = 40105
+offset = 0x14A3000
+raw = true
+
+[[file]]
+name = "file40106"
+id = 40106
+offset = 0x14DB000
+raw = true
+
+[[file]]
+name = "file40109"
+id = 40109
+offset = 0x1516000
+raw = true
+
+[[file]]
+name = "file40111"
+id = 40111
+offset = 0x154F000
+raw = true
+
+[[file]]
+name = "file40112"
+id = 40112
+offset = 0x1551000
+raw = true
+
+[[file]]
+name = "file40117"
+id = 40117
+offset = 0x1561800
+raw = true
+
+[[file]]
+name = "file40118"
+id = 40118
+offset = 0x159C800
+raw = true
+
+[[file]]
+name = "file40120"
+id = 40120
+offset = 0x15CD000
+raw = true
+
+[[file]]
+name = "file40121"
+id = 40121
+offset = 0x1608800
+raw = true
+
+[[file]]
+name = "file40122"
+id = 40122
+offset = 0x161D000
+raw = true
+
+[[file]]
+name = "file40123"
+id = 40123
+offset = 0x1649000
+raw = true
+
+[[file]]
+name = "file40129"
+id = 40129
+offset = 0x1686000
+raw = true
+
+[[file]]
+name = "file40130"
+id = 40130
+offset = 0x16C1800
+raw = true
+
+[[file]]
+name = "file40131"
+id = 40131
+offset = 0x16D6000
+raw = true
+
+[[file]]
+name = "file40132"
+id = 40132
+offset = 0x1708800
+raw = true
+
+[[file]]
+name = "file40133"
+id = 40133
+offset = 0x1742800
+raw = true
+
+[[file]]
+name = "file40134"
+id = 40134
+offset = 0x177A800
+raw = true
+
+[[file]]
+name = "file40135"
+id = 40135
+offset = 0x17B3800
+raw = true
+
+[[file]]
+name = "file40136"
+id = 40136
+offset = 0x17EC800
+raw = true
+
+[[file]]
+name = "file40137"
+id = 40137
+offset = 0x1825000
+raw = true
+
+[[file]]
+name = "file40138"
+id = 40138
+offset = 0x185F000
+raw = true
+
+[[file]]
+name = "file40141"
+id = 40141
+offset = 0x189A800
+raw = true
+
+[[file]]
+name = "file40142"
+id = 40142
+offset = 0x18D6000
+raw = true
+
+[[file]]
+name = "file40143"
+id = 40143
+offset = 0x190C000
+raw = true
+
+[[file]]
+name = "file40144"
+id = 40144
+offset = 0x1945000
+raw = true
+
+[[file]]
+name = "file40145"
+id = 40145
+offset = 0x1967000
+raw = true
+
+[[file]]
+name = "file40146"
+id = 40146
+offset = 0x19A5000
+raw = true
+
+[[file]]
+name = "file40147"
+id = 40147
+offset = 0x19DB800
+raw = true
+
+[[file]]
+name = "file40148"
+id = 40148
+offset = 0x1A14800
+raw = true
+
+[[file]]
+name = "file40149"
+id = 40149
+offset = 0x1A45000
+raw = true
+
+[[file]]
+name = "file40150"
+id = 40150
+offset = 0x1A81000
+raw = true
+
+[[file]]
+name = "file40155"
+id = 40155
+offset = 0x1A9D000
+raw = true
+
+[[file]]
+name = "file40156"
+id = 40156
+offset = 0x1AD3800
+raw = true
+
+[[file]]
+name = "file40157"
+id = 40157
+offset = 0x1B10000
+raw = true
+
+[[file]]
+name = "file40158"
+id = 40158
+offset = 0x1B48800
+raw = true
+
+[[file]]
+name = "file40159"
+id = 40159
+offset = 0x1B7B000
+raw = true
+
+[[file]]
+name = "file40160"
+id = 40160
+offset = 0x1BAE000
+raw = true
+
+[[file]]
+name = "file40161"
+id = 40161
+offset = 0x1BEB000
+raw = true
+
+[[file]]
+name = "file40162"
+id = 40162
+offset = 0x1C26000
+raw = true
+
+[[file]]
+name = "file40163"
+id = 40163
+offset = 0x1C62000
+raw = true
+
+[[file]]
+name = "file40165"
+id = 40165
+offset = 0x1C84000
+raw = true
+
+[[file]]
+name = "file40166"
+id = 40166
+offset = 0x1CBF000
+raw = true
+
+[[file]]
+name = "file40167"
+id = 40167
+offset = 0x1CFB000
+raw = true
+
+[[file]]
+name = "file40168"
+id = 40168
+offset = 0x1D38800
+raw = true
+
+[[file]]
+name = "file40169"
+id = 40169
+offset = 0x1D76800
+raw = true
+
+[[file]]
+name = "file40170"
+id = 40170
+offset = 0x1DA1000
+raw = true
+
+[[file]]
+name = "file40171"
+id = 40171
+offset = 0x1DDD800
+raw = true
+
+[[file]]
+name = "file40172"
+id = 40172
+offset = 0x1E18800
+raw = true
+
+[[file]]
+name = "file40173"
+id = 40173
+offset = 0x1E53000
+raw = true
+
+[[file]]
+name = "file40174"
+id = 40174
+offset = 0x1E8E800
+raw = true
+
+[[file]]
+name = "file40175"
+id = 40175
+offset = 0x1EC3000
+raw = true
+
+[[file]]
+name = "file40176"
+id = 40176
+offset = 0x1EFF000
+raw = true
+
+[[file]]
+name = "file40177"
+id = 40177
+offset = 0x1F39800
+raw = true
+
+[[file]]
+name = "file40178"
+id = 40178
+offset = 0x1F75800
+raw = true
+
+[[file]]
+name = "file40179"
+id = 40179
+offset = 0x1FB2000
+raw = true
+
+[[file]]
+name = "file40180"
+id = 40180
+offset = 0x1FEB800
+raw = true
+
+[[file]]
+name = "file40181"
+id = 40181
+offset = 0x2003800
+raw = true
+
+[[file]]
+name = "file40182"
+id = 40182
+offset = 0x203F800
+raw = true
+
+[[file]]
+name = "file40183"
+id = 40183
+offset = 0x207D000
+raw = true
+
+[[file]]
+name = "file40185"
+id = 40185
+offset = 0x20B9000
+raw = true
+
+[[file]]
+name = "file40186"
+id = 40186
+offset = 0x20EC800
+raw = true
+
+[[file]]
+name = "file40189"
+id = 40189
+offset = 0x2125000
+raw = true
+
+[[file]]
+name = "file40190"
+id = 40190
+offset = 0x2162000
+raw = true
+
+[[file]]
+name = "file40193"
+id = 40193
+offset = 0x219F000
+raw = true
+
+[[file]]
+name = "file40194"
+id = 40194
+offset = 0x21DC000
+raw = true
+
+[[file]]
+name = "file40195"
+id = 40195
+offset = 0x2218000
+raw = true
+
+[[file]]
+name = "file40196"
+id = 40196
+offset = 0x2255000
+raw = true
+
+[[file]]
+name = "file40197"
+id = 40197
+offset = 0x2291000
+raw = true
+
+[[file]]
+name = "file40198"
+id = 40198
+offset = 0x22AE800
+raw = true
+
+[[file]]
+name = "pyrokinesis_level_0"
+id = 50100
+offset = 0x22EA000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "pyrokinesis_level_1"
+id = 50101
+offset = 0x22EA000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "pyrokinesis_level_2"
+id = 50102
+offset = 0x22F1800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "pyrokinesis_level_3"
+id = 50103
+offset = 0x22F9000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "combustion_level_1"
+id = 50104
+offset = 0x2300800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "combustion_level_2"
+id = 50105
+offset = 0x2307000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "combustion_level_3"
+id = 50106
+offset = 0x230D800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "inferno_level_1"
+id = 50107
+offset = 0x2314000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "inferno_level_2"
+id = 50108
+offset = 0x231A800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "inferno_level_3"
+id = 50109
+offset = 0x2321000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "necrosis_level_1"
+id = 50110
+offset = 0x2327800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "necrosis_level_2"
+id = 50111
+offset = 0x232E800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "necrosis_level_3"
+id = 50112
+offset = 0x2335800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "plasma_level_1"
+id = 50113
+offset = 0x233C800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "plasma_level_2"
+id = 50114
+offset = 0x2342800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "plasma_level_3"
+id = 50115
+offset = 0x2349000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "apobiosis_level_1"
+id = 50116
+offset = 0x234F800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "apobiosis_level_2"
+id = 50117
+offset = 0x2356800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "apobiosis_level_3"
+id = 50118
+offset = 0x235D800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "metabolism_level_1"
+id = 50119
+offset = 0x2364800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "metabolism_level_2"
+id = 50120
+offset = 0x236A800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "metabolism_level_3"
+id = 50121
+offset = 0x2371000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "healing_level_1"
+id = 50122
+offset = 0x2377000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "healing_level_2"
+id = 50123
+offset = 0x237D800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "healing_level_3"
+id = 50124
+offset = 0x2383800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "lifedrain_level_1"
+id = 50125
+offset = 0x2389800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "lifedrain_level_2"
+id = 50126
+offset = 0x2390800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "lifedrain_level_3"
+id = 50127
+offset = 0x2397800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "antibody_level_1"
+id = 50128
+offset = 0x239E800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "antibody_level_2"
+id = 50129
+offset = 0x23A5800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "antibody_level_3"
+id = 50130
+offset = 0x23AC800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "energyshot_level_1"
+id = 50131
+offset = 0x23B3800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "energyshot_level_2"
+id = 50132
+offset = 0x23BA000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "energyshot_level_3"
+id = 50133
+offset = 0x23C0800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "energyball_level_1"
+id = 50134
+offset = 0x23C7000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "energyball_level_2"
+id = 50135
+offset = 0x23CE800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "energyball_level_3"
+id = 50136
+offset = 0x23D6000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "flare_effect"
+id = 50146
+offset = 0x23DD800
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "pepper_spray_effect"
+id = 50149
+offset = 0x23E3000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "combat_light_effect"
+id = 50152
+offset = 0x23E9000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x8012EF30 },
+]
+
+[[file]]
+name = "brain_stinger_package_1"
+id = 100300
+offset = 0x23EF800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "bog_diver_package_1"
+id = 100400
+offset = 0x241A800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "gray_stalker_package_1"
+id = 100500
+offset = 0x243F800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "rat_and_moth_package_1"
+id = 100700
+offset = 0x2451800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "odd_stranger_package_b_1"
+id = 101000
+offset = 0x2468000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "brute_and_mossback_package_1"
+id = 101100
+offset = 0x2481000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "brute_and_mossback_sounds_1"
+id = 101101
+offset = 0x249C800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "brute_and_mossback_sounds_2"
+id = 101102
+offset = 0x24A8000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "bone_suckler_package_1"
+id = 101200
+offset = 0x24B9800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "horned_stranger_package_1"
+id = 101300
+offset = 0x24CF800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "mind_suckler_package_1"
+id = 101500
+offset = 0x24E7800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "scavenger_package_1"
+id = 101600
+offset = 0x24FA800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "grinning_stranger_package_1"
+id = 101900
+offset = 0x251A000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "pawn_golem_beam_sword_package_1"
+id = 102000
+offset = 0x2542000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "pawn_golem_beam_sword_sounds_1"
+id = 102001
+offset = 0x2563800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "pawn_golem_beam_sword_sounds_2"
+id = 102002
+offset = 0x256D800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "pawn_golem_beam_sword_sounds_3"
+id = 102003
+offset = 0x2575000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "pawn_golem_beam_sword_sounds_4"
+id = 102004
+offset = 0x257E000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "watcher_package_1"
+id = 102100
+offset = 0x2587800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "rook_golem_beam_sword_package_1"
+id = 102300
+offset = 0x259A000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "rook_golem_beam_sword_sounds_1"
+id = 102301
+offset = 0x25BC000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "rook_golem_beam_sword_sounds_2"
+id = 102302
+offset = 0x25C7800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "rook_golem_beam_sword_sounds_3"
+id = 102303
+offset = 0x25D1000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "rook_golem_beam_sword_sounds_4"
+id = 102304
+offset = 0x25DC800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "green_and_red_amoeba_package_1"
+id = 102400
+offset = 0x25E8000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "scorpion_package_1"
+id = 102500
+offset = 0x25F9800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "maggot_package_1"
+id = 102600
+offset = 0x2610000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "bat_package_1"
+id = 103700
+offset = 0x2625000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "black_beetle_package_1"
+id = 103800
+offset = 0x2636800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "blood_suckler_package_1"
+id = 104000
+offset = 0x2647800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file104100"
+id = 104100
+offset = 0x265E800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "mad_chaser_package_1"
+id = 104400
+offset = 0x2669000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "mad_chaser_sounds_1"
+id = 104401
+offset = 0x267E000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "mad_chaser_sounds_2"
+id = 104402
+offset = 0x2689800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "mad_chaser_sounds_3"
+id = 104403
+offset = 0x2690800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "file104500"
+id = 104500
+offset = 0x269A000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "akropolis_forked_road_sucklerceph_and_skull_stalker_1"
+id = 104600
+offset = 0x26A0800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "brute_and_mossback_recolor_package_1"
+id = 104900
+offset = 0x26B5000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "puppet_stinger_package"
+id = 105100
+offset = 0x26DC800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "neo_ark_power_plant_2_beta_generator"
+id = 105300
+offset = 0x2708800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "neo_ark_power_plant_1_proto_generator"
+id = 105400
+offset = 0x2729000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "caterpillar_package_1"
+id = 105500
+offset = 0x2748000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "pawn_golem_grenade_launcher_package_1"
+id = 105600
+offset = 0x275B000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "pawn_golem_grenade_launcher_sounds_1"
+id = 105601
+offset = 0x277C800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "pawn_golem_grenade_launcher_sounds_2"
+id = 105602
+offset = 0x2788000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "pawn_golem_grenade_launcher_sounds_3"
+id = 105603
+offset = 0x2792000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "pawn_golem_grenade_launcher_sounds_4"
+id = 105604
+offset = 0x279D000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "rook_golem_grenade_launcher_package_1"
+id = 105700
+offset = 0x27A8800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "rook_golem_grenade_launcher_sounds_1"
+id = 105701
+offset = 0x27CB800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "rook_golem_grenade_launcher_sounds_2"
+id = 105702
+offset = 0x27D7000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "rook_golem_grenade_launcher_sounds_3"
+id = 105703
+offset = 0x27E1000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "rook_golem_grenade_launcher_sounds_4"
+id = 105704
+offset = 0x27EC800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "sucklerceph_and_slouch_package_1"
+id = 107000
+offset = 0x27F8000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "skull_stalker_and_creeping_stranger_package_1"
+id = 107200
+offset = 0x2817800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "desert_chaser_garage_sounds"
+id = 107500
+offset = 0x282F800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "mist_shooting_gallery_targets"
+id = 107600
+offset = 0x2845800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file109300"
+id = 109300
+offset = 0x2859000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file109400"
+id = 109400
+offset = 0x2863000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "akropolis_east_elevator_hall_swat_member"
+id = 110300
+offset = 0x286D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "akropolis_cafeteria_boss_stranger"
+id = 110600
+offset = 0x287D000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "akropolis_sanctuary_no_9"
+id = 110700
+offset = 0x28A7000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "akropolis_roof_garden_swat_member"
+id = 110800
+offset = 0x28BE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "akropolis_square_grinning_stranger"
+id = 111800
+offset = 0x28CC800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "mist_r18_rupert"
+id = 113000
+offset = 0x28EB000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "mist_parking_pierce"
+id = 113100
+offset = 0x28FB800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_garage_gary"
+id = 120300
+offset = 0x2913000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_water_tank_kyle"
+id = 120400
+offset = 0x2928800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_motel_room_6_kyle"
+id = 120500
+offset = 0x293D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_r08_eve"
+id = 121300
+offset = 0x294E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_main_street_desert_chaser_1"
+id = 123000
+offset = 0x2961000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_motel_room_1_bone_suckler"
+id = 123200
+offset = 0x2977000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_breezeway_desert_chaser_1"
+id = 123400
+offset = 0x2980800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file135000"
+id = 135000
+offset = 0x2996800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_night_garage_gary_and_flint"
+id = 135400
+offset = 0x299D000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_night_saloon_g_r_kyle"
+id = 135600
+offset = 0x29B1000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_night_main_street_gary"
+id = 136100
+offset = 0x29C3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_night_garage_flint_scene"
+id = 136300
+offset = 0x29D8000
+chunks = [
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file140400"
+id = 140400
+offset = 0x29E1800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b1_pod_access_tunnel_eve"
+id = 141000
+offset = 0x29E6800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b3_incinerator_control_room_arrival_scene"
+id = 142600
+offset = 0x29FA000
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b2_elevator_elevator_scene"
+id = 142900
+offset = 0x29FD800
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b2_laboratory_console"
+id = 143000
+offset = 0x2A02000
+chunks = [
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_r47_companion_entry_scene"
+id = 143400
+offset = 0x2A05000
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "president_office_scenes"
+id = 143900
+offset = 0x2A07800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_night_water_hole_shelter_departure"
+id = 146000
+offset = 0x2A22800
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_night_water_tank_pierce"
+id = 146300
+offset = 0x2A25000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b1_control_room_no_9"
+id = 150400
+offset = 0x2A3A000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "neo_ark_garden_eve"
+id = 151000
+offset = 0x2A52800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b1_sterilization_room_soldier"
+id = 160600
+offset = 0x2A65800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b1_golem_freezer_1_pierce"
+id = 160700
+offset = 0x2A78000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b1_pod_service_gantry_kyle"
+id = 160900
+offset = 0x2A8C800
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "soldier_b_shop"
+id = 161500
+offset = 0x2A96800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "brain_stinger_package_2"
+id = 200300
+offset = 0x2AAB000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "bog_diver_package_2"
+id = 200400
+offset = 0x2AD6000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "rat_and_moth_package_2"
+id = 200700
+offset = 0x2AFB000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "odd_stranger_package_b_2"
+id = 201000
+offset = 0x2B11800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "brute_and_mossback_package_2"
+id = 201100
+offset = 0x2B2A800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "bone_suckler_package_2"
+id = 201200
+offset = 0x2B46000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "horned_stranger_package_2"
+id = 201300
+offset = 0x2B5C000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "mind_suckler_package_2"
+id = 201500
+offset = 0x2B74000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "scavenger_package_2"
+id = 201600
+offset = 0x2B87000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "odd_stranger_package_2"
+id = 201800
+offset = 0x2BA6800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "grinning_stranger_package_2"
+id = 201900
+offset = 0x2BBF000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "pawn_golem_beam_sword_package_2"
+id = 202000
+offset = 0x2BD6800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "watcher_package_2"
+id = 202100
+offset = 0x2BF8000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "rook_golem_beam_sword_package_2"
+id = 202300
+offset = 0x2C0A800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "green_and_red_amoeba_package_2"
+id = 202400
+offset = 0x2C2C800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "scorpion_package_2"
+id = 202500
+offset = 0x2C3E000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "maggot_package_2"
+id = 202600
+offset = 0x2C54800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "akropolis_cafeteria_anmc_woman"
+id = 202900
+offset = 0x2C69800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "bat_package_2"
+id = 203700
+offset = 0x2C7C800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "black_beetle_package_2"
+id = 203800
+offset = 0x2C8E000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "blood_suckler_package_2"
+id = 204000
+offset = 0x2C9F000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "file204100"
+id = 204100
+offset = 0x2CB6000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "mad_chaser_package_2"
+id = 204400
+offset = 0x2CC0800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "akropolis_forked_road_sucklerceph_and_skull_stalker_2"
+id = 204600
+offset = 0x2CCA000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "brute_and_mossback_recolor_package_2"
+id = 204900
+offset = 0x2CDE800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "eve_helmet_package"
+id = 205200
+offset = 0x2D06000
+chunks = [
+    { type = "music" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "caterpillar_package_2"
+id = 205500
+offset = 0x2D1C000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "pawn_golem_grenade_launcher_package_2"
+id = 205600
+offset = 0x2D2F000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "rook_golem_grenade_launcher_package_2"
+id = 205700
+offset = 0x2D50800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "sea_diver_package"
+id = 206100
+offset = 0x2D73800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "sucklerceph_and_slouch_package_2"
+id = 207000
+offset = 0x2D95000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "skull_stalker_and_creeping_stranger_package_2"
+id = 207200
+offset = 0x2DB4800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "akropolis_cafeteria_stranger"
+id = 210600
+offset = 0x2DD3800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "akropolis_sanctuary_rupert"
+id = 210700
+offset = 0x2DEE000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "mist_r18_eric"
+id = 213000
+offset = 0x2E03800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "mist_parking_jodie"
+id = 213100
+offset = 0x2E17800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "mist_shooting_gallery_pierce"
+id = 215100
+offset = 0x2E24800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "dryfield_general_store_blood_suckler"
+id = 223600
+offset = 0x2E3C000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "shelter_1f_heliport_rupert"
+id = 260400
+offset = 0x2E51800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "shelter_1f_heliport_jodie"
+id = 260500
+offset = 0x2E65800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80149E20 },
+]
+
+[[file]]
+name = "brain_stinger_package_3"
+id = 300300
+offset = 0x2E7E800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "bog_diver_package_3"
+id = 300400
+offset = 0x2E99000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "rat_and_moth_package_3"
+id = 300700
+offset = 0x2EAF000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "odd_stranger_package_b_3"
+id = 301000
+offset = 0x2EC5800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "brute_and_mossback_package_3"
+id = 301100
+offset = 0x2EDE800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "bone_suckler_package_3"
+id = 301200
+offset = 0x2EFA000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "horned_stranger_package_3"
+id = 301300
+offset = 0x2F10000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "mind_suckler_package_3"
+id = 301500
+offset = 0x2F28000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "scavenger_package_3"
+id = 301600
+offset = 0x2F3B000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "odd_stranger_package_3"
+id = 301800
+offset = 0x2F5A800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "grinning_stranger_package_3"
+id = 301900
+offset = 0x2F73000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "pawn_golem_beam_sword_package_3"
+id = 302000
+offset = 0x2F9B000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "watcher_package_3"
+id = 302100
+offset = 0x2FBC800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "rook_golem_beam_sword_package_3"
+id = 302300
+offset = 0x2FCC800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "green_and_red_amoeba_package_3"
+id = 302400
+offset = 0x2FDE800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "scorpion_package_3"
+id = 302500
+offset = 0x2FED000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "maggot_package_3"
+id = 302600
+offset = 0x3003800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b2_pod_bottom_ending_scene"
+id = 303600
+offset = 0x3018800
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "bat_package_3"
+id = 303700
+offset = 0x3022800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "black_beetle_package_3"
+id = 303800
+offset = 0x302E800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "blood_suckler_package_3"
+id = 304000
+offset = 0x303B800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "file304100"
+id = 304100
+offset = 0x3052800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "mad_chaser_package_3"
+id = 304400
+offset = 0x305D000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "akropolis_forked_road_sucklerceph_and_skull_stalker_3"
+id = 304600
+offset = 0x3066800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "file304900"
+id = 304900
+offset = 0x3076800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "caterpillar_package_3"
+id = 305500
+offset = 0x308E800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "pawn_golem_grenade_launcher_package_3"
+id = 305600
+offset = 0x309B800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "rook_golem_grenade_launcher_package_3"
+id = 305700
+offset = 0x30AC800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "sucklerceph_and_slouch_package_3"
+id = 307000
+offset = 0x30BE800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "skull_stalker_and_creeping_stranger_package_3"
+id = 307200
+offset = 0x30D4800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "akropolis_plaza_police_officers"
+id = 310100
+offset = 0x30EC800
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "police_rookie_texture"
+id = 310101
+offset = 0x30FF000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "police_sergeant_texture"
+id = 310102
+offset = 0x3107000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "akropolis_cafeteria_rupert"
+id = 310600
+offset = 0x310E800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "lesser_stranger_package"
+id = 311500
+offset = 0x312B000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "akropolis_security_room_security_monitors"
+id = 311900
+offset = 0x314A000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "akropolis_patio_swat_member"
+id = 312200
+offset = 0x315E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "akropolis_patio_leaping_strangers"
+id = 317000
+offset = 0x316F800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "dryfield_main_street_desert_chaser_3"
+id = 323000
+offset = 0x3184000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "dryfield_toilet_anmc_woman"
+id = 323300
+offset = 0x319B000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "dryfield_breezeway_desert_chaser_3"
+id = 323400
+offset = 0x31B3000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "dryfield_night_motel_balcony_gary_and_flint"
+id = 335800
+offset = 0x31C8000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b2_north_maintenance_walkway_stinger_scene"
+id = 341300
+offset = 0x31DF000
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b3_dumping_hole_mad_chaser"
+id = 341700
+offset = 0x31E1800
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b3_garbage_incinerator_glutton_door_scene"
+id = 341900
+offset = 0x31F0000
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b3_garbage_incinerator_glutton_trap_scene"
+id = 342000
+offset = 0x31F1800
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b3_dumping_hole_blaze_scene"
+id = 342100
+offset = 0x31F3800
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b3_garbage_incinerator_summoned_mad_chaser"
+id = 342200
+offset = 0x31F6800
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b3_garbage_incinerator_mad_chaser"
+id = 342400
+offset = 0x3202800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b6_corridor_eve"
+id = 350500
+offset = 0x3218000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b6_training_room_eve_and_kyle"
+id = 350700
+offset = 0x3228000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "neo_ark_forest_zone_horned_stranger"
+id = 356100
+offset = 0x3240000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "shelter_b2_pod_bottom_tentacle_scene"
+id = 361100
+offset = 0x3259000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "desert_chaser_package"
+id = 400100
+offset = 0x326A800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "gray_stalker_package_4"
+id = 400500
+offset = 0x3293800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "zebra_stalker_package"
+id = 400600
+offset = 0x32BE800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "zebra_stalker_sounds_1"
+id = 400601
+offset = 0x32DE800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "zebra_stalker_sounds_2"
+id = 400602
+offset = 0x32E9000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "odd_stranger_package_b_4"
+id = 401000
+offset = 0x32F4800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "horned_stranger_package_4"
+id = 401300
+offset = 0x3326800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "odd_stranger_package_4"
+id = 401800
+offset = 0x335A800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "knight_golem_package"
+id = 402200
+offset = 0x338C800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "knight_golem_sounds_1"
+id = 402201
+offset = 0x33AD800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "knight_golem_sounds_2"
+id = 402202
+offset = 0x33B9000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "knight_golem_sounds_3"
+id = 402203
+offset = 0x33C3000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "knight_golem_sounds_4"
+id = 402204
+offset = 0x33CE800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "mine_cavern_blizzard_chasers"
+id = 403000
+offset = 0x33DA000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "burner_package"
+id = 403100
+offset = 0x3420800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b3_dumping_hole_gluttons"
+id = 403200
+offset = 0x346C000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b2_pod_bottom_eves"
+id = 403600
+offset = 0x34B7000
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "bishop_golem_package"
+id = 403900
+offset = 0x34DA000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "bishop_golem_sounds_1"
+id = 403901
+offset = 0x34FA800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "bishop_golem_sounds_2"
+id = 403902
+offset = 0x3506000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "bishop_golem_sounds_3"
+id = 403903
+offset = 0x3510000
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "bishop_golem_sounds_4"
+id = 403904
+offset = 0x351B800
+chunks = [
+    { type = "music" },
+]
+
+[[file]]
+name = "ivory_stalker_package"
+id = 405800
+offset = 0x3527000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "desert_chaser_garage_package"
+id = 407500
+offset = 0x354F800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file420700"
+id = 420700
+offset = 0x3578800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "dryfield_water_tower_desert_chaser"
+id = 421600
+offset = 0x358D000
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_r47_pierce"
+id = 443500
+offset = 0x35B8800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b3_garbage_incinerator_gluttons"
+id = 444000
+offset = 0x35DD800
+chunks = [
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "neo_ark_observatory_kyle"
+id = 450200
+offset = 0x362A800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b6_nursery_kyle"
+id = 450800
+offset = 0x3654000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b6_growth_room_eve_distress"
+id = 450900
+offset = 0x3677000
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "neo_ark_submarine_tunnel_eve_and_no_9"
+id = 451100
+offset = 0x367A800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_1f_tent_soldiers"
+id = 460200
+offset = 0x3699000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "neo_ark_r31_kyle_and_eve"
+id = 461800
+offset = 0x36BC000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "brahman_package"
+id = 503500
+offset = 0x36D4800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "no_9_golem_package_akropolis"
+id = 510900
+offset = 0x373F000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "akropolis_helicopter_landing_pad_helicopter_departure"
+id = 511000
+offset = 0x378C000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "no_9_golem_package_dryfield"
+id = 521100
+offset = 0x37B1000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file521200"
+id = 521200
+offset = 0x3800800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "dryfield_night_r08_eve_and_golems"
+id = 535700
+offset = 0x3807800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file535800"
+id = 535800
+offset = 0x3821000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "file548100"
+id = 548100
+offset = 0x3831800
+chunks = [
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "shelter_b1_pod_service_gantry_no_9"
+id = 560800
+offset = 0x3834800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file604100"
+id = 604100
+offset = 0x3887000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "file604400"
+id = 604400
+offset = 0x3891000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "rupert_texture"
+id = 605200
+offset = 0x389A000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "aya_texture_605300"
+id = 605300
+offset = 0x38A4000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "gary_texture"
+id = 605600
+offset = 0x38AE800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "swat_member_1_texture"
+id = 605700
+offset = 0x38B8000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "swat_member_2_texture_2"
+id = 606000
+offset = 0x38C3000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "president_texture"
+id = 606100
+offset = 0x38CB000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "staff_officer_texture_2"
+id = 606200
+offset = 0x38D4800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "flint_texture"
+id = 606400
+offset = 0x38DE800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "eve_masked_texture"
+id = 608100
+offset = 0x38E3000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "aya_casual_texture"
+id = 609100
+offset = 0x38ED800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "rupert_bloodied_texture"
+id = 609400
+offset = 0x38F7800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "swat_member_2_texture"
+id = 611900
+offset = 0x3901800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "flint_texture_night_garage"
+id = 635400
+offset = 0x3909800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "file640400"
+id = 640400
+offset = 0x390E000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80131E20 },
+]
+
+[[file]]
+name = "file641700"
+id = 641700
+offset = 0x3913000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+]
+
+[[file]]
+name = "file642200"
+id = 642200
+offset = 0x3919800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "eve_masked_texture_training_room"
+id = 650700
+offset = 0x3922800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "no_9_texture_submarine_tunnel"
+id = 651100
+offset = 0x392D000
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "staff_officer_texture"
+id = 660100
+offset = 0x393D800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "soldier_b_texture"
+id = 660200
+offset = 0x3947800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "soldier_a_texture"
+id = 660300
+offset = 0x3951800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "eve_masked_texture_2"
+id = 660800
+offset = 0x395B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "eve_masked_texture_gantry"
+id = 660801
+offset = 0x395B800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "kyle_gas_mask_texture"
+id = 660802
+offset = 0x3966000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "file660803"
+id = 660803
+offset = 0x3971800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+]
+
+[[file]]
+name = "kyle_p229_texture"
+id = 660804
+offset = 0x3978000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "eve_texture_pod_bottom"
+id = 661100
+offset = 0x3979800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "eve_texture_r31"
+id = 661800
+offset = 0x3984000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+]
+
+[[file]]
+name = "kyle_companion"
+id = 800100
+offset = 0x398E800
+chunks = [
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "kyle_companion_1"
+id = 800101
+offset = 0x3993000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80167A70 },
+]
+
+[[file]]
+name = "kyle_companion_2"
+id = 800102
+offset = 0x39AF800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80167A70 },
+]
+
+[[file]]
+name = "kyle_companion_3"
+id = 800103
+offset = 0x39D0000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80167A70 },
+]
+
+[[file]]
+name = "kyle_companion_4"
+id = 800104
+offset = 0x39EB800
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80167A70 },
+]
+
+[[file]]
+name = "kyle_companion_5"
+id = 800105
+offset = 0x3A09800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80167A70 },
+]
+
+[[file]]
+name = "flint_companion"
+id = 800200
+offset = 0x3A21000
+chunks = [
+    { type = "music" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "eve_companion"
+id = 800300
+offset = 0x3A37000
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x80161E20 },
+]
+
+[[file]]
+name = "akropolis_square"
+id = 801000
+offset = 0x3A4B800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "bundle", load = 0x80161E20 },
+]
+
+[[file]]
+name = "dryfield_main_street"
+id = 801100
+offset = 0x3A50800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "bundle", load = 0x80161E20 },
+]
+
+[[file]]
+name = "dryfield_underpass"
+id = 801200
+offset = 0x3A55800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "bundle", load = 0x80161E20 },
+]
+
+[[file]]
+name = "file900000"
+id = 900000
+offset = 0x3A5A800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80179950 },
+]
+
+[[file]]
+name = "file900001"
+id = 900001
+offset = 0x3A5A800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80179950 },
+]
+
+[[file]]
+name = "map_dryfield"
+id = 900002
+offset = 0x3A6B800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80179950 },
+]
+
+[[file]]
+name = "map_dryfield_full"
+id = 900003
+offset = 0x3A7C800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80179950 },
+]
+
+[[file]]
+name = "map_shelter"
+id = 900004
+offset = 0x3A91000
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80179950 },
+]
+
+[[file]]
+name = "map_neo_ark"
+id = 900005
+offset = 0x3A9E800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x80179950 },
+]

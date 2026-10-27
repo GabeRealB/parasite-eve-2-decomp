@@ -1,0 +1,3732 @@
+# The disc description (tools/declarations/disc.py): structure only, no game data.
+# STAGE2.CDF: the folders in order, each with its files.
+
+
+[[folder]]
+name = "dryfield_gas_station"
+id = 101
+size = 0x1B4800
+content_end = 0xA1800
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x8FD4000, offset_folder_space = "absolute", offset_inter = 0x8F32800, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0xFF, unknown6 = 0x0, unknown7 = 0x1, movie_number = 32, unknown8 = 0x0 },
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xA1800, offset_folder_space = "stream", offset_folder_stream_rel = 0, offset_inter = 0x0, unknown2 = 0x1, stream_id = 12, stream_sub_id = 0, picture_width = 48, picture_height = 32, unknown3 = 0x6C, unknown4 = 0x4A, unknown5 = 0x2D, unknown6 = 0x10000, unknown7 = 0x0, movie_number = 0, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80184BF0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x37000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x41800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x4B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x53800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x5C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x63800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x6C000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x76800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x7C800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x84800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x8C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0x93800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0x99000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_main_street"
+id = 201
+size = 0xB7800
+content_end = 0xB7800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80185660 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x27800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x4A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x55000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x61000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x81000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x89000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x90000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x9A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xA2800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xA9800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_general_store"
+id = 301
+size = 0x107000
+content_end = 0x107000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80185720 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x27800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x4B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x6A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x76000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x88800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x9B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0xAC000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0xBF800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xD1800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xE1000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xF0800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xFA800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0x101000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_r04"
+id = 401
+size = 0xE000
+content_end = 0xE000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017E2D0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x6000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0xA000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_back_street"
+id = 501
+size = 0x49800
+content_end = 0x49800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80181060 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x22800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x32800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x3F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_souvenir_shop"
+id = 601
+size = 0x3C000
+content_end = 0x3C000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017F660 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x13800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x1B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_warehouse"
+id = 701
+size = 0x65800
+content_end = 0x65800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801821D0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1D800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x25800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x31000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x39800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x41800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x49800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x52000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x5A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x5F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_r08"
+id = 801
+size = 0x408000
+content_end = 0x59000
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x325, offset_stage = 0x59000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x0, stage_number = 2, stream_id = 13, stream_sub_id = 11, unknown3 = 0x0, unknown4 = 0x20, unknown5 = 0x20000, unknown6 = 0xA8C0800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80180C30 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x10800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x13000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x25800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x2F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x3A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x45800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_dilapidated_house"
+id = 901
+size = 0x723800
+content_end = 0xDF000
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x122, offset_stage = 0xDF000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x9800, stage_number = 2, stream_id = 11, stream_sub_id = 11, unknown3 = 0x792, unknown4 = 0x20, unknown5 = 0x1, unknown6 = 0x8000800, unknown7 = 0x0 },
+    { stream_type = "audio", unknown1 = 0x123, offset_stage = 0x4BD800, offset_stage_space = "stream", offset_stage_stream_rel = 4057088, unknown2 = 0x5800, stage_number = 2, stream_id = 12, stream_sub_id = 11, unknown3 = 0x4A1, unknown4 = 0x20, unknown5 = 0x1, unknown6 = 0x8000800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8018A2E0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x24000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x33000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x42800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x4F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x59000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x61000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x6A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x74000
+chunks = [
+    { type = "room_background" },
+    { type = "image" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x7F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x84000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x8E800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0x95800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xA0000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xAB000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xB0800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xB5800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xBB000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xC2000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0xCA800
+chunks = [
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file21"
+id = 21
+offset = 0xD9000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_room_1"
+id = 1101
+size = 0x88000
+content_end = 0x88000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801815A0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x11800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x16800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x1F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x24000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x35000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x4D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x5E800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x67800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x77800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_room_2"
+id = 1201
+size = 0x70800
+content_end = 0x70800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801804D0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x11000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x15800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x26800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x4A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x60800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_room_3"
+id = 1301
+size = 0x42800
+content_end = 0x42800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017E550 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x10000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x14000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x19800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x20800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x27800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x2E800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x36000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x3D000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_room_4"
+id = 1401
+size = 0x3A800
+content_end = 0x3A800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017E490 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0xF800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x14800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x1C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x24000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x2C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x34000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_parking_lot"
+id = 1501
+size = 0x6E800
+content_end = 0x6E800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017FB70 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x19000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x21000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x31000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x40000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x4E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x57800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x67000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_toilet"
+id = 1601
+size = 0x110800
+content_end = 0x87000
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x124, offset_stage = 0x87000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x6000, stage_number = 2, stream_id = 33, stream_sub_id = 11, unknown3 = 0xE9, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x8000800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8018A280 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x21800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x32000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x4A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x5B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x63000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x6A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x71800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x79800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x81000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_lobby"
+id = 1701
+size = 0x3F000
+content_end = 0x3F000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80181070 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x14800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x1C800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x26000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x2E800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x38800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_saloon_g_r"
+id = 1801
+size = 0xA2800
+content_end = 0xA2800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80181C00 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x21000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2C000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x38000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x47800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x55800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x64800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x74000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x7B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x82000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x8A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x92000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0x9A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_g_r_kitchen"
+id = 1901
+size = 0x25800
+content_end = 0x25800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017F580 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x12000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x15800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x1F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_water_tower"
+id = 2001
+size = 0x1E2000
+content_end = 0x112000
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x121, offset_stage = 0x112000, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0xC800, stage_number = 2, stream_id = 16, stream_sub_id = 11, unknown3 = 0x156, unknown4 = 0x20, unknown5 = 0x0, unknown6 = 0x8000800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801876D0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x34000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x48800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x55800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x63800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x71000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x80000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x8F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x9D000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0xA5800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xB0800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xC0000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xC8000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xD6800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xDE800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xE5800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xED800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xF7000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0x102800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file21"
+id = 21
+offset = 0x10C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_water_tank"
+id = 2101
+size = 0x707000
+content_end = 0x95000
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0x95000, offset_folder_space = "stream", offset_folder_stream_rel = 0, offset_inter = 0x0, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0x140, unknown6 = 0x0, unknown7 = 0x1, movie_number = 0, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80188D60 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2E000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x35000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x41000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x51800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x66000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6D800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x76000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x82000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x8D800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_breezeway"
+id = 2201
+size = 0x63800
+content_end = 0x63800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801843D0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x23800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x36800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x46800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x4D800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x53800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_factory"
+id = 2301
+size = 0xF8800
+content_end = 0xF8800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8018A3E0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x36800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x3C800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x49000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x54000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x64800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6E800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x78000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x80000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x88000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x8F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x9A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xA2000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xAF000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xBA800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xCB800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xD9000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xE3800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xEE000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_garage"
+id = 2401
+size = 0x754800
+content_end = 0xB0800
+stream_data = true
+streaming = [
+    { stream_type = "audio", unknown1 = 0x320, offset_stage = 0xB0800, offset_stage_space = "stream", offset_stage_stream_rel = 0, unknown2 = 0x0, stage_number = 2, stream_id = 3, stream_sub_id = 11, unknown3 = 0xD15, unknown4 = 0x20, unknown5 = 0x20000, unknown6 = 0xFA00800, unknown7 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80180250 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x22000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2C000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x38000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x42000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x4A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x59800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x63000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x69800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x70800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x77800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x80000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0x85800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0x8D800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0x93000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file49"
+id = 49
+offset = 0x9F800
+chunks = [
+    { type = "music" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_driveway"
+id = 2501
+size = 0x70800
+content_end = 0x70800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801806A0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x22800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x28000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x30800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x4D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x57800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x5E800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_junk_yard"
+id = 2601
+size = 0x77000
+content_end = 0x77000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80181C50 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x22000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x30800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x4A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x5F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x67800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_trailer_coach"
+id = 2701
+size = 0x92800
+content_end = 0x92800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80189CC0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x2A800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2F000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3D800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x4C000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x5B000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x62000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x71800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x7B800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x83800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x8C800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_room_5"
+id = 2801
+size = 0x2E800
+content_end = 0x2E800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017E5E0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0xD800
+chunks = [
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x14000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x19800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x1F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x25000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x2A000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_balcony"
+id = 2901
+size = 0x11F800
+content_end = 0x11F800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80186750 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1D800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x25800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x36800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x3E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x48000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x53000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x62800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x78800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x8A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x96000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0xA2000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xAA800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0xB2800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0xBA800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0xC4000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xCC800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xD7800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xE7800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xFD000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0x108000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file21"
+id = 21
+offset = 0x110000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file22"
+id = 22
+offset = 0x117800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_room_6"
+id = 3001
+size = 0x58E000
+content_end = 0xB6000
+stream_data = true
+streaming = [
+    { stream_type = "movie", unknown1 = 0x0, offset_folder = 0xB6000, offset_folder_space = "stream", offset_folder_stream_rel = 0, offset_inter = 0x0, unknown2 = 0x0, stream_id = 100, stream_sub_id = 0, picture_width = 320, picture_height = 192, unknown3 = 0x0, unknown4 = 0x18, unknown5 = 0xEE, unknown6 = 0x0, unknown7 = 0x1, movie_number = 0, unknown8 = 0x0 },
+]
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80186850 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x27800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x2F800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x3D000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x49000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x57000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x63000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x6B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x80000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x93000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x98000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0xA5000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0xAC800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_motel_loft"
+id = 3101
+size = 0x4A800
+content_end = 0x4A800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x8017E670 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0xD800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x11000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x17800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x1E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x2A000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x35000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x3E800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_water_hole"
+id = 3201
+size = 0xC1000
+content_end = 0xC1000
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x801828E0 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1C000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x23800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2A800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x34000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x43800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x50000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x59000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x5F800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x67000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x6E800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x75800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0x7B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0x85000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0x93800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0x9E000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xA6000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xAB000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xB2000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0xB9800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_cellar"
+id = 3401
+size = 0x80800
+content_end = 0x80800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80180B60 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x16000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x1B800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x28800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x31800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x41800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x4F000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x57800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x62000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x68800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x74000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x7C800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder]]
+name = "dryfield_underpass"
+id = 3801
+size = 0xEA800
+content_end = 0xEA800
+stream_data = false
+
+[[folder.file]]
+name = "file0"
+id = 0
+offset = 0x800
+chunks = [
+    { type = "music" },
+    { type = "music" },
+    { type = "image" },
+    { type = "clut" },
+    { type = "image" },
+    { type = "room_pkg", load = 0x8017D5C0 },
+    { type = "bundle", load = 0x80181190 },
+]
+
+[[folder.file]]
+name = "file1"
+id = 1
+offset = 0x1C800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file2"
+id = 2
+offset = 0x24800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file3"
+id = 3
+offset = 0x2B000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file4"
+id = 4
+offset = 0x39800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file5"
+id = 5
+offset = 0x48800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file6"
+id = 6
+offset = 0x53000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file7"
+id = 7
+offset = 0x58800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file8"
+id = 8
+offset = 0x5E800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file9"
+id = 9
+offset = 0x65000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file10"
+id = 10
+offset = 0x70800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file11"
+id = 11
+offset = 0x76800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file12"
+id = 12
+offset = 0x7C800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file13"
+id = 13
+offset = 0x82800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file14"
+id = 14
+offset = 0x89000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file15"
+id = 15
+offset = 0x96800
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file16"
+id = 16
+offset = 0xA0000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file17"
+id = 17
+offset = 0xA6000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file18"
+id = 18
+offset = 0xAA800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file19"
+id = 19
+offset = 0xB0000
+chunks = [
+    { type = "image" },
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file20"
+id = 20
+offset = 0xBB800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file21"
+id = 21
+offset = 0xC1000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file22"
+id = 22
+offset = 0xC6000
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file23"
+id = 23
+offset = 0xCD800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file24"
+id = 24
+offset = 0xD5800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file25"
+id = 25
+offset = 0xDC800
+chunks = [
+    { type = "room_background" },
+]
+
+[[folder.file]]
+name = "file26"
+id = 26
+offset = 0xE4800
+chunks = [
+    { type = "room_background" },
+]
