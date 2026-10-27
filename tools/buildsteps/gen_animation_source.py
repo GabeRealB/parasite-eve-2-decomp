@@ -5,8 +5,10 @@
                                                                            or its K-th run of back-to-back clips
     gen_animation_source.py bank NAME OUTPUT [--assets assets/USA]       the bank NAME, as its `symbol`
 
-A clip is encoded from its USD at its placement's address (tools/peassets/animation/declared.py) and cut by the
-encoder's layout: pose banks, records, track starts, then its `AnimationSet`, all static and named after the asset
+A clip is written from its native form, the bytes the extraction stored for it at its placement's address
+(`raw/clip/<name>.clip`; the build reads native forms only, and the suite holds the declared encoder,
+tools/peassets/animation/declared.py, to the same bytes), cut by their layout: pose banks, records, track starts, then
+its `AnimationSet`, all static and named after the asset
 (`characters/aya/idle` -> `_gAyaIdleClip`). A bank's slots point at those names, so its include follows its package's clips in
 the same unit. Undeclared animation sets keep their per-array includes from gen_animation_inc.py.
 """
@@ -69,7 +71,7 @@ def array(declaration: str, count: int, rows: list[str]) -> str:
 
 def clip_source(name: str, assets_root: Path) -> str:
     assets, embedded = asset_data.ASSETS, asset_data.EMBEDDED_ASSETS
-    blob = declared.encode(name, assets, embedded, assets_root)
+    blob = (assets_root / asset_schema.raw_rel(name, embedded[name], tables=(assets, embedded))).read_bytes()
     address = asset_schema.embedded_address(embedded[name])
     at = len(blob) - codec.SET_SIZE
     words = struct.unpack_from("<10I", blob, at)

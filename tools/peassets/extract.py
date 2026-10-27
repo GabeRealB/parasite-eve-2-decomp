@@ -1424,7 +1424,7 @@ def _extract(args, output_path: Path, store: "AssetStore", background: ThreadPoo
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)
         write_pack_manifests(args, output_path, store, rom_root)    # the stage decode sizes by the folders' movies
-        decode_declared(output_path)        # the build reads declared models from their USD
+        decode_declared(output_path, native_only=True)   # the instances the build generates C from
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return
 
@@ -1448,12 +1448,16 @@ def decode_dialogues() -> None:
     logging.info("Dialogues: %d decoded, %d with no atlas on the disc to decode against", written, failed)
 
 
-def decode_declared(assets_root: Path) -> None:
+def decode_declared(assets_root: Path, *, native_only: bool = False) -> None:
     """Decode what the asset table fully declares: each file's textures, as indexed PNGs, and each atlas's layout
     (texture/), each font as UFO (font/), each
     rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
     animation/), each sound bank as SFZ and its own text with its sounds as WAVs (sound/), each shaped asset
-    as its instance (shape/), and each room as its instance (room/). The rest stays raw until it is declared."""
+    as its instance (shape/), and each room as its instance (room/). The rest stays raw until it is declared.
+
+    `native_only` (the minimal extraction, tier 1 of local/project_design.md): only the native forms the build reads
+    beyond the stored bytes - the room and stage instances and the shaped instances, from which it generates C; the
+    editable forms (PNG, UFO, USD, SFZ) are for the project and are not written."""
     import room
     import shape
     from animation import declared as clips
@@ -1470,6 +1474,13 @@ def decode_declared(assets_root: Path) -> None:
                     need.result()
                 map_calls(_decode_one, [(kind, name, str(assets_root)) for name in names])
             return phases.submit(run)
+        if native_only:
+            rooms = phase("room", [n for n in room.declared(ASSETS) if not room.is_stage(n, ASSETS)])
+            done = [rooms, phase("shape", shape.build_inputs(ASSETS)),
+                    phase("room", [n for n in room.declared(ASSETS) if room.is_stage(n, ASSETS)], rooms)]
+            for d in done:
+                d.result()
+            return
         textures = phase("texture", files.declared_files(ASSETS))
         atlases = phase("atlas", files.declared_atlases(ASSETS), textures)
         rigs = phase("rig", declared.rigs(ASSETS))

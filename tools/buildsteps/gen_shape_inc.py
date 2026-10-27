@@ -26,7 +26,7 @@ def main() -> int:
     ap.add_argument("out", type=Path)
     ap.add_argument("--assets", type=Path, default=ROOT / "assets" / "USA")
     args = ap.parse_args()
-    source = shape.instance_path(args.name, asset_data.ASSETS, args.assets).resolve().relative_to(ROOT).as_posix()
+    source = shape.instance_path(args.name, asset_data.ASSETS, args.assets).resolve().relative_to(args.assets.resolve()).as_posix()
     text = shape.c_source(args.name, asset_data.ASSETS, asset_data.EMBEDDED_ASSETS, args.assets)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(f"/* {args.name}, written from {source} by tools/buildsteps/gen_shape_inc.py. */\n" + text)

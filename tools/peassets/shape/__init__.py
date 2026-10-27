@@ -193,6 +193,17 @@ ROOT = HERE.parents[2]
 GAMEPLAY_SYMBOLS = ROOT / "configs" / "USA" / "sym.gameplay.txt"
 
 
+def build_inputs(assets: dict) -> list[str]:
+    """The shaped assets whose instances the build reads, in decode order: those it compiles (`include`), and where
+    one reads other instances (the catalog, its items), every shaped asset of its family."""
+    decls = declarations()
+    compiled = [k for k, r in assets.items() if r.get("type") == "shaped" and r.get("include")]
+    families = {decls[assets[k]["shape"]]["family"] for k in compiled if decls[assets[k]["shape"]].get("reads_instances")}
+    wanted = set(compiled) | {k for k, r in assets.items() if r.get("type") == "shaped"
+                              and decls[r["shape"]]["family"] in families}
+    return [k for k in shaped_assets(assets) if k in wanted]
+
+
 def shaped_assets(assets: dict) -> list[str]:
     """Every shaped asset, those whose codec reads other instances (a catalog) after the instances they read."""
     decls = declarations()

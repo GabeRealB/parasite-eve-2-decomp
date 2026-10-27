@@ -1593,8 +1593,9 @@ faces `ui/font/small`, `medium` and `large`; the load-screen caption font is
 is the cell `<face>_<code>`, one of no size none.
 
 A font is decoded to UFO 3 (`ui/font/medium.ufo`), which encodes back to the
-table's exact bytes and is what the build's include is generated from
-(`tools/buildsteps/gen_font_inc.py`). Each record is a glyph named for its
+table's exact bytes. The build's include is generated from the table's stored
+bytes, the font's native form (`tools/buildsteps/gen_font_inc.py`); the UFO is
+the editable form. Each record is a glyph named for its
 character in the font's encoding (`text_encoding.py`: Windows-1252 with the
 controller's buttons at 0x7B-0x7E for the UI font; an index per glyph for the
 caption font), its code and cell in the glyph's lib. What UFO states natively

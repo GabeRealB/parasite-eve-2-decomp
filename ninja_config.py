@@ -262,15 +262,16 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
 
 
 def font_includes(version: str) -> list[tuple[str, list[Path], Path]]:
-    """(font, the files of its UFO, generated include) for every font whose glyph table a unit includes: the
-    table's initializer is encoded from the font's UFO, `assets/<table>.inc` (gen_font_inc.py)."""
+    """(font, its table's stored bytes, generated include) for every font whose glyph table a unit includes: the
+    table's initializer is written from its native form, `assets/<table>.inc` (gen_font_inc.py)."""
     data, schema = asset_tables()
+    tables = (data.ASSETS, data.EMBEDDED_ASSETS)
     out = []
     for key, rec in data.ASSETS.items():
         if rec.get("type") == "font" and "table" in rec and data.EMBEDDED_ASSETS.get(rec["table"], {}).get("include"):
-            ufo = ASSETS_DIR / version / schema.asset_dir(key, rec) / f"{schema.file_name(key)}.ufo"
-            files = sorted(p for p in ufo.rglob("*") if p.is_file() and p.suffix != ".png")
-            out.append((key, files, BUILD_DIR / "include" / "assets" / f"{rec['table']}.inc"))
+            table = data.EMBEDDED_ASSETS[rec["table"]]
+            stored = ASSETS_DIR / version / schema.raw_rel(rec["table"], table, tables=tables)
+            out.append((key, [stored], BUILD_DIR / "include" / "assets" / f"{rec['table']}.inc"))
     return out
 
 
@@ -382,7 +383,8 @@ def include_path(name: str, rec: dict) -> str:
 
 def declared_model_placements() -> dict[tuple[str, int], tuple[str, str, str]]:
     """(package, model offset) -> (name, decoded directory, generated include), for every declared model (asset
-    type `model`): those are built from their USD and binding by gen_model_source.py, not cut out of the package.
+    type `model`): those are written whole from their stored bytes by gen_model_source.py, not as five per-array
+    includes cut out of the package.
     The include is grouped like the asset: `<group>/<local name>.inc` (weapons/m93r/model.inc)."""
     data, schema = asset_tables()
     out = {}
@@ -411,8 +413,7 @@ def asset_placements(name: str) -> list[tuple[str, int]]:
 
 
 def model_source_includes(version: str) -> list[tuple[str, list[Path], Path]]:
-    """(name, its USD files - the model's, and its rig's, which it references -, generated include) for every
-    declared model a C unit owns."""
+    """(name, its stored bytes - its native form -, generated include) for every declared model a C unit owns."""
     from tools.buildsteps.gen_overlay_configs import declared_models
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
@@ -427,11 +428,9 @@ def model_source_includes(version: str) -> list[tuple[str, list[Path], Path]]:
             continue
         seen.add(name)
         data, schema = asset_tables()
-        usd = [ASSETS_DIR / version / directory / f"{schema.file_name(name)}.usda"]
-        rig = data.ASSETS[name].get("rig")
-        if rig:
-            usd.append(ASSETS_DIR / version / schema.asset_dir(rig, data.ASSETS[rig]) / f"{schema.file_name(rig)}.usda")
-        out.append((name, usd, BUILD_DIR / "include" / "assets" / include))
+        stored = ASSETS_DIR / version / schema.raw_rel(name, data.EMBEDDED_ASSETS[name],
+                                                       tables=(data.ASSETS, data.EMBEDDED_ASSETS))
+        out.append((name, [stored], BUILD_DIR / "include" / "assets" / include))
     return out
 
 
@@ -476,7 +475,7 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
 
 
 def declared_animation_sources(version: str) -> tuple[list, list]:
-    """What gen_animation_source.py writes: per package that places declared clips, (package, the clips' USD files,
+    """What gen_animation_source.py writes: per package that places declared clips, (package, the clips' stored bytes,
     `<package group>/clips.inc`, or `<group>/<variant>_clips.inc` for a group's package `<variant>_package`); per
     declared bank, (name, `<group>/<local name>.inc`)."""
     data, schema = asset_tables()
@@ -493,9 +492,8 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
                 stem = "clips" if local == "package" else f"{local.removesuffix('_package')}_clips"
                 # One include per run of back-to-back clips: `clips.inc`, or `clips_1.inc`, `clips_2.inc`, ...
                 for k, run in enumerate(runs, 1):
-                    files = [data.ASSETS[n].get("copy_of", n) for n in run]        # a stored copy is the original's
-                    usd = [ASSETS_DIR / version / schema.asset_dir(n, data.ASSETS[n], tables=tables) / f"{schema.file_name(n)}.usda"
-                           for n in files]
+                    usd = [ASSETS_DIR / version / schema.raw_rel(n, data.EMBEDDED_ASSETS[n], tables=tables)
+                           for n in run]                                  # their native forms
                     name = rec.get("package_name", key) + (f":{k}" if len(runs) > 1 else "")
                     inc = f"{stem}.inc" if len(runs) == 1 else f"{stem}_{k}.inc"
                     clips.append((name, usd, BUILD_DIR / "include" / "assets" / rec["group"] / inc))
