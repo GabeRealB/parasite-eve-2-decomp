@@ -331,7 +331,7 @@ def room_includes(version: str) -> list[tuple[str, Path, list[Path]]]:
                 else "actor" if "entries" in rec and slot.startswith("actor_") else None)
         if kind is None:
             continue
-        own = f"{rec['group']}/{key.rsplit('/', 1)[1]}" if kind == "actor" else rec["group"]
+        own = room_tool().own_dir(key, data.ASSETS)
         instance = ASSETS_DIR / version / own / ("stage.toml" if kind == "stage" else "room.toml")
         if not instance.exists():
             continue

@@ -138,12 +138,8 @@ def bank_source(name: str) -> str:
     return f"{head}\n{storage}AnimationSet* {bank['symbol']}[{count}] = {{\n" + "\n".join(entries) + "\n};\n"
 
 
-def schema_source(name: str) -> str:
-    """A schema's slots as C constants, `<PREFIX>_ANIMATION_<SLOT> = index`, the prefix its local name less `_schema`
-    (engine/animation/player_schema: PLAYER_ANIMATION_AIM_IDLE), after its scene's name in a scene
-    (.../scenes/opening/player_schema: OPENING_PLAYER_ANIMATION_SLOT_0), or the group's own name for a group's `schema`
-    (enemies/stranger/lesser/schema: LESSER_ANIMATION_IDLE): the indices code plays a bank's clips by."""
-    slots = asset_data.ASSETS[name]["slots"]
+def schema_prefix(name: str) -> str:
+    """The prefix of a schema's constants (schema_source)."""
     parts = name.split("/")
     if parts[-1] == "schema":
         prefix = parts[-2]
@@ -151,7 +147,16 @@ def schema_source(name: str) -> str:
         prefix = parts[-1].removesuffix("_schema")
         if len(parts) > 2 and parts[-3] == "scenes":
             prefix = f"{parts[-2]}_{prefix}"
-    prefix = prefix.upper() + "_ANIMATION_"
+    return prefix.upper() + "_ANIMATION_"
+
+
+def schema_source(name: str) -> str:
+    """A schema's slots as C constants, `<PREFIX>_ANIMATION_<SLOT> = index`, the prefix its local name less `_schema`
+    (engine/animation/player_schema: PLAYER_ANIMATION_AIM_IDLE), after its scene's name in a scene
+    (.../scenes/opening/player_schema: OPENING_PLAYER_ANIMATION_SLOT_0), or the group's own name for a group's `schema`
+    (enemies/stranger/lesser/schema: LESSER_ANIMATION_IDLE): the indices code plays a bank's clips by."""
+    slots = asset_data.ASSETS[name]["slots"]
+    prefix = schema_prefix(name)
     guard = "ASSETS_" + name.upper().replace("/", "_") + "_H"
     rows = [f"    {prefix}{slot.upper()} = {i}," for i, slot in enumerate(slots) if slot]
     head = HEADER.format(what=f"the animation schema {name}").split("\n\n#include")[0]

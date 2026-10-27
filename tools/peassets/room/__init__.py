@@ -81,9 +81,9 @@ def is_actor(name: str, assets: dict) -> bool:
 
 def own_dir(name: str, assets: dict) -> str:
     """Where the package's instance, events and includes go, under the assets and under build/include/assets: its
-    group's, or for an actor its own directory in its group."""
-    group = assets[name]["group"]
-    return f"{group}/{name.rsplit('/', 1)[1]}" if is_actor(name, assets) else group
+    group's, or for an actor its own directory in its group - unless the group is the actor's own (its `package`)."""
+    group, local = name.rsplit("/", 1)
+    return f"{group}/{local}" if is_actor(name, assets) and local != "package" else group
 
 
 def resident(name: str, assets: dict, kind: str) -> str | None:

@@ -9,7 +9,8 @@ one is made by naming assets in it.
 
 What it rewrites:
 
-* the asset table: each record's key and `group`, and every name the table holds - in other records' fields (a
+* the asset table: each record's key and `group` - an asset's, or an embedded record's that has no asset (a
+  camera path, a palette) - and every name the table holds - in other records' fields (a
   bank's clips, a binding's model and textures, a file's contents, a package's slots and embedded placements, a
   texture's variant as `<name>.<variant>`) and in the tree's chunks - written back through dump_asset_db's own
   writer, so asset_data.py and the group files are what a dump would write;
@@ -18,6 +19,10 @@ What it rewrites:
 * the generated includes sources name by path: `assets/<name>.inc` and `.h`, an include named after an asset with a
   suffix (a package's clip runs: `<local>_clips_1.inc`, `clips_1.inc` for a group's `package`), and a room's or a
   stage's module includes, which are in its package's group (room.own_dir);
+* the C names the build derives from an asset's name, where they change: a clip's (gen_animation_source.ident)
+  and the names of its parts, everywhere they are written (a source's forward declaration, a symbol map), and a
+  schema's constants (schema_prefix) in the sources that include its header.
+
 It does not touch the extraction: extract again (`ninja_config.py -iso_e`), which lays every asset, instance and
 manifest out by the table, then rebuild with --clean - a renamed include's old file stays in build/include and would
 hide a source that still names it.
@@ -60,9 +65,10 @@ def read_mapping(path: Path) -> dict[str, str]:
     return {old: new for old, new in out.items() if old != new}
 
 
-def check(mapping: dict[str, str], assets: dict) -> list[str]:
-    problems = [f"{old}: no such asset" for old in mapping if old not in assets]
-    problems += [f"{new}: already an asset" for new in mapping.values() if new in assets and new not in mapping]
+def check(mapping: dict[str, str], assets: dict, embedded: dict) -> list[str]:
+    problems = [f"{old}: no such asset" for old in mapping if old not in assets and old not in embedded]
+    problems += [f"{new}: already an asset" for new in mapping.values()
+                 if (new in assets or new in embedded) and new not in mapping]
     problems += [f"{new}: a name is a group and a local name" for new in mapping.values() if "/" not in new]
     return problems
 
@@ -97,7 +103,11 @@ def rename_table(mapping: dict[str, str], assets: dict, tree: dict, embedded: di
             key = mapping[key]
             rec["group"] = key.rsplit("/", 1)[0]
         out[key] = rec
-    return out, rename_value(copy.deepcopy(tree), in_value), rename_value(copy.deepcopy(embedded), in_value)
+    placed = rename_value(copy.deepcopy(embedded), in_value)   # an embedded record is keyed by its name
+    for old, new in mapping.items():
+        if new in placed and "group" in placed[new]:
+            placed[new]["group"] = new.rsplit("/", 1)[0]
+    return out, rename_value(copy.deepcopy(tree), in_value), placed
 
 
 def _derived(name: str, suffix: str) -> str:
@@ -138,7 +148,22 @@ def instance_dirs(mapping: dict[str, str], old: dict, new: dict) -> dict[str, st
     package."""
     import room
     return {room.own_dir(o, old): room.own_dir(n, new) for o, n in mapping.items()
-            if room.kind_of(o, old) and room.own_dir(o, old) != room.own_dir(n, new)}
+            if o in old and room.kind_of(o, old) and room.own_dir(o, old) != room.own_dir(n, new)}
+
+
+def derived_names(mapping: dict[str, str], assets: dict) -> tuple[dict[str, str], dict[str, tuple[str, str]]]:
+    """({old clip C name: new}, {schema header: (old constant prefix, new)}) of the renamed assets whose derived C
+    names change; a clip that states its `symbol` keeps it."""
+    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
+    from gen_animation_source import ident, schema_prefix
+    clips, schemas = {}, {}
+    for old, new in mapping.items():
+        rec = assets.get(old, {})
+        if rec.get("type") == "clip" and not rec.get("symbol") and ident(old) != ident(new):
+            clips[ident(old)] = ident(new)
+        if rec.get("type") == "animation_schema" and schema_prefix(old) != schema_prefix(new):
+            schemas[f'"assets/{new}.h"'] = (schema_prefix(old), schema_prefix(new))
+    return clips, schemas
 
 
 def tracked_texts() -> list[Path]:
@@ -156,7 +181,7 @@ def main() -> int:
     import asset_data
     import dump_asset_db
     mapping = read_mapping(args.mapping)
-    problems = check(mapping, asset_data.ASSETS)
+    problems = check(mapping, asset_data.ASSETS, asset_data.EMBEDDED_ASSETS)
     if problems:
         print("\n".join(problems), file=sys.stderr)
         return 1
@@ -164,10 +189,17 @@ def main() -> int:
     moved_groups = instance_dirs(mapping, asset_data.ASSETS, assets)
     in_text, _in_value = _renamer(mapping)
     in_includes = include_renamer(mapping, asset_data.ASSETS, moved_groups)
+    clips, schemas = derived_names(mapping, asset_data.ASSETS)
+    clip_names = re.compile(r"\b(" + "|".join(map(re.escape, sorted(clips, key=len, reverse=True))) + r")(Records|TrackStarts|Bank\d+)?\b") if clips else None
     changed = []
     for path in tracked_texts():
         text = path.read_text(encoding="utf-8", errors="surrogateescape")
         new = in_text(in_includes(text)) if path.suffix in (".c", ".h") else in_text(text)
+        if clip_names:                                  # a clip's C name, and its generated parts' (...ClipRecords)
+            new = clip_names.sub(lambda m: clips[m.group(1)] + (m.group(2) or ""), new)
+        for header, (old_prefix, new_prefix) in schemas.items():
+            if path.suffix in (".c", ".h") and header in new:
+                new = re.sub(rf"\b{old_prefix}", new_prefix, new)
         if new != text:
             changed.append(path)
             if not args.dry_run:
