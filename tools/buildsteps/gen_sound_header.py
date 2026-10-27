@@ -6,7 +6,7 @@
 The entries are the bank's own (its script indices, what `SOUND_CHARACTER`, `SOUND_AREA` and `SOUND_WEAPON` take
 beside the bank). The prefix is the bank's group and its own name less `sounds`: a group's `sounds` takes the group's
 name (enemies/stranger/sounds: STRANGER_SOUND_WALK_STEP_A), `sounds_<x>` and `<x>_sounds` add x
-(enemies/golem/no_9/sounds_akropolis: NO_9_AKROPOLIS_SOUND_FIRE, pe/antibody/level1_sounds: ANTIBODY_LEVEL1_SOUND_..),
+(stages/akropolis/actors/helicopter_landing_pad_no_9/sounds: NO_9_AKROPOLIS_SOUND_FIRE, pe/antibody/level1_sounds: ANTIBODY_LEVEL1_SOUND_..),
 and where two banks would still share a prefix, both take one more level of their groups
 (enemies/golem/pawn/beam_sword/sounds_set_1: PAWN_BEAM_SWORD_SET_1_SOUND_..).
 """
@@ -30,9 +30,10 @@ def _stem(name: str, depth: int) -> str:
     return "_".join(group[-depth:] + ([own] if own else []))
 
 
-@functools.lru_cache(maxsize=None)
-def _prefixes() -> dict[str, str]:
-    banks = sorted(k for k, r in asset_data.ASSETS.items() if r.get("type") == "sound_bank")
+def prefixes(assets: dict) -> dict[str, str]:
+    """{bank: the prefix of its constants}: the bank's group and own name, taking more of the group until no two banks'
+    prefixes clash - so a rename can change other banks' prefixes too."""
+    banks = sorted(k for k, r in assets.items() if r.get("type") == "sound_bank")
     depth = {b: 1 for b in banks}
     while True:
         seen: dict[str, list[str]] = {}
@@ -44,6 +45,11 @@ def _prefixes() -> dict[str, str]:
         for bs in clashes:
             for b in bs:
                 depth[b] += 1
+
+
+@functools.lru_cache(maxsize=None)
+def _prefixes() -> dict[str, str]:
+    return prefixes(asset_data.ASSETS)
 
 
 def prefix(name: str) -> str:

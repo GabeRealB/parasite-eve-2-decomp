@@ -151,11 +151,13 @@ def instance_dirs(mapping: dict[str, str], old: dict, new: dict) -> dict[str, st
             if o in old and room.kind_of(o, old) and room.own_dir(o, old) != room.own_dir(n, new)}
 
 
-def derived_names(mapping: dict[str, str], assets: dict) -> tuple[dict[str, str], dict[str, tuple[str, str]]]:
-    """({old clip C name: new}, {schema header: (old constant prefix, new)}) of the renamed assets whose derived C
-    names change; a clip that states its `symbol` keeps it."""
+def derived_names(mapping: dict[str, str], assets: dict, renamed: dict) -> tuple[dict[str, str], dict[str, tuple[str, str]]]:
+    """({old clip C name: new}, {header: (old constant prefix, new)}) of the renamed assets whose derived C names
+    change - a schema's, and any sound bank's, whose prefix depends on every bank's name (gen_sound_header.prefixes);
+    a clip that states its `symbol` keeps it."""
     sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
     from gen_animation_source import ident, schema_prefix
+    from gen_sound_header import prefixes
     clips, schemas = {}, {}
     for old, new in mapping.items():
         rec = assets.get(old, {})
@@ -163,6 +165,11 @@ def derived_names(mapping: dict[str, str], assets: dict) -> tuple[dict[str, str]
             clips[ident(old)] = ident(new)
         if rec.get("type") == "animation_schema" and schema_prefix(old) != schema_prefix(new):
             schemas[f'"assets/{new}.h"'] = (schema_prefix(old), schema_prefix(new))
+    before, after = prefixes(assets), prefixes(renamed)
+    back = {new: old for old, new in mapping.items()}
+    for bank, p in after.items():
+        if before.get(back.get(bank, bank)) not in (None, p):
+            schemas[f'"assets/{bank}.h"'] = (before[back.get(bank, bank)], p)
     return clips, schemas
 
 
@@ -189,7 +196,7 @@ def main() -> int:
     moved_groups = instance_dirs(mapping, asset_data.ASSETS, assets)
     in_text, _in_value = _renamer(mapping)
     in_includes = include_renamer(mapping, asset_data.ASSETS, moved_groups)
-    clips, schemas = derived_names(mapping, asset_data.ASSETS)
+    clips, schemas = derived_names(mapping, asset_data.ASSETS, assets)
     clip_names = re.compile(r"\b(" + "|".join(map(re.escape, sorted(clips, key=len, reverse=True))) + r")(Records|TrackStarts|Bank\d+)?\b") if clips else None
     changed = []
     for path in tracked_texts():
