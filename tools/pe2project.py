@@ -127,7 +127,9 @@ def find_disc(roms: Path, disc: dict) -> Path:
 
 
 def extract(directory: Path, wanted: list[str] | None, roms: Path | None, declarations: Path | None) -> None:
-    """(Re)write a project's game layer from its discs."""
+    """(Re)write a project's game layer from its discs, holding the project's lock."""
+    import project_lock
+    _lock = project_lock.hold(directory, "tools/pe2project.py extract")
     p = projects.load(directory)
     if p.game is None:
         raise SystemExit(f"{directory}: the project has no [game]")

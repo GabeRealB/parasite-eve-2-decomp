@@ -28,6 +28,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+ARGS=("$@")
 SCOPE_ARGS=()
 PROJECT_ARGS=()
 SCOPE_LABEL=""
@@ -52,6 +53,12 @@ while [[ $# -gt 0 ]]; do
             exit 2 ;;
     esac
 done
+
+# A build of a project holds the project's lock throughout - configuring and building both read it - so it runs
+# again under the lock (tools/project_lock.py), which waits while another process holds the project.
+if [[ ${#PROJECT_ARGS[@]} -gt 0 && -z "${PE2_PROJECT_LOCKED:-}" ]]; then
+    exec python3 tools/project_lock.py "${PROJECT_ARGS[1]}" "tools/build-and-verify.sh" -- "$0" "${ARGS[@]}"
+fi
 
 # Prefer the project venv. Agent CLIs (especially grok) often invoke this
 # script with a PATH that has system python3 and no splat/spimdisasm.

@@ -2098,6 +2098,10 @@ def main():
         return
 
     version_dir = GAME_VERSIONS[game_version_option].metadata.version_dir
+    if args.project:                    # held until the configure ends (tools/project_lock.py)
+        sys.path.insert(0, str(TOOLS_DIR))
+        import project_lock
+        _project_lock = project_lock.hold(args.project, "ninja_config.py")
     project_tool().link(version_dir, args.project or ASSETS_DIR / version_dir)    # before anything reads the data
     subprocess.check_call([PYTHON, str(TOOLS_DIR / "buildsteps" / "gen_overlay_configs.py")])
     family_imports = overlay_family_imports()
