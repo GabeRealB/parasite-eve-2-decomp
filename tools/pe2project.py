@@ -7,10 +7,11 @@
 
 `create` makes a new project in DIR (default `project/` at the repository root; it must not exist or be empty), `init`
 makes the current directory one. Either writes `project.toml` - the releases it is built for with the discs each needs
-(names, sizes and sha1s, read off the images), the game layer `.game`, the `roms` folder, the declarations it extracts
-by, mounts of this checkout's `src/` and `include/` and of its declarations, a configuration per release - realizes the
-mounts as links, writes the `.gitignore` that keeps the game's content out (the game layer, `roms`, the links), and
-then extracts. `--roms PATH` links `roms` to a folder of images kept elsewhere.
+(names, sizes and sha1s, read off the images), the game layer `.layers/game` and the project's own `.layers/project`,
+the `roms` folder, the declarations it extracts by, mounts of this checkout's `src/` and `include/` and of its
+declarations, a configuration per release - realizes the mounts as links, writes the `.gitignore` that keeps the
+game's content out (the game layer and its changeset, `roms`, the links), and then extracts. `--roms PATH` links
+`roms` to a folder of images kept elsewhere.
 
 `extract` (re)writes a project's game layer, and nothing else: it finds each release's discs in `roms` by size and
 sha1, dumps them into the layer (`.rom/<release>/disk<n>`), extracts them with the project's declarations, and records
@@ -33,11 +34,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "peassets"))
 import project as projects  # noqa: E402
 
-LAYER = ".game"
+LAYER = ".layers/game"             # the extraction's layer; its changeset beside it, `.layers/game.toml`
+OWN = ".layers/project"             # the project's own layer
 DECLARATIONS = "res://declarations"
 MOUNTS = [("src", ROOT / "src", False), ("include", ROOT / "include", False),
           ("declarations", ROOT / "tools" / "peassets", True)]   # today the declarations live beside their extractor
-IGNORE = [f"/{LAYER}/", "/roms/", "/build/", "/project.local.toml"] + [f"/{at}" for at, _p, _r in MOUNTS]
+IGNORE = ([f"/{LAYER}/", f"/{LAYER}.toml", "/roms/", "/build/", "/project.local.toml"]
+          + [f"/{at}" for at, _p, _r in MOUNTS])
 
 
 def releases() -> dict[str, dict]:
@@ -102,7 +105,8 @@ def setup(directory: Path, wanted: list[str], roms: Path | None) -> None:
         game["releases"][release] = {"discs": discs}
     mounts = [{"at": at, "path": relative(path, directory), **({"read_only": True} if ro else {})}
               for at, path, ro in MOUNTS]
-    text = projects.render(game, [{"name": "game", "path": LAYER}], mounts,
+    (directory / OWN).mkdir(parents=True, exist_ok=True)
+    text = projects.render(game, [{"name": "game", "path": LAYER}, {"name": "project", "path": OWN}], mounts,
                            {r.lower(): {"release": r} for r in wanted})
     (directory / projects.FILE).write_text(text, encoding="utf-8")
     for at, path, _ro in MOUNTS:
