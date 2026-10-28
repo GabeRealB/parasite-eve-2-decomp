@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1r51jgwejxcsv", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,13 +26,22 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 2, type = "palette" },
-    { index = 3, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://iwyl4g1m6nw6", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view3.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 5, folder = 301, file = 0 }]
+chunks = { dialogue_0_atlas = "66ad3eabc38134c527db7035d17bc107e231fdab" }
 
 [view1]
 uid = "uid://3t72umhufwuk"
@@ -54,10 +66,19 @@ at = [{ stage = 5, folder = 301, file = 2 }]
 [view3]
 uid = "uid://1n1euq878wv8x"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://1uyqqxzxnflgi", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://iwyl4g1m6nw6", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1uyqqxzxnflgi", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 5, folder = 301, file = 3 }]
+chunks = { image = "2f814246b933d38a90a6e87bdbd6d548ae213d9d" }

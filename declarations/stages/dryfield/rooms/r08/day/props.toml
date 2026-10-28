@@ -1,0 +1,59 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[gradient]
+uid = "uid://q6f84n92kzc7"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [16, 16]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+palettes = [
+    { name = "effect_row_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] },
+    { name = "effect_row_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+    { name = "effect_row_9_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] },
+    { name = "effect_row_9_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
+    { name = "effect_row_9_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] },
+    { name = "effect_row_9_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] },
+    { name = "effect_row_9_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 9] },
+    { name = "effect_row_9_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 9] },
+    { name = "effect_row_9_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 9] },
+    { name = "effect_row_9_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 9] },
+    { name = "effect_row_9_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 9] },
+    { name = "effect_row_9_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 9] },
+    { name = "effect_row_9_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 9] },
+    { name = "effect_row_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] },
+    { name = "effect_row_10_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 10] },
+    { name = "effect_row_10_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 10] },
+    { name = "effect_row_10_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 10] },
+    { name = "effect_row_10_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 10] },
+    { name = "effect_row_10_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 10] },
+    { name = "effect_row_10_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 10] },
+    { name = "effect_row_10_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 10] },
+    { name = "effect_row_10_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 10] },
+    { name = "effect_row_10_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 10] },
+    { name = "effect_row_10_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 10] },
+    { name = "effect_row_10_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 10] },
+    { name = "effect_row_10_16", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] },
+]
+
+[gradient.from.USA]
+at = [{ stage = 2, folder = 801, file = 0, slot = "image_0", page = 0 }]
+sha1 = "0fccf0a9e7a9efb0ea0b7ed24ddf9003121eb4e4"
+palettes = { effect_row_1 = "a271eb333410bb797116608ac9a77bd5020c8e77", effect_row_9 = "01deb73166b8d6fe3bbb32b4d15af9a8b48edb97", effect_row_9_1 = "01deb73166b8d6fe3bbb32b4d15af9a8b48edb97", effect_row_9_2 = "ae566ef4f0f2c321bd967846608c87cdff89ee8b", effect_row_9_3 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_9_4 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_9_5 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_9_6 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_9_7 = "54581f8912c640e58eedf022b0a28c7af0dcfd2a", effect_row_9_8 = "54581f8912c640e58eedf022b0a28c7af0dcfd2a", effect_row_9_9 = "3813d88cad893b0e908a94faa6b6de17ef7d8ea4", effect_row_9_10 = "d4ebeb17ec71f4be88b2a2a87861d71a717523a2", effect_row_9_11 = "7400660b8a7fca019947be9a735f920cc8ecc0a3", effect_row_10 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_1 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_2 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_3 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_4 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_5 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_6 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_7 = "570f4d5ebb6002c7010950aaba2f579a24817e41", effect_row_10_8 = "570f4d5ebb6002c7010950aaba2f579a24817e41", effect_row_10_9 = "570f4d5ebb6002c7010950aaba2f579a24817e41", effect_row_10_10 = "79f259ca7283d49feb2d02ce43129c59940fc206", effect_row_10_11 = "79f259ca7283d49feb2d02ce43129c59940fc206", effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }
+
+[smoke]
+uid = "uid://1shzrudqy61n2"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [496, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] },
+    { name = "effect_row_10_16", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] },
+]
+
+[smoke.from.USA]
+at = [{ stage = 2, folder = 801, file = 0, slot = "image_1", page = 0 }]
+sha1 = "85159da246f8966e735357ad653dc0e0df5a1cc4"
+palettes = { effect_row_1 = "a271eb333410bb797116608ac9a77bd5020c8e77", effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }

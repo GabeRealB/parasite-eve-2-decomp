@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1fscnn1s1lt23", path = "res://stages/dryfield/rooms/motel_room_3/day/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -29,6 +32,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 2, folder = 1301, file = 0 }]
+chunks = { dialogue_0_atlas = "275aa88f684bd01f72b429b308caf755d9a8fa50" }
 
 [view1]
 uid = "uid://1vyr8uhfisk1i"

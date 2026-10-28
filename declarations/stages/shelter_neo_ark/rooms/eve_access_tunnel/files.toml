@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://5cq7tx0o6eop", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,16 +26,47 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 1, type = "palette" },
-    { index = 2, type = "palette" },
-    { index = 3, type = "palette" },
-    { index = 4, type = "palette" },
-    { index = 7, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1uwvripxdme4m", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view2.asset" }, palette = "row_0" },
+    { image = { uid = "uid://1uwvripxdme4m", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view2.asset" }, palette = "row_1" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ra02mwar2gxl", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view3.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1jw1arwj4nlln", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view4.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 4
+type = "palette"
+palettes = [
+    { image = { uid = "uid://hi84b6mcg4z4", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view5.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 7
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 5, folder = 801, file = 0 }]
+chunks = { dialogue_0_atlas = "fb2897e367f14eede644b61c7f0f3f3c9ade6814" }
 
 [view1]
 uid = "uid://1iltw2620dmn9"
@@ -47,46 +81,82 @@ at = [{ stage = 5, folder = 801, file = 1 }]
 [view2]
 uid = "uid://x8qjfnre0jrp"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://dqea7la2ybhw", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view2_background.asset" } },
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1uwvripxdme4m", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view2.asset" } },
 ]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://dqea7la2ybhw", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view2_background.asset" }
 
 [view2.from.USA]
 at = [{ stage = 5, folder = 801, file = 2 }]
+chunks = { image = "399ed4104e11e4fbf356d1b9f4d3804c5faf8ca0" }
 
 [view3]
 uid = "uid://kdfmn9ocxsro"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://1b0oki9q00amx", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ra02mwar2gxl", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1b0oki9q00amx", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 5, folder = 801, file = 3 }]
+chunks = { image = "d731e54b7d6f634c2191486e0fe78e6d30e777ee" }
 
 [view4]
 uid = "uid://7li3p1p08rsv"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://29m0xtycfddc", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view4_background.asset" } },
+
+[[view4.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1jw1arwj4nlln", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view4.asset" } },
 ]
+
+[[view4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://29m0xtycfddc", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view4_background.asset" }
 
 [view4.from.USA]
 at = [{ stage = 5, folder = 801, file = 4 }]
+chunks = { image = "0b7d46e8a41b184ca6802907e36e6c91df9697cd" }
 
 [view5]
 uid = "uid://1gi1zypvlpnxl"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://2lvg7phr6k8x", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view5_background.asset" } },
+
+[[view5.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://hi84b6mcg4z4", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view5.asset" } },
 ]
+
+[[view5.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://2lvg7phr6k8x", path = "res://stages/shelter_neo_ark/rooms/eve_access_tunnel/views/view5_background.asset" }
 
 [view5.from.USA]
 at = [{ stage = 5, folder = 801, file = 5 }]
+chunks = { image = "cf3132c8b72fe42bed194fb689acd1f5938e47ab" }
 
 [view6]
 uid = "uid://121d2m68u71ya"

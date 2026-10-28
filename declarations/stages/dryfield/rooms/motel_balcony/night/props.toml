@@ -1,0 +1,70 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[debris_smoke]
+uid = "uid://5oc8d0fnhe69"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [512, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
+    { name = "effect_row_2_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 2] },
+    { name = "effect_row_2_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 2] },
+    { name = "effect_row_2_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 2] },
+    { name = "effect_row_2_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 2] },
+    { name = "effect_row_2_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 2] },
+    { name = "effect_row_2_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 2] },
+    { name = "effect_row_2_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 2] },
+    { name = "effect_row_2_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 2] },
+    { name = "effect_row_2_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 2] },
+    { name = "effect_row_2_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 2] },
+    { name = "effect_row_2_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 2] },
+    { name = "effect_row_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
+    { name = "effect_row_3_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 3] },
+    { name = "effect_row_3_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 3] },
+    { name = "effect_row_3_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 3] },
+    { name = "effect_row_3_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 3] },
+    { name = "effect_row_3_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 3] },
+    { name = "effect_row_3_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 3] },
+    { name = "effect_row_3_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 3] },
+    { name = "effect_row_3_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 3] },
+    { name = "effect_row_3_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 3] },
+    { name = "effect_row_3_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 3] },
+    { name = "effect_row_3_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 3] },
+    { name = "effect_row_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+    { name = "effect_row_9_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] },
+    { name = "effect_row_9_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
+    { name = "effect_row_9_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] },
+    { name = "effect_row_9_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] },
+    { name = "effect_row_9_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 9] },
+    { name = "effect_row_9_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 9] },
+    { name = "effect_row_9_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 9] },
+    { name = "effect_row_9_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 9] },
+    { name = "effect_row_9_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 9] },
+    { name = "effect_row_9_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 9] },
+    { name = "effect_row_9_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 9] },
+    { name = "effect_row_9_12", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 9] },
+    { name = "effect_row_9_13", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 9] },
+    { name = "effect_row_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] },
+    { name = "effect_row_10_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 10] },
+    { name = "effect_row_10_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 10] },
+    { name = "effect_row_10_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 10] },
+    { name = "effect_row_10_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 10] },
+    { name = "effect_row_10_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 10] },
+    { name = "effect_row_10_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 10] },
+    { name = "effect_row_10_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 10] },
+    { name = "effect_row_10_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 10] },
+    { name = "effect_row_10_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 10] },
+    { name = "effect_row_10_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 10] },
+    { name = "effect_row_10_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 10] },
+    { name = "effect_row_10_12", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 10] },
+    { name = "effect_row_10_13", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 10] },
+    { name = "effect_row_10_14", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 10] },
+    { name = "effect_row_10_15", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 10] },
+]
+
+[debris_smoke.from.USA]
+at = [{ stage = 3, folder = 2901, file = 0, slot = "image", page = 0 }]
+sha1 = "65ff130a8ef2e3aee40132400de8842514b6072e"
+palettes = { effect_row_2 = "e6328de31bad96b5cb29230492fe631be98e20db", effect_row_2_1 = "e6328de31bad96b5cb29230492fe631be98e20db", effect_row_2_2 = "e6328de31bad96b5cb29230492fe631be98e20db", effect_row_2_3 = "30f9d6a42c7a390f7b759d96787df7ceac65d365", effect_row_2_4 = "30f9d6a42c7a390f7b759d96787df7ceac65d365", effect_row_2_5 = "30f9d6a42c7a390f7b759d96787df7ceac65d365", effect_row_2_6 = "30f9d6a42c7a390f7b759d96787df7ceac65d365", effect_row_2_7 = "c4e4abfd13148639a19738f40ee41caf8ab9099f", effect_row_2_8 = "ba44c7e80cd10f7415ceb5e0e5b96a61dcd8e430", effect_row_2_9 = "2cb9c9d881024eeda11bf72b1e0f1bdfba634f96", effect_row_2_10 = "43a140d2da934ca0ee02e81f5d38dc6d3236150b", effect_row_2_11 = "43a140d2da934ca0ee02e81f5d38dc6d3236150b", effect_row_3 = "01deb73166b8d6fe3bbb32b4d15af9a8b48edb97", effect_row_3_1 = "01deb73166b8d6fe3bbb32b4d15af9a8b48edb97", effect_row_3_2 = "ae566ef4f0f2c321bd967846608c87cdff89ee8b", effect_row_3_3 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_3_4 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_3_5 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_3_6 = "04dc239bbc58e153c0d541d7e6eb7be9a52f5e46", effect_row_3_7 = "54581f8912c640e58eedf022b0a28c7af0dcfd2a", effect_row_3_8 = "54581f8912c640e58eedf022b0a28c7af0dcfd2a", effect_row_3_9 = "3813d88cad893b0e908a94faa6b6de17ef7d8ea4", effect_row_3_10 = "d4ebeb17ec71f4be88b2a2a87861d71a717523a2", effect_row_3_11 = "7400660b8a7fca019947be9a735f920cc8ecc0a3", effect_row_9 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", effect_row_9_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", effect_row_9_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", effect_row_9_3 = "fe0a9fc375db4a82f5e674173346be1568e41ce9", effect_row_9_4 = "f780d145f292706bbb34bf72dbfa2a6c875077dd", effect_row_9_5 = "8dea7d48e8171faf1acbff244d4ea11cd8d2afbd", effect_row_9_6 = "204e529fe58531d3074e427196c5a4ffc9ce2e2c", effect_row_9_7 = "bbcb111a78c8e5b0550683e28abfcb540ccd88d0", effect_row_9_8 = "5ee52bf4b50e02437d8a6e54f2eb993ba320adda", effect_row_9_9 = "5cc27a35bab97e375055e5d312d82f0866c936c8", effect_row_9_10 = "7dce2c423cdd82af998a93441952a70b213beb18", effect_row_9_11 = "288c97e63fc7d98b2563b48fa6161364f3c5d663", effect_row_9_12 = "a1c88c619554d6d2e25b538c127d6acc0fc5dd6d", effect_row_9_13 = "00117c064a5c227b7d57c2f45f974216e4e32d67", effect_row_10 = "f291152fb0e9f6894fe239fc261f80e74ae0b440", effect_row_10_1 = "67e11e06d4aefb6d2ca2d1c666dcdc9897b8a200", effect_row_10_2 = "fb3de80868058d9afe9c158bda934bf0a51b0dcd", effect_row_10_3 = "67416d29235c2f91602ef72a7da3c24115aa61ed", effect_row_10_4 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_5 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_6 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_7 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_8 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_9 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_10 = "ba2a674ab60c92b81edb60e6a265bbf11bda3882", effect_row_10_11 = "570f4d5ebb6002c7010950aaba2f579a24817e41", effect_row_10_12 = "570f4d5ebb6002c7010950aaba2f579a24817e41", effect_row_10_13 = "570f4d5ebb6002c7010950aaba2f579a24817e41", effect_row_10_14 = "79f259ca7283d49feb2d02ce43129c59940fc206", effect_row_10_15 = "79f259ca7283d49feb2d02ce43129c59940fc206" }

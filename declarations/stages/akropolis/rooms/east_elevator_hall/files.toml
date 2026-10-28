@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://dqi1jgg89t6r", path = "res://stages/akropolis/rooms/east_elevator_hall/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -71,6 +74,7 @@ type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 1, folder = 201, file = 0 }]
+chunks = { dialogue_0_atlas = "dc2faa043b530d4c27a3021c899927c3cdadb63b" }
 
 [view1]
 uid = "uid://87gb3j0o8877"

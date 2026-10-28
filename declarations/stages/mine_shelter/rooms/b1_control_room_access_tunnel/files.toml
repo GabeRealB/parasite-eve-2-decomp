@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "image"
 type = "image"
+pages = [
+    { image = { uid = "uid://cxydl57mtus1", path = "res://stages/mine_shelter/rooms/b1_control_room_access_tunnel/image.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -29,6 +32,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 4, folder = 2501, file = 0 }]
+chunks = { image = "e552bc467aaa7ce828beda01c11e91d28da69a37" }
 
 [view1]
 uid = "uid://1arejv45t2h45"

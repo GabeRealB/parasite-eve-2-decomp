@@ -7,6 +7,9 @@ kind = "file"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://r2w9qimkqxel", path = "res://stages/shelter_neo_ark/rooms/r31/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -21,6 +24,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 5, folder = 3101, file = 0 }]
+chunks = { dialogue_0_atlas = "5554fcd2f79e30dc36476cd421ec7b3a00b0fc4a" }
 
 [view1]
 uid = "uid://fw4svu2scl20"

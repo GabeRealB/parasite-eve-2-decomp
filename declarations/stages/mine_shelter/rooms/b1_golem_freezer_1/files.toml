@@ -15,14 +15,24 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1rdcee28htnr", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://16hmroi1109gc", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/props/smoke.asset" }, palette = "effect_row_10_16" },
+]
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9], size = [320, 2] }
 
 [[base.slots]]
 name = "image"
 type = "image"
+pages = [
+    { image = { uid = "uid://16hmroi1109gc", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/props/smoke.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -31,13 +41,22 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 1, type = "palette" },
-    { index = 7, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1s9f9npc6ze6c", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/views/view2.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 7
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 4, folder = 2101, file = 0 }]
+chunks = { dialogue_0_atlas = "2765e48b195c1feffe66fee0e169d8c549177ba8", palette = "9f301837c6009bef78c9075a000e7dddc96758f1", image = "6deb2730d22c149d6595e1b5bd22b491e582c67e" }
 
 [view1]
 uid = "uid://3x2kcpd2kl4r"
@@ -52,13 +71,22 @@ at = [{ stage = 4, folder = 2101, file = 1 }]
 [view2]
 uid = "uid://jz1p66ll7pg2"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://ho7fj3235phz", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/views/view2_background.asset" } },
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1s9f9npc6ze6c", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/views/view2.asset" } },
 ]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://ho7fj3235phz", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/views/view2_background.asset" }
 
 [view2.from.USA]
 at = [{ stage = 4, folder = 2101, file = 2 }]
+chunks = { image = "05731de5a6000f537e4020c32af85e018e6437d6" }
 
 [view3]
 uid = "uid://skfhomojlckf"

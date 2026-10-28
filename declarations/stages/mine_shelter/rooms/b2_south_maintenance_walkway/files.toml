@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://5sgwod7heqx4", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,13 +26,22 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 2, type = "palette" },
-    { index = 5, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://ocgsaqnunyd6", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view3.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 5
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 4, folder = 2801, file = 0 }]
+chunks = { dialogue_0_atlas = "c9a69e35fed8f1e364b998fd0e03b482958fcbc7" }
 
 [view1]
 uid = "uid://jqhj8qxb7qz6"
@@ -54,13 +66,22 @@ at = [{ stage = 4, folder = 2801, file = 2 }]
 [view3]
 uid = "uid://1btr1on5fg0v6"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://r8semdsgog9s", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://ocgsaqnunyd6", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://r8semdsgog9s", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 4, folder = 2801, file = 3 }]
+chunks = { image = "e5dbb817503cd9ad052fce4d9a92f9e471415f94" }
 
 [view4]
 uid = "uid://1l20foiwabwq8"

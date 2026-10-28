@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://m7m9az9y8es4", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,13 +26,23 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 2, type = "palette" },
-    { index = 6, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://7krnyejshbth", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3.asset" }, palette = "row_0" },
+    { image = { uid = "uid://7krnyejshbth", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3.asset" }, palette = "row_1" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 6
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 4, folder = 1201, file = 0 }]
+chunks = { dialogue_0_atlas = "632dbf24c1fd74941dd662e71dbdae22181fd151" }
 
 [view1]
 uid = "uid://16mm3ppx9wixd"
@@ -54,13 +67,22 @@ at = [{ stage = 4, folder = 1201, file = 2 }]
 [view3]
 uid = "uid://1y147yej609tt"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://4woz19xzkhnb", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://7krnyejshbth", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://4woz19xzkhnb", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 4, folder = 1201, file = 3 }]
+chunks = { image = "fca02b9e4e492f05d8bcb225c94cbb25bf6bce37" }
 
 [view4]
 uid = "uid://21b0ssxhjdh9"

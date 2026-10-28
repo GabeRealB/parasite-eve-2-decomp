@@ -15,14 +15,24 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1r3oleblcrw1s", path = "res://stages/shelter_neo_ark/rooms/1f_vehicular_airlock/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "image"
 type = "image"
+pages = [
+    { image = { uid = "uid://y4eeysu4d051", path = "res://stages/shelter_neo_ark/rooms/1f_vehicular_airlock/props/teddy_bear.asset" } },
+]
 
 [[base.slots]]
 name = "palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://y4eeysu4d051", path = "res://stages/shelter_neo_ark/rooms/1f_vehicular_airlock/props/teddy_bear.asset" }, palette = "effect_row_1" },
+]
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0], size = [256, 2] }
 
 [[base.slots]]
 name = "package"
@@ -37,6 +47,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 5, folder = 201, file = 0 }]
+chunks = { dialogue_0_atlas = "7d90a766b77c36097944637f5008084a761026a6", image = "b1dd06a8e44d3e42fb5a6bfdf44577e8217c5302", palette = "33d70d19c0350450efa10ff8580d84cd8a93f9af" }
 
 [view1]
 uid = "uid://midj6m4bleaj"

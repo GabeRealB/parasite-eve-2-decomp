@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://kwjume25qxw4", path = "res://stages/akropolis/rooms/fountain/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "palette"
@@ -155,7 +158,7 @@ type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 1, folder = 801, file = 0 }]
-chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5" }
+chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "056dc86ae89ea7ed36fb24884a724f1a880bc152" }
 
 [view1]
 uid = "uid://u3kttd7s9iwa"

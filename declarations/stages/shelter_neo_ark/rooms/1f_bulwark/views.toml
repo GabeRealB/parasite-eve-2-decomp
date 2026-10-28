@@ -29,3 +29,29 @@ format = "bs"
 [view3_background.from.USA]
 at = [{ stage = 5, folder = 301, file = 3, slot = "background" }]
 sha1 = "cc43184d1db0b1d7f87eb03c51c33c7523d6c21a"
+
+[view3]
+uid = "uid://iwyl4g1m6nw6"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 160]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view3_sprite_0", rect = [120, 152, 8, 8], palette = "row_0" },
+    { name = "view3_sprite_1", rect = [72, 144, 56, 8], palette = "row_0" },
+    { name = "view3_sprite_2", rect = [64, 112, 64, 16], palette = "row_0" },
+    { name = "view3_sprite_3", rect = [112, 128, 16, 16], palette = "row_0" },
+    { name = "view3_sprite_4", rect = [112, 32, 16, 32], palette = "row_0" },
+    { name = "view3_sprite_5", rect = [112, 88, 16, 24], palette = "row_0" },
+    { name = "view3_sprite_6", rect = [72, 0, 56, 32], palette = "row_0" },
+    { name = "view3_sprite_7", rect = [64, 64, 64, 24], palette = "row_0" },
+]
+
+[view3.from.USA]
+at = [{ stage = 5, folder = 301, file = 3, slot = "image", page = 0 }]
+sha1 = "fd001f0bc0da01e6e0518621bc6f6ebc3e91a3d9"
+palettes = { row_0 = "80a5643e85789b7bd7847567dad6157065a10bc3" }

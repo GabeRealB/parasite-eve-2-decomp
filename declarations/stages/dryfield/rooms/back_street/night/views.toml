@@ -49,3 +49,49 @@ format = "bs"
 [view5_background.from.USA]
 at = [{ stage = 3, folder = 501, file = 5, slot = "background" }]
 sha1 = "d082fdd9500d7d52a5ccb7ed12c29ed9658483ab"
+
+[view4]
+uid = "uid://562bqcgwaeaj"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view4_sprite_0", rect = [48, 152, 8, 96], palette = "row_0" },
+    { name = "view4_sprite_1", rect = [56, 152, 8, 104], palette = "row_0" },
+    { name = "view4_sprite_2", rect = [48, 0, 16, 152], palette = "row_0" },
+    { name = "view4_sprite_3", rect = [64, 0, 24, 200], palette = "row_0" },
+    { name = "view4_sprite_4", rect = [88, 0, 40, 216], palette = "row_0" },
+]
+
+[view4.from.USA]
+at = [{ stage = 3, folder = 501, file = 4, slot = "image", page = 0 }]
+sha1 = "b9e2f23567010c1c7f75c1892ae9d02757c89a22"
+palettes = { row_0 = "6798d4018d1606dc0c56c446c6e576edeede51a0" }
+
+[view5]
+uid = "uid://19kz96t3n6asz"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 104]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view5_sprite_0", rect = [120, 32, 8, 32], palette = "row_0" },
+    { name = "view5_sprite_1", rect = [120, 0, 8, 32], palette = "row_0" },
+    { name = "view5_sprite_2", rect = [104, 96, 24, 8], palette = "row_0" },
+    { name = "view5_sprite_3", rect = [96, 88, 32, 8], palette = "row_0" },
+    { name = "view5_sprite_4", rect = [104, 64, 24, 24], palette = "row_0" },
+]
+
+[view5.from.USA]
+at = [{ stage = 3, folder = 501, file = 5, slot = "image", page = 0 }]
+sha1 = "d7ba7079084d5cb2d66d675e120e64c342507db0"
+palettes = { row_0 = "0c89881521868ce81c0dc9231b5808dbf9739d45" }

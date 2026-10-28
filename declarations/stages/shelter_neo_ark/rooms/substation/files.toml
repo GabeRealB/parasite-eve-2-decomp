@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1mvxsje9g1sc1", path = "res://stages/shelter_neo_ark/rooms/substation/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,15 +26,38 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 1, type = "palette" },
-    { index = 2, type = "palette" },
-    { index = 3, type = "palette" },
-    { index = 8, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://c0ldfzqsgr2p", path = "res://stages/shelter_neo_ark/rooms/substation/views/view2.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://35434o725q9k", path = "res://stages/shelter_neo_ark/rooms/substation/views/view3.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ch28ik05sg4r", path = "res://stages/shelter_neo_ark/rooms/substation/views/view4.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 8
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 5, folder = 3301, file = 0 }]
+chunks = { dialogue_0_atlas = "a9dc2d20870085007442f8560d2393ac47d4e9e7" }
 
 [view1]
 uid = "uid://14tsgcsv16umo"
@@ -46,35 +72,62 @@ at = [{ stage = 5, folder = 3301, file = 1 }]
 [view2]
 uid = "uid://bkysiue41z1j"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://10tugtj3e8x0", path = "res://stages/shelter_neo_ark/rooms/substation/views/view2_background.asset" } },
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://c0ldfzqsgr2p", path = "res://stages/shelter_neo_ark/rooms/substation/views/view2.asset" } },
 ]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://10tugtj3e8x0", path = "res://stages/shelter_neo_ark/rooms/substation/views/view2_background.asset" }
 
 [view2.from.USA]
 at = [{ stage = 5, folder = 3301, file = 2 }]
+chunks = { image = "5178f67de2299f0d8f9e971fb7bdfc3161173c3b" }
 
 [view3]
 uid = "uid://2q2hxhfguawd"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://j63kp1mm23gi", path = "res://stages/shelter_neo_ark/rooms/substation/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://35434o725q9k", path = "res://stages/shelter_neo_ark/rooms/substation/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://j63kp1mm23gi", path = "res://stages/shelter_neo_ark/rooms/substation/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 5, folder = 3301, file = 3 }]
+chunks = { image = "886476ea826ec6a247599f0779afd4806016b499" }
 
 [view4]
 uid = "uid://u0purvktla2t"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://8sdhzk4wk72q", path = "res://stages/shelter_neo_ark/rooms/substation/views/view4_background.asset" } },
+
+[[view4.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ch28ik05sg4r", path = "res://stages/shelter_neo_ark/rooms/substation/views/view4.asset" } },
 ]
+
+[[view4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://8sdhzk4wk72q", path = "res://stages/shelter_neo_ark/rooms/substation/views/view4_background.asset" }
 
 [view4.from.USA]
 at = [{ stage = 5, folder = 3301, file = 4 }]
+chunks = { image = "63f5c62c747b880727eefc987b796ef7d7ce66fc" }
 
 [view5]
 uid = "uid://t5vymidmilpe"

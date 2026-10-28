@@ -1,0 +1,25 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[car]
+uid = "uid://19xxwc48op6hi"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [256, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
+    { name = "effect_row_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
+]
+cells = [
+    { name = "model_06604_0", rect = [0, 165, 76, 46], palette = "effect_row_3" },
+    { name = "model_06604_1", rect = [0, 0, 128, 165], palette = "effect_row_3" },
+    { name = "model_06604_2", rect = [128, 0, 128, 224], palette = "effect_row_2" },
+    { name = "model_093E4_0", rect = [12, 24, 62, 21], palette = "effect_row_3" },
+    { name = "model_093E4_1", rect = [133, 198, 66, 26], palette = "effect_row_2" },
+]
+
+[car.from.USA]
+at = [{ stage = 2, folder = 2301, file = 0, slot = "image", page = 0 }]
+sha1 = "30500a8b565d201e832dd2461db790e4095bb628"
+palettes = { effect_row_3 = "4836641b1311107fc57ac5e98e83ff3812e7a71a", effect_row_2 = "93b16c2e8d5d154ddbee788f9ff2812be42ce601" }

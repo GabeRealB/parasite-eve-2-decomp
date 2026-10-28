@@ -139,3 +139,51 @@ format = "bs"
 [view14_background.from.USA]
 at = [{ stage = 2, folder = 101, file = 14, slot = "background" }]
 sha1 = "2e7d36895228e6f984a433a07fa6ab2874a81911"
+
+[view2]
+uid = "uid://jgcmcbm5ovmm"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 160]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view2_sprite_0", rect = [120, 152, 8, 8], palette = "row_0" },
+    { name = "view2_sprite_1", rect = [120, 40, 8, 32], palette = "row_0" },
+    { name = "view2_sprite_2", rect = [120, 72, 8, 32], palette = "row_0" },
+    { name = "view2_sprite_3", rect = [120, 0, 8, 40], palette = "row_0" },
+    { name = "view2_sprite_4", rect = [112, 128, 16, 24], palette = "row_0" },
+    { name = "view2_sprite_5", rect = [80, 104, 48, 24], palette = "row_0" },
+]
+
+[view2.from.USA]
+at = [{ stage = 2, folder = 101, file = 2, slot = "image", page = 0 }]
+sha1 = "0089b3d128fbeb1f94eaf763794710f72c28e064"
+palettes = { row_0 = "d97e2e90503e099d05eb123b0a84b71f920e72bf" }
+
+[view3]
+uid = "uid://sy8zkyt1qovp"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 200]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view3_sprite_0", rect = [112, 152, 16, 24], palette = "row_0" },
+    { name = "view3_sprite_1", rect = [88, 120, 40, 32], palette = "row_0" },
+    { name = "view3_sprite_2", rect = [104, 176, 24, 24], palette = "row_0" },
+    { name = "view3_sprite_3", rect = [112, 40, 16, 40], palette = "row_0" },
+    { name = "view3_sprite_4", rect = [120, 0, 8, 40], palette = "row_0" },
+    { name = "view3_sprite_5", rect = [120, 80, 8, 40], palette = "row_0" },
+]
+
+[view3.from.USA]
+at = [{ stage = 2, folder = 101, file = 3, slot = "image", page = 0 }]
+sha1 = "5bc593d977ef38c23cf3d87b38b4b85ab0d1e8f6"
+palettes = { row_0 = "c6cb71e433ccd59cdad6efa35ded0d6517cbb8f8" }

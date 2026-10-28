@@ -7,6 +7,9 @@ kind = "file"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1wg6a2o7dzzii", path = "res://stages/akropolis/rooms/mist_r21/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -21,6 +24,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 1, folder = 2101, file = 0 }]
+chunks = { dialogue_0_atlas = "ea5c88b21e2aff916b0f955295687e5c2270110c" }
 
 [view1]
 uid = "uid://rdyehav8dk68"

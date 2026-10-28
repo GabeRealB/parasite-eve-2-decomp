@@ -20,3 +20,43 @@ files = [
 
 [folder.from.USA]
 at = [{ stage = 5, folder = 2801 }]
+
+[dialogue_0_atlas]
+uid = "uid://w9plv2s3edb3"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 56]
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
+palettes = [
+    { name = "text_0", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] },
+    { name = "text_1", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] },
+    { name = "text_2", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] },
+    { name = "text_3", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] },
+    { name = "plate", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] },
+]
+
+[dialogue_0_atlas.from.USA]
+at = [{ stage = 5, folder = 2801, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "9293a92b67575102e3dc8b730365abbacfdf7fc9"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_2_atlas]
+uid = "uid://ond3ow4b711s"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 48]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+palettes = [
+    { name = "text_0", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] },
+    { name = "text_1", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] },
+    { name = "text_2", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] },
+    { name = "text_3", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] },
+    { name = "plate", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] },
+]
+
+[dialogue_2_atlas.from.USA]
+at = [{ stage = 5, folder = 2801, file = 0, slot = "dialogue_2_atlas", page = 0 }]
+sha1 = "673ece4b1f251140a2d5091437d34674935f195a"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1xm3a6zi2lvo0", path = "res://stages/dryfield/rooms/motel_room_5/day/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -29,18 +32,40 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 2, folder = 2801, file = 0 }]
+chunks = { dialogue_0_atlas = "a8ee15dd14ce469ac2ab9d35b111a999c045983e" }
 
 [view1]
 uid = "uid://wabe07vl8nr2"
 kind = "file"
-slots = [
-    { name = "palette", type = "palette" },
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://28dy52fq5kzn", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1_background.asset" } },
+
+[[view1.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://chj0gtoziry7", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1.asset" }, palette = "row_5_10" },
+    { image = { uid = "uid://chj0gtoziry7", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1.asset" }, palette = "row_5_11" },
+    { image = { uid = "uid://chj0gtoziry7", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1.asset" }, palette = "row_5_12" },
+    { image = { uid = "uid://chj0gtoziry7", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1.asset" }, palette = "row_5_13" },
+    { image = { uid = "uid://chj0gtoziry7", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1.asset" }, palette = "row_5_14" },
+    { image = { uid = "uid://chj0gtoziry7", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1.asset" }, palette = "row_5_15" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[view1.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://chj0gtoziry7", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1.asset" } },
+]
+
+[[view1.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://28dy52fq5kzn", path = "res://stages/dryfield/rooms/motel_room_5/day/views/view1_background.asset" }
 
 [view1.from.USA]
 at = [{ stage = 2, folder = 2801, file = 1 }]
+chunks = { palette = "93c7f33392f7ec3de5e65bd350b1949459555227", image = "7f101677764624757a16c3c1a75b10c27f2156d5" }
 
 [view2]
 uid = "uid://1mpxcl2s5yh1o"

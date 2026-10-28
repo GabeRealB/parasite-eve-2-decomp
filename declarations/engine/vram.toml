@@ -86,6 +86,22 @@ uid = "uid://7hpx62tky6nk"
 kind = "vram_slot"
 rect = [448, 64, 64, 64]
 
+[map_palettes]
+uid = "uid://fsmv9ev0ri61"
+kind = "vram_slot"
+rect = [0, 255, 256, 6]
+borrows = [
+    { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" },
+]
+
+[map_sheet]
+uid = "uid://qy0eoildj00s"
+kind = "vram_slot"
+rect = [896, 0, 128, 256]
+borrows = [
+    { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" },
+]
+
 [preview_palette]
 uid = "uid://1r4i1k0syt8ik"
 kind = "vram_slot"
@@ -132,6 +148,16 @@ rect = [0, 255, 256, 6]
 uid = "uid://yjoa5nyt3fs0"
 kind = "vram_slot"
 rect = [960, 0, 64, 256]
+
+[shared_palettes]
+uid = "uid://wpn0tw2abf5i"
+kind = "vram_slot"
+rect = [0, 253, 256, 2]
+
+[shared_sheets]
+uid = "uid://1ndxe29dxqbxv"
+kind = "vram_slot"
+rect = [384, 128, 128, 160]
 
 [tall_preview]
 uid = "uid://11t0an647k29l"

@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1l9z5i549hdd9", path = "res://stages/akropolis/rooms/mist_r18/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "palette_0"
@@ -71,7 +74,7 @@ type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 1, folder = 1801, file = 0 }]
-chunks = { palette_0 = "37ba03cc4f84cabaabfcf58b833fdc226baff1b2", palette_1 = "5be24498a488b517e5661298838e17a393f5737c", image = "0c377f40f81e995f257a140dc8f470ccee3d8c60" }
+chunks = { palette_0 = "37ba03cc4f84cabaabfcf58b833fdc226baff1b2", palette_1 = "5be24498a488b517e5661298838e17a393f5737c", image = "0c377f40f81e995f257a140dc8f470ccee3d8c60", dialogue_0_atlas = "bd30c83aaf299464dfe503b32f9cd8923d34eee4" }
 
 [view1]
 uid = "uid://nghtr5yrluu5"

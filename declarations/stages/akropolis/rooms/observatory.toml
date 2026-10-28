@@ -45,3 +45,23 @@ variants = [
 at = [{ stage = 1, folder = 1001, file = 0, slot = "image", page = 0 }]
 sha1 = "fbfd2422a1f83c6b844347ff3788a9cb3cf22519"
 palettes = { frame_0 = "151ad4afa66aaf5272f5aaf5f1c700b914b85cdb", frame_1 = "b0fcbddd3d537ae35a872e4e6e822a33c9f15db0" }
+
+[dialogue_0_atlas]
+uid = "uid://17ecpyez3817g"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [248, 32]
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
+palettes = [
+    { name = "text_0", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] },
+    { name = "text_1", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] },
+    { name = "text_2", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] },
+    { name = "text_3", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] },
+    { name = "plate", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] },
+]
+
+[dialogue_0_atlas.from.USA]
+at = [{ stage = 1, folder = 1001, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "f33f9ceb03d387ad167608549e9bee37adeec015"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

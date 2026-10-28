@@ -973,14 +973,29 @@ chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522
 [aya_10400]
 uid = "uid://1teumqyjo551d"
 kind = "file"
-slots = [
-    { name = "palette", type = "palette" },
-    { name = "image", type = "image" },
-    { name = "package", type = "package" },
+
+[[aya_10400.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset" }, palette = "default_2" },
 ]
+
+[[aya_10400.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset" } },
+]
+
+[[aya_10400.slots]]
+name = "package"
+type = "package"
 
 [aya_10400.from.USA]
 at = [{ stage = 0, file = 10400 }]
+chunks = { image = "61f4b513814507d49d32932f2f46ae4f6bb2ba88", palette = "060e8dea2a0231536204a8a83956a8f90f7a145f" }
 
 [aya_10500]
 uid = "uid://12p2cb5hbm5yz"

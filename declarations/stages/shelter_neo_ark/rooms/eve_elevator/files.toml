@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://qr6hps65bhpo", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -29,6 +32,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 5, folder = 901, file = 0 }]
+chunks = { dialogue_0_atlas = "c224e093174d24ea54347f79ffaabed632fe64fb" }
 
 [view1]
 uid = "uid://12m0w7bt9hnm1"

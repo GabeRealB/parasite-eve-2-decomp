@@ -1,0 +1,17 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[debris]
+uid = "uid://1xo3xnafcfh7w"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [128, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] },
+]
+
+[debris.from.USA]
+at = [{ stage = 2, folder = 2201, file = 0, slot = "image", page = 0 }]
+sha1 = "80ab0378cc39480c602e9fa0ff9216718ab7694a"
+palettes = { effect_row_10 = "f51e0de496bd1aae95a6d3965f1d53cc16854269" }

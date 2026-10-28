@@ -7,6 +7,9 @@ kind = "file"
 [[base.slots]]
 name = "glyph_page"
 type = "image"
+pages = [
+    { image = { uid = "uid://1iza0f4sg85ej", path = "res://stages/dryfield/rooms/r04/day/glyph_page.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -21,6 +24,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 2, folder = 401, file = 0 }]
+chunks = { glyph_page = "13873ef2308a1552312e965839e6fc8390526226" }
 
 [view1]
 uid = "uid://1wswjof8gh4u5"

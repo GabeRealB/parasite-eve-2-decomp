@@ -1,0 +1,39 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[debris]
+uid = "uid://xx1a18oafijp"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [256, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_9_19", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 9] },
+    { name = "effect_row_10_17", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [272, 10] },
+    { name = "effect_row_10_18", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [288, 10] },
+    { name = "effect_row_10_19", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] },
+]
+
+[debris.from.USA]
+at = [{ stage = 4, folder = 4501, file = 0, slot = "image", page = 0 }]
+sha1 = "aae4b0a58dc878ed009fdbac78b73b5330e62a7b"
+palettes = { effect_row_9_19 = "733590e2c3b8c95a2e7d305c1171fbd28e58ca42", effect_row_10_17 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_18 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_19 = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
+
+[wall]
+uid = "uid://18i6iyzj6xtxm"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 128]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "effect_row_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
+]
+cells = [
+    { name = "model_07220", rect = [0, 0, 128, 128], palette = "effect_row_2" },
+]
+
+[wall.from.USA]
+at = [{ stage = 4, folder = 4501, file = 0, slot = "image", page = 1 }]
+sha1 = "c1c9fe040fe0ca02d557d0a3b399375bac881da3"
+palettes = { effect_row_2 = "b903f7d95852fcad1d7eb6c1d595544915a17538" }

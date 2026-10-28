@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1gxxh3y7esoc", path = "res://stages/akropolis/rooms/square/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -82,6 +85,7 @@ type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 1, folder = 101, file = 0 }]
+chunks = { dialogue_0_atlas = "97386e6c7707dbf868dedc7e7cd0af6eeb693eb5" }
 
 [view1]
 uid = "uid://98lrn5aaymqp"
@@ -232,13 +236,22 @@ chunks = { image = "651058b185dd47616e89f29bf0cd3d8e4335107a" }
 [view9]
 uid = "uid://1ev57lffzurs"
 kind = "file"
-slots = [
-    { name = "dialogue_1_atlas", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://kxy1jv5tlv5d", path = "res://stages/akropolis/rooms/square/views/view9_background.asset" } },
+
+[[view9.slots]]
+name = "dialogue_1_atlas"
+type = "image"
+pages = [
+    { image = { uid = "uid://5xcamop92axh", path = "res://stages/akropolis/story_calls_atlas.asset" } },
 ]
+
+[[view9.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://kxy1jv5tlv5d", path = "res://stages/akropolis/rooms/square/views/view9_background.asset" }
 
 [view9.from.USA]
 at = [{ stage = 1, folder = 101, file = 9 }]
+chunks = { dialogue_1_atlas = "c0887787c2a7c396b2b5b43f16828d518216aa75" }
 
 [view10]
 uid = "uid://14mksnzkcax2z"

@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dryfield_warehouse_dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://gfj2p5kyoy8i", path = "res://stages/dryfield/rooms/warehouse/night/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,15 +26,38 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 1, type = "palette" },
-    { index = 2, type = "palette" },
-    { index = 3, type = "palette" },
-    { index = 4, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://11lht266gmcb", path = "res://stages/dryfield/rooms/warehouse/night/views/view2.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1rfl4mdexi614", path = "res://stages/dryfield/rooms/warehouse/night/views/view3.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "palette"
+palettes = [
+    { image = { uid = "uid://pvkmsn5zofwe", path = "res://stages/dryfield/rooms/warehouse/night/views/view4.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 4
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 3, folder = 701, file = 0 }]
+chunks = { dryfield_warehouse_dialogue_0_atlas = "bf113ea197d89d74c7ab0fd726c829936a70845a" }
 
 [view1]
 uid = "uid://1h0fc7kcgvl8a"
@@ -46,32 +72,59 @@ at = [{ stage = 3, folder = 701, file = 1 }]
 [view2]
 uid = "uid://h18yjgx3w3rr"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://50y8vcdpax2x", path = "res://stages/dryfield/rooms/warehouse/night/views/view2_background.asset" } },
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://11lht266gmcb", path = "res://stages/dryfield/rooms/warehouse/night/views/view2.asset" } },
 ]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://50y8vcdpax2x", path = "res://stages/dryfield/rooms/warehouse/night/views/view2_background.asset" }
 
 [view2.from.USA]
 at = [{ stage = 3, folder = 701, file = 2 }]
+chunks = { image = "a7e2495c9a7de974d1aec821440e32dd2beeefe5" }
 
 [view3]
 uid = "uid://kzolxrr6egae"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://1bwxhyznvxv4n", path = "res://stages/dryfield/rooms/warehouse/night/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1rfl4mdexi614", path = "res://stages/dryfield/rooms/warehouse/night/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1bwxhyznvxv4n", path = "res://stages/dryfield/rooms/warehouse/night/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 3, folder = 701, file = 3 }]
+chunks = { image = "297eb0925609bcfc2d079716d2bf553efbb518b6" }
 
 [view4]
 uid = "uid://946cs3tgv3xe"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://pvf9fqckfgma", path = "res://stages/dryfield/rooms/warehouse/night/views/view4_background.asset" } },
+
+[[view4.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://pvkmsn5zofwe", path = "res://stages/dryfield/rooms/warehouse/night/views/view4.asset" } },
 ]
+
+[[view4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://pvf9fqckfgma", path = "res://stages/dryfield/rooms/warehouse/night/views/view4_background.asset" }
 
 [view4.from.USA]
 at = [{ stage = 3, folder = 701, file = 4 }]
+chunks = { image = "1ddac0a530bbe633aada13e4c5d63dc4fcd8fcaa" }

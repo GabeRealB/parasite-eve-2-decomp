@@ -79,3 +79,64 @@ format = "bs"
 [view8_background.from.USA]
 at = [{ stage = 5, folder = 2301, file = 8, slot = "background" }]
 sha1 = "b07d1087b46ff68229eb103c73739188a30ba816"
+
+[view2]
+uid = "uid://p71j0en2uuo5"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 88]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view2_sprite_0", rect = [112, 0, 16, 16], palette = "row_0" },
+    { name = "view2_sprite_1", rect = [112, 16, 16, 16], palette = "row_0" },
+    { name = "view2_sprite_2", rect = [120, 32, 8, 16], palette = "row_0" },
+    { name = "view2_sprite_3", rect = [112, 48, 16, 16], palette = "row_0" },
+    { name = "view2_sprite_4", rect = [112, 64, 16, 16], palette = "row_0" },
+    { name = "view2_sprite_5", rect = [112, 80, 16, 8], palette = "row_0" },
+]
+
+[view2.from.USA]
+at = [{ stage = 5, folder = 2301, file = 2, slot = "image", page = 0 }]
+sha1 = "5ef961f5a3c3e97e4472f27d5bbf927e8eaeaff5"
+palettes = { row_0 = "efcf4b34a355dd1a02570f5aa6ca08f86737d196" }
+
+[view3]
+uid = "uid://1vw18g6tc15rn"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view3_sprite_0", rect = [112, 32, 16, 24], palette = "row_0" },
+    { name = "view3_sprite_1", rect = [112, 0, 16, 32], palette = "row_0" },
+    { name = "view3_sprite_2", rect = [112, 56, 16, 24], palette = "row_0" },
+    { name = "view3_sprite_3", rect = [112, 144, 16, 16], palette = "row_0" },
+    { name = "view3_sprite_4", rect = [112, 160, 16, 16], palette = "row_0" },
+    { name = "view3_sprite_5", rect = [104, 240, 16, 8], palette = "row_0" },
+    { name = "view3_sprite_6", rect = [120, 224, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_7", rect = [112, 128, 16, 16], palette = "row_0" },
+    { name = "view3_sprite_8", rect = [112, 176, 16, 16], palette = "row_0" },
+    { name = "view3_sprite_9", rect = [112, 208, 16, 16], palette = "row_0" },
+    { name = "view3_sprite_10", rect = [120, 192, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_11", rect = [112, 80, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_12", rect = [120, 240, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_13", rect = [112, 96, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_14", rect = [112, 112, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_15", rect = [120, 104, 8, 24], palette = "row_0" },
+    { name = "view3_sprite_16", rect = [112, 192, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_17", rect = [112, 224, 8, 16], palette = "row_0" },
+    { name = "view3_sprite_18", rect = [120, 80, 8, 24], palette = "row_0" },
+]
+
+[view3.from.USA]
+at = [{ stage = 5, folder = 2301, file = 3, slot = "image", page = 0 }]
+sha1 = "f094a078a5474ebe8793de10b19a7269a0454a36"
+palettes = { row_0 = "d06c54a54a7248da96a5aa9e9edeb9a6e1e7ed57" }

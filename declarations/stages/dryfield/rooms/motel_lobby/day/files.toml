@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1tl9h099tth52", path = "res://stages/dryfield/rooms/motel_lobby/day/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,15 +26,38 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 1, type = "palette" },
-    { index = 2, type = "palette" },
-    { index = 3, type = "palette" },
-    { index = 5, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://jqxl3evarvaz", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view2.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://73h2b5mnwy83", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view3.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "palette"
+palettes = [
+    { image = { uid = "uid://118102iu2resg", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view4.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 5
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 2, folder = 1701, file = 0 }]
+chunks = { dialogue_0_atlas = "1b4d72a940b770e7c783fb5b7e13f3d7c140332d" }
 
 [view1]
 uid = "uid://1qo91iz20fjvd"
@@ -46,35 +72,62 @@ at = [{ stage = 2, folder = 1701, file = 1 }]
 [view2]
 uid = "uid://7cywivp91f4x"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://1k1kwhkbr9zfi", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view2_background.asset" } },
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://jqxl3evarvaz", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view2.asset" } },
 ]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1k1kwhkbr9zfi", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view2_background.asset" }
 
 [view2.from.USA]
 at = [{ stage = 2, folder = 1701, file = 2 }]
+chunks = { image = "eaf85a34760d55076e44f1be3fd0e8205f1c8332" }
 
 [view3]
 uid = "uid://1bb6i6gias2ro"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://10f7txeppnhvt", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://73h2b5mnwy83", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://10f7txeppnhvt", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 2, folder = 1701, file = 3 }]
+chunks = { image = "fb10c1ac0472464df7d0024fc28e5cc66639de52" }
 
 [view4]
 uid = "uid://3ocwbqaxy74r"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://98unb99iak8i", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view4_background.asset" } },
+
+[[view4.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://118102iu2resg", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view4.asset" } },
 ]
+
+[[view4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://98unb99iak8i", path = "res://stages/dryfield/rooms/motel_lobby/day/views/view4_background.asset" }
 
 [view4.from.USA]
 at = [{ stage = 2, folder = 1701, file = 4 }]
+chunks = { image = "2cd84cb121805ea6e3d9594768bb49ed11858210" }
 
 [view5]
 uid = "uid://iykfju4f8rq3"

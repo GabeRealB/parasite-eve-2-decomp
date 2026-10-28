@@ -811,6 +811,21 @@ palettes = [
     { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "other_item.ammo_9mm" },
     { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "unidentified" },
     { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "key_item" },
+    { name = "unread_ui_row_1_1", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [16, 1] },
+    { name = "unread_ui_row_1_2", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [32, 1] },
+    { name = "unread_ui_row_1_3", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [48, 1] },
+    { name = "unread_ui_row_1_4", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [64, 1] },
+    { name = "unread_ui_row_1_5", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [80, 1] },
+    { name = "unread_ui_row_1_6", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [96, 1] },
+    { name = "unread_ui_row_1_7", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [112, 1] },
+    { name = "unread_ui_row_1_8", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [128, 1] },
+    { name = "unread_ui_row_1_9", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [144, 1] },
+    { name = "unread_ui_row_1_10", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [160, 1] },
+    { name = "unread_ui_row_1_11", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [176, 1] },
+    { name = "unread_ui_row_1_12", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [192, 1] },
+    { name = "unread_ui_row_1_13", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [208, 1] },
+    { name = "unread_ui_row_1_14", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [224, 1] },
+    { name = "unread_ui_row_1_15", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [240, 1] },
 ]
 
 [ui.from.USA]

@@ -1,0 +1,49 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[smoke_fire]
+uid = "uid://19q45r1zlb1yv"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [248, 256]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
+]
+
+[smoke_fire.from.USA]
+at = [{ stage = 4, folder = 4801, file = 0, slot = "image", page = 0 }]
+sha1 = "b76c151196a96900f8a9c7bde0e45a741e7f77a4"
+palettes = { effect_row_9 = "3827df5302cf771283d24c68f9926f29f4a75a1f" }
+
+[torso_arm_0_destroyed]
+uid = "uid://17zzyw6wefnav"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [128, 0] }
+palettes = [
+    { name = "actor_row_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+]
+
+[torso_arm_0_destroyed.from.USA]
+at = [{ stage = 4, folder = 4801, file = 19, slot = "image", page = 0 }]
+sha1 = "865770baaf25b01f663c18ef5a1496c9fe5679de"
+palettes = { actor_row_2 = "bdc79dc416bcd648fe4f2f3281e9e7626007a941" }
+
+[torso_arm_1_destroyed]
+uid = "uid://jnk0qguqsdl6"
+kind = "image"
+role = "texture"
+bpp = 8
+size = [128, 256]
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [256, 0] }
+palettes = [
+    { name = "actor_row_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
+]
+
+[torso_arm_1_destroyed.from.USA]
+at = [{ stage = 4, folder = 4801, file = 20, slot = "image", page = 0 }]
+sha1 = "7c13126acecfbe3b2e64cb029225635ab7bb9713"
+palettes = { actor_row_2 = "232a32a4052a9358ad9adc3dfebb18a829454a78" }

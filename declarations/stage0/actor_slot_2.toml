@@ -1202,6 +1202,9 @@ page_slots = 6
 [[shelter_1f_heliport_rupert.slots]]
 name = "image"
 type = "image"
+pages = [
+    { image = { uid = "uid://1ckyejjz2ec8x", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_1_atlas.asset" } },
+]
 
 [[shelter_1f_heliport_rupert.slots]]
 name = "package"
@@ -1209,7 +1212,7 @@ type = "package"
 
 [shelter_1f_heliport_rupert.from.USA]
 at = [{ stage = 0, file = 260400 }]
-chunks = { hurt_palette = "eb1fa3378993d003b53559608e6c73ebaac55445", hurt_image = "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0" }
+chunks = { hurt_palette = "eb1fa3378993d003b53559608e6c73ebaac55445", hurt_image = "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0", image = "4b51057f49faeae846cf1d6cfe2bf77857e7ab15" }
 
 [shelter_1f_heliport_jodie]
 uid = "uid://nckgrms4990v"
@@ -1234,6 +1237,9 @@ page_slots = 6
 [[shelter_1f_heliport_jodie.slots]]
 name = "image"
 type = "image"
+pages = [
+    { image = { uid = "uid://yniy5ayyh985", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_2_atlas.asset" } },
+]
 
 [[shelter_1f_heliport_jodie.slots]]
 name = "package"
@@ -1241,4 +1247,4 @@ type = "package"
 
 [shelter_1f_heliport_jodie.from.USA]
 at = [{ stage = 0, file = 260500 }]
-chunks = { palette_2 = "f0bf329a2719c0b4771a803858b11255285dd78f", image_2 = "04d83a04288dab6c521fa4690b1761ac45f208c7" }
+chunks = { palette_2 = "f0bf329a2719c0b4771a803858b11255285dd78f", image_2 = "04d83a04288dab6c521fa4690b1761ac45f208c7", image = "6986b13a15813c51a912db8844377114ae61b2d2" }

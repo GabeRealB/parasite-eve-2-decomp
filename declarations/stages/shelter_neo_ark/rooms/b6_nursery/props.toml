@@ -1,0 +1,23 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[spores]
+uid = "uid://1d73uh7p64hd9"
+kind = "image"
+role = "atlas"
+bpp = 4
+size = [504, 168]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_9_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] },
+    { name = "effect_row_9_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] },
+    { name = "effect_row_9_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 9] },
+    { name = "effect_row_9_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 9] },
+]
+cells = [
+    { name = "model_07BAC", rect = [121, 0, 22, 8], palette = "effect_row_9_3" },
+]
+
+[spores.from.USA]
+at = [{ stage = 5, folder = 2201, file = 0, slot = "image", page = 0 }]
+sha1 = "8dcb9cd54421a6bb8b0819e3dbe3866cfc4e799a"
+palettes = { effect_row_9_3 = "5262403eeb1d4f0b7a4c7f8471114e24742d19c4", effect_row_9_4 = "d3c6ef995e13ea2801819e115e207a15bff4509c", effect_row_9_5 = "68689990d80c9152affd7e1b8167041bddaa3de5", effect_row_9_6 = "19e3e692fff42d71415375a310c402718704ed69" }

@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://ivs5kot6opte", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -23,15 +26,38 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 1, type = "palette" },
-    { index = 2, type = "palette" },
-    { index = 3, type = "palette" },
-    { index = 5, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://2qwizd368hph", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view2.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 2
+type = "palette"
+palettes = [
+    { image = { uid = "uid://gn4u7gwa9bkp", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view3.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1hflmo4roaflk", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view4.asset" }, palette = "row_0" },
+]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 5
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 4, folder = 1901, file = 0 }]
+chunks = { dialogue_0_atlas = "66486079d96630f99903a4e50e9dc85e654c9013" }
 
 [view1]
 uid = "uid://1azi6s3z4gwee"
@@ -46,35 +72,62 @@ at = [{ stage = 4, folder = 1901, file = 1 }]
 [view2]
 uid = "uid://adlpeqqda36g"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://201zgjnrei8n", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view2_background.asset" } },
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://2qwizd368hph", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view2.asset" } },
 ]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://201zgjnrei8n", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view2_background.asset" }
 
 [view2.from.USA]
 at = [{ stage = 4, folder = 1901, file = 2 }]
+chunks = { image = "d9bed184d9d0d0e917e6885b3e117e54376d6ce2" }
 
 [view3]
 uid = "uid://1cczwtxi4dk68"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://1n5j2azl4iakd", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view3_background.asset" } },
+
+[[view3.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://gn4u7gwa9bkp", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view3.asset" } },
 ]
+
+[[view3.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1n5j2azl4iakd", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view3_background.asset" }
 
 [view3.from.USA]
 at = [{ stage = 4, folder = 1901, file = 3 }]
+chunks = { image = "8769ae3f1645e53de7148c4148e4da654d154e47" }
 
 [view4]
 uid = "uid://q8kn6mmvyr07"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://4ewrcc4mtlzb", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view4_background.asset" } },
+
+[[view4.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1hflmo4roaflk", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view4.asset" } },
 ]
+
+[[view4.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://4ewrcc4mtlzb", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/views/view4_background.asset" }
 
 [view4.from.USA]
 at = [{ stage = 4, folder = 1901, file = 4 }]
+chunks = { image = "c14e083211a0701e34101c13c08cb57d4df6a58f" }
 
 [view5]
 uid = "uid://1sqpwmy8vgaql"

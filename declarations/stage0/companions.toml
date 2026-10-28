@@ -317,18 +317,30 @@ kind = "file"
 [[akropolis_square.slots]]
 name = "logo_palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" }, palette = "default" },
+]
 
 [[akropolis_square.slots]]
 name = "logo_shadow_palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" }, palette = "default" },
+]
 
 [[akropolis_square.slots]]
 name = "logo"
 type = "image"
+pages = [
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" } },
+]
 
 [[akropolis_square.slots]]
 name = "logo_shadow"
 type = "image"
+pages = [
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" } },
+]
 
 [[akropolis_square.slots]]
 name = "bundle"
@@ -339,6 +351,7 @@ resources = [
 
 [akropolis_square.from.USA]
 at = [{ stage = 0, file = 801000 }]
+chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
 
 [dryfield_main_street]
 uid = "uid://1n8oqsrr25xl"
@@ -347,18 +360,30 @@ kind = "file"
 [[dryfield_main_street.slots]]
 name = "logo_palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" }, palette = "default" },
+]
 
 [[dryfield_main_street.slots]]
 name = "logo_shadow_palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" }, palette = "default" },
+]
 
 [[dryfield_main_street.slots]]
 name = "logo"
 type = "image"
+pages = [
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" } },
+]
 
 [[dryfield_main_street.slots]]
 name = "logo_shadow"
 type = "image"
+pages = [
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" } },
+]
 
 [[dryfield_main_street.slots]]
 name = "bundle"
@@ -369,6 +394,7 @@ resources = [
 
 [dryfield_main_street.from.USA]
 at = [{ stage = 0, file = 801100 }]
+chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
 
 [dryfield_underpass]
 uid = "uid://awkh1hwk0fk2"
@@ -377,18 +403,30 @@ kind = "file"
 [[dryfield_underpass.slots]]
 name = "logo_palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" }, palette = "default" },
+]
 
 [[dryfield_underpass.slots]]
 name = "logo_shadow_palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" }, palette = "default" },
+]
 
 [[dryfield_underpass.slots]]
 name = "logo"
 type = "image"
+pages = [
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" } },
+]
 
 [[dryfield_underpass.slots]]
 name = "logo_shadow"
 type = "image"
+pages = [
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" } },
+]
 
 [[dryfield_underpass.slots]]
 name = "bundle"
@@ -399,3 +437,4 @@ resources = [
 
 [dryfield_underpass.from.USA]
 at = [{ stage = 0, file = 801200 }]
+chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }

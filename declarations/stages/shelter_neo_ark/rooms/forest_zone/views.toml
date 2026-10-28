@@ -59,3 +59,96 @@ format = "bs"
 [view6_background.from.USA]
 at = [{ stage = 5, folder = 1101, file = 6, slot = "background" }]
 sha1 = "e6a94c70ab8914e2ab24485cc68bb22a6515d17d"
+
+[view2]
+uid = "uid://d7tn4bjzxgi7"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 248]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view2_sprite_0", rect = [120, 240, 8, 8], palette = "row_0" },
+    { name = "view2_sprite_1", rect = [48, 0, 80, 88], palette = "row_0" },
+    { name = "view2_sprite_2", rect = [80, 168, 48, 72], palette = "row_0" },
+    { name = "view2_sprite_3", rect = [32, 88, 96, 80], palette = "row_0" },
+]
+
+[view2.from.USA]
+at = [{ stage = 5, folder = 1101, file = 2, slot = "image", page = 0 }]
+sha1 = "7931de032af4bf30d0103f8030374364bf16c199"
+palettes = { row_0 = "9baf6c3790bea59a663843b20b69f11e3d0648a3" }
+
+[view3]
+uid = "uid://13e2f70x9m6rw"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 232]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view3_sprite_0", rect = [120, 224, 8, 8], palette = "row_0" },
+    { name = "view3_sprite_1", rect = [24, 192, 104, 32], palette = "row_0" },
+    { name = "view3_sprite_2", rect = [32, 144, 96, 48], palette = "row_0" },
+    { name = "view3_sprite_3", rect = [48, 0, 80, 80], palette = "row_0" },
+    { name = "view3_sprite_4", rect = [80, 80, 48, 64], palette = "row_0" },
+]
+
+[view3.from.USA]
+at = [{ stage = 5, folder = 1101, file = 3, slot = "image", page = 0 }]
+sha1 = "46b2bdae557cbba5d16d9f70f6c55a151b54d29e"
+palettes = { row_0 = "30bbac8e537184fe67688094404ef7dea7fcdc6b" }
+
+[view4]
+uid = "uid://ut08dxl0v7w0"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 192]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view4_sprite_0", rect = [32, 0, 96, 96], palette = "row_0" },
+    { name = "view4_sprite_1", rect = [64, 96, 64, 48], palette = "row_0" },
+    { name = "view4_sprite_2", rect = [48, 184, 80, 8], palette = "row_0" },
+    { name = "view4_sprite_3", rect = [64, 144, 64, 32], palette = "row_0" },
+    { name = "view4_sprite_4", rect = [112, 176, 16, 8], palette = "row_0" },
+]
+
+[view4.from.USA]
+at = [{ stage = 5, folder = 1101, file = 4, slot = "image", page = 0 }]
+sha1 = "e8dd40d3cf8d59790ebac64dfd23b5d346b314b7"
+palettes = { row_0 = "4385b4f9822711e2ef30a0507568a5dec1365685" }
+
+[view5]
+uid = "uid://cj8k9c8muefp"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [128, 248]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
+]
+cells = [
+    { name = "view5_sprite_0", rect = [120, 240, 8, 8], palette = "row_0" },
+    { name = "view5_sprite_1", rect = [16, 144, 96, 48], palette = "row_0" },
+    { name = "view5_sprite_2", rect = [8, 192, 104, 48], palette = "row_0" },
+    { name = "view5_sprite_3", rect = [32, 80, 80, 64], palette = "row_0" },
+    { name = "view5_sprite_4", rect = [24, 0, 104, 80], palette = "row_0" },
+    { name = "view5_sprite_5", rect = [112, 80, 16, 80], palette = "row_0" },
+    { name = "view5_sprite_6", rect = [112, 160, 16, 80], palette = "row_0" },
+]
+
+[view5.from.USA]
+at = [{ stage = 5, folder = 1101, file = 5, slot = "image", page = 0 }]
+sha1 = "3a542dde1a69040e32236d7b44f34265781eb06e"
+palettes = { row_0 = "e06c0c0d1f61ab20ce4ec20546de6192e86e23df" }

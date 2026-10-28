@@ -1,0 +1,20 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[tire]
+uid = "uid://156zwfjxmk5tq"
+kind = "image"
+role = "atlas"
+bpp = 8
+size = [64, 176]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+palettes = [
+    { name = "effect_row_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
+]
+cells = [
+    { name = "model_01378", rect = [0, 0, 64, 176], palette = "effect_row_2" },
+]
+
+[tire.from.USA]
+at = [{ stage = 2, folder = 2601, file = 0, slot = "image", page = 0 }]
+sha1 = "7cdbaa5d82b2ac789335788c1e8bed4cc6c38d37"
+palettes = { effect_row_2 = "a23113a98020a59098da4a6c50fbf2ef159a0190" }

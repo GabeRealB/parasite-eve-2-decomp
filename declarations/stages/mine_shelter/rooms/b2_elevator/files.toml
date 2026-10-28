@@ -15,14 +15,24 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://i0sbjjj4j5bz", path = "res://stages/mine_shelter/rooms/b2_elevator/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "image"
 type = "image"
+pages = [
+    { image = { uid = "uid://15m6trwn4102r", path = "res://stages/mine_shelter/rooms/b2_elevator/props/elevator_door.asset" } },
+]
 
 [[base.slots]]
 name = "palette"
 type = "palette"
+palettes = [
+    { image = { uid = "uid://15m6trwn4102r", path = "res://stages/mine_shelter/rooms/b2_elevator/props/elevator_door.asset" }, palette = "effect_row_2" },
+]
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2], size = [256, 2] }
 
 [[base.slots]]
 name = "package"
@@ -31,13 +41,22 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 1, type = "palette" },
-    { index = 3, type = "dialogue" },
+
+[[base.slots.resources]]
+index = 1
+type = "palette"
+palettes = [
+    { image = { uid = "uid://xkhi6piql74e", path = "res://stages/mine_shelter/rooms/b2_elevator/views/view2.asset" }, palette = "row_0" },
 ]
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+
+[[base.slots.resources]]
+index = 3
+type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 4, folder = 2601, file = 0 }]
+chunks = { dialogue_0_atlas = "1946eb7780d163ef52fbe670aee005c9384b1ba4", image = "af6001e2d8aeac1c9d6aff3b8912877092c3564d", palette = "1fa32553c804ebc2db242e1f1cb5e018bbf219de" }
 
 [view1]
 uid = "uid://1jacwcq9ylkdr"
@@ -52,13 +71,22 @@ at = [{ stage = 4, folder = 2601, file = 1 }]
 [view2]
 uid = "uid://lt2dywcbw7qw"
 kind = "file"
-slots = [
-    { name = "image", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://1kpfl97rir19t", path = "res://stages/mine_shelter/rooms/b2_elevator/views/view2_background.asset" } },
+
+[[view2.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://xkhi6piql74e", path = "res://stages/mine_shelter/rooms/b2_elevator/views/view2.asset" } },
 ]
+
+[[view2.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://1kpfl97rir19t", path = "res://stages/mine_shelter/rooms/b2_elevator/views/view2_background.asset" }
 
 [view2.from.USA]
 at = [{ stage = 4, folder = 2601, file = 2 }]
+chunks = { image = "b9ba1a98ff05cd941dc8efc6ebe2cd9abacea9b1" }
 
 [view3]
 uid = "uid://2przapmz9aac"

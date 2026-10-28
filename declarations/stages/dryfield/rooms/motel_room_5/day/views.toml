@@ -59,3 +59,24 @@ format = "bs"
 [view6_background.from.USA]
 at = [{ stage = 2, folder = 2801, file = 6, slot = "background" }]
 sha1 = "52bdd2fd62c880fced8d922cc46e3e965ab52b95"
+
+[view1]
+uid = "uid://chj0gtoziry7"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [248, 256]
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
+palettes = [
+    { name = "row_5_10", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [160, 5] },
+    { name = "row_5_11", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [176, 5] },
+    { name = "row_5_12", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [192, 5] },
+    { name = "row_5_13", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [208, 5] },
+    { name = "row_5_14", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [224, 5] },
+    { name = "row_5_15", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [240, 5] },
+]
+
+[view1.from.USA]
+at = [{ stage = 2, folder = 2801, file = 1, slot = "image", page = 0 }]
+sha1 = "95deb0ba534012cecb61af7c25b83817dde05f3b"
+palettes = { row_5_10 = "22c233cc9c06e1ba1ae513370f28c205f2b22f1c", row_5_11 = "86d677998b50183c72c002f886eafc3e4e015f3e", row_5_12 = "25e34f244b4fd1b3a22e6a009b8414407098fbba", row_5_13 = "eec34f892688a127d3f3eb5b08a86468377a1769", row_5_14 = "fe88aacc00b3a78cad093f49f830f3aedc9c1c5a", row_5_15 = "4a1972ce64d6b58b509bf857c3344761ad8f6937" }

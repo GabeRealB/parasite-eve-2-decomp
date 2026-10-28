@@ -186,13 +186,25 @@ chunks = { palette = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea", palette_2 = "e4
 [actor_521200]
 uid = "uid://1q6jsaomc5fhf"
 kind = "file"
-slots = [
-    { name = "palette", type = "palette" },
-    { name = "image", type = "image" },
+
+[[actor_521200.slots]]
+name = "palette"
+type = "palette"
+palettes = [
+    { image = { uid = "uid://1ptqiaeaua165", path = "res://characters/anmc_woman_3/texture.asset" }, palette = "default" },
+    { image = { uid = "uid://1ptqiaeaua165", path = "res://characters/anmc_woman_3/texture.asset" }, palette = "default_2" },
+]
+
+[[actor_521200.slots]]
+name = "image"
+type = "image"
+pages = [
+    { image = { uid = "uid://1ptqiaeaua165", path = "res://characters/anmc_woman_3/texture.asset" } },
 ]
 
 [actor_521200.from.USA]
 at = [{ stage = 0, file = 521200 }]
+chunks = { image = "fc957a8e7bd0312e97379ca4076177225f94abc6", palette = "cccfc15384841cae668df887d06d97dccbcc3773" }
 
 [dryfield_night_r08_eve_and_golems]
 uid = "uid://lasohtbk0qyh"

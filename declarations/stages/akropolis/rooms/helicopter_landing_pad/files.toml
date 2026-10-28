@@ -15,6 +15,9 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://lbc0b8qvs1al", path = "res://stages/akropolis/rooms/helicopter_landing_pad/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "palette_0"
@@ -22,6 +25,21 @@ type = "palette"
 palettes = [
     { image = { uid = "uid://1uimpwyaq8b9b", path = "res://stages/akropolis/rooms/helicopter_landing_pad/props/lift_page.asset" }, palette = "lift" },
     { image = { uid = "uid://1uimpwyaq8b9b", path = "res://stages/akropolis/rooms/helicopter_landing_pad/props/lift_page.asset" }, palette = "cable" },
+    { name = "unread_effect_row_2_1", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 2] },
+    { name = "unread_effect_row_2_2", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 2] },
+    { name = "unread_effect_row_2_3", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 2] },
+    { name = "unread_effect_row_2_4", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 2] },
+    { name = "unread_effect_row_2_5", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 2] },
+    { name = "unread_effect_row_2_6", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 2] },
+    { name = "unread_effect_row_2_7", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 2] },
+    { name = "unread_effect_row_2_8", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 2] },
+    { name = "unread_effect_row_2_9", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 2] },
+    { name = "unread_effect_row_2_10", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 2] },
+    { name = "unread_effect_row_2_11", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 2] },
+    { name = "unread_effect_row_2_12", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 2] },
+    { name = "unread_effect_row_2_13", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 2] },
+    { name = "unread_effect_row_2_14", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 2] },
+    { name = "unread_effect_row_2_15", entries = 16, slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 2] },
 ]
 
 [[base.slots]]
@@ -186,7 +204,7 @@ type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 1, folder = 1601, file = 0 }]
-chunks = { palette_0 = "aaf7fc2cc45fb1084d639c61339ac08f9a06cee8", palette_1 = "8f52d6ca09354deea1c944d19a32ae6732721dd3", image = "79242a86687b7d076198360707fb1a93c1e9e072" }
+chunks = { palette_0 = "aaf7fc2cc45fb1084d639c61339ac08f9a06cee8", palette_1 = "8f52d6ca09354deea1c944d19a32ae6732721dd3", image = "79242a86687b7d076198360707fb1a93c1e9e072", dialogue_0_atlas = "23990f33c35bfb8d0e83424e788a6cf4b6ecdfb5" }
 
 [view1]
 uid = "uid://x8pd1xtiaxnu"

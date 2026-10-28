@@ -15,14 +15,23 @@ type = "sound_bank"
 [[base.slots]]
 name = "dialogue_1_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://37pdkluyfuru", path = "res://stages/akropolis/rooms/mist_parking/dialogue_1_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "dialogue_0_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://1ppc4d83b7cld", path = "res://stages/akropolis/rooms/mist_parking/dialogue_0_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "dialogue_2_atlas"
 type = "image"
+pages = [
+    { image = { uid = "uid://17wjj8ob8sakk", path = "res://stages/akropolis/rooms/mist_parking/dialogue_2_atlas.asset" } },
+]
 
 [[base.slots]]
 name = "palette"
@@ -138,7 +147,7 @@ type = "dialogue"
 
 [base.from.USA]
 at = [{ stage = 1, folder = 1901, file = 0 }]
-chunks = { palette = "15b61ed756c83b45ea47a7a517df3854cd82ddaa", image = "840c617453f38705c00bad7d66c14ffb0a79cacb" }
+chunks = { palette = "15b61ed756c83b45ea47a7a517df3854cd82ddaa", image = "840c617453f38705c00bad7d66c14ffb0a79cacb", dialogue_1_atlas = "654cf99a95b99f7eadffeb54147309f450c1d036", dialogue_0_atlas = "8ccf3bfd29c457423fbe9d2272f4e76eedd5a59e", dialogue_2_atlas = "a750953b680ad38ff8a51b1438c9f9623660c338" }
 
 [view1]
 uid = "uid://1c0f6d6zyz2w1"
@@ -278,13 +287,22 @@ at = [{ stage = 1, folder = 1901, file = 8 }]
 [view9]
 uid = "uid://87yljbytthrv"
 kind = "file"
-slots = [
-    { name = "akropolis_square_dialogue_1_atlas", type = "image" },
-    { name = "background", type = "bs", asset = { uid = "uid://w7wihfbjk7i", path = "res://stages/akropolis/rooms/mist_parking/views/view9_background.asset" } },
+
+[[view9.slots]]
+name = "akropolis_square_dialogue_1_atlas"
+type = "image"
+pages = [
+    { image = { uid = "uid://5xcamop92axh", path = "res://stages/akropolis/story_calls_atlas.asset" } },
 ]
+
+[[view9.slots]]
+name = "background"
+type = "bs"
+asset = { uid = "uid://w7wihfbjk7i", path = "res://stages/akropolis/rooms/mist_parking/views/view9_background.asset" }
 
 [view9.from.USA]
 at = [{ stage = 1, folder = 1901, file = 9 }]
+chunks = { akropolis_square_dialogue_1_atlas = "c0887787c2a7c396b2b5b43f16828d518216aa75" }
 
 [view10]
 uid = "uid://lalq2dghysqa"

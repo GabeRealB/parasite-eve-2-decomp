@@ -1,0 +1,17 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[flames]
+uid = "uid://5tcla71e9m06"
+kind = "image"
+role = "texture"
+bpp = 4
+size = [192, 96]
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+palettes = [
+    { name = "effect_row_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] },
+]
+
+[flames.from.USA]
+at = [{ stage = 2, folder = 1601, file = 0, slot = "image", page = 0 }]
+sha1 = "81343e4d4df3a6174d809705d25ba6bb4d4249a7"
+palettes = { effect_row_10 = "df6b9ab9485f1a97178c7792097c0971320bafbb" }

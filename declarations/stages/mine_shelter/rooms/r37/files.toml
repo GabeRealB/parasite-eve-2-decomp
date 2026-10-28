@@ -7,6 +7,9 @@ kind = "file"
 [[base.slots]]
 name = "image"
 type = "image"
+pages = [
+    { image = { uid = "uid://16pwpntlwkm77", path = "res://stages/mine_shelter/rooms/r37/image.asset" } },
+]
 
 [[base.slots]]
 name = "package"
@@ -21,6 +24,7 @@ resources = [
 
 [base.from.USA]
 at = [{ stage = 4, folder = 3701, file = 0 }]
+chunks = { image = "e552bc467aaa7ce828beda01c11e91d28da69a37" }
 
 [view1]
 uid = "uid://1dmiercikrtre"
