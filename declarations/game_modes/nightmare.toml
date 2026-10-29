@@ -7,7 +7,6 @@ role = "background"
 format = "bs"
 
 [splash.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [splash.from.USA]

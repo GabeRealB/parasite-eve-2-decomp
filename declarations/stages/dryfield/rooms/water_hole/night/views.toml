@@ -7,7 +7,6 @@ role = "background"
 format = "bs"
 
 [view1_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view1_background.from.USA]
@@ -21,7 +20,6 @@ role = "background"
 format = "bs"
 
 [view2_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view2_background.from.USA]
@@ -35,7 +33,6 @@ role = "background"
 format = "bs"
 
 [view3_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view3_background.from.USA]
@@ -49,7 +46,6 @@ role = "background"
 format = "bs"
 
 [view4_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view4_background.from.USA]
@@ -63,7 +59,6 @@ role = "background"
 format = "bs"
 
 [view5_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view5_background.from.USA]
@@ -77,7 +72,6 @@ role = "background"
 format = "bs"
 
 [view6_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view6_background.from.USA]
@@ -91,7 +85,6 @@ role = "background"
 format = "bs"
 
 [view7_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view7_background.from.USA]
@@ -105,7 +98,6 @@ role = "background"
 format = "bs"
 
 [view8_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view8_background.from.USA]
@@ -119,7 +111,6 @@ role = "background"
 format = "bs"
 
 [view9_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view9_background.from.USA]
@@ -133,7 +124,6 @@ role = "background"
 format = "bs"
 
 [view10_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view10_background.from.USA]
@@ -147,7 +137,6 @@ role = "background"
 format = "bs"
 
 [view12_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view12_background.from.USA]
@@ -161,7 +150,6 @@ role = "background"
 format = "bs"
 
 [view13_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view13_background.from.USA]
@@ -175,7 +163,6 @@ role = "background"
 format = "bs"
 
 [view14_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view14_background.from.USA]
@@ -189,7 +176,6 @@ role = "background"
 format = "bs"
 
 [view15_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view15_background.from.USA]
@@ -203,7 +189,6 @@ role = "background"
 format = "bs"
 
 [view16_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view16_background.from.USA]
@@ -217,7 +202,6 @@ role = "background"
 format = "bs"
 
 [view17_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view17_background.from.USA]
@@ -231,7 +215,6 @@ role = "background"
 format = "bs"
 
 [view18_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view18_background.from.USA]
@@ -245,7 +228,6 @@ role = "background"
 format = "bs"
 
 [view19_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view19_background.from.USA]
@@ -259,7 +241,6 @@ role = "background"
 format = "bs"
 
 [view20_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view20_background.from.USA]
@@ -273,7 +254,6 @@ role = "background"
 format = "bs"
 
 [view21_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view21_background.from.USA]
@@ -287,7 +267,6 @@ role = "background"
 format = "bs"
 
 [view22_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view22_background.from.USA]
@@ -301,7 +280,6 @@ role = "background"
 format = "bs"
 
 [view23_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view23_background.from.USA]
@@ -315,7 +293,6 @@ role = "background"
 format = "bs"
 
 [view24_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view24_background.from.USA]
@@ -329,7 +306,6 @@ role = "background"
 format = "bs"
 
 [view25_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view25_background.from.USA]
@@ -343,7 +319,6 @@ role = "background"
 format = "bs"
 
 [view26_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view26_background.from.USA]

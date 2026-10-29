@@ -7,7 +7,6 @@ role = "background"
 format = "bs"
 
 [background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [background.from.USA]

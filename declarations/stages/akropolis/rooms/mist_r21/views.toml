@@ -7,7 +7,6 @@ role = "background"
 format = "bs"
 
 [view1_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view1_background.from.USA]
@@ -21,7 +20,6 @@ role = "background"
 format = "bs"
 
 [view2_background.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [view2_background.from.USA]

@@ -44,7 +44,6 @@ kind = "image"
 format = "bs"
 
 [init_image.import]
-importer = "pe2.images@bs"
 source = "native.bs"
 
 [init_image.from.USA]
