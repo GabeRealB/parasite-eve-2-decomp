@@ -4,17 +4,17 @@
 uid = "uid://e821jdx40rvk"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
-    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
-]
-cells = [
-    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
-    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
-]
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
+cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
+
+[texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 101300, slot = "image", page = 0 }, { stage = 0, file = 201300, slot = "image", page = 0 }, { stage = 0, file = 301300, slot = "image", page = 0 }, { stage = 0, file = 356100, slot = "image", page = 0 }, { stage = 0, file = 401300, slot = "image", page = 0 }]

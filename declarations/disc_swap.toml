@@ -4,17 +4,17 @@
 uid = "uid://1jjk3r2k54bgz"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "disc_1", rect = [0, 0, 159, 16], palette = "default" },
-    { name = "disc_2", rect = [0, 16, 159, 16], palette = "default" },
-    { name = "wrong_disc", rect = [0, 32, 104, 16], palette = "default" },
-]
+palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 0] }
+cells.disc_1 = { rect = [0, 0, 159, 16], palette = "default" }
+cells.disc_2 = { rect = [0, 16, 159, 16], palette = "default" }
+cells.wrong_disc = { rect = [0, 32, 104, 16], palette = "default" }
+
+[messages.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [messages.from.USA]
 at = [{ stage = 0, file = 20160, slot = "image", page = 0 }, { stage = 0, file = 20161, slot = "image", page = 0 }]

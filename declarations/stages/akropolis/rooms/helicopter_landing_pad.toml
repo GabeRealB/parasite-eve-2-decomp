@@ -48,79 +48,79 @@ at = [{ stage = 1, folder = 1601 }]
 uid = "uid://1uir2qalcp0e8"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "sparkle", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
-    { name = "smudge", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
-    { name = "ember", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] },
-    { name = "lens_flare", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] },
-    { name = "tongue_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] },
-    { name = "tongue_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 10] },
-    { name = "tongue_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 10] },
-    { name = "tongue_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 10] },
-    { name = "tongue_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 10] },
-    { name = "tongue_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 10] },
-    { name = "tongue_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 10] },
-    { name = "tongue_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 10] },
-    { name = "burning_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 10] },
-    { name = "burning_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 10] },
-    { name = "burning_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 10] },
-    { name = "burning_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 10] },
-    { name = "burning_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 10] },
-    { name = "burning_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 10] },
-    { name = "burning_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 10] },
-    { name = "burning_7", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 10] },
-    { name = "burning_8", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] },
-    { name = "burning_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [272, 10] },
-    { name = "burning_10", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [288, 10] },
-    { name = "burning_11", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] },
-]
-cells = [
-    { name = "burning_0", rect = [0, 160, 32, 48], palette = "burning_0" },
-    { name = "burning_1", rect = [32, 160, 32, 48], palette = "burning_1" },
-    { name = "burning_2", rect = [64, 160, 32, 48], palette = "burning_2" },
-    { name = "burning_3", rect = [96, 160, 32, 48], palette = "burning_3" },
-    { name = "burning_4", rect = [128, 160, 32, 48], palette = "burning_4" },
-    { name = "burning_5", rect = [160, 160, 32, 48], palette = "burning_5" },
-    { name = "burning_6", rect = [192, 160, 32, 48], palette = "burning_6" },
-    { name = "burning_7", rect = [224, 160, 32, 48], palette = "burning_7" },
-    { name = "burning_8", rect = [0, 208, 32, 48], palette = "burning_8" },
-    { name = "burning_9", rect = [32, 208, 32, 48], palette = "burning_9" },
-    { name = "burning_10", rect = [64, 208, 32, 48], palette = "burning_10" },
-    { name = "burning_11", rect = [96, 208, 32, 48], palette = "burning_11" },
-    { name = "ember_0", rect = [32, 40, 32, 32], palette = "ember" },
-    { name = "ember_1", rect = [64, 40, 32, 32], palette = "ember" },
-    { name = "ember_2", rect = [96, 40, 32, 32], palette = "ember" },
-    { name = "ember_3", rect = [128, 40, 32, 32], palette = "ember" },
-    { name = "ember_4", rect = [160, 40, 32, 32], palette = "ember" },
-    { name = "ember_5", rect = [192, 40, 32, 32], palette = "ember" },
-    { name = "flame_0", rect = [0, 0, 32, 40], palette = "sparkle" },
-    { name = "flame_1", rect = [32, 0, 32, 40], palette = "sparkle" },
-    { name = "flame_2", rect = [64, 0, 32, 40], palette = "sparkle" },
-    { name = "flame_3", rect = [96, 0, 32, 40], palette = "sparkle" },
-    { name = "flame_4", rect = [128, 0, 32, 40], palette = "sparkle" },
-    { name = "flame_5", rect = [160, 0, 32, 40], palette = "sparkle" },
-    { name = "flash_0", rect = [0, 72, 40, 40], palette = "sparkle" },
-    { name = "flash_1", rect = [40, 72, 40, 40], palette = "sparkle" },
-    { name = "flash_2", rect = [80, 72, 40, 40], palette = "sparkle" },
-    { name = "flash_3", rect = [120, 72, 40, 40], palette = "sparkle" },
-    { name = "flash_4", rect = [160, 72, 40, 40], palette = "sparkle" },
-    { name = "flash_5", rect = [200, 72, 40, 40], palette = "sparkle" },
-    { name = "smudge_0", rect = [128, 208, 32, 32], palette = "smudge" },
-    { name = "smudge_1", rect = [160, 208, 32, 32], palette = "smudge" },
-    { name = "smudge_2", rect = [192, 208, 32, 32], palette = "smudge" },
-    { name = "smudge_3", rect = [224, 208, 32, 32], palette = "smudge" },
-    { name = "tongue_0", rect = [0, 112, 32, 48], palette = "tongue_0" },
-    { name = "tongue_1", rect = [32, 112, 32, 48], palette = "tongue_1" },
-    { name = "tongue_2", rect = [64, 112, 32, 48], palette = "tongue_2" },
-    { name = "tongue_3", rect = [96, 112, 32, 48], palette = "tongue_3" },
-    { name = "tongue_4", rect = [128, 112, 32, 48], palette = "tongue_4" },
-    { name = "tongue_5", rect = [160, 112, 32, 48], palette = "tongue_5" },
-    { name = "tongue_6", rect = [192, 112, 32, 48], palette = "tongue_6" },
-    { name = "tongue_7", rect = [224, 112, 32, 48], palette = "tongue_7" },
-]
+palettes.sparkle = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] }
+palettes.smudge = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] }
+palettes.ember = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] }
+palettes.lens_flare = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] }
+palettes.tongue_0 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] }
+palettes.tongue_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 10] }
+palettes.tongue_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 10] }
+palettes.tongue_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 10] }
+palettes.tongue_4 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 10] }
+palettes.tongue_5 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 10] }
+palettes.tongue_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 10] }
+palettes.tongue_7 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 10] }
+palettes.burning_0 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 10] }
+palettes.burning_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 10] }
+palettes.burning_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 10] }
+palettes.burning_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 10] }
+palettes.burning_4 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [192, 10] }
+palettes.burning_5 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [208, 10] }
+palettes.burning_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [224, 10] }
+palettes.burning_7 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 10] }
+palettes.burning_8 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
+palettes.burning_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [272, 10] }
+palettes.burning_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [288, 10] }
+palettes.burning_11 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] }
+cells.burning_0 = { rect = [0, 160, 32, 48], palette = "burning_0" }
+cells.burning_1 = { rect = [32, 160, 32, 48], palette = "burning_1" }
+cells.burning_2 = { rect = [64, 160, 32, 48], palette = "burning_2" }
+cells.burning_3 = { rect = [96, 160, 32, 48], palette = "burning_3" }
+cells.burning_4 = { rect = [128, 160, 32, 48], palette = "burning_4" }
+cells.burning_5 = { rect = [160, 160, 32, 48], palette = "burning_5" }
+cells.burning_6 = { rect = [192, 160, 32, 48], palette = "burning_6" }
+cells.burning_7 = { rect = [224, 160, 32, 48], palette = "burning_7" }
+cells.burning_8 = { rect = [0, 208, 32, 48], palette = "burning_8" }
+cells.burning_9 = { rect = [32, 208, 32, 48], palette = "burning_9" }
+cells.burning_10 = { rect = [64, 208, 32, 48], palette = "burning_10" }
+cells.burning_11 = { rect = [96, 208, 32, 48], palette = "burning_11" }
+cells.ember_0 = { rect = [32, 40, 32, 32], palette = "ember" }
+cells.ember_1 = { rect = [64, 40, 32, 32], palette = "ember" }
+cells.ember_2 = { rect = [96, 40, 32, 32], palette = "ember" }
+cells.ember_3 = { rect = [128, 40, 32, 32], palette = "ember" }
+cells.ember_4 = { rect = [160, 40, 32, 32], palette = "ember" }
+cells.ember_5 = { rect = [192, 40, 32, 32], palette = "ember" }
+cells.flame_0 = { rect = [0, 0, 32, 40], palette = "sparkle" }
+cells.flame_1 = { rect = [32, 0, 32, 40], palette = "sparkle" }
+cells.flame_2 = { rect = [64, 0, 32, 40], palette = "sparkle" }
+cells.flame_3 = { rect = [96, 0, 32, 40], palette = "sparkle" }
+cells.flame_4 = { rect = [128, 0, 32, 40], palette = "sparkle" }
+cells.flame_5 = { rect = [160, 0, 32, 40], palette = "sparkle" }
+cells.flash_0 = { rect = [0, 72, 40, 40], palette = "sparkle" }
+cells.flash_1 = { rect = [40, 72, 40, 40], palette = "sparkle" }
+cells.flash_2 = { rect = [80, 72, 40, 40], palette = "sparkle" }
+cells.flash_3 = { rect = [120, 72, 40, 40], palette = "sparkle" }
+cells.flash_4 = { rect = [160, 72, 40, 40], palette = "sparkle" }
+cells.flash_5 = { rect = [200, 72, 40, 40], palette = "sparkle" }
+cells.smudge_0 = { rect = [128, 208, 32, 32], palette = "smudge" }
+cells.smudge_1 = { rect = [160, 208, 32, 32], palette = "smudge" }
+cells.smudge_2 = { rect = [192, 208, 32, 32], palette = "smudge" }
+cells.smudge_3 = { rect = [224, 208, 32, 32], palette = "smudge" }
+cells.tongue_0 = { rect = [0, 112, 32, 48], palette = "tongue_0" }
+cells.tongue_1 = { rect = [32, 112, 32, 48], palette = "tongue_1" }
+cells.tongue_2 = { rect = [64, 112, 32, 48], palette = "tongue_2" }
+cells.tongue_3 = { rect = [96, 112, 32, 48], palette = "tongue_3" }
+cells.tongue_4 = { rect = [128, 112, 32, 48], palette = "tongue_4" }
+cells.tongue_5 = { rect = [160, 112, 32, 48], palette = "tongue_5" }
+cells.tongue_6 = { rect = [192, 112, 32, 48], palette = "tongue_6" }
+cells.tongue_7 = { rect = [224, 112, 32, 48], palette = "tongue_7" }
+
+[sparks.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [sparks.from.USA]
 at = [{ stage = 1, folder = 1601, file = 0, slot = "image", page = 0 }]
@@ -131,16 +131,18 @@ palettes = { sparkle = "04ec55cda3e14c68a22081337f1d4763e953113c", ember = "1645
 uid = "uid://lbc0b8qvs1al"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 48]
-page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
-palettes = [
-    { name = "text_0", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] },
-    { name = "text_1", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] },
-    { name = "text_2", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] },
-    { name = "text_3", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] },
-    { name = "plate", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] },
-]
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+
+[dialogue_0_atlas.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 1, folder = 1601, file = 0, slot = "dialogue_0_atlas", page = 0 }]

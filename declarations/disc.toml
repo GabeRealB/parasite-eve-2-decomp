@@ -43,6 +43,10 @@ uid = "uid://1skpauej8oul1"
 kind = "image"
 format = "bs"
 
+[init_image.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [init_image.from.USA]
 at = [{ disc = "disk1", slot = "INIT.BS" }, { disc = "disk2", slot = "INIT.BS" }]
 sha1 = "3d4c30456d18d01307c029e46d25ada7b129f525"

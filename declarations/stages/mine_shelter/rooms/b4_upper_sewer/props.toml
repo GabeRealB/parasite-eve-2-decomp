@@ -4,14 +4,16 @@
 uid = "uid://dlesmcg4r0of"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "effect_row_10_17", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [272, 10] },
-    { name = "effect_row_10_18", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [288, 10] },
-    { name = "effect_row_10_19", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] },
-]
+palettes.effect_row_10_17 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [272, 10] }
+palettes.effect_row_10_18 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [288, 10] }
+palettes.effect_row_10_19 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] }
+
+[water_effects.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [water_effects.from.USA]
 at = [{ stage = 4, folder = 4401, file = 0, slot = "image", page = 0 }]

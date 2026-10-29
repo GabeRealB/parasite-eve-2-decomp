@@ -4,19 +4,19 @@
 uid = "uid://ehnqae93y99d"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
-    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
-    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
-]
-cells = [
-    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
-    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
-    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
-]
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+palettes.default_3 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] }
+cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
+cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
+cells.page_2 = { rect = [256, 0, 128, 256], palette = "default_3" }
+
+[texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 102000, slot = "image", page = 0 }, { stage = 0, file = 105600, slot = "image", page = 0 }, { stage = 0, file = 202000, slot = "image", page = 0 }, { stage = 0, file = 205600, slot = "image", page = 0 }, { stage = 0, file = 302000, slot = "image", page = 0 }, { stage = 0, file = 305600, slot = "image", page = 0 }, { stage = 0, file = 535800, slot = "image", page = 0 }]

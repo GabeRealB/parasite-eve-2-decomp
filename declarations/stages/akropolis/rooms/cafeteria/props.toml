@@ -4,21 +4,21 @@
 uid = "uid://1kh9tjaccx59w"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "pain_reliever", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] },
-    { name = "stim", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 0] },
-    { name = "ammunition", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 0] },
-    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 0] },
-]
-variants = [
-    { name = "default", palette = "default" },
-    { name = "stim", palette = "stim" },
-    { name = "pain_reliever", palette = "pain_reliever" },
-    { name = "ammunition", palette = "ammunition" },
-]
+palettes.pain_reliever = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] }
+palettes.stim = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 0] }
+palettes.ammunition = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 0] }
+palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 0] }
+variants.default = { palette = "default" }
+variants.stim = { palette = "stim" }
+variants.pain_reliever = { palette = "pain_reliever" }
+variants.ammunition = { palette = "ammunition" }
+
+[container.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [container.from.USA]
 at = [{ stage = 1, folder = 401, file = 0, slot = "image_0", page = 0 }, { stage = 2, folder = 2701, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2701, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 1601, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 2001, file = 0, slot = "image_1", page = 0 }, { stage = 4, folder = 3101, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 3901, file = 0, slot = "image_0", page = 0 }, { stage = 5, folder = 401, file = 0, slot = "image", page = 0 }]
@@ -29,17 +29,17 @@ palettes = { default = "f463efbf6a4702b2828c74dbe29753d07f8c5801", stim = "446d9
 uid = "uid://78u9qvsagvui"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "loose_prop", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] },
-    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
-]
-variants = [
-    { name = "default", palette = "default" },
-    { name = "loose_prop", palette = "loose_prop" },
-]
+palettes.loose_prop = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] }
+variants.default = { palette = "default" }
+variants.loose_prop = { palette = "loose_prop" }
+
+[model.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [model.from.USA]
 at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 1 }]
@@ -50,24 +50,24 @@ palettes = { default = "1a18cea47648422f0ad8958da6874d1776efe9ca", loose_prop = 
 uid = "uid://5igeqovcfi78"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [240, 160]
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
-]
-cells = [
-    { name = "puff_0", rect = [0, 0, 48, 48], palette = "default" },
-    { name = "puff_1", rect = [48, 0, 48, 48], palette = "default" },
-    { name = "puff_2", rect = [96, 0, 48, 48], palette = "default" },
-    { name = "puff_3", rect = [144, 0, 48, 48], palette = "default" },
-    { name = "puff_4", rect = [192, 0, 48, 48], palette = "default" },
-    { name = "puff_row_2_0", rect = [0, 48, 48, 48], palette = "default" },
-    { name = "puff_row_2_1", rect = [48, 48, 48, 48], palette = "default" },
-    { name = "puff_row_2_2", rect = [96, 48, 48, 48], palette = "default" },
-    { name = "puff_row_2_3", rect = [144, 48, 48, 48], palette = "default" },
-    { name = "puff_row_2_4", rect = [192, 48, 48, 48], palette = "default" },
-]
+palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] }
+cells.puff_0 = { rect = [0, 0, 48, 48], palette = "default" }
+cells.puff_1 = { rect = [48, 0, 48, 48], palette = "default" }
+cells.puff_2 = { rect = [96, 0, 48, 48], palette = "default" }
+cells.puff_3 = { rect = [144, 0, 48, 48], palette = "default" }
+cells.puff_4 = { rect = [192, 0, 48, 48], palette = "default" }
+cells.puff_row_2_0 = { rect = [0, 48, 48, 48], palette = "default" }
+cells.puff_row_2_1 = { rect = [48, 48, 48, 48], palette = "default" }
+cells.puff_row_2_2 = { rect = [96, 48, 48, 48], palette = "default" }
+cells.puff_row_2_3 = { rect = [144, 48, 48, 48], palette = "default" }
+cells.puff_row_2_4 = { rect = [192, 48, 48, 48], palette = "default" }
+
+[puff.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [puff.from.USA]
 at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 0 }]

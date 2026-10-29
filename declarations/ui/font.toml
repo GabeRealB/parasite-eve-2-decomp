@@ -4,17 +4,17 @@
 uid = "uid://1lszyuxlyyz77"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://1woctxwwnoy2p", path = "res://engine/vram/ui_font.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://1woctxwwnoy2p", path = "res://engine/vram/ui_font.asset" }, at = [0, 0] }
-palettes = [
-    { name = "fill", executable = "ui/font/glyph_palettes" },
-]
-variants = [
-    { name = "fill", palette = "fill" },
-    { name = "translucent_outline", palette = "fill" },
-    { name = "opaque_outline", palette = "fill" },
-]
+palettes.fill = { executable = "ui/font/glyph_palettes" }
+variants.fill = { palette = "fill" }
+variants.translucent_outline = { palette = "fill" }
+variants.opaque_outline = { palette = "fill" }
+
+[texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 1, slot = "font_image", page = 0 }, { stage = 0, file = 20162, slot = "font_image", page = 0 }]

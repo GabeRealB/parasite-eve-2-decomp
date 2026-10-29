@@ -6,6 +6,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [background.from.USA]
 at = [{ stage = 0, file = 18, slot = "background" }]
 sha1 = "4b4e91fcb9c3477ad6c3d1f82578dbe59ff955c2"

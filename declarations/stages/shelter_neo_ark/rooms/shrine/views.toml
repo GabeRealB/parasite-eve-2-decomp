@@ -6,6 +6,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view1_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view1_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 1, slot = "background" }]
 sha1 = "637dc5a634e5d4a9e59133981d9cc2eb53cf7192"
@@ -15,6 +19,10 @@ uid = "uid://54eswce76xo3"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view2_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view2_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 2, slot = "background" }]
@@ -26,6 +34,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view3_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view3_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 3, slot = "background" }]
 sha1 = "e2ffce2f20620a24fc6d776246e15b734c24c8c3"
@@ -35,6 +47,10 @@ uid = "uid://dap22bzmnu7t"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view4_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view4_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 4, slot = "background" }]
@@ -46,6 +62,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view5_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view5_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 5, slot = "background" }]
 sha1 = "2f36ca8611a8a2d22a9e1e571ee3e24dee6bb143"
@@ -55,6 +75,10 @@ uid = "uid://12mdy05tenmag"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view6_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view6_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 6, slot = "background" }]
@@ -66,6 +90,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view7_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view7_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 7, slot = "background" }]
 sha1 = "85ba077ed9b82a3106a8d312ea1c8202fa84bad9"
@@ -75,6 +103,10 @@ uid = "uid://1kwhi995rvr60"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view8_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view8_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 8, slot = "background" }]
@@ -86,6 +118,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view9_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view9_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 9, slot = "background" }]
 sha1 = "06be41581170bb221be6f8ef7125cdeff477d0cd"
@@ -95,6 +131,10 @@ uid = "uid://1vqfgutgfp88z"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view10_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view10_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 10, slot = "background" }]
@@ -106,6 +146,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view11_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view11_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 11, slot = "background" }]
 sha1 = "b9192e1fe0d9d485fbae774bd96569b8250051d5"
@@ -115,6 +159,10 @@ uid = "uid://thqbzmkkoow4"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view12_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view12_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 12, slot = "background" }]
@@ -126,6 +174,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view13_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view13_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 13, slot = "background" }]
 sha1 = "b43002703c288a683b5bc7de30bbfd6b3c9cd295"
@@ -135,6 +187,10 @@ uid = "uid://1aaw6gz3uy53d"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view14_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view14_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 14, slot = "background" }]
@@ -146,6 +202,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view15_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view15_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 15, slot = "background" }]
 sha1 = "2a228ba923678796e8ee9f4aeca922379ea015f3"
@@ -155,6 +215,10 @@ uid = "uid://1vivp2wvyqo0v"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view16_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view16_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 16, slot = "background" }]
@@ -166,6 +230,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view17_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view17_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 17, slot = "background" }]
 sha1 = "f581dd13cdbf39c438a9453d3ba902f8f58c02e1"
@@ -176,6 +244,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view18_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view18_background.from.USA]
 at = [{ stage = 5, folder = 2101, file = 18, slot = "background" }]
 sha1 = "a1897b3ad56d69a7315dbae11b6342da5cc00f9d"
@@ -184,71 +256,71 @@ sha1 = "a1897b3ad56d69a7315dbae11b6342da5cc00f9d"
 uid = "uid://1hyshg0v0h2ff"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view3_sprite_0", rect = [208, 240, 8, 8], palette = "row_0" },
-    { name = "view3_sprite_1", rect = [112, 96, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_2", rect = [104, 144, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_3", rect = [152, 48, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_4", rect = [152, 96, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_5", rect = [160, 192, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_6", rect = [168, 0, 24, 48], palette = "row_0" },
-    { name = "view3_sprite_7", rect = [136, 192, 24, 48], palette = "row_0" },
-    { name = "view3_sprite_8", rect = [144, 144, 24, 48], palette = "row_0" },
-    { name = "view3_sprite_9", rect = [152, 0, 16, 48], palette = "row_0" },
-    { name = "view3_sprite_10", rect = [128, 0, 24, 48], palette = "row_0" },
-    { name = "view3_sprite_11", rect = [168, 144, 24, 48], palette = "row_0" },
-    { name = "view3_sprite_12", rect = [40, 88, 16, 32], palette = "row_0" },
-    { name = "view3_sprite_13", rect = [40, 48, 16, 40], palette = "row_0" },
-    { name = "view3_sprite_14", rect = [216, 240, 8, 8], palette = "row_0" },
-    { name = "view3_sprite_15", rect = [104, 48, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_16", rect = [32, 0, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_17", rect = [56, 48, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_18", rect = [56, 144, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_19", rect = [40, 192, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_20", rect = [88, 192, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_21", rect = [64, 96, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_22", rect = [80, 0, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_23", rect = [288, 96, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_24", rect = [288, 48, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_25", rect = [312, 144, 24, 48], palette = "row_0" },
-    { name = "view3_sprite_26", rect = [32, 152, 24, 24], palette = "row_0" },
-    { name = "view3_sprite_27", rect = [48, 120, 8, 32], palette = "row_0" },
-    { name = "view3_sprite_28", rect = [288, 144, 24, 48], palette = "row_0" },
-    { name = "view3_sprite_29", rect = [208, 248, 16, 8], palette = "row_0" },
-    { name = "view3_sprite_30", rect = [224, 248, 8, 8], palette = "row_0" },
-    { name = "view3_sprite_31", rect = [200, 240, 8, 8], palette = "row_0" },
-    { name = "view3_sprite_32", rect = [336, 0, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_33", rect = [336, 96, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_34", rect = [336, 192, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_35", rect = [232, 240, 48, 16], palette = "row_0" },
-    { name = "view3_sprite_36", rect = [336, 144, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_37", rect = [240, 0, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_38", rect = [208, 48, 32, 48], palette = "row_0" },
-    { name = "view3_sprite_39", rect = [304, 240, 32, 16], palette = "row_0" },
-    { name = "view3_sprite_40", rect = [280, 240, 24, 16], palette = "row_0" },
-    { name = "view3_sprite_41", rect = [192, 0, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_42", rect = [192, 144, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_43", rect = [192, 96, 16, 48], palette = "row_0" },
-    { name = "view3_sprite_44", rect = [192, 48, 16, 48], palette = "row_0" },
-    { name = "view3_sprite_45", rect = [240, 48, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_46", rect = [240, 144, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_47", rect = [208, 96, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_48", rect = [248, 192, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_49", rect = [248, 96, 40, 48], palette = "row_0" },
-    { name = "view3_sprite_50", rect = [224, 240, 8, 8], palette = "row_0" },
-    { name = "view3_sprite_51", rect = [200, 192, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_52", rect = [56, 96, 8, 40], palette = "row_0" },
-    { name = "view3_sprite_53", rect = [336, 48, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_54", rect = [288, 0, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_55", rect = [288, 192, 48, 48], palette = "row_0" },
-    { name = "view3_sprite_56", rect = [336, 240, 48, 16], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view3_sprite_0 = { rect = [208, 240, 8, 8], palette = "row_0" }
+cells.view3_sprite_1 = { rect = [112, 96, 40, 48], palette = "row_0" }
+cells.view3_sprite_2 = { rect = [104, 144, 40, 48], palette = "row_0" }
+cells.view3_sprite_3 = { rect = [152, 48, 40, 48], palette = "row_0" }
+cells.view3_sprite_4 = { rect = [152, 96, 40, 48], palette = "row_0" }
+cells.view3_sprite_5 = { rect = [160, 192, 40, 48], palette = "row_0" }
+cells.view3_sprite_6 = { rect = [168, 0, 24, 48], palette = "row_0" }
+cells.view3_sprite_7 = { rect = [136, 192, 24, 48], palette = "row_0" }
+cells.view3_sprite_8 = { rect = [144, 144, 24, 48], palette = "row_0" }
+cells.view3_sprite_9 = { rect = [152, 0, 16, 48], palette = "row_0" }
+cells.view3_sprite_10 = { rect = [128, 0, 24, 48], palette = "row_0" }
+cells.view3_sprite_11 = { rect = [168, 144, 24, 48], palette = "row_0" }
+cells.view3_sprite_12 = { rect = [40, 88, 16, 32], palette = "row_0" }
+cells.view3_sprite_13 = { rect = [40, 48, 16, 40], palette = "row_0" }
+cells.view3_sprite_14 = { rect = [216, 240, 8, 8], palette = "row_0" }
+cells.view3_sprite_15 = { rect = [104, 48, 48, 48], palette = "row_0" }
+cells.view3_sprite_16 = { rect = [32, 0, 48, 48], palette = "row_0" }
+cells.view3_sprite_17 = { rect = [56, 48, 48, 48], palette = "row_0" }
+cells.view3_sprite_18 = { rect = [56, 144, 48, 48], palette = "row_0" }
+cells.view3_sprite_19 = { rect = [40, 192, 48, 48], palette = "row_0" }
+cells.view3_sprite_20 = { rect = [88, 192, 48, 48], palette = "row_0" }
+cells.view3_sprite_21 = { rect = [64, 96, 48, 48], palette = "row_0" }
+cells.view3_sprite_22 = { rect = [80, 0, 48, 48], palette = "row_0" }
+cells.view3_sprite_23 = { rect = [288, 96, 48, 48], palette = "row_0" }
+cells.view3_sprite_24 = { rect = [288, 48, 48, 48], palette = "row_0" }
+cells.view3_sprite_25 = { rect = [312, 144, 24, 48], palette = "row_0" }
+cells.view3_sprite_26 = { rect = [32, 152, 24, 24], palette = "row_0" }
+cells.view3_sprite_27 = { rect = [48, 120, 8, 32], palette = "row_0" }
+cells.view3_sprite_28 = { rect = [288, 144, 24, 48], palette = "row_0" }
+cells.view3_sprite_29 = { rect = [208, 248, 16, 8], palette = "row_0" }
+cells.view3_sprite_30 = { rect = [224, 248, 8, 8], palette = "row_0" }
+cells.view3_sprite_31 = { rect = [200, 240, 8, 8], palette = "row_0" }
+cells.view3_sprite_32 = { rect = [336, 0, 48, 48], palette = "row_0" }
+cells.view3_sprite_33 = { rect = [336, 96, 48, 48], palette = "row_0" }
+cells.view3_sprite_34 = { rect = [336, 192, 48, 48], palette = "row_0" }
+cells.view3_sprite_35 = { rect = [232, 240, 48, 16], palette = "row_0" }
+cells.view3_sprite_36 = { rect = [336, 144, 48, 48], palette = "row_0" }
+cells.view3_sprite_37 = { rect = [240, 0, 48, 48], palette = "row_0" }
+cells.view3_sprite_38 = { rect = [208, 48, 32, 48], palette = "row_0" }
+cells.view3_sprite_39 = { rect = [304, 240, 32, 16], palette = "row_0" }
+cells.view3_sprite_40 = { rect = [280, 240, 24, 16], palette = "row_0" }
+cells.view3_sprite_41 = { rect = [192, 0, 48, 48], palette = "row_0" }
+cells.view3_sprite_42 = { rect = [192, 144, 48, 48], palette = "row_0" }
+cells.view3_sprite_43 = { rect = [192, 96, 16, 48], palette = "row_0" }
+cells.view3_sprite_44 = { rect = [192, 48, 16, 48], palette = "row_0" }
+cells.view3_sprite_45 = { rect = [240, 48, 48, 48], palette = "row_0" }
+cells.view3_sprite_46 = { rect = [240, 144, 48, 48], palette = "row_0" }
+cells.view3_sprite_47 = { rect = [208, 96, 40, 48], palette = "row_0" }
+cells.view3_sprite_48 = { rect = [248, 192, 40, 48], palette = "row_0" }
+cells.view3_sprite_49 = { rect = [248, 96, 40, 48], palette = "row_0" }
+cells.view3_sprite_50 = { rect = [224, 240, 8, 8], palette = "row_0" }
+cells.view3_sprite_51 = { rect = [200, 192, 48, 48], palette = "row_0" }
+cells.view3_sprite_52 = { rect = [56, 96, 8, 40], palette = "row_0" }
+cells.view3_sprite_53 = { rect = [336, 48, 48, 48], palette = "row_0" }
+cells.view3_sprite_54 = { rect = [288, 0, 48, 48], palette = "row_0" }
+cells.view3_sprite_55 = { rect = [288, 192, 48, 48], palette = "row_0" }
+cells.view3_sprite_56 = { rect = [336, 240, 48, 16], palette = "row_0" }
+
+[view3.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view3.from.USA]
 at = [{ stage = 5, folder = 2101, file = 3, slot = "image", page = 0 }]
@@ -259,50 +331,50 @@ palettes = { row_0 = "0b629813e9cd1c7c179538585744dd33c32152ab" }
 uid = "uid://7pg3gcycvpy5"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view4_sprite_0", rect = [232, 240, 8, 8], palette = "row_0" },
-    { name = "view4_sprite_1", rect = [240, 248, 8, 8], palette = "row_0" },
-    { name = "view4_sprite_2", rect = [168, 144, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_3", rect = [168, 96, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_4", rect = [168, 192, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_5", rect = [208, 48, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_6", rect = [216, 96, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_7", rect = [192, 0, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_8", rect = [168, 48, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_9", rect = [216, 192, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_10", rect = [216, 144, 24, 48], palette = "row_0" },
-    { name = "view4_sprite_11", rect = [232, 0, 24, 48], palette = "row_0" },
-    { name = "view4_sprite_12", rect = [168, 0, 24, 48], palette = "row_0" },
-    { name = "view4_sprite_13", rect = [64, 192, 24, 40], palette = "row_0" },
-    { name = "view4_sprite_14", rect = [248, 240, 8, 16], palette = "row_0" },
-    { name = "view4_sprite_15", rect = [152, 0, 16, 48], palette = "row_0" },
-    { name = "view4_sprite_16", rect = [240, 240, 8, 8], palette = "row_0" },
-    { name = "view4_sprite_17", rect = [120, 144, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_18", rect = [120, 192, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_19", rect = [72, 144, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_20", rect = [120, 96, 48, 48], palette = "row_0" },
-    { name = "view4_sprite_21", rect = [24, 136, 48, 24], palette = "row_0" },
-    { name = "view4_sprite_22", rect = [112, 0, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_23", rect = [112, 48, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_24", rect = [80, 96, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_25", rect = [56, 0, 40, 48], palette = "row_0" },
-    { name = "view4_sprite_26", rect = [48, 232, 40, 24], palette = "row_0" },
-    { name = "view4_sprite_27", rect = [96, 48, 16, 48], palette = "row_0" },
-    { name = "view4_sprite_28", rect = [152, 48, 16, 48], palette = "row_0" },
-    { name = "view4_sprite_29", rect = [240, 144, 16, 48], palette = "row_0" },
-    { name = "view4_sprite_30", rect = [96, 0, 16, 48], palette = "row_0" },
-    { name = "view4_sprite_31", rect = [64, 160, 8, 24], palette = "row_0" },
-    { name = "view4_sprite_32", rect = [88, 48, 8, 48], palette = "row_0" },
-    { name = "view4_sprite_33", rect = [56, 48, 32, 48], palette = "row_0" },
-    { name = "view4_sprite_34", rect = [88, 192, 32, 48], palette = "row_0" },
-    { name = "view4_sprite_35", rect = [56, 96, 24, 40], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view4_sprite_0 = { rect = [232, 240, 8, 8], palette = "row_0" }
+cells.view4_sprite_1 = { rect = [240, 248, 8, 8], palette = "row_0" }
+cells.view4_sprite_2 = { rect = [168, 144, 48, 48], palette = "row_0" }
+cells.view4_sprite_3 = { rect = [168, 96, 48, 48], palette = "row_0" }
+cells.view4_sprite_4 = { rect = [168, 192, 48, 48], palette = "row_0" }
+cells.view4_sprite_5 = { rect = [208, 48, 48, 48], palette = "row_0" }
+cells.view4_sprite_6 = { rect = [216, 96, 40, 48], palette = "row_0" }
+cells.view4_sprite_7 = { rect = [192, 0, 40, 48], palette = "row_0" }
+cells.view4_sprite_8 = { rect = [168, 48, 40, 48], palette = "row_0" }
+cells.view4_sprite_9 = { rect = [216, 192, 40, 48], palette = "row_0" }
+cells.view4_sprite_10 = { rect = [216, 144, 24, 48], palette = "row_0" }
+cells.view4_sprite_11 = { rect = [232, 0, 24, 48], palette = "row_0" }
+cells.view4_sprite_12 = { rect = [168, 0, 24, 48], palette = "row_0" }
+cells.view4_sprite_13 = { rect = [64, 192, 24, 40], palette = "row_0" }
+cells.view4_sprite_14 = { rect = [248, 240, 8, 16], palette = "row_0" }
+cells.view4_sprite_15 = { rect = [152, 0, 16, 48], palette = "row_0" }
+cells.view4_sprite_16 = { rect = [240, 240, 8, 8], palette = "row_0" }
+cells.view4_sprite_17 = { rect = [120, 144, 48, 48], palette = "row_0" }
+cells.view4_sprite_18 = { rect = [120, 192, 48, 48], palette = "row_0" }
+cells.view4_sprite_19 = { rect = [72, 144, 48, 48], palette = "row_0" }
+cells.view4_sprite_20 = { rect = [120, 96, 48, 48], palette = "row_0" }
+cells.view4_sprite_21 = { rect = [24, 136, 48, 24], palette = "row_0" }
+cells.view4_sprite_22 = { rect = [112, 0, 40, 48], palette = "row_0" }
+cells.view4_sprite_23 = { rect = [112, 48, 40, 48], palette = "row_0" }
+cells.view4_sprite_24 = { rect = [80, 96, 40, 48], palette = "row_0" }
+cells.view4_sprite_25 = { rect = [56, 0, 40, 48], palette = "row_0" }
+cells.view4_sprite_26 = { rect = [48, 232, 40, 24], palette = "row_0" }
+cells.view4_sprite_27 = { rect = [96, 48, 16, 48], palette = "row_0" }
+cells.view4_sprite_28 = { rect = [152, 48, 16, 48], palette = "row_0" }
+cells.view4_sprite_29 = { rect = [240, 144, 16, 48], palette = "row_0" }
+cells.view4_sprite_30 = { rect = [96, 0, 16, 48], palette = "row_0" }
+cells.view4_sprite_31 = { rect = [64, 160, 8, 24], palette = "row_0" }
+cells.view4_sprite_32 = { rect = [88, 48, 8, 48], palette = "row_0" }
+cells.view4_sprite_33 = { rect = [56, 48, 32, 48], palette = "row_0" }
+cells.view4_sprite_34 = { rect = [88, 192, 32, 48], palette = "row_0" }
+cells.view4_sprite_35 = { rect = [56, 96, 24, 40], palette = "row_0" }
+
+[view4.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view4.from.USA]
 at = [{ stage = 5, folder = 2101, file = 4, slot = "image", page = 0 }]
@@ -313,23 +385,23 @@ palettes = { row_0 = "6f52fa8f73903fa7fad6c349aa49dd0f6066526e" }
 uid = "uid://2ub1uyd2lbrp"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view5_sprite_0", rect = [80, 0, 48, 48], palette = "row_0" },
-    { name = "view5_sprite_1", rect = [80, 48, 48, 48], palette = "row_0" },
-    { name = "view5_sprite_2", rect = [80, 96, 48, 48], palette = "row_0" },
-    { name = "view5_sprite_3", rect = [80, 144, 48, 48], palette = "row_0" },
-    { name = "view5_sprite_4", rect = [64, 192, 48, 32], palette = "row_0" },
-    { name = "view5_sprite_5", rect = [80, 224, 32, 32], palette = "row_0" },
-    { name = "view5_sprite_6", rect = [112, 192, 16, 48], palette = "row_0" },
-    { name = "view5_sprite_7", rect = [72, 0, 8, 24], palette = "row_0" },
-    { name = "view5_sprite_8", rect = [56, 24, 24, 24], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view5_sprite_0 = { rect = [80, 0, 48, 48], palette = "row_0" }
+cells.view5_sprite_1 = { rect = [80, 48, 48, 48], palette = "row_0" }
+cells.view5_sprite_2 = { rect = [80, 96, 48, 48], palette = "row_0" }
+cells.view5_sprite_3 = { rect = [80, 144, 48, 48], palette = "row_0" }
+cells.view5_sprite_4 = { rect = [64, 192, 48, 32], palette = "row_0" }
+cells.view5_sprite_5 = { rect = [80, 224, 32, 32], palette = "row_0" }
+cells.view5_sprite_6 = { rect = [112, 192, 16, 48], palette = "row_0" }
+cells.view5_sprite_7 = { rect = [72, 0, 8, 24], palette = "row_0" }
+cells.view5_sprite_8 = { rect = [56, 24, 24, 24], palette = "row_0" }
+
+[view5.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view5.from.USA]
 at = [{ stage = 5, folder = 2101, file = 5, slot = "image", page = 0 }]
@@ -340,75 +412,75 @@ palettes = { row_0 = "0e6029e6fa343d1e78ec439069098bcd3c43914a" }
 uid = "uid://7ah1ak1gdp8j"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view6_sprite_0", rect = [328, 56, 56, 56], palette = "row_0" },
-    { name = "view6_sprite_1", rect = [328, 0, 56, 56], palette = "row_0" },
-    { name = "view6_sprite_2", rect = [328, 112, 56, 56], palette = "row_0" },
-    { name = "view6_sprite_3", rect = [8, 144, 56, 32], palette = "row_0" },
-    { name = "view6_sprite_4", rect = [344, 168, 40, 56], palette = "row_0" },
-    { name = "view6_sprite_5", rect = [304, 168, 40, 56], palette = "row_0" },
-    { name = "view6_sprite_6", rect = [288, 0, 40, 56], palette = "row_0" },
-    { name = "view6_sprite_7", rect = [320, 224, 40, 32], palette = "row_0" },
-    { name = "view6_sprite_8", rect = [8, 192, 32, 16], palette = "row_0" },
-    { name = "view6_sprite_9", rect = [8, 176, 32, 16], palette = "row_0" },
-    { name = "view6_sprite_10", rect = [200, 48, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_11", rect = [168, 192, 40, 48], palette = "row_0" },
-    { name = "view6_sprite_12", rect = [208, 200, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_13", rect = [208, 152, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_14", rect = [256, 152, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_15", rect = [160, 240, 48, 16], palette = "row_0" },
-    { name = "view6_sprite_16", rect = [288, 104, 40, 48], palette = "row_0" },
-    { name = "view6_sprite_17", rect = [168, 144, 40, 48], palette = "row_0" },
-    { name = "view6_sprite_18", rect = [200, 96, 40, 48], palette = "row_0" },
-    { name = "view6_sprite_19", rect = [0, 208, 40, 16], palette = "row_0" },
-    { name = "view6_sprite_20", rect = [0, 48, 40, 16], palette = "row_0" },
-    { name = "view6_sprite_21", rect = [120, 240, 40, 16], palette = "row_0" },
-    { name = "view6_sprite_22", rect = [304, 232, 8, 8], palette = "row_0" },
-    { name = "view6_sprite_23", rect = [312, 248, 8, 8], palette = "row_0" },
-    { name = "view6_sprite_24", rect = [200, 0, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_25", rect = [152, 96, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_26", rect = [152, 48, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_27", rect = [56, 96, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_28", rect = [72, 240, 48, 16], palette = "row_0" },
-    { name = "view6_sprite_29", rect = [8, 64, 32, 16], palette = "row_0" },
-    { name = "view6_sprite_30", rect = [72, 48, 32, 48], palette = "row_0" },
-    { name = "view6_sprite_31", rect = [304, 152, 16, 16], palette = "row_0" },
-    { name = "view6_sprite_32", rect = [296, 248, 16, 8], palette = "row_0" },
-    { name = "view6_sprite_33", rect = [120, 144, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_34", rect = [120, 0, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_35", rect = [104, 48, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_36", rect = [24, 0, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_37", rect = [248, 0, 40, 48], palette = "row_0" },
-    { name = "view6_sprite_38", rect = [296, 56, 32, 48], palette = "row_0" },
-    { name = "view6_sprite_39", rect = [40, 216, 32, 32], palette = "row_0" },
-    { name = "view6_sprite_40", rect = [304, 224, 8, 8], palette = "row_0" },
-    { name = "view6_sprite_41", rect = [248, 56, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_42", rect = [8, 128, 48, 16], palette = "row_0" },
-    { name = "view6_sprite_43", rect = [64, 144, 8, 40], palette = "row_0" },
-    { name = "view6_sprite_44", rect = [104, 96, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_45", rect = [72, 192, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_46", rect = [72, 144, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_47", rect = [16, 224, 24, 16], palette = "row_0" },
-    { name = "view6_sprite_48", rect = [320, 152, 8, 16], palette = "row_0" },
-    { name = "view6_sprite_49", rect = [72, 0, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_50", rect = [24, 112, 32, 16], palette = "row_0" },
-    { name = "view6_sprite_51", rect = [312, 224, 8, 24], palette = "row_0" },
-    { name = "view6_sprite_52", rect = [360, 224, 24, 32], palette = "row_0" },
-    { name = "view6_sprite_53", rect = [256, 200, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_54", rect = [240, 104, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_55", rect = [120, 192, 48, 48], palette = "row_0" },
-    { name = "view6_sprite_56", rect = [8, 88, 48, 24], palette = "row_0" },
-    { name = "view6_sprite_57", rect = [40, 184, 32, 32], palette = "row_0" },
-    { name = "view6_sprite_58", rect = [168, 0, 32, 48], palette = "row_0" },
-    { name = "view6_sprite_59", rect = [40, 48, 32, 40], palette = "row_0" },
-    { name = "view6_sprite_60", rect = [280, 248, 16, 8], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view6_sprite_0 = { rect = [328, 56, 56, 56], palette = "row_0" }
+cells.view6_sprite_1 = { rect = [328, 0, 56, 56], palette = "row_0" }
+cells.view6_sprite_2 = { rect = [328, 112, 56, 56], palette = "row_0" }
+cells.view6_sprite_3 = { rect = [8, 144, 56, 32], palette = "row_0" }
+cells.view6_sprite_4 = { rect = [344, 168, 40, 56], palette = "row_0" }
+cells.view6_sprite_5 = { rect = [304, 168, 40, 56], palette = "row_0" }
+cells.view6_sprite_6 = { rect = [288, 0, 40, 56], palette = "row_0" }
+cells.view6_sprite_7 = { rect = [320, 224, 40, 32], palette = "row_0" }
+cells.view6_sprite_8 = { rect = [8, 192, 32, 16], palette = "row_0" }
+cells.view6_sprite_9 = { rect = [8, 176, 32, 16], palette = "row_0" }
+cells.view6_sprite_10 = { rect = [200, 48, 48, 48], palette = "row_0" }
+cells.view6_sprite_11 = { rect = [168, 192, 40, 48], palette = "row_0" }
+cells.view6_sprite_12 = { rect = [208, 200, 48, 48], palette = "row_0" }
+cells.view6_sprite_13 = { rect = [208, 152, 48, 48], palette = "row_0" }
+cells.view6_sprite_14 = { rect = [256, 152, 48, 48], palette = "row_0" }
+cells.view6_sprite_15 = { rect = [160, 240, 48, 16], palette = "row_0" }
+cells.view6_sprite_16 = { rect = [288, 104, 40, 48], palette = "row_0" }
+cells.view6_sprite_17 = { rect = [168, 144, 40, 48], palette = "row_0" }
+cells.view6_sprite_18 = { rect = [200, 96, 40, 48], palette = "row_0" }
+cells.view6_sprite_19 = { rect = [0, 208, 40, 16], palette = "row_0" }
+cells.view6_sprite_20 = { rect = [0, 48, 40, 16], palette = "row_0" }
+cells.view6_sprite_21 = { rect = [120, 240, 40, 16], palette = "row_0" }
+cells.view6_sprite_22 = { rect = [304, 232, 8, 8], palette = "row_0" }
+cells.view6_sprite_23 = { rect = [312, 248, 8, 8], palette = "row_0" }
+cells.view6_sprite_24 = { rect = [200, 0, 48, 48], palette = "row_0" }
+cells.view6_sprite_25 = { rect = [152, 96, 48, 48], palette = "row_0" }
+cells.view6_sprite_26 = { rect = [152, 48, 48, 48], palette = "row_0" }
+cells.view6_sprite_27 = { rect = [56, 96, 48, 48], palette = "row_0" }
+cells.view6_sprite_28 = { rect = [72, 240, 48, 16], palette = "row_0" }
+cells.view6_sprite_29 = { rect = [8, 64, 32, 16], palette = "row_0" }
+cells.view6_sprite_30 = { rect = [72, 48, 32, 48], palette = "row_0" }
+cells.view6_sprite_31 = { rect = [304, 152, 16, 16], palette = "row_0" }
+cells.view6_sprite_32 = { rect = [296, 248, 16, 8], palette = "row_0" }
+cells.view6_sprite_33 = { rect = [120, 144, 48, 48], palette = "row_0" }
+cells.view6_sprite_34 = { rect = [120, 0, 48, 48], palette = "row_0" }
+cells.view6_sprite_35 = { rect = [104, 48, 48, 48], palette = "row_0" }
+cells.view6_sprite_36 = { rect = [24, 0, 48, 48], palette = "row_0" }
+cells.view6_sprite_37 = { rect = [248, 0, 40, 48], palette = "row_0" }
+cells.view6_sprite_38 = { rect = [296, 56, 32, 48], palette = "row_0" }
+cells.view6_sprite_39 = { rect = [40, 216, 32, 32], palette = "row_0" }
+cells.view6_sprite_40 = { rect = [304, 224, 8, 8], palette = "row_0" }
+cells.view6_sprite_41 = { rect = [248, 56, 48, 48], palette = "row_0" }
+cells.view6_sprite_42 = { rect = [8, 128, 48, 16], palette = "row_0" }
+cells.view6_sprite_43 = { rect = [64, 144, 8, 40], palette = "row_0" }
+cells.view6_sprite_44 = { rect = [104, 96, 48, 48], palette = "row_0" }
+cells.view6_sprite_45 = { rect = [72, 192, 48, 48], palette = "row_0" }
+cells.view6_sprite_46 = { rect = [72, 144, 48, 48], palette = "row_0" }
+cells.view6_sprite_47 = { rect = [16, 224, 24, 16], palette = "row_0" }
+cells.view6_sprite_48 = { rect = [320, 152, 8, 16], palette = "row_0" }
+cells.view6_sprite_49 = { rect = [72, 0, 48, 48], palette = "row_0" }
+cells.view6_sprite_50 = { rect = [24, 112, 32, 16], palette = "row_0" }
+cells.view6_sprite_51 = { rect = [312, 224, 8, 24], palette = "row_0" }
+cells.view6_sprite_52 = { rect = [360, 224, 24, 32], palette = "row_0" }
+cells.view6_sprite_53 = { rect = [256, 200, 48, 48], palette = "row_0" }
+cells.view6_sprite_54 = { rect = [240, 104, 48, 48], palette = "row_0" }
+cells.view6_sprite_55 = { rect = [120, 192, 48, 48], palette = "row_0" }
+cells.view6_sprite_56 = { rect = [8, 88, 48, 24], palette = "row_0" }
+cells.view6_sprite_57 = { rect = [40, 184, 32, 32], palette = "row_0" }
+cells.view6_sprite_58 = { rect = [168, 0, 32, 48], palette = "row_0" }
+cells.view6_sprite_59 = { rect = [40, 48, 32, 40], palette = "row_0" }
+cells.view6_sprite_60 = { rect = [280, 248, 16, 8], palette = "row_0" }
+
+[view6.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view6.from.USA]
 at = [{ stage = 5, folder = 2101, file = 6, slot = "image", page = 0 }]
@@ -419,30 +491,30 @@ palettes = { row_0 = "657fcdf26d30e141a7478939824cb7cb5dd3a8e0" }
 uid = "uid://1ofvdclxj0i0f"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 240]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view8_sprite_0", rect = [80, 0, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_1", rect = [80, 144, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_2", rect = [80, 96, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_3", rect = [80, 48, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_4", rect = [80, 192, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_5", rect = [32, 0, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_6", rect = [32, 48, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_7", rect = [32, 96, 48, 48], palette = "row_0" },
-    { name = "view8_sprite_8", rect = [48, 144, 32, 48], palette = "row_0" },
-    { name = "view8_sprite_9", rect = [8, 0, 16, 32], palette = "row_0" },
-    { name = "view8_sprite_10", rect = [48, 192, 32, 48], palette = "row_0" },
-    { name = "view8_sprite_11", rect = [16, 144, 32, 48], palette = "row_0" },
-    { name = "view8_sprite_12", rect = [16, 192, 32, 48], palette = "row_0" },
-    { name = "view8_sprite_13", rect = [24, 0, 8, 48], palette = "row_0" },
-    { name = "view8_sprite_14", rect = [24, 48, 8, 48], palette = "row_0" },
-    { name = "view8_sprite_15", rect = [16, 96, 16, 48], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view8_sprite_0 = { rect = [80, 0, 48, 48], palette = "row_0" }
+cells.view8_sprite_1 = { rect = [80, 144, 48, 48], palette = "row_0" }
+cells.view8_sprite_2 = { rect = [80, 96, 48, 48], palette = "row_0" }
+cells.view8_sprite_3 = { rect = [80, 48, 48, 48], palette = "row_0" }
+cells.view8_sprite_4 = { rect = [80, 192, 48, 48], palette = "row_0" }
+cells.view8_sprite_5 = { rect = [32, 0, 48, 48], palette = "row_0" }
+cells.view8_sprite_6 = { rect = [32, 48, 48, 48], palette = "row_0" }
+cells.view8_sprite_7 = { rect = [32, 96, 48, 48], palette = "row_0" }
+cells.view8_sprite_8 = { rect = [48, 144, 32, 48], palette = "row_0" }
+cells.view8_sprite_9 = { rect = [8, 0, 16, 32], palette = "row_0" }
+cells.view8_sprite_10 = { rect = [48, 192, 32, 48], palette = "row_0" }
+cells.view8_sprite_11 = { rect = [16, 144, 32, 48], palette = "row_0" }
+cells.view8_sprite_12 = { rect = [16, 192, 32, 48], palette = "row_0" }
+cells.view8_sprite_13 = { rect = [24, 0, 8, 48], palette = "row_0" }
+cells.view8_sprite_14 = { rect = [24, 48, 8, 48], palette = "row_0" }
+cells.view8_sprite_15 = { rect = [16, 96, 16, 48], palette = "row_0" }
+
+[view8.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view8.from.USA]
 at = [{ stage = 5, folder = 2101, file = 8, slot = "image", page = 0 }]
@@ -453,32 +525,32 @@ palettes = { row_0 = "947716e55e861439995a43f282583785259de590" }
 uid = "uid://iif8xh4kyv4"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view9_sprite_0", rect = [48, 48, 48, 48], palette = "row_0" },
-    { name = "view9_sprite_1", rect = [48, 96, 48, 48], palette = "row_0" },
-    { name = "view9_sprite_2", rect = [64, 192, 48, 48], palette = "row_0" },
-    { name = "view9_sprite_3", rect = [48, 0, 48, 48], palette = "row_0" },
-    { name = "view9_sprite_4", rect = [0, 0, 48, 48], palette = "row_0" },
-    { name = "view9_sprite_5", rect = [32, 192, 32, 48], palette = "row_0" },
-    { name = "view9_sprite_6", rect = [48, 144, 32, 48], palette = "row_0" },
-    { name = "view9_sprite_7", rect = [80, 144, 32, 48], palette = "row_0" },
-    { name = "view9_sprite_8", rect = [96, 96, 32, 48], palette = "row_0" },
-    { name = "view9_sprite_9", rect = [32, 48, 16, 32], palette = "row_0" },
-    { name = "view9_sprite_10", rect = [112, 48, 16, 48], palette = "row_0" },
-    { name = "view9_sprite_11", rect = [112, 0, 16, 48], palette = "row_0" },
-    { name = "view9_sprite_12", rect = [112, 144, 16, 48], palette = "row_0" },
-    { name = "view9_sprite_13", rect = [96, 48, 16, 48], palette = "row_0" },
-    { name = "view9_sprite_14", rect = [40, 80, 8, 24], palette = "row_0" },
-    { name = "view9_sprite_15", rect = [96, 0, 16, 48], palette = "row_0" },
-    { name = "view9_sprite_16", rect = [112, 192, 16, 48], palette = "row_0" },
-    { name = "view9_sprite_17", rect = [120, 240, 8, 16], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view9_sprite_0 = { rect = [48, 48, 48, 48], palette = "row_0" }
+cells.view9_sprite_1 = { rect = [48, 96, 48, 48], palette = "row_0" }
+cells.view9_sprite_2 = { rect = [64, 192, 48, 48], palette = "row_0" }
+cells.view9_sprite_3 = { rect = [48, 0, 48, 48], palette = "row_0" }
+cells.view9_sprite_4 = { rect = [0, 0, 48, 48], palette = "row_0" }
+cells.view9_sprite_5 = { rect = [32, 192, 32, 48], palette = "row_0" }
+cells.view9_sprite_6 = { rect = [48, 144, 32, 48], palette = "row_0" }
+cells.view9_sprite_7 = { rect = [80, 144, 32, 48], palette = "row_0" }
+cells.view9_sprite_8 = { rect = [96, 96, 32, 48], palette = "row_0" }
+cells.view9_sprite_9 = { rect = [32, 48, 16, 32], palette = "row_0" }
+cells.view9_sprite_10 = { rect = [112, 48, 16, 48], palette = "row_0" }
+cells.view9_sprite_11 = { rect = [112, 0, 16, 48], palette = "row_0" }
+cells.view9_sprite_12 = { rect = [112, 144, 16, 48], palette = "row_0" }
+cells.view9_sprite_13 = { rect = [96, 48, 16, 48], palette = "row_0" }
+cells.view9_sprite_14 = { rect = [40, 80, 8, 24], palette = "row_0" }
+cells.view9_sprite_15 = { rect = [96, 0, 16, 48], palette = "row_0" }
+cells.view9_sprite_16 = { rect = [112, 192, 16, 48], palette = "row_0" }
+cells.view9_sprite_17 = { rect = [120, 240, 8, 16], palette = "row_0" }
+
+[view9.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view9.from.USA]
 at = [{ stage = 5, folder = 2101, file = 9, slot = "image", page = 0 }]
@@ -489,28 +561,28 @@ palettes = { row_0 = "e6e9abdec370e84ace622ef2d9914da44e3949ed" }
 uid = "uid://btr310itmwem"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view10_sprite_0", rect = [80, 48, 48, 48], palette = "row_0" },
-    { name = "view10_sprite_1", rect = [80, 240, 8, 16], palette = "row_0" },
-    { name = "view10_sprite_2", rect = [88, 216, 40, 40], palette = "row_0" },
-    { name = "view10_sprite_3", rect = [56, 96, 32, 32], palette = "row_0" },
-    { name = "view10_sprite_4", rect = [88, 96, 24, 40], palette = "row_0" },
-    { name = "view10_sprite_5", rect = [112, 96, 16, 40], palette = "row_0" },
-    { name = "view10_sprite_6", rect = [80, 200, 8, 24], palette = "row_0" },
-    { name = "view10_sprite_7", rect = [80, 0, 48, 48], palette = "row_0" },
-    { name = "view10_sprite_8", rect = [88, 176, 40, 40], palette = "row_0" },
-    { name = "view10_sprite_9", rect = [72, 136, 32, 32], palette = "row_0" },
-    { name = "view10_sprite_10", rect = [64, 168, 24, 32], palette = "row_0" },
-    { name = "view10_sprite_11", rect = [112, 136, 16, 40], palette = "row_0" },
-    { name = "view10_sprite_12", rect = [104, 136, 8, 32], palette = "row_0" },
-    { name = "view10_sprite_13", rect = [80, 224, 8, 16], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view10_sprite_0 = { rect = [80, 48, 48, 48], palette = "row_0" }
+cells.view10_sprite_1 = { rect = [80, 240, 8, 16], palette = "row_0" }
+cells.view10_sprite_2 = { rect = [88, 216, 40, 40], palette = "row_0" }
+cells.view10_sprite_3 = { rect = [56, 96, 32, 32], palette = "row_0" }
+cells.view10_sprite_4 = { rect = [88, 96, 24, 40], palette = "row_0" }
+cells.view10_sprite_5 = { rect = [112, 96, 16, 40], palette = "row_0" }
+cells.view10_sprite_6 = { rect = [80, 200, 8, 24], palette = "row_0" }
+cells.view10_sprite_7 = { rect = [80, 0, 48, 48], palette = "row_0" }
+cells.view10_sprite_8 = { rect = [88, 176, 40, 40], palette = "row_0" }
+cells.view10_sprite_9 = { rect = [72, 136, 32, 32], palette = "row_0" }
+cells.view10_sprite_10 = { rect = [64, 168, 24, 32], palette = "row_0" }
+cells.view10_sprite_11 = { rect = [112, 136, 16, 40], palette = "row_0" }
+cells.view10_sprite_12 = { rect = [104, 136, 8, 32], palette = "row_0" }
+cells.view10_sprite_13 = { rect = [80, 224, 8, 16], palette = "row_0" }
+
+[view10.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view10.from.USA]
 at = [{ stage = 5, folder = 2101, file = 10, slot = "image", page = 0 }]
@@ -521,12 +593,14 @@ palettes = { row_0 = "5a0057d31b8631d9273c84c27a4c1027c483b468" }
 uid = "uid://1wm1zupkljn2d"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [128, 128]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+
+[view11.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view11.from.USA]
 at = [{ stage = 5, folder = 2101, file = 11, slot = "image", page = 0 }]
@@ -537,13 +611,15 @@ palettes = { row_0 = "6b646eb8ae6538a2a3a8c612d192d953fa7ac820" }
 uid = "uid://1texn72746ay2"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [128, 192]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-    { name = "effect_row_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+palettes.effect_row_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
+
+[view13.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view13.from.USA]
 at = [{ stage = 5, folder = 2101, file = 13, slot = "image_0", page = 0 }]
@@ -554,42 +630,42 @@ palettes = { effect_row_2 = "de081e895802cb2cb812991fcbd76e3628ab8baa", row_0 = 
 uid = "uid://40somixbu7n8"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view13_sprite_0", rect = [48, 248, 8, 8], palette = "row_0" },
-    { name = "view13_sprite_1", rect = [80, 192, 48, 32], palette = "row_0" },
-    { name = "view13_sprite_2", rect = [80, 160, 48, 32], palette = "row_0" },
-    { name = "view13_sprite_3", rect = [56, 64, 48, 32], palette = "row_0" },
-    { name = "view13_sprite_4", rect = [80, 224, 48, 32], palette = "row_0" },
-    { name = "view13_sprite_5", rect = [80, 128, 48, 32], palette = "row_0" },
-    { name = "view13_sprite_6", rect = [40, 120, 40, 24], palette = "row_0" },
-    { name = "view13_sprite_7", rect = [32, 48, 40, 16], palette = "row_0" },
-    { name = "view13_sprite_8", rect = [32, 144, 48, 24], palette = "row_0" },
-    { name = "view13_sprite_9", rect = [32, 192, 48, 24], palette = "row_0" },
-    { name = "view13_sprite_10", rect = [32, 168, 48, 24], palette = "row_0" },
-    { name = "view13_sprite_11", rect = [32, 24, 48, 24], palette = "row_0" },
-    { name = "view13_sprite_12", rect = [48, 112, 16, 8], palette = "row_0" },
-    { name = "view13_sprite_13", rect = [32, 216, 48, 16], palette = "row_0" },
-    { name = "view13_sprite_14", rect = [16, 96, 48, 16], palette = "row_0" },
-    { name = "view13_sprite_15", rect = [56, 248, 24, 8], palette = "row_0" },
-    { name = "view13_sprite_16", rect = [8, 80, 48, 16], palette = "row_0" },
-    { name = "view13_sprite_17", rect = [80, 32, 48, 32], palette = "row_0" },
-    { name = "view13_sprite_18", rect = [96, 0, 32, 32], palette = "row_0" },
-    { name = "view13_sprite_19", rect = [80, 96, 48, 32], palette = "row_0" },
-    { name = "view13_sprite_20", rect = [104, 64, 24, 32], palette = "row_0" },
-    { name = "view13_sprite_21", rect = [48, 0, 48, 24], palette = "row_0" },
-    { name = "view13_sprite_22", rect = [64, 96, 16, 24], palette = "row_0" },
-    { name = "view13_sprite_23", rect = [32, 232, 48, 16], palette = "row_0" },
-    { name = "view13_sprite_24", rect = [72, 48, 8, 16], palette = "row_0" },
-    { name = "view13_sprite_25", rect = [8, 64, 48, 16], palette = "row_0" },
-    { name = "view13_sprite_26", rect = [40, 0, 8, 16], palette = "row_0" },
-    { name = "view13_sprite_27", rect = [80, 24, 16, 8], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view13_sprite_0 = { rect = [48, 248, 8, 8], palette = "row_0" }
+cells.view13_sprite_1 = { rect = [80, 192, 48, 32], palette = "row_0" }
+cells.view13_sprite_2 = { rect = [80, 160, 48, 32], palette = "row_0" }
+cells.view13_sprite_3 = { rect = [56, 64, 48, 32], palette = "row_0" }
+cells.view13_sprite_4 = { rect = [80, 224, 48, 32], palette = "row_0" }
+cells.view13_sprite_5 = { rect = [80, 128, 48, 32], palette = "row_0" }
+cells.view13_sprite_6 = { rect = [40, 120, 40, 24], palette = "row_0" }
+cells.view13_sprite_7 = { rect = [32, 48, 40, 16], palette = "row_0" }
+cells.view13_sprite_8 = { rect = [32, 144, 48, 24], palette = "row_0" }
+cells.view13_sprite_9 = { rect = [32, 192, 48, 24], palette = "row_0" }
+cells.view13_sprite_10 = { rect = [32, 168, 48, 24], palette = "row_0" }
+cells.view13_sprite_11 = { rect = [32, 24, 48, 24], palette = "row_0" }
+cells.view13_sprite_12 = { rect = [48, 112, 16, 8], palette = "row_0" }
+cells.view13_sprite_13 = { rect = [32, 216, 48, 16], palette = "row_0" }
+cells.view13_sprite_14 = { rect = [16, 96, 48, 16], palette = "row_0" }
+cells.view13_sprite_15 = { rect = [56, 248, 24, 8], palette = "row_0" }
+cells.view13_sprite_16 = { rect = [8, 80, 48, 16], palette = "row_0" }
+cells.view13_sprite_17 = { rect = [80, 32, 48, 32], palette = "row_0" }
+cells.view13_sprite_18 = { rect = [96, 0, 32, 32], palette = "row_0" }
+cells.view13_sprite_19 = { rect = [80, 96, 48, 32], palette = "row_0" }
+cells.view13_sprite_20 = { rect = [104, 64, 24, 32], palette = "row_0" }
+cells.view13_sprite_21 = { rect = [48, 0, 48, 24], palette = "row_0" }
+cells.view13_sprite_22 = { rect = [64, 96, 16, 24], palette = "row_0" }
+cells.view13_sprite_23 = { rect = [32, 232, 48, 16], palette = "row_0" }
+cells.view13_sprite_24 = { rect = [72, 48, 8, 16], palette = "row_0" }
+cells.view13_sprite_25 = { rect = [8, 64, 48, 16], palette = "row_0" }
+cells.view13_sprite_26 = { rect = [40, 0, 8, 16], palette = "row_0" }
+cells.view13_sprite_27 = { rect = [80, 24, 16, 8], palette = "row_0" }
+
+[view13_2.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view13_2.from.USA]
 at = [{ stage = 5, folder = 2101, file = 13, slot = "image_1", page = 0 }]
@@ -600,12 +676,14 @@ palettes = { row_0 = "4e29b153ec6b14ce7703f235b67391c2de745e8e" }
 uid = "uid://1g7u1ew7z6tfb"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 192]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "effect_row_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] },
-]
+palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] }
+
+[view14.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view14.from.USA]
 at = [{ stage = 5, folder = 2101, file = 14, slot = "image", page = 0 }]
@@ -616,48 +694,48 @@ palettes = { effect_row_1 = "3baed28da1d39b352ab8127c1d6603a259ba7f7a" }
 uid = "uid://dvaavzkkjz2z"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view16_sprite_0", rect = [152, 144, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_1", rect = [200, 192, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_2", rect = [208, 48, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_3", rect = [208, 0, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_4", rect = [160, 48, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_5", rect = [160, 96, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_6", rect = [192, 248, 48, 8], palette = "row_0" },
-    { name = "view16_sprite_7", rect = [200, 144, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_8", rect = [208, 96, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_9", rect = [192, 240, 48, 8], palette = "row_0" },
-    { name = "view16_sprite_10", rect = [72, 48, 16, 40], palette = "row_0" },
-    { name = "view16_sprite_11", rect = [192, 0, 16, 48], palette = "row_0" },
-    { name = "view16_sprite_12", rect = [248, 192, 8, 48], palette = "row_0" },
-    { name = "view16_sprite_13", rect = [80, 224, 8, 24], palette = "row_0" },
-    { name = "view16_sprite_14", rect = [152, 192, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_15", rect = [144, 0, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_16", rect = [104, 192, 48, 48], palette = "row_0" },
-    { name = "view16_sprite_17", rect = [64, 144, 48, 40], palette = "row_0" },
-    { name = "view16_sprite_18", rect = [120, 96, 40, 48], palette = "row_0" },
-    { name = "view16_sprite_19", rect = [112, 144, 40, 48], palette = "row_0" },
-    { name = "view16_sprite_20", rect = [120, 48, 40, 48], palette = "row_0" },
-    { name = "view16_sprite_21", rect = [64, 184, 40, 40], palette = "row_0" },
-    { name = "view16_sprite_22", rect = [128, 0, 16, 48], palette = "row_0" },
-    { name = "view16_sprite_23", rect = [88, 96, 16, 40], palette = "row_0" },
-    { name = "view16_sprite_24", rect = [112, 0, 16, 48], palette = "row_0" },
-    { name = "view16_sprite_25", rect = [248, 144, 8, 48], palette = "row_0" },
-    { name = "view16_sprite_26", rect = [104, 96, 16, 48], palette = "row_0" },
-    { name = "view16_sprite_27", rect = [240, 240, 16, 16], palette = "row_0" },
-    { name = "view16_sprite_28", rect = [56, 40, 16, 40], palette = "row_0" },
-    { name = "view16_sprite_29", rect = [64, 0, 16, 40], palette = "row_0" },
-    { name = "view16_sprite_30", rect = [88, 224, 16, 32], palette = "row_0" },
-    { name = "view16_sprite_31", rect = [80, 0, 32, 48], palette = "row_0" },
-    { name = "view16_sprite_32", rect = [88, 48, 32, 48], palette = "row_0" },
-    { name = "view16_sprite_33", rect = [64, 88, 24, 40], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view16_sprite_0 = { rect = [152, 144, 48, 48], palette = "row_0" }
+cells.view16_sprite_1 = { rect = [200, 192, 48, 48], palette = "row_0" }
+cells.view16_sprite_2 = { rect = [208, 48, 48, 48], palette = "row_0" }
+cells.view16_sprite_3 = { rect = [208, 0, 48, 48], palette = "row_0" }
+cells.view16_sprite_4 = { rect = [160, 48, 48, 48], palette = "row_0" }
+cells.view16_sprite_5 = { rect = [160, 96, 48, 48], palette = "row_0" }
+cells.view16_sprite_6 = { rect = [192, 248, 48, 8], palette = "row_0" }
+cells.view16_sprite_7 = { rect = [200, 144, 48, 48], palette = "row_0" }
+cells.view16_sprite_8 = { rect = [208, 96, 48, 48], palette = "row_0" }
+cells.view16_sprite_9 = { rect = [192, 240, 48, 8], palette = "row_0" }
+cells.view16_sprite_10 = { rect = [72, 48, 16, 40], palette = "row_0" }
+cells.view16_sprite_11 = { rect = [192, 0, 16, 48], palette = "row_0" }
+cells.view16_sprite_12 = { rect = [248, 192, 8, 48], palette = "row_0" }
+cells.view16_sprite_13 = { rect = [80, 224, 8, 24], palette = "row_0" }
+cells.view16_sprite_14 = { rect = [152, 192, 48, 48], palette = "row_0" }
+cells.view16_sprite_15 = { rect = [144, 0, 48, 48], palette = "row_0" }
+cells.view16_sprite_16 = { rect = [104, 192, 48, 48], palette = "row_0" }
+cells.view16_sprite_17 = { rect = [64, 144, 48, 40], palette = "row_0" }
+cells.view16_sprite_18 = { rect = [120, 96, 40, 48], palette = "row_0" }
+cells.view16_sprite_19 = { rect = [112, 144, 40, 48], palette = "row_0" }
+cells.view16_sprite_20 = { rect = [120, 48, 40, 48], palette = "row_0" }
+cells.view16_sprite_21 = { rect = [64, 184, 40, 40], palette = "row_0" }
+cells.view16_sprite_22 = { rect = [128, 0, 16, 48], palette = "row_0" }
+cells.view16_sprite_23 = { rect = [88, 96, 16, 40], palette = "row_0" }
+cells.view16_sprite_24 = { rect = [112, 0, 16, 48], palette = "row_0" }
+cells.view16_sprite_25 = { rect = [248, 144, 8, 48], palette = "row_0" }
+cells.view16_sprite_26 = { rect = [104, 96, 16, 48], palette = "row_0" }
+cells.view16_sprite_27 = { rect = [240, 240, 16, 16], palette = "row_0" }
+cells.view16_sprite_28 = { rect = [56, 40, 16, 40], palette = "row_0" }
+cells.view16_sprite_29 = { rect = [64, 0, 16, 40], palette = "row_0" }
+cells.view16_sprite_30 = { rect = [88, 224, 16, 32], palette = "row_0" }
+cells.view16_sprite_31 = { rect = [80, 0, 32, 48], palette = "row_0" }
+cells.view16_sprite_32 = { rect = [88, 48, 32, 48], palette = "row_0" }
+cells.view16_sprite_33 = { rect = [64, 88, 24, 40], palette = "row_0" }
+
+[view16.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view16.from.USA]
 at = [{ stage = 5, folder = 2101, file = 16, slot = "image", page = 0 }]
@@ -668,28 +746,28 @@ palettes = { row_0 = "2e19198f2926e958a20c81d45599b32b705b096c" }
 uid = "uid://gskx87hmgtbw"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [56, 224]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view17_sprite_0", rect = [0, 176, 48, 48], palette = "row_0" },
-    { name = "view17_sprite_1", rect = [0, 136, 40, 40], palette = "row_0" },
-    { name = "view17_sprite_2", rect = [0, 104, 32, 32], palette = "row_0" },
-    { name = "view17_sprite_3", rect = [0, 72, 24, 32], palette = "row_0" },
-    { name = "view17_sprite_4", rect = [0, 32, 16, 40], palette = "row_0" },
-    { name = "view17_sprite_5", rect = [0, 0, 8, 32], palette = "row_0" },
-    { name = "view17_sprite_6", rect = [48, 208, 8, 16], palette = "row_0" },
-    { name = "view17_sprite_7", rect = [8, 176, 48, 48], palette = "row_0" },
-    { name = "view17_sprite_8", rect = [16, 136, 40, 40], palette = "row_0" },
-    { name = "view17_sprite_9", rect = [24, 104, 32, 32], palette = "row_0" },
-    { name = "view17_sprite_10", rect = [32, 72, 24, 32], palette = "row_0" },
-    { name = "view17_sprite_11", rect = [48, 0, 8, 32], palette = "row_0" },
-    { name = "view17_sprite_12", rect = [40, 32, 16, 40], palette = "row_0" },
-    { name = "view17_sprite_13", rect = [0, 208, 8, 16], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view17_sprite_0 = { rect = [0, 176, 48, 48], palette = "row_0" }
+cells.view17_sprite_1 = { rect = [0, 136, 40, 40], palette = "row_0" }
+cells.view17_sprite_2 = { rect = [0, 104, 32, 32], palette = "row_0" }
+cells.view17_sprite_3 = { rect = [0, 72, 24, 32], palette = "row_0" }
+cells.view17_sprite_4 = { rect = [0, 32, 16, 40], palette = "row_0" }
+cells.view17_sprite_5 = { rect = [0, 0, 8, 32], palette = "row_0" }
+cells.view17_sprite_6 = { rect = [48, 208, 8, 16], palette = "row_0" }
+cells.view17_sprite_7 = { rect = [8, 176, 48, 48], palette = "row_0" }
+cells.view17_sprite_8 = { rect = [16, 136, 40, 40], palette = "row_0" }
+cells.view17_sprite_9 = { rect = [24, 104, 32, 32], palette = "row_0" }
+cells.view17_sprite_10 = { rect = [32, 72, 24, 32], palette = "row_0" }
+cells.view17_sprite_11 = { rect = [48, 0, 8, 32], palette = "row_0" }
+cells.view17_sprite_12 = { rect = [40, 32, 16, 40], palette = "row_0" }
+cells.view17_sprite_13 = { rect = [0, 208, 8, 16], palette = "row_0" }
+
+[view17.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view17.from.USA]
 at = [{ stage = 5, folder = 2101, file = 17, slot = "image", page = 0 }]
@@ -700,24 +778,24 @@ palettes = { row_0 = "5a0057d31b8631d9273c84c27a4c1027c483b468" }
 uid = "uid://1b0zwutbrfzer"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view18_sprite_0", rect = [80, 48, 48, 48], palette = "row_0" },
-    { name = "view18_sprite_1", rect = [104, 0, 24, 48], palette = "row_0" },
-    { name = "view18_sprite_2", rect = [120, 240, 8, 16], palette = "row_0" },
-    { name = "view18_sprite_3", rect = [80, 96, 48, 48], palette = "row_0" },
-    { name = "view18_sprite_4", rect = [88, 0, 16, 48], palette = "row_0" },
-    { name = "view18_sprite_5", rect = [72, 48, 8, 24], palette = "row_0" },
-    { name = "view18_sprite_6", rect = [80, 192, 48, 48], palette = "row_0" },
-    { name = "view18_sprite_7", rect = [80, 144, 48, 48], palette = "row_0" },
-    { name = "view18_sprite_8", rect = [40, 0, 48, 48], palette = "row_0" },
-    { name = "view18_sprite_9", rect = [56, 72, 24, 24], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view18_sprite_0 = { rect = [80, 48, 48, 48], palette = "row_0" }
+cells.view18_sprite_1 = { rect = [104, 0, 24, 48], palette = "row_0" }
+cells.view18_sprite_2 = { rect = [120, 240, 8, 16], palette = "row_0" }
+cells.view18_sprite_3 = { rect = [80, 96, 48, 48], palette = "row_0" }
+cells.view18_sprite_4 = { rect = [88, 0, 16, 48], palette = "row_0" }
+cells.view18_sprite_5 = { rect = [72, 48, 8, 24], palette = "row_0" }
+cells.view18_sprite_6 = { rect = [80, 192, 48, 48], palette = "row_0" }
+cells.view18_sprite_7 = { rect = [80, 144, 48, 48], palette = "row_0" }
+cells.view18_sprite_8 = { rect = [40, 0, 48, 48], palette = "row_0" }
+cells.view18_sprite_9 = { rect = [56, 72, 24, 24], palette = "row_0" }
+
+[view18.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view18.from.USA]
 at = [{ stage = 5, folder = 2101, file = 18, slot = "image", page = 0 }]

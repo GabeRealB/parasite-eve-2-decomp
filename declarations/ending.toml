@@ -4,29 +4,29 @@
 uid = "uid://binbyhfa0ewz"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 0] }
-palettes = [
-    { name = "gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 254] },
-    { name = "violet", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 254] },
-    { name = "red", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 254] },
-    { name = "magenta", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 254] },
-    { name = "blue", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 255] },
-    { name = "aqua", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 255] },
-    { name = "yellow", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 255] },
-    { name = "light_gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 255] },
-]
-variants = [
-    { name = "gray", palette = "gray" },
-    { name = "violet", palette = "violet" },
-    { name = "red", palette = "red" },
-    { name = "magenta", palette = "magenta" },
-    { name = "blue", palette = "blue" },
-    { name = "aqua", palette = "aqua" },
-    { name = "yellow", palette = "yellow" },
-    { name = "light_gray", palette = "light_gray" },
-]
+palettes.gray = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 254] }
+palettes.violet = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 254] }
+palettes.red = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 254] }
+palettes.magenta = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 254] }
+palettes.blue = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 255] }
+palettes.aqua = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 255] }
+palettes.yellow = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 255] }
+palettes.light_gray = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 255] }
+variants.gray = { palette = "gray" }
+variants.violet = { palette = "violet" }
+variants.red = { palette = "red" }
+variants.magenta = { palette = "magenta" }
+variants.blue = { palette = "blue" }
+variants.aqua = { palette = "aqua" }
+variants.yellow = { palette = "yellow" }
+variants.light_gray = { palette = "light_gray" }
+
+[credits_font_0.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [credits_font_0.from.USA]
 at = [{ stage = 0, file = 21000, slot = "font_image_0", page = 0 }]
@@ -37,29 +37,29 @@ palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e
 uid = "uid://j5ynvx2x8i0x"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 254] },
-    { name = "violet", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 254] },
-    { name = "red", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 254] },
-    { name = "magenta", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 254] },
-    { name = "blue", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 255] },
-    { name = "aqua", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 255] },
-    { name = "yellow", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 255] },
-    { name = "light_gray", slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 255] },
-]
-variants = [
-    { name = "gray", palette = "gray" },
-    { name = "violet", palette = "violet" },
-    { name = "red", palette = "red" },
-    { name = "magenta", palette = "magenta" },
-    { name = "blue", palette = "blue" },
-    { name = "aqua", palette = "aqua" },
-    { name = "yellow", palette = "yellow" },
-    { name = "light_gray", palette = "light_gray" },
-]
+palettes.gray = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 254] }
+palettes.violet = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 254] }
+palettes.red = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 254] }
+palettes.magenta = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 254] }
+palettes.blue = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [0, 255] }
+palettes.aqua = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [16, 255] }
+palettes.yellow = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [32, 255] }
+palettes.light_gray = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.asset" }, at = [48, 255] }
+variants.gray = { palette = "gray" }
+variants.violet = { palette = "violet" }
+variants.red = { palette = "red" }
+variants.magenta = { palette = "magenta" }
+variants.blue = { palette = "blue" }
+variants.aqua = { palette = "aqua" }
+variants.yellow = { palette = "yellow" }
+variants.light_gray = { palette = "light_gray" }
+
+[credits_font_1.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [credits_font_1.from.USA]
 at = [{ stage = 0, file = 21000, slot = "font_image_1", page = 0 }]
@@ -70,17 +70,17 @@ palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e
 uid = "uid://t0wkc20tu0i5"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://qnx1brk2em4b", path = "res://engine/vram/credits_logos.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 80]
-page = { slot = { uid = "uid://qnx1brk2em4b", path = "res://engine/vram/credits_logos.asset" }, at = [0, 0] }
-palettes = [
-    { name = "square", slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 224] },
-    { name = "squartz", slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 225] },
-]
-cells = [
-    { name = "square", rect = [5, 1, 243, 38], palette = "square" },
-    { name = "squartz", rect = [2, 46, 226, 29], palette = "squartz" },
-]
+palettes.square = { slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 224] }
+palettes.squartz = { slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 225] }
+cells.square = { rect = [5, 1, 243, 38], palette = "square" }
+cells.squartz = { rect = [2, 46, 226, 29], palette = "squartz" }
+
+[logos.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [logos.from.USA]
 at = [{ stage = 0, file = 21000, slot = "logo_image", page = 0 }]

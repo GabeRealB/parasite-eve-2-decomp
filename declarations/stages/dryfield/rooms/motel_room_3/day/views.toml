@@ -6,6 +6,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view1_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view1_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 1, slot = "background" }, { stage = 3, folder = 1301, file = 1, slot = "background" }]
 sha1 = "28746dc03ecb1a12977474aaeb120b62be3206f3"
@@ -15,6 +19,10 @@ uid = "uid://1ipjrgsghf332"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view2_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view2_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 2, slot = "background" }, { stage = 3, folder = 1301, file = 2, slot = "background" }]
@@ -26,6 +34,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view3_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view3_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 3, slot = "background" }]
 sha1 = "5c99fdc43178b0c6dede87975fbd4d5cf1b62b32"
@@ -35,6 +47,10 @@ uid = "uid://164n3lmrrwcao"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view4_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view4_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 4, slot = "background" }]
@@ -46,6 +62,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view5_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view5_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 5, slot = "background" }]
 sha1 = "eb359ad14c0b0de7b77764bdeffa47b1e2189154"
@@ -55,6 +75,10 @@ uid = "uid://f9douf4mks17"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view6_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view6_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 6, slot = "background" }]
@@ -66,6 +90,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view7_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view7_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 7, slot = "background" }]
 sha1 = "c97ac411ae5a0cab9a8b831ed2c08b9a765abdaa"
@@ -75,6 +103,10 @@ uid = "uid://15dfsd8o9b6vq"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view8_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view8_background.from.USA]
 at = [{ stage = 2, folder = 1301, file = 8, slot = "background" }]

@@ -6,6 +6,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view1_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view1_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 1, slot = "background" }, { stage = 4, folder = 1501, file = 1, slot = "background" }, { stage = 4, folder = 3301, file = 1, slot = "background" }]
 sha1 = "f2461ad43f16dc32e67474100a23a412f75ca72d"
@@ -15,6 +19,10 @@ uid = "uid://1rbluac02hp8s"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view2_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view2_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 2, slot = "background" }]
@@ -26,6 +34,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view3_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view3_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 3, slot = "background" }]
 sha1 = "df48324fcfc226606939da4b84c04c2e96d15ece"
@@ -35,6 +47,10 @@ uid = "uid://pxn7tqu143bg"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view4_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view4_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 4, slot = "background" }]
@@ -46,6 +62,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view5_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view5_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 5, slot = "background" }]
 sha1 = "93e7d9300ae692f17ec6f1c67d6e6dc11f60fbc9"
@@ -55,6 +75,10 @@ uid = "uid://2ckky3wipgv0"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view6_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view6_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 6, slot = "background" }]
@@ -66,6 +90,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view7_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view7_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 7, slot = "background" }]
 sha1 = "713ab9f1ef0a10565960b937abbd7cbb2ee97f2f"
@@ -75,6 +103,10 @@ uid = "uid://13sf1l0op42i6"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view8_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view8_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 8, slot = "background" }]
@@ -86,6 +118,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view9_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view9_background.from.USA]
 at = [{ stage = 3, folder = 801, file = 9, slot = "background" }]
 sha1 = "6e8134a920476e2e631a2de8419d42fa6d42c0b5"
@@ -94,23 +130,23 @@ sha1 = "6e8134a920476e2e631a2de8419d42fa6d42c0b5"
 uid = "uid://4cqmflv7f8yv"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "row_0", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view6_sprite_0", rect = [112, 80, 16, 56], palette = "row_0" },
-    { name = "view6_sprite_1", rect = [112, 216, 16, 40], palette = "row_0" },
-    { name = "view6_sprite_2", rect = [104, 0, 24, 80], palette = "row_0" },
-    { name = "view6_sprite_3", rect = [56, 112, 56, 32], palette = "row_0" },
-    { name = "view6_sprite_4", rect = [56, 144, 56, 32], palette = "row_0" },
-    { name = "view6_sprite_5", rect = [56, 216, 56, 32], palette = "row_0" },
-    { name = "view6_sprite_6", rect = [112, 136, 16, 40], palette = "row_0" },
-    { name = "view6_sprite_7", rect = [88, 80, 24, 32], palette = "row_0" },
-    { name = "view6_sprite_8", rect = [88, 176, 40, 40], palette = "row_0" },
-]
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view6_sprite_0 = { rect = [112, 80, 16, 56], palette = "row_0" }
+cells.view6_sprite_1 = { rect = [112, 216, 16, 40], palette = "row_0" }
+cells.view6_sprite_2 = { rect = [104, 0, 24, 80], palette = "row_0" }
+cells.view6_sprite_3 = { rect = [56, 112, 56, 32], palette = "row_0" }
+cells.view6_sprite_4 = { rect = [56, 144, 56, 32], palette = "row_0" }
+cells.view6_sprite_5 = { rect = [56, 216, 56, 32], palette = "row_0" }
+cells.view6_sprite_6 = { rect = [112, 136, 16, 40], palette = "row_0" }
+cells.view6_sprite_7 = { rect = [88, 80, 24, 32], palette = "row_0" }
+cells.view6_sprite_8 = { rect = [88, 176, 40, 40], palette = "row_0" }
+
+[view6.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view6.from.USA]
 at = [{ stage = 3, folder = 801, file = 6, slot = "image", page = 0 }]

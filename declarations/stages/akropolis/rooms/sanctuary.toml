@@ -4,19 +4,19 @@
 uid = "uid://lq3rgmey09nr"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [120, 40]
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "flame_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
-    { name = "flame_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] },
-    { name = "flame_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
-]
-cells = [
-    { name = "flame_0", rect = [0, 0, 40, 40], palette = "flame_0" },
-    { name = "flame_1", rect = [40, 0, 40, 40], palette = "flame_1" },
-    { name = "flame_2", rect = [80, 0, 40, 40], palette = "flame_2" },
-]
+palettes.flame_0 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] }
+palettes.flame_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] }
+palettes.flame_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] }
+cells.flame_0 = { rect = [0, 0, 40, 40], palette = "flame_0" }
+cells.flame_1 = { rect = [40, 0, 40, 40], palette = "flame_1" }
+cells.flame_2 = { rect = [80, 0, 40, 40], palette = "flame_2" }
+
+[flames.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [flames.from.USA]
 at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 0 }]
@@ -57,12 +57,14 @@ at = [{ stage = 1, folder = 1201 }]
 uid = "uid://loy7cedirzi6"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [56, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
-]
+palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] }
+
+[mosaic_page_2.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [mosaic_page_2.from.USA]
 at = [{ stage = 1, folder = 1201, file = 0, slot = "image_1", page = 0 }]
@@ -73,16 +75,18 @@ palettes = { default = "668b0a188b74c3b57cb96c460ebfb64b91a44ac3" }
 uid = "uid://1c30rrldg68tq"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
-palettes = [
-    { name = "text_0", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] },
-    { name = "text_1", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] },
-    { name = "text_2", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] },
-    { name = "text_3", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] },
-    { name = "plate", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] },
-]
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+
+[dialogue_0_atlas.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 1, folder = 1201, file = 0, slot = "dialogue_0_atlas", page = 0 }]

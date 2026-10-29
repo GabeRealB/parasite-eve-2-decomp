@@ -4,18 +4,18 @@
 uid = "uid://1d73uh7p64hd9"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [504, 168]
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "effect_row_9_3", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] },
-    { name = "effect_row_9_4", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] },
-    { name = "effect_row_9_5", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 9] },
-    { name = "effect_row_9_6", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 9] },
-]
-cells = [
-    { name = "model_07BAC", rect = [121, 0, 22, 8], palette = "effect_row_9_3" },
-]
+palettes.effect_row_9_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] }
+palettes.effect_row_9_4 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] }
+palettes.effect_row_9_5 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 9] }
+palettes.effect_row_9_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 9] }
+cells.model_07BAC = { rect = [121, 0, 22, 8], palette = "effect_row_9_3" }
+
+[spores.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [spores.from.USA]
 at = [{ stage = 5, folder = 2201, file = 0, slot = "image", page = 0 }]

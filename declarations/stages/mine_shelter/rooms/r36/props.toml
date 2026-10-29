@@ -4,12 +4,14 @@
 uid = "uid://d8oxuz7uwits"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [96, 88]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
-palettes = [
-    { name = "effect_row_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] },
-]
+palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] }
+
+[clipboard.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [clipboard.from.USA]
 at = [{ stage = 4, folder = 3601, file = 0, slot = "image", page = 0 }]

@@ -4,19 +4,19 @@
 uid = "uid://18ckevj1jbvt8"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [120, 40]
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "flare_0", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
-    { name = "flare_1", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] },
-    { name = "flare_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] },
-]
-cells = [
-    { name = "flare_0", rect = [0, 0, 40, 40], palette = "flare_0" },
-    { name = "flare_1", rect = [40, 0, 40, 40], palette = "flare_1" },
-    { name = "flare_2", rect = [80, 0, 40, 40], palette = "flare_2" },
-]
+palettes.flare_0 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] }
+palettes.flare_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] }
+palettes.flare_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] }
+cells.flare_0 = { rect = [0, 0, 40, 40], palette = "flare_0" }
+cells.flare_1 = { rect = [40, 0, 40, 40], palette = "flare_1" }
+cells.flare_2 = { rect = [80, 0, 40, 40], palette = "flare_2" }
+
+[flare.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [flare.from.USA]
 at = [{ stage = 1, folder = 301, file = 0, slot = "image", page = 0 }, { stage = 1, folder = 801, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 1801, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 3401, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 3801, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 101, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 501, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 801, file = 0, slot = "image_1", page = 0 }, { stage = 3, folder = 1101, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1201, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1301, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1401, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1501, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1601, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1701, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2001, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2201, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2601, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2801, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3001, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3401, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3801, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 101, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 201, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 301, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 401, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 501, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 601, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 701, file = 0, slot = "image_1", page = 0 }, { stage = 4, folder = 801, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 901, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 1501, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 701, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 2101, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 2501, file = 0, slot = "image", page = 0 }]
@@ -27,16 +27,18 @@ palettes = { flare_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flare_1 = "62
 uid = "uid://5xcamop92axh"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "text_0", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] },
-    { name = "text_1", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] },
-    { name = "text_2", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] },
-    { name = "text_3", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] },
-    { name = "plate", slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] },
-]
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+
+[story_calls_atlas.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [story_calls_atlas.from.USA]
 at = [{ stage = 1, folder = 101, file = 9, slot = "dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1501, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1901, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }]

@@ -4,17 +4,17 @@
 uid = "uid://1p0b798pl2wiv"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "row_263", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
-    { name = "default", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
-]
-variants = [
-    { name = "default", palette = "default" },
-    { name = "row_263", palette = "row_263" },
-]
+palettes.row_263 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
+palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] }
+variants.default = { palette = "default" }
+variants.row_263 = { palette = "row_263" }
+
+[mosaic_page_1.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [mosaic_page_1.from.USA]
 at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 1 }]

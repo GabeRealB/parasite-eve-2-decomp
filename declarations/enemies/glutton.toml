@@ -4,23 +4,23 @@
 uid = "uid://hro31nqq31w5"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [640, 256]
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
-    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
-    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
-    { name = "default_4", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] },
-    { name = "default_5", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 4] },
-]
-cells = [
-    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
-    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
-    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
-    { name = "page_3", rect = [384, 0, 128, 256], palette = "default_4" },
-    { name = "page_4", rect = [512, 0, 128, 256], palette = "default_5" },
-]
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+palettes.default_3 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] }
+palettes.default_4 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] }
+palettes.default_5 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 4] }
+cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
+cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
+cells.page_2 = { rect = [256, 0, 128, 256], palette = "default_3" }
+cells.page_3 = { rect = [384, 0, 128, 256], palette = "default_4" }
+cells.page_4 = { rect = [512, 0, 128, 256], palette = "default_5" }
+
+[texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 403200, slot = "image", page = 0 }, { stage = 0, file = 444000, slot = "image", page = 0 }]

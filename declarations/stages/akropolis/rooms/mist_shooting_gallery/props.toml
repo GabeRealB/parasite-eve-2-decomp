@@ -4,19 +4,19 @@
 uid = "uid://jr68leys0zcz"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
-    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
-    { name = "default_3", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] },
-]
-cells = [
-    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
-    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
-    { name = "page_2", rect = [256, 0, 128, 256], palette = "default_3" },
-]
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+palettes.default_3 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 2] }
+cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
+cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
+cells.page_2 = { rect = [256, 0, 128, 256], palette = "default_3" }
+
+[target.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [target.from.USA]
 at = [{ stage = 0, file = 107600, slot = "image", page = 0 }]
@@ -27,16 +27,16 @@ palettes = { default = "9de06a4c470449ee9741b52de3e9101da43af2f9", default_2 = "
 uid = "uid://142s3oqa46sa7"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] },
-]
-cells = [
-    { name = "death_burst", rect = [64, 0, 40, 40], palette = "default" },
-    { name = "hit_mark", rect = [104, 0, 16, 16], palette = "default" },
-]
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3] }
+cells.death_burst = { rect = [64, 0, 40, 40], palette = "default" }
+cells.hit_mark = { rect = [104, 0, 16, 16], palette = "default" }
+
+[target_page_4.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [target_page_4.from.USA]
 at = [{ stage = 0, file = 107600, slot = "image", page = 3 }]

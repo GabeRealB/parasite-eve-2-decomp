@@ -4,41 +4,41 @@
 uid = "uid://13xlbgaggp5r1"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]
-page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "pattern", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 0] },
-    { name = "picture", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 1] },
-    { name = "cursor", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 2] },
-    { name = "telephone", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [16, 2] },
-    { name = "box", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [32, 2] },
-    { name = "marker_key", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [48, 2] },
-    { name = "objective", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [64, 2] },
-    { name = "arrow", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [80, 2] },
-    { name = "marker_cross", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [96, 2] },
-    { name = "help", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [112, 2] },
-]
-cells = [
-    { name = "picture", rect = [1, 32, 254, 208], palette = "picture" },
-    { name = "area_pattern", rect = [0, 0, 32, 32], palette = "pattern" },
-    { name = "telephone", rect = [64, 0, 16, 16], palette = "telephone", mode = "indexed_4bpp" },
-    { name = "box", rect = [80, 0, 16, 16], palette = "box", mode = "indexed_4bpp" },
-    { name = "marker_key", rect = [96, 0, 16, 16], palette = "marker_key", mode = "indexed_4bpp" },
-    { name = "objective", rect = [112, 0, 16, 16], palette = "objective", mode = "indexed_4bpp" },
-    { name = "arrow_right", rect = [128, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" },
-    { name = "arrow_left", rect = [136, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" },
-    { name = "marker_cross", rect = [144, 0, 16, 16], palette = "marker_cross", mode = "indexed_4bpp" },
-    { name = "help", rect = [192, 0, 32, 24], palette = "help", mode = "indexed_4bpp" },
-    { name = "cursor_0", rect = [64, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_1", rect = [80, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_2", rect = [96, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_3", rect = [112, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_4", rect = [128, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_5", rect = [144, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_6", rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_7", rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-]
+palettes.pattern = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 0] }
+palettes.picture = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 1] }
+palettes.cursor = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 2] }
+palettes.telephone = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [16, 2] }
+palettes.box = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [32, 2] }
+palettes.marker_key = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [48, 2] }
+palettes.objective = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [64, 2] }
+palettes.arrow = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [80, 2] }
+palettes.marker_cross = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [96, 2] }
+palettes.help = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [112, 2] }
+cells.picture = { rect = [1, 32, 254, 208], palette = "picture" }
+cells.area_pattern = { rect = [0, 0, 32, 32], palette = "pattern" }
+cells.telephone = { rect = [64, 0, 16, 16], palette = "telephone", mode = "indexed_4bpp" }
+cells.box = { rect = [80, 0, 16, 16], palette = "box", mode = "indexed_4bpp" }
+cells.marker_key = { rect = [96, 0, 16, 16], palette = "marker_key", mode = "indexed_4bpp" }
+cells.objective = { rect = [112, 0, 16, 16], palette = "objective", mode = "indexed_4bpp" }
+cells.arrow_right = { rect = [128, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" }
+cells.arrow_left = { rect = [136, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" }
+cells.marker_cross = { rect = [144, 0, 16, 16], palette = "marker_cross", mode = "indexed_4bpp" }
+cells.help = { rect = [192, 0, 32, 24], palette = "help", mode = "indexed_4bpp" }
+cells.cursor_0 = { rect = [64, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_1 = { rect = [80, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_2 = { rect = [96, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_3 = { rect = [112, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_4 = { rect = [128, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_5 = { rect = [144, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_6 = { rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_7 = { rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+
+[page_0.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [page_0.from.USA]
 at = [{ stage = 0, file = 30100, slot = "image", page = 0 }, { stage = 0, file = 30101, slot = "image", page = 0 }]
@@ -49,41 +49,41 @@ palettes = { pattern = "0c0b49324d1941537267d0a8bcf4caa651bd8a56", picture = "65
 uid = "uid://6f4v6v7wznqx"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]
-page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "pattern", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 0] },
-    { name = "picture", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 1] },
-    { name = "cursor", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 2] },
-    { name = "telephone", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [16, 2] },
-    { name = "box", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [32, 2] },
-    { name = "marker_key", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [48, 2] },
-    { name = "objective", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [64, 2] },
-    { name = "arrow", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [80, 2] },
-    { name = "marker_cross", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [96, 2] },
-    { name = "help", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [112, 2] },
-]
-cells = [
-    { name = "picture", rect = [1, 32, 254, 208], palette = "picture" },
-    { name = "area_pattern", rect = [0, 0, 32, 32], palette = "pattern" },
-    { name = "telephone", rect = [64, 0, 16, 16], palette = "telephone", mode = "indexed_4bpp" },
-    { name = "box", rect = [80, 0, 16, 16], palette = "box", mode = "indexed_4bpp" },
-    { name = "marker_key", rect = [96, 0, 16, 16], palette = "marker_key", mode = "indexed_4bpp" },
-    { name = "objective", rect = [112, 0, 16, 16], palette = "objective", mode = "indexed_4bpp" },
-    { name = "arrow_right", rect = [128, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" },
-    { name = "arrow_left", rect = [136, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" },
-    { name = "marker_cross", rect = [144, 0, 16, 16], palette = "marker_cross", mode = "indexed_4bpp" },
-    { name = "help", rect = [192, 0, 32, 24], palette = "help", mode = "indexed_4bpp" },
-    { name = "cursor_0", rect = [64, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_1", rect = [80, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_2", rect = [96, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_3", rect = [112, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_4", rect = [128, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_5", rect = [144, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_6", rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_7", rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-]
+palettes.pattern = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 0] }
+palettes.picture = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 1] }
+palettes.cursor = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 2] }
+palettes.telephone = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [16, 2] }
+palettes.box = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [32, 2] }
+palettes.marker_key = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [48, 2] }
+palettes.objective = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [64, 2] }
+palettes.arrow = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [80, 2] }
+palettes.marker_cross = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [96, 2] }
+palettes.help = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [112, 2] }
+cells.picture = { rect = [1, 32, 254, 208], palette = "picture" }
+cells.area_pattern = { rect = [0, 0, 32, 32], palette = "pattern" }
+cells.telephone = { rect = [64, 0, 16, 16], palette = "telephone", mode = "indexed_4bpp" }
+cells.box = { rect = [80, 0, 16, 16], palette = "box", mode = "indexed_4bpp" }
+cells.marker_key = { rect = [96, 0, 16, 16], palette = "marker_key", mode = "indexed_4bpp" }
+cells.objective = { rect = [112, 0, 16, 16], palette = "objective", mode = "indexed_4bpp" }
+cells.arrow_right = { rect = [128, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" }
+cells.arrow_left = { rect = [136, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" }
+cells.marker_cross = { rect = [144, 0, 16, 16], palette = "marker_cross", mode = "indexed_4bpp" }
+cells.help = { rect = [192, 0, 32, 24], palette = "help", mode = "indexed_4bpp" }
+cells.cursor_0 = { rect = [64, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_1 = { rect = [80, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_2 = { rect = [96, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_3 = { rect = [112, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_4 = { rect = [128, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_5 = { rect = [144, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_6 = { rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_7 = { rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+
+[page_2.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [page_2.from.USA]
 at = [{ stage = 0, file = 30102, slot = "image", page = 0 }]
@@ -94,41 +94,41 @@ palettes = { pattern = "0c0b49324d1941537267d0a8bcf4caa651bd8a56", picture = "5b
 uid = "uid://1kbyvylyql7n4"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]
-page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "pattern", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 0] },
-    { name = "picture", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 1] },
-    { name = "cursor", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 2] },
-    { name = "telephone", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [16, 2] },
-    { name = "box", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [32, 2] },
-    { name = "marker_key", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [48, 2] },
-    { name = "objective", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [64, 2] },
-    { name = "arrow", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [80, 2] },
-    { name = "marker_cross", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [96, 2] },
-    { name = "help", slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [112, 2] },
-]
-cells = [
-    { name = "picture", rect = [1, 32, 254, 208], palette = "picture" },
-    { name = "area_pattern", rect = [0, 0, 32, 32], palette = "pattern" },
-    { name = "telephone", rect = [64, 0, 16, 16], palette = "telephone", mode = "indexed_4bpp" },
-    { name = "box", rect = [80, 0, 16, 16], palette = "box", mode = "indexed_4bpp" },
-    { name = "marker_key", rect = [96, 0, 16, 16], palette = "marker_key", mode = "indexed_4bpp" },
-    { name = "objective", rect = [112, 0, 16, 16], palette = "objective", mode = "indexed_4bpp" },
-    { name = "arrow_right", rect = [128, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" },
-    { name = "arrow_left", rect = [136, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" },
-    { name = "marker_cross", rect = [144, 0, 16, 16], palette = "marker_cross", mode = "indexed_4bpp" },
-    { name = "help", rect = [192, 0, 32, 24], palette = "help", mode = "indexed_4bpp" },
-    { name = "cursor_0", rect = [64, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_1", rect = [80, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_2", rect = [96, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_3", rect = [112, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_4", rect = [128, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_5", rect = [144, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_6", rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-    { name = "cursor_7", rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" },
-]
+palettes.pattern = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 0] }
+palettes.picture = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 1] }
+palettes.cursor = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [0, 2] }
+palettes.telephone = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [16, 2] }
+palettes.box = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [32, 2] }
+palettes.marker_key = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [48, 2] }
+palettes.objective = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [64, 2] }
+palettes.arrow = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [80, 2] }
+palettes.marker_cross = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [96, 2] }
+palettes.help = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" }, at = [112, 2] }
+cells.picture = { rect = [1, 32, 254, 208], palette = "picture" }
+cells.area_pattern = { rect = [0, 0, 32, 32], palette = "pattern" }
+cells.telephone = { rect = [64, 0, 16, 16], palette = "telephone", mode = "indexed_4bpp" }
+cells.box = { rect = [80, 0, 16, 16], palette = "box", mode = "indexed_4bpp" }
+cells.marker_key = { rect = [96, 0, 16, 16], palette = "marker_key", mode = "indexed_4bpp" }
+cells.objective = { rect = [112, 0, 16, 16], palette = "objective", mode = "indexed_4bpp" }
+cells.arrow_right = { rect = [128, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" }
+cells.arrow_left = { rect = [136, 0, 8, 16], palette = "arrow", mode = "indexed_4bpp" }
+cells.marker_cross = { rect = [144, 0, 16, 16], palette = "marker_cross", mode = "indexed_4bpp" }
+cells.help = { rect = [192, 0, 32, 24], palette = "help", mode = "indexed_4bpp" }
+cells.cursor_0 = { rect = [64, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_1 = { rect = [80, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_2 = { rect = [96, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_3 = { rect = [112, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_4 = { rect = [128, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_5 = { rect = [144, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_6 = { rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+cells.cursor_7 = { rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
+
+[page_3.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [page_3.from.USA]
 at = [{ stage = 0, file = 30103, slot = "image", page = 0 }]

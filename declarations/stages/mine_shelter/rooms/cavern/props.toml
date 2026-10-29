@@ -4,17 +4,17 @@
 uid = "uid://15iyalzyk11jh"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 168]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "effect_row_2", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] },
-    { name = "effect_row_9", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] },
-]
-cells = [
-    { name = "model_10F60", rect = [0, 0, 64, 168], palette = "effect_row_2" },
-    { name = "model_11244", rect = [64, 0, 64, 168], palette = "effect_row_2" },
-]
+palettes.effect_row_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
+palettes.effect_row_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] }
+cells.model_10F60 = { rect = [0, 0, 64, 168], palette = "effect_row_2" }
+cells.model_11244 = { rect = [64, 0, 64, 168], palette = "effect_row_2" }
+
+[barrels.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [barrels.from.USA]
 at = [{ stage = 4, folder = 201, file = 0, slot = "image_1", page = 0 }]

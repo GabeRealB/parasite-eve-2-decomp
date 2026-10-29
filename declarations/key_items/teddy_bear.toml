@@ -4,12 +4,14 @@
 uid = "uid://71vd64g5rlhz"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 96]
-page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
-]
+palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
+
+[texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 20236, slot = "image", page = 0 }]

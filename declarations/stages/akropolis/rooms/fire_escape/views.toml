@@ -6,6 +6,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view1_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view1_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 1, slot = "background" }]
 sha1 = "38f2fc4b75e593ed4b761137dd2cff1fda9f2a65"
@@ -16,6 +20,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view2_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view2_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 2, slot = "background" }]
 sha1 = "281c5b54f9c23df803ab3d9b758ff2d02fb9e43f"
@@ -24,27 +32,27 @@ sha1 = "281c5b54f9c23df803ab3d9b758ff2d02fb9e43f"
 uid = "uid://swwh90x2mr8y"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view3_sprite_0", rect = [136, 160, 8, 56], palette = "default" },
-    { name = "view3_sprite_1", rect = [128, 64, 8, 56], palette = "default" },
-    { name = "view3_sprite_2", rect = [128, 176, 8, 56], palette = "default" },
-    { name = "view3_sprite_3", rect = [136, 88, 16, 72], palette = "default" },
-    { name = "view3_sprite_4", rect = [120, 120, 16, 56], palette = "default" },
-    { name = "view3_sprite_5", rect = [152, 88, 16, 80], palette = "default" },
-    { name = "view3_sprite_6", rect = [144, 168, 24, 72], palette = "default" },
-    { name = "view3_sprite_7", rect = [168, 184, 24, 72], palette = "default" },
-    { name = "view3_sprite_8", rect = [168, 0, 24, 96], palette = "default" },
-    { name = "view3_sprite_9", rect = [168, 96, 24, 88], palette = "default" },
-    { name = "view3_sprite_10", rect = [144, 0, 24, 88], palette = "default" },
-    { name = "view3_sprite_11", rect = [120, 0, 24, 64], palette = "default" },
-    { name = "view3_sprite_12", rect = [192, 0, 64, 240], palette = "default" },
-]
+palettes.default = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view3_sprite_0 = { rect = [136, 160, 8, 56], palette = "default" }
+cells.view3_sprite_1 = { rect = [128, 64, 8, 56], palette = "default" }
+cells.view3_sprite_2 = { rect = [128, 176, 8, 56], palette = "default" }
+cells.view3_sprite_3 = { rect = [136, 88, 16, 72], palette = "default" }
+cells.view3_sprite_4 = { rect = [120, 120, 16, 56], palette = "default" }
+cells.view3_sprite_5 = { rect = [152, 88, 16, 80], palette = "default" }
+cells.view3_sprite_6 = { rect = [144, 168, 24, 72], palette = "default" }
+cells.view3_sprite_7 = { rect = [168, 184, 24, 72], palette = "default" }
+cells.view3_sprite_8 = { rect = [168, 0, 24, 96], palette = "default" }
+cells.view3_sprite_9 = { rect = [168, 96, 24, 88], palette = "default" }
+cells.view3_sprite_10 = { rect = [144, 0, 24, 88], palette = "default" }
+cells.view3_sprite_11 = { rect = [120, 0, 24, 64], palette = "default" }
+cells.view3_sprite_12 = { rect = [192, 0, 64, 240], palette = "default" }
+
+[view3.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view3.from.USA]
 at = [{ stage = 1, folder = 1501, file = 3, slot = "image", page = 0 }]
@@ -57,6 +65,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view3_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view3_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 3, slot = "background" }]
 sha1 = "a3b5be626691fb5c236be120c6e1a0e69aa23d2c"
@@ -67,6 +79,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view4_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view4_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 4, slot = "background" }]
 sha1 = "239d6c2421cee81d98b647a9fdc01add00e9d8f6"
@@ -75,19 +91,19 @@ sha1 = "239d6c2421cee81d98b647a9fdc01add00e9d8f6"
 uid = "uid://sfpbpw9kof44"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view5_sprite_0", rect = [240, 0, 16, 240], palette = "default" },
-    { name = "view5_sprite_1", rect = [224, 0, 16, 240], palette = "default" },
-    { name = "view5_sprite_2", rect = [200, 0, 24, 240], palette = "default" },
-    { name = "view5_sprite_3", rect = [160, 0, 40, 240], palette = "default" },
-    { name = "view5_sprite_4", rect = [112, 0, 48, 240], palette = "default" },
-]
+palettes.default = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view5_sprite_0 = { rect = [240, 0, 16, 240], palette = "default" }
+cells.view5_sprite_1 = { rect = [224, 0, 16, 240], palette = "default" }
+cells.view5_sprite_2 = { rect = [200, 0, 24, 240], palette = "default" }
+cells.view5_sprite_3 = { rect = [160, 0, 40, 240], palette = "default" }
+cells.view5_sprite_4 = { rect = [112, 0, 48, 240], palette = "default" }
+
+[view5.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view5.from.USA]
 at = [{ stage = 1, folder = 1501, file = 5, slot = "image", page = 0 }]
@@ -100,6 +116,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view5_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view5_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 5, slot = "background" }]
 sha1 = "9fe0f9024814da4b860b8b954a2eedb494ed688e"
@@ -110,6 +130,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view6_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view6_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 6, slot = "background" }]
 sha1 = "a960019aa010a456cffafc6e92dd24cf1c6fb0c2"
@@ -118,19 +142,19 @@ sha1 = "a960019aa010a456cffafc6e92dd24cf1c6fb0c2"
 uid = "uid://3s5xzryz14i7"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] },
-]
-cells = [
-    { name = "view7_sprite_0", rect = [248, 240, 8, 8], palette = "default" },
-    { name = "view7_sprite_1", rect = [248, 248, 8, 8], palette = "default" },
-    { name = "view7_sprite_2", rect = [96, 0, 160, 112], palette = "default" },
-    { name = "view7_sprite_3", rect = [80, 112, 176, 88], palette = "default" },
-    { name = "view7_sprite_4", rect = [56, 200, 200, 40], palette = "default" },
-]
+palettes.default = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+cells.view7_sprite_0 = { rect = [248, 240, 8, 8], palette = "default" }
+cells.view7_sprite_1 = { rect = [248, 248, 8, 8], palette = "default" }
+cells.view7_sprite_2 = { rect = [96, 0, 160, 112], palette = "default" }
+cells.view7_sprite_3 = { rect = [80, 112, 176, 88], palette = "default" }
+cells.view7_sprite_4 = { rect = [56, 200, 200, 40], palette = "default" }
+
+[view7.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [view7.from.USA]
 at = [{ stage = 1, folder = 1501, file = 7, slot = "image", page = 0 }]
@@ -143,6 +167,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view7_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view7_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 7, slot = "background" }]
 sha1 = "3fd6346594db13b5633a9c92c55f271260fbe159"
@@ -152,6 +180,10 @@ uid = "uid://1tk8gqoyivdme"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view8_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view8_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 8, slot = "background" }]
@@ -163,6 +195,10 @@ kind = "image"
 role = "background"
 format = "bs"
 
+[view9_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
+
 [view9_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 9, slot = "background" }]
 sha1 = "64dc24f14897c61e4bac372d1bd2697e6f3656d8"
@@ -172,6 +208,10 @@ uid = "uid://vxaw5kh7mjz5"
 kind = "image"
 role = "background"
 format = "bs"
+
+[view10_background.import]
+importer = "pe2.images@bs"
+source = "native.bs"
 
 [view10_background.from.USA]
 at = [{ stage = 1, folder = 1501, file = 10, slot = "background" }]

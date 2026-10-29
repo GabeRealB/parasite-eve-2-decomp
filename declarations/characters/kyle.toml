@@ -4,17 +4,17 @@
 uid = "uid://4stj62bgbghs"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
-    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
-]
-cells = [
-    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
-    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
-]
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
+cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
+
+[gas_mask_texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [gas_mask_texture.from.USA]
 at = [{ stage = 0, file = 660802, slot = "gas_mask_image", page = 0 }]
@@ -25,12 +25,14 @@ palettes = { default = "dfeb4ced2f05c9a053c417cca13b9b34a9e9de23", default_2 = "
 uid = "uid://1b1ptw8c4pq5z"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] },
-]
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+
+[m4a1_texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [m4a1_texture.from.USA]
 at = [{ stage = 0, file = 800104, slot = "m4a1_image", page = 0 }]
@@ -41,12 +43,14 @@ palettes = { default = "ff75b67c6d9f618b7944eae3722915a11c5fe7c8" }
 uid = "uid://1uwi0yfhwp3qt"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] },
-]
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+
+[m950_texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [m950_texture.from.USA]
 at = [{ stage = 0, file = 800103, slot = "m950_image", page = 0 }, { stage = 0, file = 800105, slot = "m950_image", page = 0 }]
@@ -57,12 +61,14 @@ palettes = { default = "f5af948700d049413918b302e8ace952b19fd2c8" }
 uid = "uid://am93nzhg5od5"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] },
-]
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+
+[mm1_texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [mm1_texture.from.USA]
 at = [{ stage = 0, file = 800102, slot = "mm1_image", page = 0 }]
@@ -73,12 +79,14 @@ palettes = { default = "0297bffdae11fd8a9a38c03ef59d41efb4a40060" }
 uid = "uid://1nv7q8eelst4x"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] },
-]
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+
+[p229_texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [p229_texture.from.USA]
 at = [{ stage = 0, file = 350700, slot = "p229_image", page = 0 }, { stage = 0, file = 660804, slot = "p229_image", page = 0 }, { stage = 0, file = 800101, slot = "p229_image", page = 0 }, { stage = 0, file = 800300, slot = "p229_image", page = 0 }]
@@ -89,17 +97,17 @@ palettes = { default = "05dcf3a9eedb573b641d10a33705df1ef2e36095" }
 uid = "uid://i1yrdvr4psdr"
 kind = "image"
 role = "atlas"
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] },
-    { name = "default_2", slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] },
-]
-cells = [
-    { name = "page_0", rect = [0, 0, 128, 256], palette = "default" },
-    { name = "page_1", rect = [128, 0, 128, 256], palette = "default_2" },
-]
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
+cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
+
+[texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 120400, slot = "image", page = 0 }, { stage = 0, file = 120500, slot = "image", page = 0 }, { stage = 0, file = 135600, slot = "image", page = 0 }, { stage = 0, file = 350700, slot = "image", page = 0 }, { stage = 0, file = 450800, slot = "image", page = 0 }, { stage = 0, file = 461800, slot = "image", page = 0 }, { stage = 0, file = 800101, slot = "image", page = 0 }, { stage = 0, file = 800102, slot = "image", page = 0 }, { stage = 0, file = 800103, slot = "image", page = 0 }, { stage = 0, file = 800104, slot = "image", page = 0 }, { stage = 0, file = 800105, slot = "image", page = 0 }]

@@ -4,12 +4,14 @@
 uid = "uid://16hmroi1109gc"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [240, 224]
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
-palettes = [
-    { name = "effect_row_10_16", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] },
-]
+palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
+
+[smoke.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [smoke.from.USA]
 at = [{ stage = 4, folder = 2101, file = 0, slot = "image", page = 0 }]

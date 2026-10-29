@@ -4,12 +4,14 @@
 uid = "uid://jmjyzohr5z2m"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 96]
-page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] },
-]
+palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
+
+[preview.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [preview.from.USA]
 at = [{ stage = 0, file = 20103, slot = "image", page = 0 }]
@@ -20,12 +22,14 @@ palettes = { default = "4dd5964b2d64fad796c7674bdde913dc64037b3b" }
 uid = "uid://1mcmcori39oln"
 kind = "image"
 role = "texture"
+page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_sheet.asset" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_sheet.asset" }, at = [0, 0] }
-palettes = [
-    { name = "default", slot = { uid = "uid://1s46guge2y3r0", path = "res://engine/vram/weapon_palette.asset" }, at = [0, 0] },
-]
+palettes.default = { slot = { uid = "uid://1s46guge2y3r0", path = "res://engine/vram/weapon_palette.asset" }, at = [0, 0] }
+
+[texture.import]
+importer = "pe2.images@texels"
+source = "native.texels"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 10303, slot = "image", page = 0 }]
