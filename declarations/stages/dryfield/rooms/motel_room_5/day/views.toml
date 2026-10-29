@@ -99,8 +99,8 @@ palettes.row_5_14 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/
 palettes.row_5_15 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [240, 5] }
 
 [view1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view1.from.USA]
 at = [{ stage = 2, folder = 2801, file = 1, slot = "image", page = 0 }]

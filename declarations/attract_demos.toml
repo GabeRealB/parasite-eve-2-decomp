@@ -10,8 +10,8 @@ size = [128, 64]
 palettes.default = { slot = { uid = "uid://wpn0tw2abf5i", path = "res://engine/vram/shared_palettes.asset" }, at = [0, 1] }
 
 [logo.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [logo.from.USA]
 at = [{ stage = 0, file = 801000, slot = "logo", page = 0 }, { stage = 0, file = 801100, slot = "logo", page = 0 }, { stage = 0, file = 801200, slot = "logo", page = 0 }, { stage = 0, file = 900000, slot = "logo", page = 0 }, { stage = 0, file = 900001, slot = "logo", page = 0 }, { stage = 0, file = 900002, slot = "logo", page = 0 }, { stage = 0, file = 900003, slot = "logo", page = 0 }]
@@ -28,8 +28,8 @@ size = [128, 64]
 palettes.default = { slot = { uid = "uid://wpn0tw2abf5i", path = "res://engine/vram/shared_palettes.asset" }, at = [0, 0] }
 
 [logo_shadow.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [logo_shadow.from.USA]
 at = [{ stage = 0, file = 801000, slot = "logo_shadow", page = 0 }, { stage = 0, file = 801100, slot = "logo_shadow", page = 0 }, { stage = 0, file = 801200, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900000, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900001, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900002, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900003, slot = "logo_shadow", page = 0 }]

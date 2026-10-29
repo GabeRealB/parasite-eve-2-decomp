@@ -13,8 +13,8 @@ cells.lift = { rect = [0, 0, 128, 192], palette = "lift", mode = "indexed_8bpp" 
 cells.cable = { rect = [0, 248, 24, 8], palette = "cable" }
 
 [lift_page.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [lift_page.from.USA]
 at = [{ stage = 1, folder = 1601, file = 0, slot = "image", page = 1 }]
@@ -32,8 +32,8 @@ palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/
 cells.radio = { rect = [128, 224, 92, 32], palette = "default" }
 
 [radio.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [radio.from.USA]
 at = [{ stage = 1, folder = 1601, file = 18, slot = "image_0", page = 0 }]

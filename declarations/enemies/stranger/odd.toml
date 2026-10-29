@@ -13,8 +13,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture_2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_2.from.USA]
 at = [{ stage = 0, file = 111800, slot = "image_2", page = 0 }, { stage = 0, file = 201800, slot = "image", page = 0 }, { stage = 0, file = 301800, slot = "image", page = 0 }]
@@ -34,8 +34,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture_4.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_4.from.USA]
 at = [{ stage = 0, file = 401800, slot = "image", page = 0 }]
@@ -56,8 +56,8 @@ cells.page_1 = { rect = [128, 0, 128, 256], palette = "default" }
 variants.row_1 = { palettes = { page_1 = "row_1" } }
 
 [texture_b_1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_b_1.from.USA]
 at = [{ stage = 0, file = 101000, slot = "image", page = 0 }, { stage = 0, file = 201000, slot = "image", page = 0 }, { stage = 0, file = 301000, slot = "image", page = 0 }, { stage = 0, file = 401000, slot = "image", page = 0 }]

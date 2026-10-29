@@ -48,8 +48,8 @@ cells.flash_1 = { rect = [112, 200, 56, 56], palette = "default" }
 cells.flash_2 = { rect = [168, 200, 56, 56], palette = "default" }
 
 [effect_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [effect_atlas.from.USA]
 at = [{ stage = 0, file = 900000, slot = "image", page = 1 }, { stage = 0, file = 900001, slot = "image", page = 1 }, { stage = 0, file = 900002, slot = "image", page = 1 }, { stage = 0, file = 900003, slot = "image", page = 1 }, { stage = 0, file = 900004, slot = "image", page = 1 }, { stage = 0, file = 900005, slot = "image", page = 1 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 1 }]
@@ -82,8 +82,8 @@ size = [88, 96]
 palettes.lit = { executable = "stages/akropolis/rooms/west_elevator_hall/bay_lit_palette" }
 
 [glow.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [glow.from.USA]
 at = [{ stage = 1, folder = 1701, file = 0, slot = "image_1", page = 0 }]
@@ -102,8 +102,8 @@ cells.spark_1 = { rect = [192, 56, 32, 32], palette = "spark_1" }
 cells.spark_2 = { rect = [224, 56, 32, 32], palette = "spark_2" }
 
 [sparks_page_1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [sparks_page_1.from.USA]
 at = [{ stage = 0, file = 900000, slot = "image", page = 0 }, { stage = 0, file = 900001, slot = "image", page = 0 }, { stage = 0, file = 900002, slot = "image", page = 0 }, { stage = 0, file = 900003, slot = "image", page = 0 }, { stage = 0, file = 900004, slot = "image", page = 0 }, { stage = 0, file = 900005, slot = "image", page = 0 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 0 }]
@@ -120,8 +120,8 @@ mode = "indexed_4bpp"
 size = [256, 256]
 
 [sparks_page_3.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [sparks_page_3.from.USA]
 at = [{ stage = 0, file = 900000, slot = "image", page = 2 }, { stage = 0, file = 900001, slot = "image", page = 2 }, { stage = 0, file = 900002, slot = "image", page = 2 }, { stage = 0, file = 900003, slot = "image", page = 2 }, { stage = 0, file = 900004, slot = "image", page = 2 }, { stage = 0, file = 900005, slot = "image", page = 2 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 2 }]
@@ -141,8 +141,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 1, folder = 1701, file = 0, slot = "dialogue_0_atlas", page = 0 }]

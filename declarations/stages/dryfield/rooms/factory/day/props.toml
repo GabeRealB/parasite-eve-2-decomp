@@ -16,8 +16,8 @@ cells.model_093E4_0 = { rect = [12, 24, 62, 21], palette = "effect_row_3" }
 cells.model_093E4_1 = { rect = [133, 198, 66, 26], palette = "effect_row_2" }
 
 [car.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [car.from.USA]
 at = [{ stage = 2, folder = 2301, file = 0, slot = "image", page = 0 }]

@@ -37,8 +37,8 @@ cells.cursor_6 = { rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed
 cells.cursor_7 = { rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
 
 [page_0.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [page_0.from.USA]
 at = [{ stage = 0, file = 30100, slot = "image", page = 0 }, { stage = 0, file = 30101, slot = "image", page = 0 }]
@@ -82,8 +82,8 @@ cells.cursor_6 = { rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed
 cells.cursor_7 = { rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
 
 [page_2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [page_2.from.USA]
 at = [{ stage = 0, file = 30102, slot = "image", page = 0 }]
@@ -127,8 +127,8 @@ cells.cursor_6 = { rect = [160, 16, 16, 16], palette = "cursor", mode = "indexed
 cells.cursor_7 = { rect = [176, 16, 16, 16], palette = "cursor", mode = "indexed_4bpp" }
 
 [page_3.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [page_3.from.USA]
 at = [{ stage = 0, file = 30103, slot = "image", page = 0 }]

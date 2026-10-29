@@ -25,8 +25,8 @@ variants.yellow = { palette = "yellow" }
 variants.light_gray = { palette = "light_gray" }
 
 [credits_font_0.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [credits_font_0.from.USA]
 at = [{ stage = 0, file = 21000, slot = "font_image_0", page = 0 }]
@@ -58,8 +58,8 @@ variants.yellow = { palette = "yellow" }
 variants.light_gray = { palette = "light_gray" }
 
 [credits_font_1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [credits_font_1.from.USA]
 at = [{ stage = 0, file = 21000, slot = "font_image_1", page = 0 }]
@@ -79,8 +79,8 @@ cells.square = { rect = [5, 1, 243, 38], palette = "square" }
 cells.squartz = { rect = [2, 46, 226, 29], palette = "squartz" }
 
 [logos.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [logos.from.USA]
 at = [{ stage = 0, file = 21000, slot = "logo_image", page = 0 }]

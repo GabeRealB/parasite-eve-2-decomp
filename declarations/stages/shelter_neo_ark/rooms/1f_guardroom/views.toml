@@ -54,8 +54,8 @@ cells.view3_sprite_0 = { rect = [104, 0, 72, 160], palette = "row_0" }
 cells.view3_sprite_1 = { rect = [176, 0, 80, 160], palette = "row_0" }
 
 [view3.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view3.from.USA]
 at = [{ stage = 5, folder = 601, file = 3, slot = "image", page = 0 }]

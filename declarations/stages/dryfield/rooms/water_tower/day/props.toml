@@ -13,8 +13,8 @@ cells.dryfield_water_tank_model_020D4 = { rect = [0, 0, 128, 160], palette = "ef
 cells.model_03D14 = { rect = [0, 160, 128, 45], palette = "effect_row_3" }
 
 [fence.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [fence.from.USA]
 at = [{ stage = 2, folder = 2001, file = 0, slot = "image", page = 0 }]

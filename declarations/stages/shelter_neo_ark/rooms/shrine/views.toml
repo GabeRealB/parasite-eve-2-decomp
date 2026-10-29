@@ -319,8 +319,8 @@ cells.view3_sprite_55 = { rect = [288, 192, 48, 48], palette = "row_0" }
 cells.view3_sprite_56 = { rect = [336, 240, 48, 16], palette = "row_0" }
 
 [view3.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view3.from.USA]
 at = [{ stage = 5, folder = 2101, file = 3, slot = "image", page = 0 }]
@@ -373,8 +373,8 @@ cells.view4_sprite_34 = { rect = [88, 192, 32, 48], palette = "row_0" }
 cells.view4_sprite_35 = { rect = [56, 96, 24, 40], palette = "row_0" }
 
 [view4.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view4.from.USA]
 at = [{ stage = 5, folder = 2101, file = 4, slot = "image", page = 0 }]
@@ -400,8 +400,8 @@ cells.view5_sprite_7 = { rect = [72, 0, 8, 24], palette = "row_0" }
 cells.view5_sprite_8 = { rect = [56, 24, 24, 24], palette = "row_0" }
 
 [view5.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view5.from.USA]
 at = [{ stage = 5, folder = 2101, file = 5, slot = "image", page = 0 }]
@@ -479,8 +479,8 @@ cells.view6_sprite_59 = { rect = [40, 48, 32, 40], palette = "row_0" }
 cells.view6_sprite_60 = { rect = [280, 248, 16, 8], palette = "row_0" }
 
 [view6.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view6.from.USA]
 at = [{ stage = 5, folder = 2101, file = 6, slot = "image", page = 0 }]
@@ -513,8 +513,8 @@ cells.view8_sprite_14 = { rect = [24, 48, 8, 48], palette = "row_0" }
 cells.view8_sprite_15 = { rect = [16, 96, 16, 48], palette = "row_0" }
 
 [view8.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view8.from.USA]
 at = [{ stage = 5, folder = 2101, file = 8, slot = "image", page = 0 }]
@@ -549,8 +549,8 @@ cells.view9_sprite_16 = { rect = [112, 192, 16, 48], palette = "row_0" }
 cells.view9_sprite_17 = { rect = [120, 240, 8, 16], palette = "row_0" }
 
 [view9.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view9.from.USA]
 at = [{ stage = 5, folder = 2101, file = 9, slot = "image", page = 0 }]
@@ -581,8 +581,8 @@ cells.view10_sprite_12 = { rect = [104, 136, 8, 32], palette = "row_0" }
 cells.view10_sprite_13 = { rect = [80, 224, 8, 16], palette = "row_0" }
 
 [view10.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view10.from.USA]
 at = [{ stage = 5, folder = 2101, file = 10, slot = "image", page = 0 }]
@@ -599,8 +599,8 @@ size = [128, 128]
 palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
 
 [view11.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view11.from.USA]
 at = [{ stage = 5, folder = 2101, file = 11, slot = "image", page = 0 }]
@@ -618,8 +618,8 @@ palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vra
 palettes.effect_row_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
 
 [view13.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view13.from.USA]
 at = [{ stage = 5, folder = 2101, file = 13, slot = "image_0", page = 0 }]
@@ -664,8 +664,8 @@ cells.view13_sprite_26 = { rect = [40, 0, 8, 16], palette = "row_0" }
 cells.view13_sprite_27 = { rect = [80, 24, 16, 8], palette = "row_0" }
 
 [view13_2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view13_2.from.USA]
 at = [{ stage = 5, folder = 2101, file = 13, slot = "image_1", page = 0 }]
@@ -682,8 +682,8 @@ size = [128, 192]
 palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] }
 
 [view14.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view14.from.USA]
 at = [{ stage = 5, folder = 2101, file = 14, slot = "image", page = 0 }]
@@ -734,8 +734,8 @@ cells.view16_sprite_32 = { rect = [88, 48, 32, 48], palette = "row_0" }
 cells.view16_sprite_33 = { rect = [64, 88, 24, 40], palette = "row_0" }
 
 [view16.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view16.from.USA]
 at = [{ stage = 5, folder = 2101, file = 16, slot = "image", page = 0 }]
@@ -766,8 +766,8 @@ cells.view17_sprite_12 = { rect = [40, 32, 16, 40], palette = "row_0" }
 cells.view17_sprite_13 = { rect = [0, 208, 8, 16], palette = "row_0" }
 
 [view17.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view17.from.USA]
 at = [{ stage = 5, folder = 2101, file = 17, slot = "image", page = 0 }]
@@ -794,8 +794,8 @@ cells.view18_sprite_8 = { rect = [40, 0, 48, 48], palette = "row_0" }
 cells.view18_sprite_9 = { rect = [56, 72, 24, 24], palette = "row_0" }
 
 [view18.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view18.from.USA]
 at = [{ stage = 5, folder = 2101, file = 18, slot = "image", page = 0 }]

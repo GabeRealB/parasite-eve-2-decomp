@@ -19,8 +19,8 @@ cells.page_3 = { rect = [384, 0, 128, 256], palette = "default_4" }
 cells.page_4 = { rect = [512, 0, 128, 256], palette = "default_5" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 403200, slot = "image", page = 0 }, { stage = 0, file = 444000, slot = "image", page = 0 }]

@@ -63,8 +63,8 @@ palettes.effect_row_10_14 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:
 palettes.effect_row_10_15 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 10] }
 
 [debris_smoke.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [debris_smoke.from.USA]
 at = [{ stage = 3, folder = 2901, file = 0, slot = "image", page = 0 }]

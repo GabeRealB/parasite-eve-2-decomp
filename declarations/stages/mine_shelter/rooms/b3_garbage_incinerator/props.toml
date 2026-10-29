@@ -12,8 +12,8 @@ palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:
 palettes.effect_row_10_19 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] }
 
 [smoke.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [smoke.from.USA]
 at = [{ stage = 4, folder = 4001, file = 0, slot = "image_0", page = 0 }]
@@ -33,8 +33,8 @@ palettes.effect_row_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://e
 cells.model_081E4 = { rect = [128, 0, 127, 159], palette = "effect_row_2" }
 
 [incinerator.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [incinerator.from.USA]
 at = [{ stage = 4, folder = 4001, file = 0, slot = "image_0", page = 1 }]

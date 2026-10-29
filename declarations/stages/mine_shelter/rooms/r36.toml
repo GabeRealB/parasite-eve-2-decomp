@@ -39,8 +39,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_0_atlas", page = 0 }]
@@ -61,8 +61,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_1_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_1_atlas.from.USA]
 at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_1_atlas", page = 0 }]
@@ -83,8 +83,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_2_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_2_atlas.from.USA]
 at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_2_atlas", page = 0 }]
@@ -105,8 +105,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_3_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_3_atlas.from.USA]
 at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_3_atlas", page = 0 }]

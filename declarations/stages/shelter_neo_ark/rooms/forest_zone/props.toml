@@ -10,8 +10,8 @@ size = [8, 48]
 palettes.effect_row_9_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 9] }
 
 [effect_sheet.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [effect_sheet.from.USA]
 at = [{ stage = 5, folder = 1101, file = 0, slot = "image", page = 0 }]

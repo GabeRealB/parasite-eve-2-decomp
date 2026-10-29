@@ -10,8 +10,8 @@ size = [128, 256]
 palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
 
 [tentacle_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [tentacle_texture.from.USA]
 at = [{ stage = 0, file = 104500, slot = "tentacle_image", page = 0 }, { stage = 0, file = 135000, slot = "tentacle_image", page = 0 }, { stage = 0, file = 361100, slot = "tentacle_image", page = 0 }]
@@ -39,8 +39,8 @@ cells.page_4 = { rect = [512, 0, 128, 256], palette = "default_5" }
 cells.page_5 = { rect = [640, 0, 128, 256], palette = "default_6" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 503500, slot = "image", page = 0 }]
@@ -57,8 +57,8 @@ size = [128, 256]
 palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 6] }
 
 [texture_2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_2.from.USA]
 at = [{ stage = 0, file = 503500, slot = "image_2", page = 0 }]

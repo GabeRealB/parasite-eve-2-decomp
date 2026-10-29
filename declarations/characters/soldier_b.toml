@@ -10,8 +10,8 @@ size = [256, 64]
 palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
 
 [rifle_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [rifle_texture.from.USA]
 at = [{ stage = 0, file = 161500, slot = "rifle_image", page = 0 }, { stage = 5, folder = 401, file = 4, slot = "rifle_image", page = 0 }]
@@ -31,8 +31,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 161500, slot = "image", page = 0 }, { stage = 0, file = 660200, slot = "image", page = 0 }]

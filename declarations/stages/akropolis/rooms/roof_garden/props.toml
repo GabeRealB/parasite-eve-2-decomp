@@ -10,8 +10,8 @@ size = [48, 40]
 palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
 
 [armory_cardkey.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [armory_cardkey.from.USA]
 at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 1 }]

@@ -147,8 +147,8 @@ cells.view4_sprite_64 = { rect = [80, 24, 16, 24], palette = "row_1" }
 cells.view4_sprite_65 = { rect = [96, 64, 8, 16], palette = "row_1" }
 
 [view4.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view4.from.USA]
 at = [{ stage = 4, folder = 1001, file = 4, slot = "image", page = 0 }]

@@ -145,8 +145,8 @@ cells.view6_sprite_7 = { rect = [88, 80, 24, 32], palette = "row_0" }
 cells.view6_sprite_8 = { rect = [88, 176, 40, 40], palette = "row_0" }
 
 [view6.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view6.from.USA]
 at = [{ stage = 3, folder = 801, file = 6, slot = "image", page = 0 }]

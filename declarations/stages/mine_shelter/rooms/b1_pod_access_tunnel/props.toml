@@ -10,8 +10,8 @@ size = [320, 240]
 palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
 
 [pod_still_0.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [pod_still_0.from.USA]
 at = [{ stage = 4, folder = 1701, file = 11, slot = "image_0", page = 0 }]
@@ -28,8 +28,8 @@ size = [320, 240]
 palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
 
 [pod_still_1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [pod_still_1.from.USA]
 at = [{ stage = 4, folder = 1701, file = 11, slot = "image_1", page = 0 }]

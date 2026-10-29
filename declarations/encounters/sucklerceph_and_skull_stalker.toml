@@ -10,8 +10,8 @@ size = [128, 256]
 palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
 
 [texture_1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_1.from.USA]
 at = [{ stage = 0, file = 104600, slot = "image", page = 0 }, { stage = 0, file = 204600, slot = "image", page = 0 }, { stage = 0, file = 304600, slot = "image", page = 0 }]

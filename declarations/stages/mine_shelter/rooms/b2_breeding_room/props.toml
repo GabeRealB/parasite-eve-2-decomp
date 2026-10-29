@@ -11,8 +11,8 @@ palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://en
 cells.model_02E04 = { rect = [0, 0, 32, 48], palette = "effect_row_1" }
 
 [panel.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [panel.from.USA]
 at = [{ stage = 4, folder = 3201, file = 0, slot = "image", page = 0 }]

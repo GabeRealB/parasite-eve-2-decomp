@@ -13,8 +13,8 @@ cells.disc_2 = { rect = [0, 16, 159, 16], palette = "default" }
 cells.wrong_disc = { rect = [0, 32, 104, 16], palette = "default" }
 
 [messages.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [messages.from.USA]
 at = [{ stage = 0, file = 20160, slot = "image", page = 0 }, { stage = 0, file = 20161, slot = "image", page = 0 }]

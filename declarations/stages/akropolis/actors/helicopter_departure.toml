@@ -10,8 +10,8 @@ size = [128, 256]
 palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
 
 [page_1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [page_1.from.USA]
 at = [{ stage = 1, folder = 1601, file = 24, slot = "image_0", page = 0 }]
@@ -31,8 +31,8 @@ cells.page_2 = { rect = [8, 0, 120, 256], palette = "page_2", mode = "indexed_8b
 cells.lamp = { rect = [0, 0, 16, 16], palette = "lamp" }
 
 [page_2_sheet.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [page_2_sheet.from.USA]
 at = [{ stage = 1, folder = 1601, file = 24, slot = "image_1", page = 0 }]

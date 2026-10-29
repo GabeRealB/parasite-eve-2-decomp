@@ -17,8 +17,8 @@ cells.page_4 = { rect = [512, 0, 128, 240], palette = "incoming" }
 variants.incoming = { palettes = { page_2 = "incoming" } }
 
 [dome_backdrop.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dome_backdrop.from.USA]
 at = [{ stage = 0, file = 450200, slot = "dome_backdrops", page = 0 }]
@@ -71,8 +71,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 5, folder = 701, file = 0, slot = "dialogue_0_atlas", page = 0 }]
@@ -93,8 +93,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_1_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_1_atlas.from.USA]
 at = [{ stage = 5, folder = 701, file = 0, slot = "dialogue_1_atlas", page = 0 }]

@@ -19,8 +19,8 @@ cells.leaf = { rect = [0, 232, 8, 8], palette = "leaf" }
 cells.radio = { rect = [128, 224, 92, 32], palette = "radio" }
 
 [glows.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [glows.from.USA]
 at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 0 }]

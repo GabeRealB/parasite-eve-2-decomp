@@ -15,8 +15,8 @@ cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 cells.page_2 = { rect = [256, 0, 128, 256], palette = "default_3" }
 
 [target.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [target.from.USA]
 at = [{ stage = 0, file = 107600, slot = "image", page = 0 }]
@@ -35,8 +35,8 @@ cells.death_burst = { rect = [64, 0, 40, 40], palette = "default" }
 cells.hit_mark = { rect = [104, 0, 16, 16], palette = "default" }
 
 [target_page_4.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [target_page_4.from.USA]
 at = [{ stage = 0, file = 107600, slot = "image", page = 3 }]

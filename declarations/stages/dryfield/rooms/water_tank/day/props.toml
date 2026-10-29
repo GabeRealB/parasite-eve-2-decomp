@@ -14,8 +14,8 @@ cells.dryfield_night_water_tank_model_00FF8 = { rect = [128, 224, 48, 32], palet
 cells.model_020D4 = { rect = [128, 0, 128, 160], palette = "effect_row_2" }
 
 [fence.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [fence.from.USA]
 at = [{ stage = 2, folder = 2101, file = 0, slot = "image", page = 0 }]

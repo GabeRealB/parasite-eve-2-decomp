@@ -17,8 +17,8 @@ cells.page_2 = { rect = [256, 0, 128, 256], palette = "default_3" }
 cells.page_3 = { rect = [384, 0, 128, 256], palette = "default_4" }
 
 [blizzard_chasers_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [blizzard_chasers_texture.from.USA]
 at = [{ stage = 0, file = 403000, slot = "image", page = 0 }]
@@ -75,8 +75,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 4, folder = 201, file = 0, slot = "dialogue_0_atlas", page = 0 }]

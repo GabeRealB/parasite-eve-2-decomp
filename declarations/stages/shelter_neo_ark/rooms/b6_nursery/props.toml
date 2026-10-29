@@ -14,8 +14,8 @@ palettes.effect_row_9_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://
 cells.model_07BAC = { rect = [121, 0, 22, 8], palette = "effect_row_9_3" }
 
 [spores.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [spores.from.USA]
 at = [{ stage = 5, folder = 2201, file = 0, slot = "image", page = 0 }]

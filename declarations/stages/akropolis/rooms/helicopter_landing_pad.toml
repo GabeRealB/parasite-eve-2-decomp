@@ -119,8 +119,8 @@ cells.tongue_6 = { rect = [192, 112, 32, 48], palette = "tongue_6" }
 cells.tongue_7 = { rect = [224, 112, 32, 48], palette = "tongue_7" }
 
 [sparks.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [sparks.from.USA]
 at = [{ stage = 1, folder = 1601, file = 0, slot = "image", page = 0 }]
@@ -141,8 +141,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 1, folder = 1601, file = 0, slot = "dialogue_0_atlas", page = 0 }]

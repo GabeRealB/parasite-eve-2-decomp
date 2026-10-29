@@ -13,8 +13,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [bloodied_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [bloodied_texture.from.USA]
 at = [{ stage = 0, file = 109400, slot = "bloodied_image", page = 0 }, { stage = 0, file = 210700, slot = "bloodied_image", page = 0 }, { stage = 0, file = 511000, slot = "bloodied_image", page = 0 }, { stage = 0, file = 609400, slot = "bloodied_image", page = 0 }]
@@ -34,8 +34,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [hurt_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [hurt_texture.from.USA]
 at = [{ stage = 0, file = 113000, slot = "hurt_image", page = 0 }, { stage = 0, file = 260400, slot = "hurt_image", page = 0 }]
@@ -52,8 +52,8 @@ size = [256, 64]
 palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
 
 [mongoose_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [mongoose_texture.from.USA]
 at = [{ stage = 0, file = 310600, slot = "mongoose_image", page = 0 }, { stage = 0, file = 511000, slot = "mongoose_image", page = 0 }, { stage = 5, folder = 401, file = 7, slot = "mongoose_image", page = 0 }]
@@ -73,8 +73,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 310600, slot = "image", page = 0 }, { stage = 0, file = 311900, slot = "image", page = 0 }, { stage = 0, file = 605200, slot = "image", page = 0 }]

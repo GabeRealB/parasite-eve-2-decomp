@@ -60,8 +60,8 @@ palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:
 palettes.effect_row_10_19 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] }
 
 [explosion.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [explosion.from.USA]
 at = [{ stage = 4, folder = 3901, file = 0, slot = "image_1", page = 0 }]
@@ -80,8 +80,8 @@ cells.model_13558_0 = { rect = [0, 0, 128, 192], palette = "default" }
 cells.model_13558_1 = { rect = [128, 0, 96, 256], palette = "default" }
 
 [rising_prop.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [rising_prop.from.USA]
 at = [{ stage = 0, file = 641700, slot = "image_0", page = 0 }, { stage = 0, file = 641700, slot = "image_1", page = 1 }]

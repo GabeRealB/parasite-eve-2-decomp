@@ -10,8 +10,8 @@ size = [496, 256]
 palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
 
 [smoke.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [smoke.from.USA]
 at = [{ stage = 4, folder = 2201, file = 0, slot = "image_0", page = 0 }]
@@ -31,8 +31,8 @@ palettes.effect_row_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://en
 palettes.effect_row_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] }
 
 [creature.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [creature.from.USA]
 at = [{ stage = 4, folder = 2201, file = 0, slot = "image_1", page = 0 }]
@@ -50,8 +50,8 @@ palettes.shared_row_0 = { slot = { uid = "uid://wpn0tw2abf5i", path = "res://eng
 palettes.shared_row_1 = { slot = { uid = "uid://wpn0tw2abf5i", path = "res://engine/vram/shared_palettes.asset" }, at = [0, 1] }
 
 [creature_2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [creature_2.from.USA]
 at = [{ stage = 4, folder = 2201, file = 0, slot = "image_2", page = 0 }]

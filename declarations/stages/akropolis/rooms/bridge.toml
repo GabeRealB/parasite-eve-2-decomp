@@ -52,8 +52,8 @@ cells.lamp_1 = { rect = [80, 16, 40, 40], palette = "lamp_1" }
 cells.lamp_2 = { rect = [120, 16, 40, 40], palette = "lamp_2" }
 
 [stars.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [stars.from.USA]
 at = [{ stage = 1, folder = 1401, file = 0, slot = "image", page = 0 }]
@@ -74,8 +74,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 1, folder = 1401, file = 0, slot = "dialogue_0_atlas", page = 0 }]

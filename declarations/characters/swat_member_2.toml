@@ -10,8 +10,8 @@ size = [256, 64]
 palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
 
 [submachine_gun_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [submachine_gun_texture.from.USA]
 at = [{ stage = 0, file = 110300, slot = "submachine_gun_image", page = 0 }]
@@ -31,8 +31,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 110300, slot = "image", page = 0 }, { stage = 0, file = 110800, slot = "image", page = 0 }, { stage = 0, file = 606000, slot = "image", page = 0 }, { stage = 0, file = 611900, slot = "image", page = 0 }]

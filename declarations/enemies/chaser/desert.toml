@@ -13,8 +13,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 107500, slot = "image", page = 0 }, { stage = 0, file = 123000, slot = "image", page = 0 }, { stage = 0, file = 123400, slot = "image", page = 0 }, { stage = 0, file = 323000, slot = "image", page = 0 }, { stage = 0, file = 323400, slot = "image", page = 0 }, { stage = 0, file = 400100, slot = "image", page = 0 }, { stage = 0, file = 407500, slot = "image", page = 0 }, { stage = 0, file = 421600, slot = "image", page = 0 }]

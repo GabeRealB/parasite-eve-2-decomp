@@ -48,8 +48,8 @@ variants.locked = { palette = "locked" }
 variants.released = { palette = "released" }
 
 [lock_lamps_left.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [lock_lamps_left.from.USA]
 at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 0 }]
@@ -69,8 +69,8 @@ variants.locked = { palette = "locked" }
 variants.released = { palette = "released" }
 
 [lock_lamps_right.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [lock_lamps_right.from.USA]
 at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 1 }]
@@ -90,8 +90,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 1, folder = 601, file = 0, slot = "dialogue_0_atlas", page = 0 }]

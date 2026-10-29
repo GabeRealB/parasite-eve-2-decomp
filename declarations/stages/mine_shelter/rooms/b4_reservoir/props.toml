@@ -13,8 +13,8 @@ palettes.effect_row_10_18 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:
 palettes.effect_row_10_19 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] }
 
 [debris.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [debris.from.USA]
 at = [{ stage = 4, folder = 4501, file = 0, slot = "image", page = 0 }]
@@ -32,8 +32,8 @@ palettes.effect_row_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://en
 cells.model_07220 = { rect = [0, 0, 128, 128], palette = "effect_row_2" }
 
 [wall.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [wall.from.USA]
 at = [{ stage = 4, folder = 4501, file = 0, slot = "image", page = 1 }]

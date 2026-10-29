@@ -35,8 +35,8 @@ palettes.effect_row_10_11 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:
 palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
 
 [gradient.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [gradient.from.USA]
 at = [{ stage = 2, folder = 801, file = 0, slot = "image_0", page = 0 }]
@@ -54,8 +54,8 @@ palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://en
 palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
 
 [smoke.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [smoke.from.USA]
 at = [{ stage = 2, folder = 801, file = 0, slot = "image_1", page = 0 }]

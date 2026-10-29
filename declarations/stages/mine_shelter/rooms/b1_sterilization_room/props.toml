@@ -22,8 +22,8 @@ palettes.effect_row_0_11 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:/
 palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
 
 [fire.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [fire.from.USA]
 at = [{ stage = 4, folder = 1601, file = 0, slot = "image_1", page = 0 }]

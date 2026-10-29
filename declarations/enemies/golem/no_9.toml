@@ -15,8 +15,8 @@ cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 cells.page_2 = { rect = [256, 0, 128, 256], palette = "default_3" }
 
 [texture_akropolis.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_akropolis.from.USA]
 at = [{ stage = 0, file = 110700, slot = "image_akropolis", page = 0 }, { stage = 0, file = 510900, slot = "image", page = 0 }]
@@ -38,8 +38,8 @@ cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 cells.page_2 = { rect = [256, 0, 128, 256], palette = "default_3" }
 
 [texture_dryfield.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_dryfield.from.USA]
 at = [{ stage = 0, file = 150400, slot = "image_dryfield", page = 0 }, { stage = 0, file = 521100, slot = "image", page = 0 }, { stage = 0, file = 560800, slot = "image_dryfield", page = 0 }, { stage = 0, file = 651100, slot = "image_dryfield", page = 0 }]

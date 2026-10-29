@@ -13,8 +13,8 @@ cells.model_01B48 = { rect = [0, 0, 128, 256], palette = "effect_row_2" }
 cells.model_03340 = { rect = [0, 67, 128, 149], palette = "effect_row_2" }
 
 [machinery.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [machinery.from.USA]
 at = [{ stage = 4, folder = 701, file = 0, slot = "image_0", page = 0 }, { stage = 0, file = 140400, slot = "image", page = 0 }, { stage = 0, file = 640400, slot = "image", page = 0 }]

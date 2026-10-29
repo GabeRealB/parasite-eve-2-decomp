@@ -43,8 +43,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 2, folder = 101, file = 0, slot = "dialogue_0_atlas", page = 0 }]
@@ -65,8 +65,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_1_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_1_atlas.from.USA]
 at = [{ stage = 2, folder = 101, file = 8, slot = "dialogue_1_atlas", page = 0 }, { stage = 2, folder = 2701, file = 10, slot = "dryfield_gas_station_dialogue_1_atlas", page = 0 }, { stage = 2, folder = 3001, file = 12, slot = "dryfield_gas_station_dialogue_1_atlas", page = 0 }]

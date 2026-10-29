@@ -25,8 +25,8 @@ palettes.effect_row_2_14 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:/
 palettes.effect_row_2_15 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [240, 2] }
 
 [glows.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [glows.from.USA]
 at = [{ stage = 3, folder = 3101, file = 0, slot = "image", page = 0 }]
@@ -45,8 +45,8 @@ palettes.effect_row_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://en
 cells.actor_135400_model_071AC = { rect = [0, 0, 128, 128], palette = "effect_row_2" }
 
 [crate.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [crate.from.USA]
 at = [{ stage = 3, folder = 3101, file = 0, slot = "image", page = 1 }]

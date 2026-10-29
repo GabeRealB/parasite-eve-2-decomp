@@ -10,8 +10,8 @@ size = [80, 64]
 palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
 
 [level1_menu_picture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [level1_menu_picture.from.USA]
 at = [{ stage = 0, file = 20710, slot = "image", page = 0 }]
@@ -28,8 +28,8 @@ size = [80, 64]
 palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
 
 [level2_menu_picture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [level2_menu_picture.from.USA]
 at = [{ stage = 0, file = 20711, slot = "image", page = 0 }]
@@ -46,8 +46,8 @@ size = [80, 64]
 palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
 
 [level3_menu_picture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [level3_menu_picture.from.USA]
 at = [{ stage = 0, file = 20712, slot = "image", page = 0 }]
@@ -64,8 +64,8 @@ size = [128, 96]
 palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
 
 [shop_picture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [shop_picture.from.USA]
 at = [{ stage = 0, file = 20324, slot = "image", page = 0 }, { stage = 0, file = 20325, slot = "image", page = 0 }, { stage = 0, file = 20326, slot = "image", page = 0 }]

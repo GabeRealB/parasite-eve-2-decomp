@@ -13,8 +13,8 @@ variants.row_263 = { palette = "row_263" }
 variants.row_264 = { palette = "row_264" }
 
 [props.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [props.from.USA]
 at = [{ stage = 1, folder = 1801, file = 0, slot = "image", page = 1 }]

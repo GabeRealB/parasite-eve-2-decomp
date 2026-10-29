@@ -13,8 +13,8 @@ variants.default = { palette = "default" }
 variants.row_263 = { palette = "row_263" }
 
 [mosaic_page_1.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [mosaic_page_1.from.USA]
 at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 1 }]

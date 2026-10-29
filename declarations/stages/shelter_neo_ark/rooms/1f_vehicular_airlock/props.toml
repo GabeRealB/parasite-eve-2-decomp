@@ -11,8 +11,8 @@ palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://en
 cells.model_03A58 = { rect = [0, 0, 128, 117], palette = "effect_row_1" }
 
 [teddy_bear.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [teddy_bear.from.USA]
 at = [{ stage = 5, folder = 201, file = 0, slot = "image", page = 0 }]

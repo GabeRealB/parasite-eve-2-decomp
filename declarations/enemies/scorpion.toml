@@ -10,8 +10,8 @@ size = [120, 128]
 palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
 
 [preview.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [preview.from.USA]
 at = [{ stage = 0, file = 20605, slot = "preview_image", page = 0 }]
@@ -28,8 +28,8 @@ size = [128, 256]
 palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 102500, slot = "image", page = 0 }, { stage = 0, file = 202500, slot = "image", page = 0 }, { stage = 0, file = 302500, slot = "image", page = 0 }]

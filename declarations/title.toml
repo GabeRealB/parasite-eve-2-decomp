@@ -24,8 +24,8 @@ size = [128, 128]
 palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 0] }
 
 [chrome_left.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [chrome_left.from.USA]
 at = [{ stage = 0, file = 2, slot = "chrome_image", page = 0 }]
@@ -42,8 +42,8 @@ size = [128, 128]
 palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 0] }
 
 [chrome_right.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [chrome_right.from.USA]
 at = [{ stage = 0, file = 2, slot = "chrome_image", page = 1 }]

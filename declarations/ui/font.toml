@@ -13,8 +13,8 @@ variants.translucent_outline = { palette = "fill" }
 variants.opaque_outline = { palette = "fill" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 1, slot = "font_image", page = 0 }, { stage = 0, file = 20162, slot = "font_image", page = 0 }]

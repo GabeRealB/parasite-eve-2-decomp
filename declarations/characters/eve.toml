@@ -13,8 +13,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [masked_texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [masked_texture.from.USA]
 at = [{ stage = 0, file = 350500, slot = "masked_image", page = 0 }, { stage = 0, file = 608100, slot = "masked_image", page = 0 }, { stage = 0, file = 650700, slot = "masked_image", page = 0 }, { stage = 0, file = 660800, slot = "masked_image", page = 0 }, { stage = 0, file = 660801, slot = "masked_image", page = 0 }]
@@ -34,8 +34,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture.from.USA]
 at = [{ stage = 0, file = 121300, slot = "image", page = 0 }, { stage = 0, file = 151000, slot = "image", page = 0 }, { stage = 0, file = 451100, slot = "image", page = 0 }, { stage = 0, file = 535700, slot = "image", page = 0 }, { stage = 0, file = 661100, slot = "image", page = 0 }, { stage = 0, file = 661800, slot = "image", page = 0 }, { stage = 0, file = 800300, slot = "image", page = 0 }]
@@ -55,8 +55,8 @@ cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
 [texture_2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [texture_2.from.USA]
 at = [{ stage = 0, file = 141000, slot = "image_2", page = 0 }]

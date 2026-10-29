@@ -15,8 +15,8 @@ cells.flare_1 = { rect = [40, 0, 40, 40], palette = "flare_1" }
 cells.flare_2 = { rect = [80, 0, 40, 40], palette = "flare_2" }
 
 [flare.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [flare.from.USA]
 at = [{ stage = 1, folder = 301, file = 0, slot = "image", page = 0 }, { stage = 1, folder = 801, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 1801, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 3401, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 3801, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 101, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 501, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 801, file = 0, slot = "image_1", page = 0 }, { stage = 3, folder = 1101, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1201, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1301, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1401, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1501, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1601, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1701, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2001, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2201, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2601, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2801, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3001, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3401, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3801, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 101, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 201, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 301, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 401, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 501, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 601, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 701, file = 0, slot = "image_1", page = 0 }, { stage = 4, folder = 801, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 901, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 1501, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 701, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 2101, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 2501, file = 0, slot = "image", page = 0 }]
@@ -37,8 +37,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [story_calls_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [story_calls_atlas.from.USA]
 at = [{ stage = 1, folder = 101, file = 9, slot = "dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1501, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1901, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }]

@@ -89,8 +89,8 @@ cells.view2_sprite_21 = { rect = [16, 64, 56, 24], palette = "row_0" }
 cells.view2_sprite_22 = { rect = [72, 56, 56, 56], palette = "row_0" }
 
 [view2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view2.from.USA]
 at = [{ stage = 3, folder = 701, file = 2, slot = "image", page = 0 }]
@@ -129,8 +129,8 @@ cells.view3_sprite_20 = { rect = [112, 80, 16, 64], palette = "row_0" }
 cells.view3_sprite_21 = { rect = [96, 0, 32, 80], palette = "row_0" }
 
 [view3.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view3.from.USA]
 at = [{ stage = 3, folder = 701, file = 3, slot = "image", page = 0 }]
@@ -148,8 +148,8 @@ palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vra
 cells.view4_sprite_0 = { rect = [80, 0, 48, 40], palette = "row_0" }
 
 [view4.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view4.from.USA]
 at = [{ stage = 3, folder = 701, file = 4, slot = "image", page = 0 }]

@@ -12,8 +12,8 @@ palettes.effect_row_10_18 = { slot = { uid = "uid://1gp7leszhiipc", path = "res:
 palettes.effect_row_10_19 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [304, 10] }
 
 [water_effects.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [water_effects.from.USA]
 at = [{ stage = 4, folder = 4301, file = 0, slot = "image", page = 0 }]

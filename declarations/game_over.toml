@@ -10,8 +10,8 @@ size = [120, 24]
 palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 0] }
 
 [logo.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [logo.from.USA]
 at = [{ stage = 0, file = 20900, slot = "image", page = 0 }]

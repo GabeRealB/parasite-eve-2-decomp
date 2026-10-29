@@ -32,8 +32,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
 at = [{ stage = 3, folder = 1701, file = 0, slot = "dryfield_motel_lobby_dialogue_0_atlas", page = 0 }]
@@ -54,8 +54,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_1_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_1_atlas.from.USA]
 at = [{ stage = 3, folder = 1701, file = 5, slot = "image", page = 0 }, { stage = 3, folder = 2701, file = 8, slot = "image", page = 0 }, { stage = 3, folder = 3001, file = 12, slot = "image", page = 0 }]
@@ -76,8 +76,8 @@ palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vr
 palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
 
 [dialogue_2_atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [dialogue_2_atlas.from.USA]
 at = [{ stage = 3, folder = 1701, file = 5, slot = "dialogue_2_atlas", page = 0 }, { stage = 4, folder = 601, file = 6, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 1601, file = 19, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 2001, file = 20, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 3101, file = 13, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 4101, file = 8, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 4701, file = 44, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 5, folder = 2201, file = 6, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 5, folder = 2801, file = 5, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }]

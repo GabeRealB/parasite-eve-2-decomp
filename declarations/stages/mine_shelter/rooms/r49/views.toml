@@ -53,8 +53,8 @@ cells.view2_sprite_13 = { rect = [80, 144, 32, 64], palette = "row_0" }
 cells.view2_sprite_14 = { rect = [96, 208, 16, 48], palette = "row_0" }
 
 [view2.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view2.from.USA]
 at = [{ stage = 4, folder = 4901, file = 2, slot = "image", page = 0 }]

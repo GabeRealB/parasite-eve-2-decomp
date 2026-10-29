@@ -43,8 +43,8 @@ cells.view9_sprite_31 = { rect = [200, 144, 8, 48], palette = "row_0" }
 cells.view9_sprite_32 = { rect = [184, 240, 16, 8], palette = "row_0" }
 
 [view9.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [view9.from.USA]
 at = [{ stage = 3, folder = 3401, file = 9, slot = "image", page = 0 }]

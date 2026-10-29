@@ -13,8 +13,8 @@ cells.model_10F60 = { rect = [0, 0, 64, 168], palette = "effect_row_2" }
 cells.model_11244 = { rect = [64, 0, 64, 168], palette = "effect_row_2" }
 
 [barrels.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [barrels.from.USA]
 at = [{ stage = 4, folder = 201, file = 0, slot = "image_1", page = 0 }]

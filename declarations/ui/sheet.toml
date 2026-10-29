@@ -142,8 +142,8 @@ variants.ammo_12_gauge = { palettes = { ammunition = "pe_fallback", weapon = "pe
 variants.battery = { palettes = { weapon = "weapon.battery" } }
 
 [atlas.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [atlas.from.USA]
 at = [{ stage = 0, file = 1, slot = "sheet_image", page = 0 }, { stage = 0, file = 20162, slot = "sheet_image", page = 0 }]

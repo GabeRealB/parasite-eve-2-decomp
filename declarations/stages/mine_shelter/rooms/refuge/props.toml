@@ -9,8 +9,8 @@ mode = "direct_16bpp"
 size = [112, 240]
 
 [main_power_panel.import]
-importer = "pe2.images@texels"
-source = "native.texels"
+importer = "pe2.images@ora"
+source = "source.ora"
 
 [main_power_panel.from.USA]
 at = [{ stage = 4, folder = 601, file = 0, slot = "image_1", page = 0 }]
