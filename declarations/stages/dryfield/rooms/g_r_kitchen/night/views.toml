@@ -24,7 +24,7 @@ sha1 = "d438a7f36dc886c9027a3f8a7006107a62ab9f6d"
 uid = "uid://ul7bthg6hfa4"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 216]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 palettes = [

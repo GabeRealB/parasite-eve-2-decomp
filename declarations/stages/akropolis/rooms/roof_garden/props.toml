@@ -4,7 +4,7 @@
 uid = "uid://rvnaoruv7dbq"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [48, 40]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
 palettes = [

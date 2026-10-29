@@ -4,7 +4,7 @@
 uid = "uid://5m23z6q6zwg0"
 kind = "image"
 role = "texture"
-bpp = 16
+mode = "direct_16bpp"
 size = [112, 240]
 page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.asset" }, at = [0, 0] }
 

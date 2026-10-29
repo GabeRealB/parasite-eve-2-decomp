@@ -4,7 +4,7 @@
 uid = "uid://xx1a18oafijp"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 256]
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 palettes = [
@@ -23,7 +23,7 @@ palettes = { effect_row_9_19 = "733590e2c3b8c95a2e7d305c1171fbd28e58ca42", effec
 uid = "uid://18i6iyzj6xtxm"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 128]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
 palettes = [

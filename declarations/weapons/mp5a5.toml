@@ -4,7 +4,7 @@
 uid = "uid://j2hlb5dtzakg"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 96]
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
 palettes = [
@@ -20,7 +20,7 @@ palettes = { default = "988f6c6fcc7c73e558a873e22791348541f0abd2" }
 uid = "uid://sktehfw6df8k"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 96]
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
 palettes = [
@@ -36,7 +36,7 @@ palettes = { default = "aaf0c9c16202e21c93b67f7f6241c10fa61892df" }
 uid = "uid://1foz71yhs0rd2"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 96]
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
 palettes = [
@@ -52,7 +52,7 @@ palettes = { default = "49d135fd4cfc9ad69b26ba60c8960ae03cd9cbcd" }
 uid = "uid://lhr14kac55jo"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 64]
 page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_sheet.asset" }, at = [0, 0] }
 palettes = [

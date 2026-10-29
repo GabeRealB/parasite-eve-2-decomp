@@ -22,7 +22,7 @@ at = [{ stage = 5, folder = 801 }]
 uid = "uid://5cq7tx0o6eop"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 32]
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
 palettes = [

@@ -4,7 +4,7 @@
 uid = "uid://18j0ukp1v5ck"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [640, 240]
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [64, 0] }
 palettes = [
@@ -40,7 +40,7 @@ sha1 = "3127666c342f9ea2d4ea5d3529d5e436fdd02b6a"
 uid = "uid://e8rx12suodf6"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [256, 256]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 palettes = [
@@ -151,7 +151,7 @@ sha1 = "2244037f3ecfba40f8737fa1322ca1a3ce892c76"
 uid = "uid://zubkopiim389"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 256]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 palettes = [
@@ -220,7 +220,7 @@ sha1 = "5548431bb7694ef7a7f90e103d4082bbcfdea34e"
 uid = "uid://1kjkc0klkvttv"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 256]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 palettes = [
@@ -269,7 +269,7 @@ palettes = { default = "943e85221833b8d4360bbc027b3f165234864f1e" }
 uid = "uid://18fkk6702t415"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [256, 256]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 palettes = [
@@ -388,7 +388,7 @@ sha1 = "580f4c18e9a9a9bcc7e750b37dde652fd049c408"
 uid = "uid://1wj8ckiu0gs5g"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [256, 256]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
 palettes = [
@@ -520,7 +520,7 @@ sha1 = "b65a98fdbc62e4f9445592ea0d2046ee2a181f3d"
 uid = "uid://1vn6q3n2rinka"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 256]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 palettes = [

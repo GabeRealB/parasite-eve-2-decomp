@@ -4,7 +4,7 @@
 uid = "uid://1fulxftjapq7x"
 kind = "image"
 role = "atlas"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 256]
 page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.asset" }, at = [0, 0] }
 palettes = [
@@ -23,7 +23,7 @@ cells = [
     { name = "clock_digits.8", rect = [128, 0, 16, 24], palette = "clock_digits" },
     { name = "clock_digits.9", rect = [144, 0, 16, 24], palette = "clock_digits" },
     { name = "clock_digits.colon", rect = [160, 0, 16, 24], palette = "clock_digits" },
-    { name = "bullseyes", rect = [0, 24, 128, 232], palette = "bullseyes", bpp = 8 },
+    { name = "bullseyes", rect = [0, 24, 128, 232], palette = "bullseyes", mode = "indexed_8bpp" },
 ]
 
 [bullseye_page.from.USA]
@@ -67,7 +67,7 @@ at = [{ stage = 1, folder = 2001 }]
 uid = "uid://7ax7js88seix"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 48]
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
 palettes = [
@@ -87,7 +87,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 uid = "uid://rabkwz9r8io5"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [512, 48]
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 palettes = [
@@ -107,7 +107,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 uid = "uid://v7ylqnsa02vi"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 48]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
 palettes = [

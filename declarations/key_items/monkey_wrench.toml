@@ -4,7 +4,7 @@
 uid = "uid://y6pz1idr739c"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [126, 90]
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
 palettes = [

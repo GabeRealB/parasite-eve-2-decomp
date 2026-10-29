@@ -4,7 +4,7 @@
 uid = "uid://jr68leys0zcz"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [384, 256]
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
 palettes = [
@@ -27,7 +27,7 @@ palettes = { default = "9de06a4c470449ee9741b52de3e9101da43af2f9", default_2 = "
 uid = "uid://142s3oqa46sa7"
 kind = "image"
 role = "atlas"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 256]
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [192, 0] }
 palettes = [

@@ -4,7 +4,7 @@
 uid = "uid://tudppllo4muy"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 64]
 page = { slot = { uid = "uid://1ndxe29dxqbxv", path = "res://engine/vram/shared_sheets.asset" }, at = [64, 0] }
 palettes = [
@@ -20,7 +20,7 @@ palettes = { default = "9b1bf0cd993dfb8bdfc03951b20b24ae1ba75fd0" }
 uid = "uid://owlpds0b4ml8"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 64]
 page = { slot = { uid = "uid://1ndxe29dxqbxv", path = "res://engine/vram/shared_sheets.asset" }, at = [64, 64] }
 palettes = [

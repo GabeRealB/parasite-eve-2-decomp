@@ -39,7 +39,7 @@ at = [{ stage = 1, folder = 1901 }]
 uid = "uid://37pdkluyfuru"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 48]
 page = { slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 0] }
 palettes = [
@@ -59,7 +59,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 uid = "uid://1ppc4d83b7cld"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 48]
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
 palettes = [
@@ -79,7 +79,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 uid = "uid://17wjj8ob8sakk"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 32]
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 palettes = [

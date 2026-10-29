@@ -4,7 +4,7 @@
 uid = "uid://19q45r1zlb1yv"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [248, 256]
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 palettes = [
@@ -20,7 +20,7 @@ palettes = { effect_row_9 = "3827df5302cf771283d24c68f9926f29f4a75a1f" }
 uid = "uid://17zzyw6wefnav"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 256]
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [128, 0] }
 palettes = [
@@ -36,7 +36,7 @@ palettes = { actor_row_2 = "bdc79dc416bcd648fe4f2f3281e9e7626007a941" }
 uid = "uid://jnk0qguqsdl6"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 256]
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [256, 0] }
 palettes = [

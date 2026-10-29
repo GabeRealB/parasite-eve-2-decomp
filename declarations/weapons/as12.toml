@@ -4,7 +4,7 @@
 uid = "uid://12y3aqfn0ez1a"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 96]
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }, at = [0, 0] }
 palettes = [
@@ -20,7 +20,7 @@ palettes = { default = "4b9519c364901ce80853f26b5f8907dc2fe43af3" }
 uid = "uid://12pbg2pydikyo"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 64]
 page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_sheet.asset" }, at = [0, 0] }
 palettes = [

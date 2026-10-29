@@ -4,7 +4,7 @@
 uid = "uid://18ckevj1jbvt8"
 kind = "image"
 role = "atlas"
-bpp = 4
+mode = "indexed_4bpp"
 size = [120, 40]
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 palettes = [
@@ -27,7 +27,7 @@ palettes = { flare_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flare_1 = "62
 uid = "uid://5xcamop92axh"
 kind = "image"
 role = "texture"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 48]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
 palettes = [

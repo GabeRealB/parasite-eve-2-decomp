@@ -4,7 +4,7 @@
 uid = "uid://1uimpwyaq8b9b"
 kind = "image"
 role = "atlas"
-bpp = 4
+mode = "indexed_4bpp"
 size = [256, 256]
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
 palettes = [
@@ -12,7 +12,7 @@ palettes = [
     { name = "cable", slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] },
 ]
 cells = [
-    { name = "lift", rect = [0, 0, 128, 192], palette = "lift", bpp = 8 },
+    { name = "lift", rect = [0, 0, 128, 192], palette = "lift", mode = "indexed_8bpp" },
     { name = "cable", rect = [0, 248, 24, 8], palette = "cable" },
 ]
 
@@ -25,7 +25,7 @@ palettes = { lift = "a2431ebdaa9ec7d90aeb70c0cf26f2348ff3de7f", cable = "e9023b6
 uid = "uid://17l7x5n7ilkb6"
 kind = "image"
 role = "atlas"
-bpp = 4
+mode = "indexed_4bpp"
 size = [224, 256]
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
 palettes = [

@@ -14,7 +14,7 @@ sha1 = "51e3bfec6e0392baacaf9e9e9d3cf8054db030db"
 uid = "uid://ise7wq932mjc"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 128]
 page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.asset" }, at = [0, 0] }
 palettes = [
@@ -30,7 +30,7 @@ palettes = { default = "79361b435bccf7417a11e350b7dffe72b048efb5" }
 uid = "uid://1mur93yy6mhb7"
 kind = "image"
 role = "texture"
-bpp = 8
+mode = "indexed_8bpp"
 size = [128, 128]
 page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.asset" }, at = [64, 0] }
 palettes = [
