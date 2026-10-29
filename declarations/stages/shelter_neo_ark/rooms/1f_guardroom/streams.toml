@@ -2,7 +2,8 @@
 
 [movie_3]
 uid = "uid://qbgzlirc4mg5"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/1f_guardroom_movie_3" }
 group = 1
 id = 3
 sub_id = 0

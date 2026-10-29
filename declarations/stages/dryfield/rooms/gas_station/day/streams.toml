@@ -2,7 +2,8 @@
 
 [movie_100]
 uid = "uid://g7lp5gktxzpk"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/gas_station_day_movie_100" }
 group = 0
 id = 100
 sub_id = 0
@@ -20,7 +21,7 @@ at = [{ stage = 2, folder = 101, stream = "movie_100" }]
 
 [movie_12]
 uid = "uid://16q4ol7u5745i"
-kind = "movie"
+kind = "movie_slot"
 group = 1
 id = 12
 sub_id = 0

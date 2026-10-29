@@ -1,0 +1,10 @@
+# Declarations: the movies first played here - each a clip of the discs' movie files (INTER0.STR, INTER1.STR), which
+# list it among their entries (movies.toml); a movie on both discs is both files' clip, the same bytes.
+
+[movie_100]
+uid = "uid://k411zszjuk5y"
+kind = "movie"
+format = "str"
+
+[movie_100.from.USA]
+sha1 = "131466da87377652e2e4ebcab0a5fefdea9a2eb9"

@@ -2,7 +2,7 @@
 
 [movie_3]
 uid = "uid://ndjtz3udlxur"
-kind = "movie"
+kind = "movie_slot"
 group = 1
 id = 3
 sub_id = 0
@@ -20,7 +20,7 @@ at = [{ stage = 1, folder = 801, stream = "movie_3" }]
 
 [movie_4]
 uid = "uid://qj24lvtb1ab5"
-kind = "movie"
+kind = "movie_slot"
 group = 1
 id = 4
 sub_id = 0
@@ -38,7 +38,7 @@ at = [{ stage = 1, folder = 801, stream = "movie_4" }]
 
 [movie_5]
 uid = "uid://t3xrzfsmbrlo"
-kind = "movie"
+kind = "movie_slot"
 group = 1
 id = 5
 sub_id = 0
@@ -56,7 +56,7 @@ at = [{ stage = 1, folder = 801, stream = "movie_5" }]
 
 [movie_6]
 uid = "uid://szdewprrhcrr"
-kind = "movie"
+kind = "movie_slot"
 group = 1
 id = 6
 sub_id = 0
@@ -74,7 +74,7 @@ at = [{ stage = 1, folder = 801, stream = "movie_6" }]
 
 [movie_7]
 uid = "uid://15thshgdcrkqh"
-kind = "movie"
+kind = "movie_slot"
 group = 1
 id = 7
 sub_id = 0

@@ -2,7 +2,8 @@
 
 [movie_100]
 uid = "uid://15lliaoygs66e"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/stage0_movie_100" }
 group = 0
 id = 100
 sub_id = 0
@@ -20,7 +21,8 @@ at = [{ stage = 0, stream = "movie_100" }]
 
 [movie_101]
 uid = "uid://146npur5w9cp2"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/stage0_movie_100" }
 group = 0
 id = 101
 sub_id = 0

@@ -2,7 +2,8 @@
 
 [movie_100]
 uid = "uid://1qgvmt6gh4c0l"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/cafeteria_movie_100" }
 group = 0
 id = 100
 sub_id = 0

@@ -2,7 +2,8 @@
 
 [movie_7]
 uid = "uid://g9jpt38upy9u"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/forked_road_movie_7" }
 group = 0
 id = 7
 sub_id = 0
@@ -20,7 +21,8 @@ at = [{ stage = 1, folder = 901, stream = "movie_7" }]
 
 [movie_8]
 uid = "uid://1pc0d0h3j8c9m"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/forked_road_movie_8" }
 group = 0
 id = 8
 sub_id = 0

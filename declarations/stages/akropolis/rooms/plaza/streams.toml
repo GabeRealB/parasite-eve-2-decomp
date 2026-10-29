@@ -2,7 +2,7 @@
 
 [movie_2_0]
 uid = "uid://t61gouhjlji3"
-kind = "movie"
+kind = "movie_slot"
 group = 0
 id = 2
 sub_id = 0
@@ -20,7 +20,7 @@ at = [{ stage = 1, folder = 501, stream = "movie_2_0" }]
 
 [movie_2_1]
 uid = "uid://5l3drpbi5xpw"
-kind = "movie"
+kind = "movie_slot"
 group = 0
 id = 2
 sub_id = 1
@@ -38,7 +38,7 @@ at = [{ stage = 1, folder = 501, stream = "movie_2_1" }]
 
 [movie_2_2]
 uid = "uid://5cnknapc733z"
-kind = "movie"
+kind = "movie_slot"
 group = 0
 id = 2
 sub_id = 2
@@ -56,7 +56,7 @@ at = [{ stage = 1, folder = 501, stream = "movie_2_2" }]
 
 [movie_2_3]
 uid = "uid://173h3kt6ct6iq"
-kind = "movie"
+kind = "movie_slot"
 group = 0
 id = 2
 sub_id = 3
@@ -74,7 +74,7 @@ at = [{ stage = 1, folder = 501, stream = "movie_2_3" }]
 
 [movie_2_4]
 uid = "uid://1l2vrc8q5s5lf"
-kind = "movie"
+kind = "movie_slot"
 group = 0
 id = 2
 sub_id = 4
@@ -92,7 +92,7 @@ at = [{ stage = 1, folder = 501, stream = "movie_2_4" }]
 
 [movie_2_5]
 uid = "uid://i8ybru8lsm6z"
-kind = "movie"
+kind = "movie_slot"
 group = 0
 id = 2
 sub_id = 5
@@ -110,7 +110,8 @@ at = [{ stage = 1, folder = 501, stream = "movie_2_5" }]
 
 [movie_100]
 uid = "uid://16shbyuxtbq91"
-kind = "movie"
+kind = "movie_slot"
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/plaza_movie_100" }
 group = 0
 id = 100
 sub_id = 0
