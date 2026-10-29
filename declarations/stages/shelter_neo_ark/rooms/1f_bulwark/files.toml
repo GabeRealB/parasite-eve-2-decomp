@@ -31,7 +31,7 @@ type = "bundle"
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://iwyl4g1m6nw6", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view3.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://iwyl4g1m6nw6", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view3.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

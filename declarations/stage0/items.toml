@@ -18,7 +18,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://14vom3or2y9yk", path = "res://weapons/p08/snail_preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://14vom3or2y9yk", path = "res://weapons/p08/snail_preview.asset", part = "palettes/default" } },
 ]
 
 [[p08_snail_preview.slots]]
@@ -44,7 +44,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://e3p1sh3j5l92", path = "res://weapons/m93r/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://e3p1sh3j5l92", path = "res://weapons/m93r/preview.asset", part = "palettes/default" } },
 ]
 
 [[m93r_preview.slots]]
@@ -70,7 +70,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://jmjyzohr5z2m", path = "res://weapons/m950/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://jmjyzohr5z2m", path = "res://weapons/m950/preview.asset", part = "palettes/default" } },
 ]
 
 [[m950_preview.slots]]
@@ -96,7 +96,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1rcgpsz8wwm3p", path = "res://weapons/p08/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1rcgpsz8wwm3p", path = "res://weapons/p08/preview.asset", part = "palettes/default" } },
 ]
 
 [[p08_preview.slots]]
@@ -122,7 +122,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://fjnezdh7fq4n", path = "res://weapons/p229/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://fjnezdh7fq4n", path = "res://weapons/p229/preview.asset", part = "palettes/default" } },
 ]
 
 [[p229_preview.slots]]
@@ -148,7 +148,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://hyg8qe6ott36", path = "res://weapons/mongoose/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://hyg8qe6ott36", path = "res://weapons/mongoose/preview.asset", part = "palettes/default" } },
 ]
 
 [[mongoose_preview.slots]]
@@ -174,7 +174,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1o4dfw0vluqbo", path = "res://weapons/grenade_pistol/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1o4dfw0vluqbo", path = "res://weapons/grenade_pistol/preview.asset", part = "palettes/default" } },
 ]
 
 [[grenade_pistol_preview.slots]]
@@ -200,7 +200,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1s51rnr8nm3y1", path = "res://weapons/mm1/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1s51rnr8nm3y1", path = "res://weapons/mm1/preview.asset", part = "palettes/default" } },
 ]
 
 [[mm1_preview.slots]]
@@ -226,7 +226,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://6opjag10ycqt", path = "res://weapons/pa3/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://6opjag10ycqt", path = "res://weapons/pa3/preview.asset", part = "palettes/default" } },
 ]
 
 [[pa3_preview.slots]]
@@ -252,7 +252,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://19xgr41737k9d", path = "res://weapons/sp12/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://19xgr41737k9d", path = "res://weapons/sp12/preview.asset", part = "palettes/default" } },
 ]
 
 [[sp12_preview.slots]]
@@ -278,7 +278,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://12y3aqfn0ez1a", path = "res://weapons/as12/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://12y3aqfn0ez1a", path = "res://weapons/as12/preview.asset", part = "palettes/default" } },
 ]
 
 [[as12_preview.slots]]
@@ -304,7 +304,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://8k4q7fl1hxsj", path = "res://weapons/m4a1/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://8k4q7fl1hxsj", path = "res://weapons/m4a1/preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_preview.slots]]
@@ -330,7 +330,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1gfjsn54lhais", path = "res://weapons/m249/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1gfjsn54lhais", path = "res://weapons/m249/preview.asset", part = "palettes/default" } },
 ]
 
 [[m249_preview.slots]]
@@ -356,7 +356,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1rpv58glxgm3q", path = "res://weapons/tonfa_baton/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1rpv58glxgm3q", path = "res://weapons/tonfa_baton/preview.asset", part = "palettes/default" } },
 ]
 
 [[tonfa_baton_preview.slots]]
@@ -382,7 +382,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://kw45wrn73h3r", path = "res://weapons/m4a1/p1_preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://kw45wrn73h3r", path = "res://weapons/m4a1/p1_preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_p1_preview.slots]]
@@ -408,7 +408,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://gy1i426vbxze", path = "res://weapons/m4a1/p2_preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://gy1i426vbxze", path = "res://weapons/m4a1/p2_preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_p2_preview.slots]]
@@ -434,7 +434,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ewrb0udkg453", path = "res://weapons/hypervelocity/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1ewrb0udkg453", path = "res://weapons/hypervelocity/preview.asset", part = "palettes/default" } },
 ]
 
 [[hypervelocity_preview.slots]]
@@ -460,7 +460,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://evitxdv0ylwz", path = "res://weapons/gunblade/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://evitxdv0ylwz", path = "res://weapons/gunblade/preview.asset", part = "palettes/default" } },
 ]
 
 [[gunblade_preview.slots]]
@@ -486,7 +486,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://8u2t36ozfufp", path = "res://weapons/m4a1_hammer/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://8u2t36ozfufp", path = "res://weapons/m4a1_hammer/preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_hammer_preview.slots]]
@@ -512,7 +512,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://l9w39rkh30wo", path = "res://weapons/m4a1_bayonet/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://l9w39rkh30wo", path = "res://weapons/m4a1_bayonet/preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_bayonet_preview.slots]]
@@ -538,7 +538,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://xiatyd0sfrbg", path = "res://weapons/m4a1_grenade/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://xiatyd0sfrbg", path = "res://weapons/m4a1_grenade/preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_grenade_preview.slots]]
@@ -564,7 +564,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1bmlweaw7075h", path = "res://weapons/m4a1_pyke/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1bmlweaw7075h", path = "res://weapons/m4a1_pyke/preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_pyke_preview.slots]]
@@ -590,7 +590,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1bzb9y94ry73h", path = "res://weapons/m4a1_javelin/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1bzb9y94ry73h", path = "res://weapons/m4a1_javelin/preview.asset", part = "palettes/default" } },
 ]
 
 [[m4a1_javelin_preview.slots]]
@@ -616,7 +616,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1foz71yhs0rd2", path = "res://weapons/mp5a5/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1foz71yhs0rd2", path = "res://weapons/mp5a5/preview.asset", part = "palettes/default" } },
 ]
 
 [[mp5a5_preview.slots]]
@@ -642,7 +642,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://j2hlb5dtzakg", path = "res://weapons/mp5a5/p1_preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://j2hlb5dtzakg", path = "res://weapons/mp5a5/p1_preview.asset", part = "palettes/default" } },
 ]
 
 [[mp5a5_p1_preview.slots]]
@@ -668,7 +668,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://sktehfw6df8k", path = "res://weapons/mp5a5/p2_preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://sktehfw6df8k", path = "res://weapons/mp5a5/p2_preview.asset", part = "palettes/default" } },
 ]
 
 [[mp5a5_p2_preview.slots]]
@@ -694,7 +694,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1jjk3r2k54bgz", path = "res://disc_swap/messages.asset" }, palette = "default" },
+    { palette = { uid = "uid://1jjk3r2k54bgz", path = "res://disc_swap/messages.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -723,7 +723,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1jjk3r2k54bgz", path = "res://disc_swap/messages.asset" }, palette = "default" },
+    { palette = { uid = "uid://1jjk3r2k54bgz", path = "res://disc_swap/messages.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -779,38 +779,38 @@ pages = [
 name = "sheet_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "shoulder" },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/shoulder" } },
     { name = "row_inactive", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [16, 0] },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "player_name" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "frame" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_fire" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_wind" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_water" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_earth" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "status" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "arrow_up" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "cursor" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "gauge" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "disc" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "marker_targeted" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "background" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "portrait" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "weapon.battery" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "lock_on" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "range_around" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "other_item" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "background.pulse" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "caption_earth" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "caption_wind" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "action_cursor.hotspot" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "action_cursor" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "ammunition.ammo_40mm" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "empty" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_fallback" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "ammunition.ammo_44_magnum" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "other_item.ammo_9mm" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "unidentified" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "key_item" },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/player_name" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/frame" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_fire" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_wind" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_water" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_earth" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/status" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/arrow_up" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/cursor" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/gauge" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/disc" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/marker_targeted" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/background" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/portrait" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/weapon.battery" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/lock_on" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/range_around" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/other_item" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/background.pulse" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/caption_earth" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/caption_wind" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/action_cursor.hotspot" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/action_cursor" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/ammunition.ammo_40mm" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/empty" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_fallback" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/ammunition.ammo_44_magnum" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/other_item.ammo_9mm" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/unidentified" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/key_item" } },
     { name = "unread_ui_row_1_1", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [16, 1] },
     { name = "unread_ui_row_1_2", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [32, 1] },
     { name = "unread_ui_row_1_3", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [48, 1] },
@@ -850,7 +850,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tytuqctg3kyo", path = "res://key_items/parthenon_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tytuqctg3kyo", path = "res://key_items/parthenon_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[parthenon_key.slots]]
@@ -876,7 +876,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1mle4cmqb4u6j", path = "res://key_items/micro_device/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1mle4cmqb4u6j", path = "res://key_items/micro_device/texture.asset", part = "palettes/default" } },
 ]
 
 [[micro_device.slots]]
@@ -902,7 +902,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1blr97t20rqh1", path = "res://key_items/red_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1blr97t20rqh1", path = "res://key_items/red_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[red_key.slots]]
@@ -928,7 +928,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://137vjdf2qtt2r", path = "res://key_items/blue_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://137vjdf2qtt2r", path = "res://key_items/blue_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[blue_key.slots]]
@@ -954,7 +954,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://145fmaqzuw5we", path = "res://key_items/armory_cardkey/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://145fmaqzuw5we", path = "res://key_items/armory_cardkey/texture.asset", part = "palettes/default" } },
 ]
 
 [[armory_cardkey.slots]]
@@ -980,7 +980,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1wbosbhrj7lif", path = "res://key_items/mist_badge/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1wbosbhrj7lif", path = "res://key_items/mist_badge/texture.asset", part = "palettes/default" } },
 ]
 
 [[mist_badge.slots]]
@@ -1006,7 +1006,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://w7wa8bkg17gv", path = "res://key_items/mendel_sept_issue/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://w7wa8bkg17gv", path = "res://key_items/mendel_sept_issue/texture.asset", part = "palettes/default" } },
 ]
 
 [[mendel_sept_issue.slots]]
@@ -1032,7 +1032,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1bbzjvn5idr6p", path = "res://key_items/clipboard/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1bbzjvn5idr6p", path = "res://key_items/clipboard/texture.asset", part = "palettes/default" } },
 ]
 
 [[clipboard.slots]]
@@ -1058,7 +1058,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://fkx5z2sekjxu", path = "res://key_items/mist_search_warrant/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://fkx5z2sekjxu", path = "res://key_items/mist_search_warrant/texture.asset", part = "palettes/default" } },
 ]
 
 [[mist_search_warrant.slots]]
@@ -1084,7 +1084,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1mo7l2enybfhz", path = "res://key_items/nmc_photo/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1mo7l2enybfhz", path = "res://key_items/nmc_photo/texture.asset", part = "palettes/default" } },
 ]
 
 [[nmc_photo.slots]]
@@ -1110,7 +1110,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1418egy0w4qcw", path = "res://key_items/manual/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1418egy0w4qcw", path = "res://key_items/manual/texture.asset", part = "palettes/default" } },
 ]
 
 [[manual.slots]]
@@ -1136,7 +1136,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://sk66ly0nd8ku", path = "res://key_items/dryfield_map/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://sk66ly0nd8ku", path = "res://key_items/dryfield_map/texture.asset", part = "palettes/default" } },
 ]
 
 [[dryfield_map.slots]]
@@ -1162,9 +1162,9 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://rvv4smfzrmxf", path = "res://key_items/motel_key_no6/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://rvv4smfzrmxf", path = "res://key_items/motel_key_no6/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://rvv4smfzrmxf", path = "res://key_items/motel_key_no6/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://rvv4smfzrmxf", path = "res://key_items/motel_key_no6/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://rvv4smfzrmxf", path = "res://key_items/motel_key_no6/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://rvv4smfzrmxf", path = "res://key_items/motel_key_no6/texture.asset", part = "palettes/default" } },
 ]
 
 [[motel_key_no6.slots]]
@@ -1190,7 +1190,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://md81hu1luv4c", path = "res://key_items/saloon_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://md81hu1luv4c", path = "res://key_items/saloon_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[saloon_key.slots]]
@@ -1216,7 +1216,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://y6pz1idr739c", path = "res://key_items/monkey_wrench/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://y6pz1idr739c", path = "res://key_items/monkey_wrench/texture.asset", part = "palettes/default" } },
 ]
 
 [[monkey_wrench.slots]]
@@ -1242,7 +1242,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://x4qcgbvhlrg4", path = "res://key_items/lobby_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://x4qcgbvhlrg4", path = "res://key_items/lobby_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[lobby_key.slots]]
@@ -1268,7 +1268,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1exhg58trma50", path = "res://key_items/bronco_masterkey/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1exhg58trma50", path = "res://key_items/bronco_masterkey/texture.asset", part = "palettes/default" } },
 ]
 
 [[bronco_masterkey.slots]]
@@ -1294,7 +1294,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://j5q4jwo5x183", path = "res://key_items/wire_rope/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://j5q4jwo5x183", path = "res://key_items/wire_rope/texture.asset", part = "palettes/default" } },
 ]
 
 [[wire_rope.slots]]
@@ -1320,7 +1320,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://18s650uj9nghf", path = "res://key_items/factory_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://18s650uj9nghf", path = "res://key_items/factory_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[factory_key.slots]]
@@ -1346,7 +1346,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://d3h8svbf756x", path = "res://key_items/truck_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://d3h8svbf756x", path = "res://key_items/truck_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[truck_key.slots]]
@@ -1372,7 +1372,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1a51tz0mtopy", path = "res://key_items/jerry_can/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1a51tz0mtopy", path = "res://key_items/jerry_can/texture.asset", part = "palettes/default" } },
 ]
 
 [[jerry_can.slots]]
@@ -1398,7 +1398,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://arh8phy1bzr7", path = "res://key_items/gasoline/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://arh8phy1bzr7", path = "res://key_items/gasoline/texture.asset", part = "palettes/default" } },
 ]
 
 [[gasoline.slots]]
@@ -1424,7 +1424,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://14ywlv5brutg4", path = "res://key_items/ice_bag/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://14ywlv5brutg4", path = "res://key_items/ice_bag/texture.asset", part = "palettes/default" } },
 ]
 
 [[ice_bag.slots]]
@@ -1450,7 +1450,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1nlk6rc8kghg1", path = "res://key_items/bag_of_water/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1nlk6rc8kghg1", path = "res://key_items/bag_of_water/texture.asset", part = "palettes/default" } },
 ]
 
 [[bag_of_water.slots]]
@@ -1476,7 +1476,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1fr95oljj1z7s", path = "res://key_items/bottlecap_magnet/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1fr95oljj1z7s", path = "res://key_items/bottlecap_magnet/texture.asset", part = "palettes/default" } },
 ]
 
 [[bottlecap_magnet.slots]]
@@ -1502,7 +1502,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1t0k5a4c7ky7q", path = "res://key_items/suv_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1t0k5a4c7ky7q", path = "res://key_items/suv_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[suv_key.slots]]
@@ -1528,7 +1528,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ibhbc9mzidsd", path = "res://key_items/oak_board/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1ibhbc9mzidsd", path = "res://key_items/oak_board/texture.asset", part = "palettes/default" } },
 ]
 
 [[oak_board.slots]]
@@ -1554,7 +1554,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://zqp1bur65eyg", path = "res://key_items/jumper_plug/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://zqp1bur65eyg", path = "res://key_items/jumper_plug/texture.asset", part = "palettes/default" } },
 ]
 
 [[jumper_plug.slots]]
@@ -1580,7 +1580,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://hsz0gqx8sueg", path = "res://key_items/bowmans_card/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://hsz0gqx8sueg", path = "res://key_items/bowmans_card/texture.asset", part = "palettes/default" } },
 ]
 
 [[bowmans_card.slots]]
@@ -1606,7 +1606,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://pha7s8y1g57n", path = "res://key_items/yoshidas_card/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://pha7s8y1g57n", path = "res://key_items/yoshidas_card/texture.asset", part = "palettes/default" } },
 ]
 
 [[yoshidas_card.slots]]
@@ -1632,7 +1632,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1a1ousgmq9zow", path = "res://key_items/electric_car_key/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1a1ousgmq9zow", path = "res://key_items/electric_car_key/texture.asset", part = "palettes/default" } },
 ]
 
 [[electric_car_key.slots]]
@@ -1658,7 +1658,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://71vd64g5rlhz", path = "res://key_items/teddy_bear/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://71vd64g5rlhz", path = "res://key_items/teddy_bear/texture.asset", part = "palettes/default" } },
 ]
 
 [[teddy_bear.slots]]
@@ -1684,7 +1684,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1qz4j8yo2vtc", path = "res://key_items/pierces_memo/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1qz4j8yo2vtc", path = "res://key_items/pierces_memo/texture.asset", part = "palettes/default" } },
 ]
 
 [[pierces_memo.slots]]
@@ -1710,7 +1710,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://c0w0td0l36r1", path = "res://key_items/unused_126/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://c0w0td0l36r1", path = "res://key_items/unused_126/texture.asset", part = "palettes/default" } },
 ]
 
 [[unused_126.slots]]
@@ -1736,7 +1736,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://v34xvdxuktlh", path = "res://key_items/aeris_sept_issue/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://v34xvdxuktlh", path = "res://key_items/aeris_sept_issue/texture.asset", part = "palettes/default" } },
 ]
 
 [[aeris_sept_issue.slots]]
@@ -1762,7 +1762,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://adcy8g5dugx6", path = "res://key_items/mr_douglas_letter/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://adcy8g5dugx6", path = "res://key_items/mr_douglas_letter/texture.asset", part = "palettes/default" } },
 ]
 
 [[mr_douglas_letter.slots]]
@@ -1788,7 +1788,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://mdy2szu04ysp", path = "res://key_items/unused_129/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://mdy2szu04ysp", path = "res://key_items/unused_129/texture.asset", part = "palettes/default" } },
 ]
 
 [[unused_129.slots]]
@@ -1814,7 +1814,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://3y6eg2grty3x", path = "res://key_items/unused_12a/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://3y6eg2grty3x", path = "res://key_items/unused_12a/texture.asset", part = "palettes/default" } },
 ]
 
 [[unused_12a.slots]]
@@ -1840,7 +1840,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://nu1ysfdixt12", path = "res://key_items/unused_12b/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://nu1ysfdixt12", path = "res://key_items/unused_12b/texture.asset", part = "palettes/default" } },
 ]
 
 [[unused_12b.slots]]
@@ -1866,7 +1866,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1l3om32u79o9q", path = "res://key_items/jumper_plug_12c/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1l3om32u79o9q", path = "res://key_items/jumper_plug_12c/texture.asset", part = "palettes/default" } },
 ]
 
 [[jumper_plug_12c.slots]]
@@ -1892,7 +1892,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://posey2t4zzbc", path = "res://key_items/micro_device_12d/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://posey2t4zzbc", path = "res://key_items/micro_device_12d/texture.asset", part = "palettes/default" } },
 ]
 
 [[micro_device_12d.slots]]
@@ -1918,7 +1918,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://15agj1i7jve5k", path = "res://items/recovery1/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://15agj1i7jve5k", path = "res://items/recovery1/texture.asset", part = "palettes/default" } },
 ]
 
 [[recovery1.slots]]
@@ -1944,7 +1944,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://fyegocuwv8ue", path = "res://items/recovery2/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://fyegocuwv8ue", path = "res://items/recovery2/texture.asset", part = "palettes/default" } },
 ]
 
 [[recovery2.slots]]
@@ -1970,7 +1970,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://17yu0vxfbncbv", path = "res://items/recovery3/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://17yu0vxfbncbv", path = "res://items/recovery3/texture.asset", part = "palettes/default" } },
 ]
 
 [[recovery3.slots]]
@@ -1996,7 +1996,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://m50w378zo3af", path = "res://items/stim/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://m50w378zo3af", path = "res://items/stim/texture.asset", part = "palettes/default" } },
 ]
 
 [[stim.slots]]
@@ -2022,7 +2022,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1501uqf5o0oxk", path = "res://items/cola/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1501uqf5o0oxk", path = "res://items/cola/texture.asset", part = "palettes/default" } },
 ]
 
 [[cola.slots]]
@@ -2048,7 +2048,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://zfki1q5moyr0", path = "res://items/mp_boost1/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://zfki1q5moyr0", path = "res://items/mp_boost1/texture.asset", part = "palettes/default" } },
 ]
 
 [[mp_boost1.slots]]
@@ -2074,7 +2074,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1q9ouwer8rlh6", path = "res://items/mp_boost2/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1q9ouwer8rlh6", path = "res://items/mp_boost2/texture.asset", part = "palettes/default" } },
 ]
 
 [[mp_boost2.slots]]
@@ -2100,7 +2100,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1002xy3483np5", path = "res://items/penicillin/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1002xy3483np5", path = "res://items/penicillin/texture.asset", part = "palettes/default" } },
 ]
 
 [[penicillin.slots]]
@@ -2126,7 +2126,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://c4nzh78ibv29", path = "res://items/smg_clip_holder/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://c4nzh78ibv29", path = "res://items/smg_clip_holder/texture.asset", part = "palettes/default" } },
 ]
 
 [[smg_clip_holder.slots]]
@@ -2152,7 +2152,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1la64bf7zlwpo", path = "res://items/rifle_clip_holder/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1la64bf7zlwpo", path = "res://items/rifle_clip_holder/texture.asset", part = "palettes/default" } },
 ]
 
 [[rifle_clip_holder.slots]]
@@ -2178,7 +2178,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1c4xtsir3fg3y", path = "res://items/lipstick/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1c4xtsir3fg3y", path = "res://items/lipstick/texture.asset", part = "palettes/default" } },
 ]
 
 [[lipstick.slots]]
@@ -2204,7 +2204,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://4jitmpro3h4c", path = "res://items/snail_magazine/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://4jitmpro3h4c", path = "res://items/snail_magazine/texture.asset", part = "palettes/default" } },
 ]
 
 [[snail_magazine.slots]]
@@ -2230,7 +2230,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://bhxarzglautd", path = "res://items/belt_pouch/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://bhxarzglautd", path = "res://items/belt_pouch/texture.asset", part = "palettes/default" } },
 ]
 
 [[belt_pouch.slots]]
@@ -2256,7 +2256,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://wqfub8xhhsxl", path = "res://items/md_player/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://wqfub8xhhsxl", path = "res://items/md_player/texture.asset", part = "palettes/default" } },
 ]
 
 [[md_player.slots]]
@@ -2282,7 +2282,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ia04n4knn5y0", path = "res://pe/pyrokinesis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ia04n4knn5y0", path = "res://pe/pyrokinesis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[pyrokinesis_level1_shop.slots]]
@@ -2308,7 +2308,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ia04n4knn5y0", path = "res://pe/pyrokinesis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ia04n4knn5y0", path = "res://pe/pyrokinesis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[pyrokinesis_level2_shop.slots]]
@@ -2334,7 +2334,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ia04n4knn5y0", path = "res://pe/pyrokinesis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ia04n4knn5y0", path = "res://pe/pyrokinesis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[pyrokinesis_level3_shop.slots]]
@@ -2360,7 +2360,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1j2is4wmsgda4", path = "res://pe/combustion/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1j2is4wmsgda4", path = "res://pe/combustion/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[combustion_level1_shop.slots]]
@@ -2386,7 +2386,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1j2is4wmsgda4", path = "res://pe/combustion/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1j2is4wmsgda4", path = "res://pe/combustion/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[combustion_level2_shop.slots]]
@@ -2412,7 +2412,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1j2is4wmsgda4", path = "res://pe/combustion/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1j2is4wmsgda4", path = "res://pe/combustion/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[combustion_level3_shop.slots]]
@@ -2438,7 +2438,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://dy26vime95jy", path = "res://pe/inferno/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://dy26vime95jy", path = "res://pe/inferno/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[inferno_level1_shop.slots]]
@@ -2464,7 +2464,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://dy26vime95jy", path = "res://pe/inferno/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://dy26vime95jy", path = "res://pe/inferno/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[inferno_level2_shop.slots]]
@@ -2490,7 +2490,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://dy26vime95jy", path = "res://pe/inferno/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://dy26vime95jy", path = "res://pe/inferno/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[inferno_level3_shop.slots]]
@@ -2516,7 +2516,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://k19b3i0tbo95", path = "res://pe/necrosis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://k19b3i0tbo95", path = "res://pe/necrosis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[necrosis_level1_shop.slots]]
@@ -2542,7 +2542,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://k19b3i0tbo95", path = "res://pe/necrosis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://k19b3i0tbo95", path = "res://pe/necrosis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[necrosis_level2_shop.slots]]
@@ -2568,7 +2568,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://k19b3i0tbo95", path = "res://pe/necrosis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://k19b3i0tbo95", path = "res://pe/necrosis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[necrosis_level3_shop.slots]]
@@ -2594,7 +2594,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://8ax6zhaa2gv0", path = "res://pe/plasma/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://8ax6zhaa2gv0", path = "res://pe/plasma/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[plasma_level1_shop.slots]]
@@ -2620,7 +2620,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://8ax6zhaa2gv0", path = "res://pe/plasma/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://8ax6zhaa2gv0", path = "res://pe/plasma/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[plasma_level2_shop.slots]]
@@ -2646,7 +2646,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://8ax6zhaa2gv0", path = "res://pe/plasma/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://8ax6zhaa2gv0", path = "res://pe/plasma/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[plasma_level3_shop.slots]]
@@ -2672,7 +2672,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1141b2toyn1cf", path = "res://pe/apobiosis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1141b2toyn1cf", path = "res://pe/apobiosis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[apobiosis_level1_shop.slots]]
@@ -2698,7 +2698,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1141b2toyn1cf", path = "res://pe/apobiosis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1141b2toyn1cf", path = "res://pe/apobiosis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[apobiosis_level2_shop.slots]]
@@ -2724,7 +2724,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1141b2toyn1cf", path = "res://pe/apobiosis/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1141b2toyn1cf", path = "res://pe/apobiosis/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[apobiosis_level3_shop.slots]]
@@ -2750,7 +2750,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://iw7i02x6ud22", path = "res://pe/metabolism/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://iw7i02x6ud22", path = "res://pe/metabolism/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[metabolism_level1_shop.slots]]
@@ -2776,7 +2776,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://iw7i02x6ud22", path = "res://pe/metabolism/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://iw7i02x6ud22", path = "res://pe/metabolism/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[metabolism_level2_shop.slots]]
@@ -2802,7 +2802,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://iw7i02x6ud22", path = "res://pe/metabolism/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://iw7i02x6ud22", path = "res://pe/metabolism/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[metabolism_level3_shop.slots]]
@@ -2828,7 +2828,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://gmzggqfkxr1r", path = "res://pe/healing/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://gmzggqfkxr1r", path = "res://pe/healing/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[healing_level1_shop.slots]]
@@ -2854,7 +2854,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://gmzggqfkxr1r", path = "res://pe/healing/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://gmzggqfkxr1r", path = "res://pe/healing/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[healing_level2_shop.slots]]
@@ -2880,7 +2880,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://gmzggqfkxr1r", path = "res://pe/healing/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://gmzggqfkxr1r", path = "res://pe/healing/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[healing_level3_shop.slots]]
@@ -2906,7 +2906,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1axi9ah44b639", path = "res://pe/lifedrain/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1axi9ah44b639", path = "res://pe/lifedrain/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[lifedrain_level1_shop.slots]]
@@ -2932,7 +2932,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1axi9ah44b639", path = "res://pe/lifedrain/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1axi9ah44b639", path = "res://pe/lifedrain/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[lifedrain_level2_shop.slots]]
@@ -2958,7 +2958,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1axi9ah44b639", path = "res://pe/lifedrain/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1axi9ah44b639", path = "res://pe/lifedrain/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[lifedrain_level3_shop.slots]]
@@ -2984,7 +2984,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1697vjzq3dt2u", path = "res://pe/antibody/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1697vjzq3dt2u", path = "res://pe/antibody/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[antibody_level1_shop.slots]]
@@ -3010,7 +3010,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1697vjzq3dt2u", path = "res://pe/antibody/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1697vjzq3dt2u", path = "res://pe/antibody/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[antibody_level2_shop.slots]]
@@ -3036,7 +3036,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1697vjzq3dt2u", path = "res://pe/antibody/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1697vjzq3dt2u", path = "res://pe/antibody/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[antibody_level3_shop.slots]]
@@ -3062,7 +3062,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1dinufpooqijl", path = "res://pe/energyshot/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1dinufpooqijl", path = "res://pe/energyshot/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyshot_level1_shop.slots]]
@@ -3088,7 +3088,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1dinufpooqijl", path = "res://pe/energyshot/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1dinufpooqijl", path = "res://pe/energyshot/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyshot_level2_shop.slots]]
@@ -3114,7 +3114,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1dinufpooqijl", path = "res://pe/energyshot/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1dinufpooqijl", path = "res://pe/energyshot/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyshot_level3_shop.slots]]
@@ -3140,7 +3140,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://5yalh3gt3cj0", path = "res://pe/energyball/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://5yalh3gt3cj0", path = "res://pe/energyball/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyball_level1_shop.slots]]
@@ -3166,7 +3166,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://5yalh3gt3cj0", path = "res://pe/energyball/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://5yalh3gt3cj0", path = "res://pe/energyball/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyball_level2_shop.slots]]
@@ -3192,7 +3192,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://5yalh3gt3cj0", path = "res://pe/energyball/shop_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://5yalh3gt3cj0", path = "res://pe/energyball/shop_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyball_level3_shop.slots]]
@@ -3218,7 +3218,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1pcv20c0e12q1", path = "res://items/unused_33/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1pcv20c0e12q1", path = "res://items/unused_33/texture.asset", part = "palettes/default" } },
 ]
 
 [[unused_33.slots]]
@@ -3244,7 +3244,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1p0tecx2i01qt", path = "res://items/unused_34/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1p0tecx2i01qt", path = "res://items/unused_34/texture.asset", part = "palettes/default" } },
 ]
 
 [[unused_34.slots]]
@@ -3270,7 +3270,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ozcrztygtzhp", path = "res://items/unused_35/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1ozcrztygtzhp", path = "res://items/unused_35/texture.asset", part = "palettes/default" } },
 ]
 
 [[unused_35.slots]]
@@ -3296,7 +3296,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://17c5lx0i9xanb", path = "res://items/skull_crystal/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://17c5lx0i9xanb", path = "res://items/skull_crystal/texture.asset", part = "palettes/default" } },
 ]
 
 [[skull_crystal.slots]]
@@ -3322,7 +3322,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1dw216qwbo9db", path = "res://items/medicine_wheel/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1dw216qwbo9db", path = "res://items/medicine_wheel/texture.asset", part = "palettes/default" } },
 ]
 
 [[medicine_wheel.slots]]
@@ -3348,7 +3348,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1q1hpojailm2a", path = "res://items/holy_water/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1q1hpojailm2a", path = "res://items/holy_water/texture.asset", part = "palettes/default" } },
 ]
 
 [[holy_water.slots]]
@@ -3374,7 +3374,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://wratxvj66unr", path = "res://items/ofuda/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://wratxvj66unr", path = "res://items/ofuda/texture.asset", part = "palettes/default" } },
 ]
 
 [[ofuda.slots]]
@@ -3400,7 +3400,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1kda529r9b8i", path = "res://items/flare/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1kda529r9b8i", path = "res://items/flare/texture.asset", part = "palettes/default" } },
 ]
 
 [[flare.slots]]
@@ -3426,7 +3426,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://dg219ahfy2a4", path = "res://items/pepper_spray/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://dg219ahfy2a4", path = "res://items/pepper_spray/texture.asset", part = "palettes/default" } },
 ]
 
 [[pepper_spray.slots]]
@@ -3452,7 +3452,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ta0r0lwyruxf", path = "res://items/protein_capsule/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1ta0r0lwyruxf", path = "res://items/protein_capsule/texture.asset", part = "palettes/default" } },
 ]
 
 [[protein_capsule.slots]]
@@ -3478,7 +3478,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://rke9lif6l3z", path = "res://items/ringers_solution/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://rke9lif6l3z", path = "res://items/ringers_solution/texture.asset", part = "palettes/default" } },
 ]
 
 [[ringers_solution.slots]]
@@ -3504,7 +3504,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://kkjzpvrytpkt", path = "res://items/eau_de_toilette/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://kkjzpvrytpkt", path = "res://items/eau_de_toilette/texture.asset", part = "palettes/default" } },
 ]
 
 [[eau_de_toilette.slots]]
@@ -3530,7 +3530,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://casp9o8564o3", path = "res://items/hunter_goggles/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://casp9o8564o3", path = "res://items/hunter_goggles/texture.asset", part = "palettes/default" } },
 ]
 
 [[hunter_goggles.slots]]
@@ -3556,7 +3556,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://78wcpc89faxs", path = "res://items/gps/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://78wcpc89faxs", path = "res://items/gps/texture.asset", part = "palettes/default" } },
 ]
 
 [[gps.slots]]
@@ -3582,7 +3582,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1truj6ca6alvo", path = "res://items/combat_light/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1truj6ca6alvo", path = "res://items/combat_light/texture.asset", part = "palettes/default" } },
 ]
 
 [[combat_light.slots]]
@@ -3608,7 +3608,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1k5s27mazmhpc", path = "res://items/hammer/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1k5s27mazmhpc", path = "res://items/hammer/texture.asset", part = "palettes/default" } },
 ]
 
 [[hammer.slots]]
@@ -3634,7 +3634,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://twuwr2uish23", path = "res://items/pyke/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://twuwr2uish23", path = "res://items/pyke/texture.asset", part = "palettes/default" } },
 ]
 
 [[pyke.slots]]
@@ -3660,7 +3660,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ygn48beqr2rk", path = "res://items/javelin/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ygn48beqr2rk", path = "res://items/javelin/texture.asset", part = "palettes/default" } },
 ]
 
 [[javelin.slots]]
@@ -3686,7 +3686,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1fowieates35l", path = "res://items/m203/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1fowieates35l", path = "res://items/m203/texture.asset", part = "palettes/default" } },
 ]
 
 [[m203.slots]]
@@ -3712,7 +3712,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://6mbgn64qyvzo", path = "res://items/m9/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://6mbgn64qyvzo", path = "res://items/m9/texture.asset", part = "palettes/default" } },
 ]
 
 [[m9.slots]]
@@ -3738,7 +3738,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://fb6p792re4n4", path = "res://items/9mm_pb/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://fb6p792re4n4", path = "res://items/9mm_pb/texture.asset", part = "palettes/default" } },
 ]
 
 [[9mm_pb.slots]]
@@ -3764,7 +3764,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://13m04xlt6m6e5", path = "res://items/9mm_hydra/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://13m04xlt6m6e5", path = "res://items/9mm_hydra/texture.asset", part = "palettes/default" } },
 ]
 
 [[9mm_hydra.slots]]
@@ -3790,7 +3790,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ha3qlhr1ap64", path = "res://items/9mm_spartan/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1ha3qlhr1ap64", path = "res://items/9mm_spartan/texture.asset", part = "palettes/default" } },
 ]
 
 [[9mm_spartan.slots]]
@@ -3816,7 +3816,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://dx8m1sfkvgg3", path = "res://items/44_magnum/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://dx8m1sfkvgg3", path = "res://items/44_magnum/texture.asset", part = "palettes/default" } },
 ]
 
 [[44_magnum.slots]]
@@ -3842,7 +3842,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ai8spwgd666i", path = "res://items/44_maeda_sp/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ai8spwgd666i", path = "res://items/44_maeda_sp/texture.asset", part = "palettes/default" } },
 ]
 
 [[44_maeda_sp.slots]]
@@ -3868,7 +3868,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://duoku7z8idg5", path = "res://items/44_poison/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://duoku7z8idg5", path = "res://items/44_poison/texture.asset", part = "palettes/default" } },
 ]
 
 [[44_poison.slots]]
@@ -3894,7 +3894,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://623wfhntfxwt", path = "res://items/grenade/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://623wfhntfxwt", path = "res://items/grenade/texture.asset", part = "palettes/default" } },
 ]
 
 [[grenade.slots]]
@@ -3920,7 +3920,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://9nhelotn6fkx", path = "res://items/airburst/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://9nhelotn6fkx", path = "res://items/airburst/texture.asset", part = "palettes/default" } },
 ]
 
 [[airburst.slots]]
@@ -3946,7 +3946,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1li0dzswf3cmq", path = "res://items/riot/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1li0dzswf3cmq", path = "res://items/riot/texture.asset", part = "palettes/default" } },
 ]
 
 [[riot.slots]]
@@ -3972,7 +3972,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1sdxqlfjs8vvu", path = "res://items/buckshot/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1sdxqlfjs8vvu", path = "res://items/buckshot/texture.asset", part = "palettes/default" } },
 ]
 
 [[buckshot.slots]]
@@ -3998,7 +3998,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://n0nqi3ut6l1e", path = "res://items/firefly/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://n0nqi3ut6l1e", path = "res://items/firefly/texture.asset", part = "palettes/default" } },
 ]
 
 [[firefly.slots]]
@@ -4024,7 +4024,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://2bwxam2mlheb", path = "res://items/rifled_slug/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://2bwxam2mlheb", path = "res://items/rifled_slug/texture.asset", part = "palettes/default" } },
 ]
 
 [[rifled_slug.slots]]
@@ -4050,7 +4050,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://g2eco3ocxk7n", path = "res://items/5_56_rifle/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://g2eco3ocxk7n", path = "res://items/5_56_rifle/texture.asset", part = "palettes/default" } },
 ]
 
 [[5_56_rifle.slots]]
@@ -4076,7 +4076,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://a3iw89ec0fyu", path = "res://items/paralizer/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://a3iw89ec0fyu", path = "res://items/paralizer/texture.asset", part = "palettes/default" } },
 ]
 
 [[paralizer.slots]]
@@ -4102,7 +4102,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ngpkhowlf796", path = "res://items/flashbomb/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1ngpkhowlf796", path = "res://items/flashbomb/texture.asset", part = "palettes/default" } },
 ]
 
 [[flashbomb.slots]]
@@ -4128,7 +4128,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1j8u3utmgk9zi", path = "res://items/battery/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1j8u3utmgk9zi", path = "res://items/battery/texture.asset", part = "palettes/default" } },
 ]
 
 [[battery.slots]]
@@ -4154,7 +4154,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://llfpe8wic8no", path = "res://items/hypervelocity_battery/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://llfpe8wic8no", path = "res://items/hypervelocity_battery/texture.asset", part = "palettes/default" } },
 ]
 
 [[hypervelocity_battery.slots]]
@@ -4180,7 +4180,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1v60pfp40pcto", path = "res://items/hammer_battery/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1v60pfp40pcto", path = "res://items/hammer_battery/texture.asset", part = "palettes/default" } },
 ]
 
 [[hammer_battery.slots]]
@@ -4206,7 +4206,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://q0qr7h87dy5m", path = "res://items/fuel/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://q0qr7h87dy5m", path = "res://items/fuel/texture.asset", part = "palettes/default" } },
 ]
 
 [[fuel.slots]]
@@ -4232,7 +4232,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://vnxqtfsmtzpt", path = "res://items/javelin_battery/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://vnxqtfsmtzpt", path = "res://items/javelin_battery/texture.asset", part = "palettes/default" } },
 ]
 
 [[javelin_battery.slots]]
@@ -4258,7 +4258,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ct80ueslpteo", path = "res://armor/leather_jacket/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ct80ueslpteo", path = "res://armor/leather_jacket/picture.asset", part = "palettes/default" } },
 ]
 
 [[leather_jacket.slots]]
@@ -4284,7 +4284,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1hlnh0o2hssyw", path = "res://armor/tactical_armor/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1hlnh0o2hssyw", path = "res://armor/tactical_armor/picture.asset", part = "palettes/default" } },
 ]
 
 [[tactical_armor.slots]]
@@ -4310,7 +4310,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://198w6luua9762", path = "res://armor/combat_armor/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://198w6luua9762", path = "res://armor/combat_armor/picture.asset", part = "palettes/default" } },
 ]
 
 [[combat_armor.slots]]
@@ -4336,7 +4336,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://rq0qc4k1v4jc", path = "res://armor/assault_suit/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://rq0qc4k1v4jc", path = "res://armor/assault_suit/picture.asset", part = "palettes/default" } },
 ]
 
 [[assault_suit.slots]]
@@ -4362,7 +4362,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1kvigxwnm8dcx", path = "res://armor/pasgt_vest/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1kvigxwnm8dcx", path = "res://armor/pasgt_vest/picture.asset", part = "palettes/default" } },
 ]
 
 [[pasgt_vest.slots]]
@@ -4388,7 +4388,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1kyx8c0ntl3yw", path = "res://armor/tactical_vest/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1kyx8c0ntl3yw", path = "res://armor/tactical_vest/picture.asset", part = "palettes/default" } },
 ]
 
 [[tactical_vest.slots]]
@@ -4414,7 +4414,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://pmykav2r79t1", path = "res://armor/eod_suit/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://pmykav2r79t1", path = "res://armor/eod_suit/picture.asset", part = "palettes/default" } },
 ]
 
 [[eod_suit.slots]]
@@ -4440,7 +4440,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://sonnly9k4q75", path = "res://armor/turtle_vest/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://sonnly9k4q75", path = "res://armor/turtle_vest/picture.asset", part = "palettes/default" } },
 ]
 
 [[turtle_vest.slots]]
@@ -4466,7 +4466,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1nvfhg3mv5j6p", path = "res://armor/chicken_plate/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1nvfhg3mv5j6p", path = "res://armor/chicken_plate/picture.asset", part = "palettes/default" } },
 ]
 
 [[chicken_plate.slots]]
@@ -4492,7 +4492,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://28adqw3l7f7y", path = "res://armor/nbc_suit/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://28adqw3l7f7y", path = "res://armor/nbc_suit/picture.asset", part = "palettes/default" } },
 ]
 
 [[nbc_suit.slots]]
@@ -4518,7 +4518,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://xcluh1wafqve", path = "res://armor/psysuit/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://xcluh1wafqve", path = "res://armor/psysuit/picture.asset", part = "palettes/default" } },
 ]
 
 [[psysuit.slots]]
@@ -4544,7 +4544,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://tb7l6r2imxjx", path = "res://armor/aya_special/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://tb7l6r2imxjx", path = "res://armor/aya_special/picture.asset", part = "palettes/default" } },
 ]
 
 [[aya_special.slots]]
@@ -4570,7 +4570,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ipqhqf9ledms", path = "res://armor/shoulder_holster/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ipqhqf9ledms", path = "res://armor/shoulder_holster/picture.asset", part = "palettes/default" } },
 ]
 
 [[shoulder_holster.slots]]
@@ -4596,7 +4596,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1t3cc9mgpv3dg", path = "res://armor/monk_robe/picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1t3cc9mgpv3dg", path = "res://armor/monk_robe/picture.asset", part = "palettes/default" } },
 ]
 
 [[monk_robe.slots]]
@@ -4632,7 +4632,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1rg7gxtxl9t5h", path = "res://enemies/rat/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1rg7gxtxl9t5h", path = "res://enemies/rat/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_rat.slots]]
@@ -4658,7 +4658,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_moth.slots]]
@@ -4684,7 +4684,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://15jzl7a15bjr8", path = "res://enemies/bass/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://15jzl7a15bjr8", path = "res://enemies/bass/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_bass.slots]]
@@ -4710,7 +4710,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1b1948i62oxwu", path = "res://enemies/bat/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1b1948i62oxwu", path = "res://enemies/bat/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_bat.slots]]
@@ -4736,7 +4736,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1lte9zj6sneg0", path = "res://enemies/scorpion/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1lte9zj6sneg0", path = "res://enemies/scorpion/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_scorpion.slots]]
@@ -4762,7 +4762,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1qvapr29pdumx", path = "res://enemies/black_beetle/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1qvapr29pdumx", path = "res://enemies/black_beetle/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_black_beetle.slots]]
@@ -4788,7 +4788,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://bok8pao17i82", path = "res://enemies/crawler/maggot/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://bok8pao17i82", path = "res://enemies/crawler/maggot/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_maggot.slots]]
@@ -4814,7 +4814,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://r68chpo471zl", path = "res://enemies/amoeba/green/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://r68chpo471zl", path = "res://enemies/amoeba/green/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_green_amoeba.slots]]
@@ -4840,7 +4840,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1e07drozcl8o6", path = "res://enemies/amoeba/red/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1e07drozcl8o6", path = "res://enemies/amoeba/red/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_red_amoeba.slots]]
@@ -4866,7 +4866,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1gmrg4y4k2qjg", path = "res://enemies/chicken/man_a/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1gmrg4y4k2qjg", path = "res://enemies/chicken/man_a/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_chicken_man_a.slots]]
@@ -4892,7 +4892,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ur7a8fmu77xd", path = "res://enemies/chicken/man_b/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://ur7a8fmu77xd", path = "res://enemies/chicken/man_b/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_chicken_man_b.slots]]
@@ -4918,7 +4918,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_chicken_walker.slots]]
@@ -4944,7 +4944,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_chicken_rider.slots]]
@@ -4970,7 +4970,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_chicken_hopper.slots]]
@@ -4996,7 +4996,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_cone_head.slots]]
@@ -5022,7 +5022,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_turtle_head.slots]]
@@ -5048,7 +5048,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_parasite_baby.slots]]
@@ -5074,7 +5074,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_blood_suckler.slots]]
@@ -5100,7 +5100,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_desert_chaser.slots]]
@@ -5126,7 +5126,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_stealth_punisher.slots]]
@@ -5152,7 +5152,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_doppel_punisher.slots]]
@@ -5178,7 +5178,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_night_singer.slots]]
@@ -5204,7 +5204,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_parasite_flyer.slots]]
@@ -5230,7 +5230,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_stalker.slots]]
@@ -5256,7 +5256,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_sea_diver.slots]]
@@ -5282,7 +5282,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_smart_cone.slots]]
@@ -5308,7 +5308,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_cone_walker.slots]]
@@ -5334,7 +5334,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_half_desert.slots]]
@@ -5360,7 +5360,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_parasite_dama.slots]]
@@ -5386,7 +5386,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_stealth_head.slots]]
@@ -5412,7 +5412,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_laser_turret_1.slots]]
@@ -5438,7 +5438,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_laser_turret_2.slots]]
@@ -5464,7 +5464,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_laser_turret_3.slots]]
@@ -5490,7 +5490,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_laser_turret_4.slots]]
@@ -5516,7 +5516,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_laser_turret_machine_gun.slots]]
@@ -5542,7 +5542,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_pawn_golem_beam_sword.slots]]
@@ -5568,7 +5568,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_pawn_golem_grenade_launcher.slots]]
@@ -5594,7 +5594,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_rook_golem_beam_sword.slots]]
@@ -5620,7 +5620,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_rook_golem_grenade_launcher.slots]]
@@ -5646,7 +5646,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_knight_golem.slots]]
@@ -5672,7 +5672,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_bishop_golem.slots]]
@@ -5698,7 +5698,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_glasses_woman.slots]]
@@ -5724,7 +5724,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_gunther_1.slots]]
@@ -5750,7 +5750,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_gunther_2.slots]]
@@ -5776,7 +5776,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_blizzard_chaser.slots]]
@@ -5802,7 +5802,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_zombie_blizzard_chaser.slots]]
@@ -5828,7 +5828,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_gigant_sapiens.slots]]
@@ -5854,7 +5854,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_glutton_first_encounter.slots]]
@@ -5880,7 +5880,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_glutton_second_encounter.slots]]
@@ -5906,7 +5906,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_amplifier_a.slots]]
@@ -5932,7 +5932,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_amplifier_b.slots]]
@@ -5958,7 +5958,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_giant_stalker.slots]]
@@ -5984,7 +5984,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_brahman_a.slots]]
@@ -6010,7 +6010,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_brahman_b.slots]]
@@ -6036,7 +6036,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_brahman_c.slots]]
@@ -6062,7 +6062,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_brahman_d.slots]]
@@ -6088,7 +6088,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_clear_brahman_a.slots]]
@@ -6114,7 +6114,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_clear_brahman_b.slots]]
@@ -6140,7 +6140,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_clear_brahman_c.slots]]
@@ -6166,7 +6166,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_clear_brahman_d.slots]]
@@ -6192,7 +6192,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_sabotender.slots]]
@@ -6218,7 +6218,7 @@ kind = "file"
 name = "preview_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tmiqahndqqva", path = "res://enemies/moth/preview.asset", part = "palettes/default" } },
 ]
 
 [[enemy_chocobo.slots]]
@@ -6244,7 +6244,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1vzmmo6xeiz7l", path = "res://pe/pyrokinesis/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1vzmmo6xeiz7l", path = "res://pe/pyrokinesis/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[pyrokinesis_level1_menu.slots]]
@@ -6270,7 +6270,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://jxh4n2fb34f2", path = "res://pe/pyrokinesis/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://jxh4n2fb34f2", path = "res://pe/pyrokinesis/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[pyrokinesis_level2_menu.slots]]
@@ -6296,7 +6296,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://pv9t6wlbayke", path = "res://pe/pyrokinesis/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://pv9t6wlbayke", path = "res://pe/pyrokinesis/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[pyrokinesis_level3_menu.slots]]
@@ -6322,7 +6322,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://rj6uip1eyx1c", path = "res://pe/combustion/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://rj6uip1eyx1c", path = "res://pe/combustion/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[combustion_level1_menu.slots]]
@@ -6348,7 +6348,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://plqpzgq9m85k", path = "res://pe/combustion/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://plqpzgq9m85k", path = "res://pe/combustion/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[combustion_level2_menu.slots]]
@@ -6374,7 +6374,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://su0p1s0jw25n", path = "res://pe/combustion/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://su0p1s0jw25n", path = "res://pe/combustion/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[combustion_level3_menu.slots]]
@@ -6400,7 +6400,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://l46wbasgpy75", path = "res://pe/inferno/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://l46wbasgpy75", path = "res://pe/inferno/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[inferno_level1_menu.slots]]
@@ -6426,7 +6426,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://jfnp05qtmr5d", path = "res://pe/inferno/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://jfnp05qtmr5d", path = "res://pe/inferno/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[inferno_level2_menu.slots]]
@@ -6452,7 +6452,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1hwsdxnzhjmeu", path = "res://pe/inferno/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1hwsdxnzhjmeu", path = "res://pe/inferno/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[inferno_level3_menu.slots]]
@@ -6478,7 +6478,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://6ta9yu7wtrt4", path = "res://pe/necrosis/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://6ta9yu7wtrt4", path = "res://pe/necrosis/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[necrosis_level1_menu.slots]]
@@ -6504,7 +6504,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://oubz2ui46xlj", path = "res://pe/necrosis/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://oubz2ui46xlj", path = "res://pe/necrosis/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[necrosis_level2_menu.slots]]
@@ -6530,7 +6530,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ultfygvwhdr1", path = "res://pe/necrosis/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://ultfygvwhdr1", path = "res://pe/necrosis/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[necrosis_level3_menu.slots]]
@@ -6556,7 +6556,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1p65icszvfiz6", path = "res://pe/plasma/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1p65icszvfiz6", path = "res://pe/plasma/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[plasma_level1_menu.slots]]
@@ -6582,7 +6582,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1v6e5wz5esyy9", path = "res://pe/plasma/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1v6e5wz5esyy9", path = "res://pe/plasma/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[plasma_level2_menu.slots]]
@@ -6608,7 +6608,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://yutyarkiyk3x", path = "res://pe/plasma/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://yutyarkiyk3x", path = "res://pe/plasma/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[plasma_level3_menu.slots]]
@@ -6634,7 +6634,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://jo87rhtw56jb", path = "res://pe/apobiosis/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://jo87rhtw56jb", path = "res://pe/apobiosis/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[apobiosis_level1_menu.slots]]
@@ -6660,7 +6660,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://99edylujdzz4", path = "res://pe/apobiosis/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://99edylujdzz4", path = "res://pe/apobiosis/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[apobiosis_level2_menu.slots]]
@@ -6686,7 +6686,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://gwkd6qli49bc", path = "res://pe/apobiosis/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://gwkd6qli49bc", path = "res://pe/apobiosis/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[apobiosis_level3_menu.slots]]
@@ -6712,7 +6712,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://10fiz8ptbqy4j", path = "res://pe/metabolism/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://10fiz8ptbqy4j", path = "res://pe/metabolism/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[metabolism_level1_menu.slots]]
@@ -6738,7 +6738,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://9wlm0osxc9fv", path = "res://pe/metabolism/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://9wlm0osxc9fv", path = "res://pe/metabolism/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[metabolism_level2_menu.slots]]
@@ -6764,7 +6764,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://gf2bdk73j1lw", path = "res://pe/metabolism/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://gf2bdk73j1lw", path = "res://pe/metabolism/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[metabolism_level3_menu.slots]]
@@ -6790,7 +6790,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://von3324fnzk6", path = "res://pe/healing/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://von3324fnzk6", path = "res://pe/healing/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[healing_level1_menu.slots]]
@@ -6816,7 +6816,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://127tsgfamd1yr", path = "res://pe/healing/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://127tsgfamd1yr", path = "res://pe/healing/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[healing_level2_menu.slots]]
@@ -6842,7 +6842,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://167quqmue71zo", path = "res://pe/healing/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://167quqmue71zo", path = "res://pe/healing/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[healing_level3_menu.slots]]
@@ -6868,7 +6868,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://trrba16l9uuz", path = "res://pe/lifedrain/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://trrba16l9uuz", path = "res://pe/lifedrain/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[lifedrain_level1_menu.slots]]
@@ -6894,7 +6894,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://xjp6yrny1mr4", path = "res://pe/lifedrain/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://xjp6yrny1mr4", path = "res://pe/lifedrain/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[lifedrain_level2_menu.slots]]
@@ -6920,7 +6920,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1b0q6vgkv7hfx", path = "res://pe/lifedrain/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1b0q6vgkv7hfx", path = "res://pe/lifedrain/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[lifedrain_level3_menu.slots]]
@@ -6946,7 +6946,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://14rwf73eetyc7", path = "res://pe/antibody/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://14rwf73eetyc7", path = "res://pe/antibody/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[antibody_level1_menu.slots]]
@@ -6972,7 +6972,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1wg91bj98onxw", path = "res://pe/antibody/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1wg91bj98onxw", path = "res://pe/antibody/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[antibody_level2_menu.slots]]
@@ -6998,7 +6998,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1apxe7uu9xa6l", path = "res://pe/antibody/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1apxe7uu9xa6l", path = "res://pe/antibody/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[antibody_level3_menu.slots]]
@@ -7024,7 +7024,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://niwbiicqfxmp", path = "res://pe/energyshot/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://niwbiicqfxmp", path = "res://pe/energyshot/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyshot_level1_menu.slots]]
@@ -7050,7 +7050,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://151swb8cj4a4k", path = "res://pe/energyshot/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://151swb8cj4a4k", path = "res://pe/energyshot/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyshot_level2_menu.slots]]
@@ -7076,7 +7076,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://122ak2tttbox6", path = "res://pe/energyshot/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://122ak2tttbox6", path = "res://pe/energyshot/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyshot_level3_menu.slots]]
@@ -7102,7 +7102,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1n64jdr0oefnb", path = "res://pe/energyball/level1_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1n64jdr0oefnb", path = "res://pe/energyball/level1_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyball_level1_menu.slots]]
@@ -7128,7 +7128,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://k7bfx1cisof0", path = "res://pe/energyball/level2_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://k7bfx1cisof0", path = "res://pe/energyball/level2_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyball_level2_menu.slots]]
@@ -7154,7 +7154,7 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1gw1m4e8yuveg", path = "res://pe/energyball/level3_menu_picture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1gw1m4e8yuveg", path = "res://pe/energyball/level3_menu_picture.asset", part = "palettes/default" } },
 ]
 
 [[energyball_level3_menu.slots]]
@@ -7814,7 +7814,7 @@ upload = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialog
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1gb2yj5qn6crk", path = "res://game_over/logo.asset" }, palette = "default" },
+    { palette = { uid = "uid://1gb2yj5qn6crk", path = "res://game_over/logo.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -7929,8 +7929,8 @@ pages = [
     { slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.asset" }, at = [0, 0] },
 ]
 palettes = [
-    { image = { uid = "uid://t0wkc20tu0i5", path = "res://ending/logos.asset" }, palette = "square" },
-    { image = { uid = "uid://t0wkc20tu0i5", path = "res://ending/logos.asset" }, palette = "squartz" },
+    { palette = { uid = "uid://t0wkc20tu0i5", path = "res://ending/logos.asset", part = "palettes/square" } },
+    { palette = { uid = "uid://t0wkc20tu0i5", path = "res://ending/logos.asset", part = "palettes/squartz" } },
 ]
 
 [[ending.slots]]
@@ -7948,22 +7948,22 @@ pages = [
     { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" } },
 ]
 palettes = [
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "gray" },
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "violet" },
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "red" },
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "magenta" },
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "blue" },
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "aqua" },
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "yellow" },
-    { image = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset" }, palette = "light_gray" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "gray" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "violet" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "red" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "magenta" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "blue" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "aqua" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "yellow" },
-    { image = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset" }, palette = "light_gray" },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/gray" } },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/violet" } },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/red" } },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/magenta" } },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/blue" } },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/aqua" } },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/yellow" } },
+    { palette = { uid = "uid://binbyhfa0ewz", path = "res://ending/credits_font_0.asset", part = "palettes/light_gray" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/gray" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/violet" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/red" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/magenta" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/blue" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/aqua" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/yellow" } },
+    { palette = { uid = "uid://j5ynvx2x8i0x", path = "res://ending/credits_font_1.asset", part = "palettes/light_gray" } },
 ]
 
 [[ending.slots]]

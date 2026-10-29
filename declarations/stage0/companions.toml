@@ -22,8 +22,8 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
 ]
 
 [[kyle_companion_1.slots]]
@@ -38,7 +38,7 @@ page_slots = 6
 name = "p229_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset", part = "palettes/default" } },
 ]
 
 [[kyle_companion_1.slots]]
@@ -68,8 +68,8 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
 ]
 
 [[kyle_companion_2.slots]]
@@ -84,7 +84,7 @@ page_slots = 6
 name = "mm1_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.asset", part = "palettes/default" } },
 ]
 
 [[kyle_companion_2.slots]]
@@ -114,8 +114,8 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
 ]
 
 [[kyle_companion_3.slots]]
@@ -130,7 +130,7 @@ page_slots = 6
 name = "m950_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset", part = "palettes/default" } },
 ]
 
 [[kyle_companion_3.slots]]
@@ -160,8 +160,8 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
 ]
 
 [[kyle_companion_4.slots]]
@@ -176,7 +176,7 @@ page_slots = 6
 name = "m4a1_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.asset", part = "palettes/default" } },
 ]
 
 [[kyle_companion_4.slots]]
@@ -202,8 +202,8 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" }, palette = "default_2" },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
 ]
 
 [[kyle_companion_5.slots]]
@@ -218,7 +218,7 @@ page_slots = 6
 name = "m950_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset", part = "palettes/default" } },
 ]
 
 [[kyle_companion_5.slots]]
@@ -248,7 +248,7 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
 
@@ -276,8 +276,8 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" }, palette = "default_2" },
+    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset", part = "palettes/default_2" } },
 ]
 
 [[eve_companion.slots]]
@@ -292,7 +292,7 @@ page_slots = 6
 name = "p229_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" }, palette = "default" },
+    { palette = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset", part = "palettes/default" } },
 ]
 
 [[eve_companion.slots]]
@@ -318,14 +318,14 @@ kind = "file"
 name = "logo_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" }, palette = "default" },
+    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset", part = "palettes/default" } },
 ]
 
 [[akropolis_square.slots]]
 name = "logo_shadow_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" }, palette = "default" },
+    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset", part = "palettes/default" } },
 ]
 
 [[akropolis_square.slots]]
@@ -361,14 +361,14 @@ kind = "file"
 name = "logo_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" }, palette = "default" },
+    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset", part = "palettes/default" } },
 ]
 
 [[dryfield_main_street.slots]]
 name = "logo_shadow_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" }, palette = "default" },
+    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset", part = "palettes/default" } },
 ]
 
 [[dryfield_main_street.slots]]
@@ -404,14 +404,14 @@ kind = "file"
 name = "logo_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" }, palette = "default" },
+    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset", part = "palettes/default" } },
 ]
 
 [[dryfield_underpass.slots]]
 name = "logo_shadow_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" }, palette = "default" },
+    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset", part = "palettes/default" } },
 ]
 
 [[dryfield_underpass.slots]]

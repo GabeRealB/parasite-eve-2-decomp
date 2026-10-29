@@ -37,8 +37,8 @@ pages = [
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://jpjaasscawpn", path = "res://stages/akropolis/actors/parking_pierce/props.asset" }, palette = "row_263" },
-    { image = { uid = "uid://jpjaasscawpn", path = "res://stages/akropolis/actors/parking_pierce/props.asset" }, palette = "row_264" },
+    { palette = { uid = "uid://jpjaasscawpn", path = "res://stages/akropolis/actors/parking_pierce/props.asset", part = "palettes/row_263" } },
+    { palette = { uid = "uid://jpjaasscawpn", path = "res://stages/akropolis/actors/parking_pierce/props.asset", part = "palettes/row_264" } },
 ]
 
 [[base.slots]]
@@ -61,7 +61,7 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1v6knbj8t9fx4", path = "res://stages/akropolis/rooms/mist_parking/views/view2_page_1.asset" }, palette = "default" },
+    { palette = { uid = "uid://1v6knbj8t9fx4", path = "res://stages/akropolis/rooms/mist_parking/views/view2_page_1.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -69,7 +69,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://th7vwawb7f18", path = "res://stages/akropolis/rooms/mist_parking/views/view4.asset" }, palette = "default" },
+    { palette = { uid = "uid://th7vwawb7f18", path = "res://stages/akropolis/rooms/mist_parking/views/view4.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -77,7 +77,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 4
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ewmmheslpc6k", path = "res://stages/akropolis/rooms/mist_parking/views/view5.asset" }, palette = "default" },
+    { palette = { uid = "uid://ewmmheslpc6k", path = "res://stages/akropolis/rooms/mist_parking/views/view5.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -85,7 +85,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 5
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1rqu6b8qrff84", path = "res://stages/akropolis/rooms/mist_parking/views/view6.asset" }, palette = "default" },
+    { palette = { uid = "uid://1rqu6b8qrff84", path = "res://stages/akropolis/rooms/mist_parking/views/view6.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -93,7 +93,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 6
 type = "palette"
 palettes = [
-    { image = { uid = "uid://xebsma1e1ryx", path = "res://stages/akropolis/rooms/mist_parking/views/view7_page_1.asset" }, palette = "default" },
+    { palette = { uid = "uid://xebsma1e1ryx", path = "res://stages/akropolis/rooms/mist_parking/views/view7_page_1.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -101,7 +101,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 9
 type = "palette"
 palettes = [
-    { image = { uid = "uid://zyt1fn4ssw1w", path = "res://stages/akropolis/rooms/mist_parking/views/view10_page_1.asset" }, palette = "default" },
+    { palette = { uid = "uid://zyt1fn4ssw1w", path = "res://stages/akropolis/rooms/mist_parking/views/view10_page_1.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -109,7 +109,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 10
 type = "palette"
 palettes = [
-    { image = { uid = "uid://rqopwxcpjsek", path = "res://stages/akropolis/rooms/mist_parking/views/view11_page_1.asset" }, palette = "default" },
+    { palette = { uid = "uid://rqopwxcpjsek", path = "res://stages/akropolis/rooms/mist_parking/views/view11_page_1.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -117,7 +117,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 17
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1tljwuyz59fdh", path = "res://stages/akropolis/rooms/mist_parking/views/view18.asset" }, palette = "default" },
+    { palette = { uid = "uid://1tljwuyz59fdh", path = "res://stages/akropolis/rooms/mist_parking/views/view18.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -125,7 +125,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 18
 type = "palette"
 palettes = [
-    { image = { uid = "uid://191okl5fipto9", path = "res://stages/akropolis/rooms/mist_parking/views/view19.asset" }, palette = "default" },
+    { palette = { uid = "uid://191okl5fipto9", path = "res://stages/akropolis/rooms/mist_parking/views/view19.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

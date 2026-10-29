@@ -31,8 +31,8 @@ type = "bundle"
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://7krnyejshbth", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3.asset" }, palette = "row_0" },
-    { image = { uid = "uid://7krnyejshbth", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://7krnyejshbth", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://7krnyejshbth", path = "res://stages/mine_shelter/rooms/b1_north_maintenance_walkway/views/view3.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

@@ -31,8 +31,8 @@ type = "bundle"
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1t4zal0ihe9fs", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view3.asset" }, palette = "row_0" },
-    { image = { uid = "uid://1t4zal0ihe9fs", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view3.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://1t4zal0ihe9fs", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view3.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1t4zal0ihe9fs", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view3.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -40,7 +40,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://196zh7up08o1p", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view4.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://196zh7up08o1p", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view4.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -48,7 +48,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 6
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1av8qggfaud3u", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view7.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1av8qggfaud3u", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view7.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -56,7 +56,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 7
 type = "palette"
 palettes = [
-    { image = { uid = "uid://wa0x8tyf8n57", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view8.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://wa0x8tyf8n57", path = "res://stages/mine_shelter/rooms/b2_north_maintenance_walkway/views/view8.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

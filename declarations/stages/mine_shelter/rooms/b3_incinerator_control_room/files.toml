@@ -31,7 +31,7 @@ type = "bundle"
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://t8095mriulw7", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view3.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://t8095mriulw7", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view3.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -39,7 +39,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://xgoztxw8si78", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view4.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://xgoztxw8si78", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view4.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -47,7 +47,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 4
 type = "palette"
 palettes = [
-    { image = { uid = "uid://b1xllol7ln5k", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view5.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://b1xllol7ln5k", path = "res://stages/mine_shelter/rooms/b3_incinerator_control_room/views/view5.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

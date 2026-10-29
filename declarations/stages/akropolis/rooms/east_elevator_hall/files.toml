@@ -31,7 +31,7 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { image = { uid = "uid://s2gwhrm9w742", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view2_page_1.asset" }, palette = "default" },
+    { palette = { uid = "uid://s2gwhrm9w742", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view2_page_1.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -39,8 +39,8 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.asset" }, palette = "row_0" },
-    { image = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -48,7 +48,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1w7bxinm35ex4", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view4_page_1.asset" }, palette = "default" },
+    { palette = { uid = "uid://1w7bxinm35ex4", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view4_page_1.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -56,7 +56,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 4
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ggs2k7ej0t60", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view5_page_1.asset" }, palette = "default" },
+    { palette = { uid = "uid://1ggs2k7ej0t60", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view5_page_1.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

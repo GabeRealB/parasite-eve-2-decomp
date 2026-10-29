@@ -31,8 +31,8 @@ type = "bundle"
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://3unem0nrzv8p", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view3.asset" }, palette = "row_0" },
-    { image = { uid = "uid://3unem0nrzv8p", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view3.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://3unem0nrzv8p", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view3.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://3unem0nrzv8p", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view3.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -40,8 +40,8 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://rycgomxo2o9s", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view4.asset" }, palette = "row_0" },
-    { image = { uid = "uid://rycgomxo2o9s", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view4.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://rycgomxo2o9s", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view4.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://rycgomxo2o9s", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view4.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -49,7 +49,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 4
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ntmgqx6xvpcc", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view5.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1ntmgqx6xvpcc", path = "res://stages/shelter_neo_ark/rooms/1f_airlock/views/view5.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

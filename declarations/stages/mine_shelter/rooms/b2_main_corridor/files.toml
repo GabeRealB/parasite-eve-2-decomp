@@ -23,12 +23,12 @@ pages = [
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset" }, palette = "effect_row_9" },
-    { image = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset" }, palette = "effect_row_9_1" },
-    { image = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset" }, palette = "effect_row_9_2" },
-    { image = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset" }, palette = "effect_row_10_17" },
-    { image = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset" }, palette = "effect_row_10_18" },
-    { image = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset" }, palette = "effect_row_10_19" },
+    { palette = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset", part = "palettes/effect_row_9" } },
+    { palette = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset", part = "palettes/effect_row_9_1" } },
+    { palette = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset", part = "palettes/effect_row_9_2" } },
+    { palette = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset", part = "palettes/effect_row_10_17" } },
+    { palette = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset", part = "palettes/effect_row_10_18" } },
+    { palette = { uid = "uid://128filudh1ufq", path = "res://stages/mine_shelter/rooms/b2_main_corridor/props/water_effects.asset", part = "palettes/effect_row_10_19" } },
 ]
 
 [[base.slots]]
@@ -50,7 +50,7 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ak3o6d1xdt6e", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view2.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1ak3o6d1xdt6e", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view2.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -58,8 +58,8 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1e510qwl1gaoa", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view3.asset" }, palette = "row_0" },
-    { image = { uid = "uid://1e510qwl1gaoa", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view3.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://1e510qwl1gaoa", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view3.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1e510qwl1gaoa", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view3.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -67,7 +67,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://10pxkl6f0mjmr", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view4.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://10pxkl6f0mjmr", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view4.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -75,7 +75,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 4
 type = "palette"
 palettes = [
-    { image = { uid = "uid://10jyl6zyg9ulg", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view5.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://10jyl6zyg9ulg", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view5.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -83,8 +83,8 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 5
 type = "palette"
 palettes = [
-    { image = { uid = "uid://im2movmm9yqd", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view6.asset" }, palette = "row_0" },
-    { image = { uid = "uid://im2movmm9yqd", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view6.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://im2movmm9yqd", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view6.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://im2movmm9yqd", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view6.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -92,7 +92,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 6
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1e8j798n6r0zl", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view7.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1e8j798n6r0zl", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view7.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -100,7 +100,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 7
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1udp08pn7d3vl", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view8.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1udp08pn7d3vl", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view8.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -108,7 +108,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 8
 type = "palette"
 palettes = [
-    { image = { uid = "uid://isv7ir2eak78", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view9.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://isv7ir2eak78", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view9.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -116,7 +116,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 9
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1lw1bsdnxgcyf", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view10.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1lw1bsdnxgcyf", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view10.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -124,7 +124,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 10
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ud967zf2ebe0", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view11.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://ud967zf2ebe0", path = "res://stages/mine_shelter/rooms/b2_main_corridor/views/view11.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

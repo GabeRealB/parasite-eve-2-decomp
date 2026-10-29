@@ -23,9 +23,9 @@ pages = [
 name = "palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://wdg39oleso45", path = "res://stages/shelter_neo_ark/rooms/island/props/water_effects.asset" }, palette = "effect_row_10_17" },
-    { image = { uid = "uid://wdg39oleso45", path = "res://stages/shelter_neo_ark/rooms/island/props/water_effects.asset" }, palette = "effect_row_10_18" },
-    { image = { uid = "uid://wdg39oleso45", path = "res://stages/shelter_neo_ark/rooms/island/props/water_effects.asset" }, palette = "effect_row_10_19" },
+    { palette = { uid = "uid://wdg39oleso45", path = "res://stages/shelter_neo_ark/rooms/island/props/water_effects.asset", part = "palettes/effect_row_10_17" } },
+    { palette = { uid = "uid://wdg39oleso45", path = "res://stages/shelter_neo_ark/rooms/island/props/water_effects.asset", part = "palettes/effect_row_10_18" } },
+    { palette = { uid = "uid://wdg39oleso45", path = "res://stages/shelter_neo_ark/rooms/island/props/water_effects.asset", part = "palettes/effect_row_10_19" } },
 ]
 upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9], size = [320, 2] }
 
@@ -48,7 +48,7 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1rewq5gno97e8", path = "res://stages/shelter_neo_ark/rooms/island/views/view2.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1rewq5gno97e8", path = "res://stages/shelter_neo_ark/rooms/island/views/view2.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -56,7 +56,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1nrkhqqkxm6py", path = "res://stages/shelter_neo_ark/rooms/island/views/view3.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1nrkhqqkxm6py", path = "res://stages/shelter_neo_ark/rooms/island/views/view3.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -64,7 +64,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://xcgw2qxgxmkj", path = "res://stages/shelter_neo_ark/rooms/island/views/view4.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://xcgw2qxgxmkj", path = "res://stages/shelter_neo_ark/rooms/island/views/view4.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

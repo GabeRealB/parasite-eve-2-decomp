@@ -50,38 +50,38 @@ pages = [
 name = "sheet_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "shoulder" },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/shoulder" } },
     { name = "row_inactive", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [16, 0] },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "player_name" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "frame" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_fire" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_wind" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_water" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_earth" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "status" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "arrow_up" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "cursor" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "gauge" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "disc" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "marker_targeted" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "background" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "portrait" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "weapon.battery" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "lock_on" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "range_around" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "other_item" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "background.pulse" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "caption_earth" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "caption_wind" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "action_cursor.hotspot" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "action_cursor" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "ammunition.ammo_40mm" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "empty" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "pe_fallback" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "ammunition.ammo_44_magnum" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "other_item.ammo_9mm" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "unidentified" },
-    { image = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset" }, palette = "key_item" },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/player_name" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/frame" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_fire" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_wind" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_water" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_earth" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/status" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/arrow_up" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/cursor" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/gauge" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/disc" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/marker_targeted" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/background" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/portrait" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/weapon.battery" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/lock_on" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/range_around" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/other_item" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/background.pulse" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/caption_earth" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/caption_wind" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/action_cursor.hotspot" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/action_cursor" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/ammunition.ammo_40mm" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/empty" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/pe_fallback" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/ammunition.ammo_44_magnum" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/other_item.ammo_9mm" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/unidentified" } },
+    { palette = { uid = "uid://1phwsc8thzr3b", path = "res://ui/sheet/atlas.asset", part = "palettes/key_item" } },
     { name = "unread_ui_row_1_1", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [16, 1] },
     { name = "unread_ui_row_1_2", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [32, 1] },
     { name = "unread_ui_row_1_3", entries = 16, slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [48, 1] },
@@ -120,8 +120,8 @@ asset = { uid = "uid://f1e963jhv4i4", path = "res://title/background.asset" }
 name = "chrome_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://ise7wq932mjc", path = "res://title/chrome_left.asset" }, palette = "default" },
-    { image = { uid = "uid://1mur93yy6mhb7", path = "res://title/chrome_right.asset" }, palette = "default" },
+    { palette = { uid = "uid://ise7wq932mjc", path = "res://title/chrome_left.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1mur93yy6mhb7", path = "res://title/chrome_right.asset", part = "palettes/default" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -153,12 +153,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -182,12 +182,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -216,12 +216,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -250,12 +250,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -284,12 +284,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -318,12 +318,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -352,12 +352,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -381,12 +381,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -415,12 +415,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -449,12 +449,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -483,12 +483,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -517,12 +517,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -551,12 +551,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -585,12 +585,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -619,12 +619,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -653,12 +653,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -687,12 +687,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -721,12 +721,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -755,12 +755,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -789,12 +789,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -823,12 +823,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -857,12 +857,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -891,12 +891,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -925,12 +925,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -959,12 +959,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -993,12 +993,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1027,12 +1027,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1061,12 +1061,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1095,12 +1095,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1129,12 +1129,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1163,12 +1163,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1192,12 +1192,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1221,12 +1221,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1255,12 +1255,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1289,12 +1289,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1323,12 +1323,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1357,12 +1357,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -1391,12 +1391,12 @@ page_slots = 3
 name = "caption_font_palette"
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "default" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x16" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x32" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x48" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x64" },
-    { image = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset" }, palette = "x80" },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x16" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x32" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x48" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x64" } },
+    { palette = { uid = "uid://1ctxcectnfq4q", path = "res://ui/caption_font/texture.asset", part = "palettes/x80" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 

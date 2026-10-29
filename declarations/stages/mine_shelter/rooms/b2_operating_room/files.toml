@@ -31,7 +31,7 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { image = { uid = "uid://lugu3ohafqkp", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view2.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://lugu3ohafqkp", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view2.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -39,7 +39,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 2
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1wi59f52x1nyc", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view3.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://1wi59f52x1nyc", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view3.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -47,8 +47,8 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1g57e5d8810b2", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view4.asset" }, palette = "row_0" },
-    { image = { uid = "uid://1g57e5d8810b2", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view4.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://1g57e5d8810b2", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view4.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1g57e5d8810b2", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view4.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -56,7 +56,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 4
 type = "palette"
 palettes = [
-    { image = { uid = "uid://109hytih9kc3v", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view5.asset" }, palette = "row_0" },
+    { palette = { uid = "uid://109hytih9kc3v", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view5.asset", part = "palettes/row_0" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -64,8 +64,8 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 5
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1g0kophbi03cc", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view6.asset" }, palette = "row_0" },
-    { image = { uid = "uid://1g0kophbi03cc", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view6.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://1g0kophbi03cc", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view6.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1g0kophbi03cc", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view6.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
@@ -73,8 +73,8 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 6
 type = "palette"
 palettes = [
-    { image = { uid = "uid://1fbkvii2xk3c6", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view7.asset" }, palette = "row_0" },
-    { image = { uid = "uid://1fbkvii2xk3c6", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view7.asset" }, palette = "row_1" },
+    { palette = { uid = "uid://1fbkvii2xk3c6", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view7.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1fbkvii2xk3c6", path = "res://stages/mine_shelter/rooms/b2_operating_room/views/view7.asset", part = "palettes/row_1" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
 
