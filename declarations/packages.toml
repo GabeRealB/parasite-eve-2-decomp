@@ -1,0 +1,51 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); these are packages, which it finds on no disc:
+# what a package is built from, as CMake lists a target's, its paths relative to the folder of its name. A target adds to it under
+# target.<name>, its lists appended and its other values replacing.
+
+[title]
+uid = "uid://pc4ree5f63i7"
+kind = "package"
+slot = "resident"
+sources = ["src/*.c", "!src/*.inc.c"]
+public = ["include"]
+
+[title.target.psx]
+link_script = "psx/link.ld"
+
+# Packages with nothing of their own to build: what others include, and what they publish to link against.
+
+[core]
+uid = "uid://1hq6535kv7l92"
+kind = "package"
+public = ["include"]
+stack = []
+
+[psyq]
+uid = "uid://6xwnsgn9562h"
+kind = "package"
+public = ["include"]
+stack = []
+
+[main]
+uid = "uid://1gge5rcau98eq"
+kind = "package"
+public = ["include"]
+stack = []
+
+[main.target.psx]
+symbols = "psx/symbols.ld"
+
+[gameplay]
+uid = "uid://1xmru45vx7ejy"
+kind = "package"
+public = ["include"]
+stack = []
+
+[gameplay.target.psx]
+symbols = "psx/symbols.ld"
+
+# What a language server reads: every package that compiles, for the config in use.
+
+[compile_database]
+uid = "uid://1eip1jztc7zz0"
+kind = "compile-database"

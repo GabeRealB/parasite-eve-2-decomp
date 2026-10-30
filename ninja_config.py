@@ -1698,6 +1698,8 @@ def ninja_build(
             implicit=checksum_build_requirements,
         )
 
+    # Deleted first: the editor's build links this file, and writing through the link would overwrite its database.
+    Path("compile_commands.json").unlink(missing_ok=True)
     with open("compile_commands.json", "w") as cc_file:
         json.dump(cc_entries, cc_file, indent=2)
 
