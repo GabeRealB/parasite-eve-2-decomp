@@ -93,21 +93,3 @@ size = 1088
 address = 2148623588
 symbol = "gAya10200SecondPairHand1Model"
 sha1 = "3626947c0411c7a16db84f581ab88fa00062fb83"
-
-[aya]
-uid = "uid://176e2028rdczv"
-kind = "prefab"
-model = { slot = { uid = "uid://rnk0dzsfq9n7", path = "res://characters/aya/10200/body.asset" } }
-children = [
-    { node = "left_hand", model = { slot = { uid = "uid://f82nerjgfqn6", path = "res://characters/aya/10200/hand_left_closed.asset" } } },
-    { node = "right_hand", model = { slot = { uid = "uid://16fnydch8grzu", path = "res://characters/aya/10200/hand_right_closed.asset" } } },
-]
-
-[aya_open_hands]
-uid = "uid://iz1wkeay7v7p"
-kind = "prefab"
-model = { slot = { uid = "uid://rnk0dzsfq9n7", path = "res://characters/aya/10200/body.asset" } }
-children = [
-    { node = "left_hand", model = { slot = { uid = "uid://9sm4h928zhlm", path = "res://characters/aya/10200/hand_left_open.asset" } } },
-    { node = "right_hand", model = { slot = { uid = "uid://jbzvx0e0j9qw", path = "res://characters/aya/10200/hand_right_open.asset" } } },
-]

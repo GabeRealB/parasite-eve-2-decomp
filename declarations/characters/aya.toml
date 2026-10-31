@@ -45,3 +45,46 @@ joints = [
     { name = "left_shin", parent = "left_thigh", translation = [18, 366, -38], rotation = [0, 0, 0] },
     { name = "left_foot", parent = "left_shin", translation = [20, 408, -42], rotation = [0, 0, 0] },
 ]
+
+# Aya: what hangs on her skeleton, and what varies together. `stored_` parts hang nowhere: no reachable code was found to use them, and their packages hold them.
+
+[aya]
+uid = "uid://vinvx0m1i1zv"
+kind = "prefab"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.asset" } }
+
+[aya.parts]
+body = {}
+hand_left = { node = "left_hand" }
+hand_right = { node = "right_hand" }
+held = { node = "hand_right" }
+stored_hand_left = {}
+stored_hand_right = {}
+
+[aya.groups.outfit.10200]
+body = { model = { slot = { uid = "uid://rnk0dzsfq9n7", path = "res://characters/aya/10200/body.asset" } } }
+hand_left = { model = { slot = { uid = "uid://f82nerjgfqn6", path = "res://characters/aya/10200/hand_left_closed.asset" } } }
+hand_right = { model = { slot = { uid = "uid://16fnydch8grzu", path = "res://characters/aya/10200/hand_right_closed.asset" } } }
+stored_hand_left = { model = { slot = { uid = "uid://9sm4h928zhlm", path = "res://characters/aya/10200/hand_left_open.asset" } } }
+stored_hand_right = { model = { slot = { uid = "uid://jbzvx0e0j9qw", path = "res://characters/aya/10200/hand_right_open.asset" } } }
+
+[aya.groups.outfit.10300]
+body = { model = { slot = { uid = "uid://178c1fzlfalk5", path = "res://characters/aya/10300/body.asset" } } }
+hand_left = { model = { slot = { uid = "uid://13zgdpqtqfmkf", path = "res://characters/aya/10300/hand_left_closed.asset" } } }
+hand_right = { model = { slot = { uid = "uid://19ylu10rcv2jz", path = "res://characters/aya/10300/hand_right_closed.asset" } } }
+stored_hand_left = { model = { slot = { uid = "uid://15nmha2hfi98n", path = "res://characters/aya/10300/hand_left_open.asset" } } }
+stored_hand_right = { model = { slot = { uid = "uid://pn0nqlxq7qy1", path = "res://characters/aya/10300/hand_right_open.asset" } } }
+
+[aya.groups.outfit.10400]
+body = { model = { slot = { uid = "uid://1kx3bjs4l9836", path = "res://characters/aya/10400/body.asset" } } }
+hand_left = { model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.asset" } } }
+hand_right = { model = { slot = { uid = "uid://1x7ipv1khfk4u", path = "res://characters/aya/10400/hand_right_closed.asset" } } }
+stored_hand_left = { model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.asset" } } }
+stored_hand_right = { model = { slot = { uid = "uid://3n75xecosgbh", path = "res://characters/aya/10400/hand_right_open.asset" } } }
+
+[aya.groups.outfit.10500]
+body = { model = { slot = { uid = "uid://1fj3bthllccxa", path = "res://characters/aya/10500/body.asset" } } }
+hand_left = { model = { slot = { uid = "uid://1s9mvxjeuack9", path = "res://characters/aya/10500/hand_left_closed.asset" } } }
+hand_right = { model = { slot = { uid = "uid://4v4tnx26035c", path = "res://characters/aya/10500/hand_right_closed.asset" } } }
+stored_hand_left = { model = { slot = { uid = "uid://1hl9viw34a84a", path = "res://characters/aya/10500/hand_left_open.asset" } } }
+stored_hand_right = { model = { slot = { uid = "uid://1t30ja55dz37z", path = "res://characters/aya/10500/hand_right_open.asset" } } }
