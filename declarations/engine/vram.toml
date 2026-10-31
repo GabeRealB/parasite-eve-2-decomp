@@ -59,7 +59,7 @@ rect = [512, 0, 384, 256]
 uid = "uid://zzgq8eon5b0v"
 kind = "vram_slot"
 rect = [960, 0, 40, 64]
-within = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.asset" }
+within = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.node" }
 
 [frame_buffer_0]
 uid = "uid://1ttvas17ru1sp"
@@ -91,7 +91,7 @@ uid = "uid://fsmv9ev0ri61"
 kind = "vram_slot"
 rect = [0, 255, 256, 6]
 borrows = [
-    { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" },
+    { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" },
 ]
 
 [map_sheet]
@@ -99,7 +99,7 @@ uid = "uid://qy0eoildj00s"
 kind = "vram_slot"
 rect = [896, 0, 128, 256]
 borrows = [
-    { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" },
+    { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" },
 ]
 
 [preview_palette]
@@ -107,21 +107,21 @@ uid = "uid://1r4i1k0syt8ik"
 kind = "vram_slot"
 rect = [0, 255, 256, 1]
 borrows = [
-    { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" },
+    { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" },
 ]
 
 [preview_picture]
 uid = "uid://xdefb7sjn2jj"
 kind = "vram_slot"
 rect = [960, 0, 64, 96]
-within = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.asset" }
+within = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.node" }
 
 [preview_sheet]
 uid = "uid://1lrk6kmecvss"
 kind = "vram_slot"
 rect = [960, 0, 64, 128]
 borrows = [
-    { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" },
+    { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" },
 ]
 
 [room_model_sheet]
@@ -164,7 +164,7 @@ uid = "uid://11t0an647k29l"
 kind = "vram_slot"
 rect = [960, 0, 64, 160]
 borrows = [
-    { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" },
+    { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" },
 ]
 
 [title_chrome]

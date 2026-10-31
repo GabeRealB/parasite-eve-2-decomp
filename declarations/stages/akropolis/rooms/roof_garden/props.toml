@@ -3,11 +3,10 @@
 [armory_cardkey]
 uid = "uid://rvnaoruv7dbq"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [48, 40]
-palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
+palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 2] }
 
 [armory_cardkey.import]
 importer = "pe2.images@ora"

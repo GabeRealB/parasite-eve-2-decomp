@@ -3,11 +3,10 @@
 [page_1]
 uid = "uid://1icxa4uwix93a"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
+palettes.default = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 2] }
 
 [page_1.import]
 importer = "pe2.images@ora"
@@ -21,12 +20,11 @@ palettes = { default = "35ada31aaac5e8509ec338d4837edc65dcd0eb2c" }
 [page_2_sheet]
 uid = "uid://hfawgrcw7y3l"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-palettes.page_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
-palettes.lamp = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] }
+palettes.page_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 2] }
+palettes.lamp = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 3] }
 cells.page_2 = { rect = [8, 0, 120, 256], palette = "page_2", mode = "indexed_8bpp" }
 cells.lamp = { rect = [0, 0, 16, 16], palette = "lamp" }
 

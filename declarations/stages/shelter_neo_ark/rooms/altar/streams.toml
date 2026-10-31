@@ -3,7 +3,7 @@
 [movie_100]
 uid = "uid://1sa5pr4l8y67t"
 kind = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/altar_movie_100" }
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/altar_movie_100" }
 group = 0
 id = 100
 sub_id = 0
@@ -22,7 +22,7 @@ at = [{ stage = 5, folder = 2001, stream = "movie_100" }]
 [movie_101]
 uid = "uid://ph8vg23td2gi"
 kind = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/altar_movie_101" }
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/altar_movie_101" }
 group = 0
 id = 101
 sub_id = 0
@@ -41,7 +41,7 @@ at = [{ stage = 5, folder = 2001, stream = "movie_101" }]
 [movie_102]
 uid = "uid://1qwt06m0kuquh"
 kind = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/altar_movie_102" }
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/altar_movie_102" }
 group = 0
 id = 102
 sub_id = 0

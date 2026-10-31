@@ -22,15 +22,15 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default_2" } },
 ]
 
 [[kyle_companion_1.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node" } },
 ]
 page_slots = 6
 
@@ -38,14 +38,14 @@ page_slots = 6
 name = "p229_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.node", output = "palettes/default" } },
 ]
 
 [[kyle_companion_1.slots]]
 name = "p229_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" } },
+    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.node" } },
 ]
 
 [[kyle_companion_1.slots]]
@@ -68,15 +68,15 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default_2" } },
 ]
 
 [[kyle_companion_2.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node" } },
 ]
 page_slots = 6
 
@@ -84,14 +84,14 @@ page_slots = 6
 name = "mm1_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.node", output = "palettes/default" } },
 ]
 
 [[kyle_companion_2.slots]]
 name = "mm1_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.asset" } },
+    { image = { uid = "uid://am93nzhg5od5", path = "res://characters/kyle/mm1_texture.node" } },
 ]
 
 [[kyle_companion_2.slots]]
@@ -114,15 +114,15 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default_2" } },
 ]
 
 [[kyle_companion_3.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node" } },
 ]
 page_slots = 6
 
@@ -130,14 +130,14 @@ page_slots = 6
 name = "m950_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.node", output = "palettes/default" } },
 ]
 
 [[kyle_companion_3.slots]]
 name = "m950_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" } },
+    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.node" } },
 ]
 
 [[kyle_companion_3.slots]]
@@ -160,15 +160,15 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default_2" } },
 ]
 
 [[kyle_companion_4.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node" } },
 ]
 page_slots = 6
 
@@ -176,14 +176,14 @@ page_slots = 6
 name = "m4a1_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.node", output = "palettes/default" } },
 ]
 
 [[kyle_companion_4.slots]]
 name = "m4a1_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.asset" } },
+    { image = { uid = "uid://1b1ptw8c4pq5z", path = "res://characters/kyle/m4a1_texture.node" } },
 ]
 
 [[kyle_companion_4.slots]]
@@ -202,15 +202,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default_2" } },
 ]
 
 [[kyle_companion_5.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node" } },
 ]
 page_slots = 6
 
@@ -218,14 +218,14 @@ page_slots = 6
 name = "m950_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.node", output = "palettes/default" } },
 ]
 
 [[kyle_companion_5.slots]]
 name = "m950_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.asset" } },
+    { image = { uid = "uid://1uwi0yfhwp3qt", path = "res://characters/kyle/m950_texture.node" } },
 ]
 
 [[kyle_companion_5.slots]]
@@ -248,15 +248,15 @@ type = "sound_bank"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.node", output = "palettes/default" } },
 ]
-upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" } }
 
 [[flint_companion.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.asset" } },
+    { image = { uid = "uid://3arcix951n0p", path = "res://characters/flint/texture.node" } },
 ]
 page_slots = 6
 
@@ -276,15 +276,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.node", output = "palettes/default_2" } },
 ]
 
 [[eve_companion.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" } },
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.node" } },
 ]
 page_slots = 6
 
@@ -292,14 +292,14 @@ page_slots = 6
 name = "p229_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.node", output = "palettes/default" } },
 ]
 
 [[eve_companion.slots]]
 name = "p229_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.asset" } },
+    { image = { uid = "uid://1nv7q8eelst4x", path = "res://characters/kyle/p229_texture.node" } },
 ]
 
 [[eve_companion.slots]]
@@ -318,28 +318,28 @@ kind = "file"
 name = "logo_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.node", output = "palettes/default" } },
 ]
 
 [[akropolis_square.slots]]
 name = "logo_shadow_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.node", output = "palettes/default" } },
 ]
 
 [[akropolis_square.slots]]
 name = "logo"
 type = "image"
 pages = [
-    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" } },
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.node" } },
 ]
 
 [[akropolis_square.slots]]
 name = "logo_shadow"
 type = "image"
 pages = [
-    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" } },
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.node" } },
 ]
 
 [[akropolis_square.slots]]
@@ -361,28 +361,28 @@ kind = "file"
 name = "logo_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.node", output = "palettes/default" } },
 ]
 
 [[dryfield_main_street.slots]]
 name = "logo_shadow_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.node", output = "palettes/default" } },
 ]
 
 [[dryfield_main_street.slots]]
 name = "logo"
 type = "image"
 pages = [
-    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" } },
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.node" } },
 ]
 
 [[dryfield_main_street.slots]]
 name = "logo_shadow"
 type = "image"
 pages = [
-    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" } },
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.node" } },
 ]
 
 [[dryfield_main_street.slots]]
@@ -404,28 +404,28 @@ kind = "file"
 name = "logo_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.node", output = "palettes/default" } },
 ]
 
 [[dryfield_underpass.slots]]
 name = "logo_shadow_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.node", output = "palettes/default" } },
 ]
 
 [[dryfield_underpass.slots]]
 name = "logo"
 type = "image"
 pages = [
-    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.asset" } },
+    { image = { uid = "uid://tudppllo4muy", path = "res://attract_demos/logo.node" } },
 ]
 
 [[dryfield_underpass.slots]]
 name = "logo_shadow"
 type = "image"
 pages = [
-    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.asset" } },
+    { image = { uid = "uid://owlpds0b4ml8", path = "res://attract_demos/logo_shadow.node" } },
 ]
 
 [[dryfield_underpass.slots]]

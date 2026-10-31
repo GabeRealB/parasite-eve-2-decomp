@@ -3,36 +3,35 @@
 [gradient]
 uid = "uid://q6f84n92kzc7"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [16, 16]
-palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] }
-palettes.effect_row_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9] }
-palettes.effect_row_9_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 9] }
-palettes.effect_row_9_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 9] }
-palettes.effect_row_9_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 9] }
-palettes.effect_row_9_4 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 9] }
-palettes.effect_row_9_5 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 9] }
-palettes.effect_row_9_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 9] }
-palettes.effect_row_9_7 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 9] }
-palettes.effect_row_9_8 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 9] }
-palettes.effect_row_9_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 9] }
-palettes.effect_row_9_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 9] }
-palettes.effect_row_9_11 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 9] }
-palettes.effect_row_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 10] }
-palettes.effect_row_10_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [16, 10] }
-palettes.effect_row_10_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [32, 10] }
-palettes.effect_row_10_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [48, 10] }
-palettes.effect_row_10_4 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [64, 10] }
-palettes.effect_row_10_5 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [80, 10] }
-palettes.effect_row_10_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [96, 10] }
-palettes.effect_row_10_7 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [112, 10] }
-palettes.effect_row_10_8 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [128, 10] }
-palettes.effect_row_10_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [144, 10] }
-palettes.effect_row_10_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [160, 10] }
-palettes.effect_row_10_11 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [176, 10] }
-palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
+palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 1] }
+palettes.effect_row_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 9] }
+palettes.effect_row_9_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [16, 9] }
+palettes.effect_row_9_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [32, 9] }
+palettes.effect_row_9_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [48, 9] }
+palettes.effect_row_9_4 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [64, 9] }
+palettes.effect_row_9_5 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [80, 9] }
+palettes.effect_row_9_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [96, 9] }
+palettes.effect_row_9_7 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [112, 9] }
+palettes.effect_row_9_8 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [128, 9] }
+palettes.effect_row_9_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [144, 9] }
+palettes.effect_row_9_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [160, 9] }
+palettes.effect_row_9_11 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [176, 9] }
+palettes.effect_row_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 10] }
+palettes.effect_row_10_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [16, 10] }
+palettes.effect_row_10_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [32, 10] }
+palettes.effect_row_10_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [48, 10] }
+palettes.effect_row_10_4 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [64, 10] }
+palettes.effect_row_10_5 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [80, 10] }
+palettes.effect_row_10_6 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [96, 10] }
+palettes.effect_row_10_7 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [112, 10] }
+palettes.effect_row_10_8 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [128, 10] }
+palettes.effect_row_10_9 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [144, 10] }
+palettes.effect_row_10_10 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [160, 10] }
+palettes.effect_row_10_11 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [176, 10] }
+palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [256, 10] }
 
 [gradient.import]
 importer = "pe2.images@ora"
@@ -46,12 +45,11 @@ palettes = { effect_row_1 = "a271eb333410bb797116608ac9a77bd5020c8e77", effect_r
 [smoke]
 uid = "uid://1shzrudqy61n2"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [496, 256]
-palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] }
-palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [256, 10] }
+palettes.effect_row_1 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 1] }
+palettes.effect_row_10_16 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [256, 10] }
 
 [smoke.import]
 importer = "pe2.images@ora"

@@ -3,12 +3,11 @@
 [casual]
 uid = "uid://3be0alid5dnd"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-palettes.default = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" }, at = [0, 0] }
-palettes.default_2 = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" }, at = [0, 1] }
+palettes.default = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" }, at = [0, 1] }
 cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
@@ -51,7 +50,7 @@ joints = [
 [aya]
 uid = "uid://vinvx0m1i1zv"
 kind = "prefab"
-skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.asset" } }
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [aya.parts]
 body = {}
@@ -62,29 +61,29 @@ stored_hand_left = {}
 stored_hand_right = {}
 
 [aya.groups.outfit.10200]
-body = { model = { slot = { uid = "uid://rnk0dzsfq9n7", path = "res://characters/aya/10200/body.asset" } } }
-hand_left = { model = { slot = { uid = "uid://f82nerjgfqn6", path = "res://characters/aya/10200/hand_left_closed.asset" } } }
-hand_right = { model = { slot = { uid = "uid://16fnydch8grzu", path = "res://characters/aya/10200/hand_right_closed.asset" } } }
-stored_hand_left = { model = { slot = { uid = "uid://9sm4h928zhlm", path = "res://characters/aya/10200/hand_left_open.asset" } } }
-stored_hand_right = { model = { slot = { uid = "uid://jbzvx0e0j9qw", path = "res://characters/aya/10200/hand_right_open.asset" } } }
+body = { model = { slot = { uid = "uid://rnk0dzsfq9n7", path = "res://characters/aya/10200/body.node" } } }
+hand_left = { model = { slot = { uid = "uid://f82nerjgfqn6", path = "res://characters/aya/10200/hand_left_closed.node" } } }
+hand_right = { model = { slot = { uid = "uid://16fnydch8grzu", path = "res://characters/aya/10200/hand_right_closed.node" } } }
+stored_hand_left = { model = { slot = { uid = "uid://9sm4h928zhlm", path = "res://characters/aya/10200/hand_left_open.node" } } }
+stored_hand_right = { model = { slot = { uid = "uid://jbzvx0e0j9qw", path = "res://characters/aya/10200/hand_right_open.node" } } }
 
 [aya.groups.outfit.10300]
-body = { model = { slot = { uid = "uid://178c1fzlfalk5", path = "res://characters/aya/10300/body.asset" } } }
-hand_left = { model = { slot = { uid = "uid://13zgdpqtqfmkf", path = "res://characters/aya/10300/hand_left_closed.asset" } } }
-hand_right = { model = { slot = { uid = "uid://19ylu10rcv2jz", path = "res://characters/aya/10300/hand_right_closed.asset" } } }
-stored_hand_left = { model = { slot = { uid = "uid://15nmha2hfi98n", path = "res://characters/aya/10300/hand_left_open.asset" } } }
-stored_hand_right = { model = { slot = { uid = "uid://pn0nqlxq7qy1", path = "res://characters/aya/10300/hand_right_open.asset" } } }
+body = { model = { slot = { uid = "uid://178c1fzlfalk5", path = "res://characters/aya/10300/body.node" } } }
+hand_left = { model = { slot = { uid = "uid://13zgdpqtqfmkf", path = "res://characters/aya/10300/hand_left_closed.node" } } }
+hand_right = { model = { slot = { uid = "uid://19ylu10rcv2jz", path = "res://characters/aya/10300/hand_right_closed.node" } } }
+stored_hand_left = { model = { slot = { uid = "uid://15nmha2hfi98n", path = "res://characters/aya/10300/hand_left_open.node" } } }
+stored_hand_right = { model = { slot = { uid = "uid://pn0nqlxq7qy1", path = "res://characters/aya/10300/hand_right_open.node" } } }
 
 [aya.groups.outfit.10400]
-body = { model = { slot = { uid = "uid://1kx3bjs4l9836", path = "res://characters/aya/10400/body.asset" } } }
-hand_left = { model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.asset" } } }
-hand_right = { model = { slot = { uid = "uid://1x7ipv1khfk4u", path = "res://characters/aya/10400/hand_right_closed.asset" } } }
-stored_hand_left = { model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.asset" } } }
-stored_hand_right = { model = { slot = { uid = "uid://3n75xecosgbh", path = "res://characters/aya/10400/hand_right_open.asset" } } }
+body = { model = { slot = { uid = "uid://1kx3bjs4l9836", path = "res://characters/aya/10400/body.node" } } }
+hand_left = { model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.node" } } }
+hand_right = { model = { slot = { uid = "uid://1x7ipv1khfk4u", path = "res://characters/aya/10400/hand_right_closed.node" } } }
+stored_hand_left = { model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.node" } } }
+stored_hand_right = { model = { slot = { uid = "uid://3n75xecosgbh", path = "res://characters/aya/10400/hand_right_open.node" } } }
 
 [aya.groups.outfit.10500]
-body = { model = { slot = { uid = "uid://1fj3bthllccxa", path = "res://characters/aya/10500/body.asset" } } }
-hand_left = { model = { slot = { uid = "uid://1s9mvxjeuack9", path = "res://characters/aya/10500/hand_left_closed.asset" } } }
-hand_right = { model = { slot = { uid = "uid://4v4tnx26035c", path = "res://characters/aya/10500/hand_right_closed.asset" } } }
-stored_hand_left = { model = { slot = { uid = "uid://1hl9viw34a84a", path = "res://characters/aya/10500/hand_left_open.asset" } } }
-stored_hand_right = { model = { slot = { uid = "uid://1t30ja55dz37z", path = "res://characters/aya/10500/hand_right_open.asset" } } }
+body = { model = { slot = { uid = "uid://1fj3bthllccxa", path = "res://characters/aya/10500/body.node" } } }
+hand_left = { model = { slot = { uid = "uid://1s9mvxjeuack9", path = "res://characters/aya/10500/hand_left_closed.node" } } }
+hand_right = { model = { slot = { uid = "uid://4v4tnx26035c", path = "res://characters/aya/10500/hand_right_closed.node" } } }
+stored_hand_left = { model = { slot = { uid = "uid://1hl9viw34a84a", path = "res://characters/aya/10500/hand_left_open.node" } } }
+stored_hand_right = { model = { slot = { uid = "uid://1t30ja55dz37z", path = "res://characters/aya/10500/hand_right_open.node" } } }

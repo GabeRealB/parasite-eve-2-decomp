@@ -3,12 +3,11 @@
 [texture]
 uid = "uid://ia3kabh7feir"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-palettes.default = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" }, at = [0, 0] }
-palettes.default_2 = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" }, at = [0, 1] }
+palettes.default = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" }, at = [0, 1] }
 cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
@@ -26,9 +25,9 @@ palettes = { default = "b577e8c57e9b10fd96d55de2234ba0b736838650", default_2 = "
 [body]
 uid = "uid://178c1fzlfalk5"
 kind = "model"
-mesh = { slot = { uid = "uid://1x23myeyxaqlq", path = "res://characters/aya/meshes/body_10300.asset" } }
-materials.page_1 = { slot = { uid = "uid://19uczqssg3cp1", path = "res://characters/aya/10300/materials/page_1.asset" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://1x23myeyxaqlq", path = "res://characters/aya/meshes/body_10300.node" } }
+materials.page_1 = { slot = { uid = "uid://19uczqssg3cp1", path = "res://characters/aya/10300/materials/page_1.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
 
 [body.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -41,8 +40,8 @@ sha1 = "930d45098d5d38a8f057e7fd4357ee09b75efcfe"
 [hand_left_open]
 uid = "uid://15nmha2hfi98n"
 kind = "model"
-mesh = { slot = { uid = "uid://10fwi70p8xjv4", path = "res://characters/aya/meshes/hand_left_open_10300.asset" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://10fwi70p8xjv4", path = "res://characters/aya/meshes/hand_left_open_10300.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
 
 [hand_left_open.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -55,8 +54,8 @@ sha1 = "59a46b3e9728a35bfdd04cdc9981bee7a7bb4ec8"
 [hand_right_open]
 uid = "uid://pn0nqlxq7qy1"
 kind = "model"
-mesh = { slot = { uid = "uid://14e46fpwxxoj3", path = "res://characters/aya/meshes/hand_right_open_10300.asset" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://14e46fpwxxoj3", path = "res://characters/aya/meshes/hand_right_open_10300.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
 
 [hand_right_open.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -69,8 +68,8 @@ sha1 = "9c15358ad6abe64894b620c32da5c66bfd633ff6"
 [hand_left_closed]
 uid = "uid://13zgdpqtqfmkf"
 kind = "model"
-mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.asset" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
 
 [hand_left_closed.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -83,8 +82,8 @@ sha1 = "7a8a0bf0efc83732f44f10ecc47c59891b4c53eb"
 [hand_right_closed]
 uid = "uid://19ylu10rcv2jz"
 kind = "model"
-mesh = { slot = { uid = "uid://tu55n0w44lk4", path = "res://characters/aya/meshes/hand_right_closed_10300.asset" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://tu55n0w44lk4", path = "res://characters/aya/meshes/hand_right_closed_10300.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
 
 [hand_right_closed.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -93,3 +92,85 @@ size = 1088
 address = 2148645500
 symbol = "gAya10300SecondPairHand1Model"
 sha1 = "ae5fef081cc0d1d1e8d98cf65e2b876b8296734a"
+
+# The frames the game uploads over the face at run time: stored in the package, palettes those of the head's cell.
+
+[eyes_open]
+uid = "uid://1zmsq0rqx0gu"
+kind = "image"
+mode = "indexed_8bpp"
+size = [50, 16]
+
+[eyes_open.import]
+importer = "pe2.images@ora"
+source = "source.ora"
+
+[eyes_open.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 26444
+size = 800
+sha1 = "8271c0ff3d4761c1462cf026eff6a94ed96d49d7"
+
+[eyes_half_closed]
+uid = "uid://zb8ivzhp5t0w"
+kind = "image"
+mode = "indexed_8bpp"
+size = [50, 16]
+
+[eyes_half_closed.import]
+importer = "pe2.images@ora"
+source = "source.ora"
+
+[eyes_half_closed.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 27276
+size = 800
+sha1 = "640b34187d8851f0a6490baad51aba94d0c28986"
+
+[eyes_closed]
+uid = "uid://klal2y9l8ael"
+kind = "image"
+mode = "indexed_8bpp"
+size = [50, 16]
+
+[eyes_closed.import]
+importer = "pe2.images@ora"
+source = "source.ora"
+
+[eyes_closed.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 28108
+size = 800
+sha1 = "25730932ade07e117fe7cde77f48d70f55f655e2"
+
+[mouth_rest]
+uid = "uid://q0c347avmygk"
+kind = "image"
+mode = "indexed_8bpp"
+size = [28, 20]
+
+[mouth_rest.import]
+importer = "pe2.images@ora"
+source = "source.ora"
+
+[mouth_rest.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 28940
+size = 560
+sha1 = "682f7a493078402eadeb8ea6f5889e0553836042"
+
+[mouth_alternate]
+uid = "uid://1pf66u5vaq3ux"
+kind = "image"
+mode = "indexed_8bpp"
+size = [28, 20]
+
+[mouth_alternate.import]
+importer = "pe2.images@ora"
+source = "source.ora"
+
+[mouth_alternate.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 29532
+size = 560
+sha1 = "e0d5c1fce45ea27e5815f1acf4c66bd14a07faf3"

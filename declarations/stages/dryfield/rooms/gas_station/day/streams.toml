@@ -3,7 +3,7 @@
 [movie_100]
 uid = "uid://g7lp5gktxzpk"
 kind = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/gas_station_day_movie_100" }
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/gas_station_day_movie_100" }
 group = 0
 id = 100
 sub_id = 0

@@ -3,11 +3,10 @@
 [pod_still_0]
 uid = "uid://1r7l4xblgoyj9"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [192, 0] }
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [320, 240]
-palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] }
 
 [pod_still_0.import]
 importer = "pe2.images@ora"
@@ -21,11 +20,10 @@ palettes = { row_0 = "4bbbc3e9f1b379845747fecd44925b5304eccc68" }
 [pod_still_1]
 uid = "uid://j7yrmr0nuxxf"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [320, 240]
-palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] }
 
 [pod_still_1.import]
 importer = "pe2.images@ora"

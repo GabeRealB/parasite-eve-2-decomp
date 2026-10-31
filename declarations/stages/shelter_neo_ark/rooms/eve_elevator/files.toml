@@ -16,7 +16,7 @@ type = "sound_bank"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://qr6hps65bhpo", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://qr6hps65bhpo", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
@@ -38,7 +38,7 @@ chunks = { dialogue_0_atlas = "c224e093174d24ea54347f79ffaabed632fe64fb" }
 uid = "uid://12m0w7bt9hnm1"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1841prjoyaazk", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1841prjoyaazk", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -48,7 +48,7 @@ at = [{ stage = 5, folder = 901, file = 1 }]
 uid = "uid://lbwnngi07vej"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1t4iekkh0o4ag", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view2_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1t4iekkh0o4ag", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view2_background.node" } },
 ]
 
 [view2.from.USA]
@@ -58,7 +58,7 @@ at = [{ stage = 5, folder = 901, file = 2 }]
 uid = "uid://x1k5ddc82qc4"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1xsml88c7heiz", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view3_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1xsml88c7heiz", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view3_background.node" } },
 ]
 
 [view3.from.USA]
@@ -68,7 +68,7 @@ at = [{ stage = 5, folder = 901, file = 3 }]
 uid = "uid://12elk57r5jzvb"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1nzqpp51r4l1s", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view4_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1nzqpp51r4l1s", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view4_background.node" } },
 ]
 
 [view4.from.USA]

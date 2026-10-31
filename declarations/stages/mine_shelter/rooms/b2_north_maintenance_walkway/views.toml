@@ -3,7 +3,6 @@
 [view1_background]
 uid = "uid://13k88mm9vl8x5"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view1_background.import]
@@ -16,7 +15,6 @@ sha1 = "ab30d83ab8070def9eaf8ee026b35181831e6ad3"
 [view2_background]
 uid = "uid://wsi7a6n4ntq1"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view2_background.import]
@@ -29,7 +27,6 @@ sha1 = "8df137a6ce2bdf17802526999082a928ccb9b2f0"
 [view3_background]
 uid = "uid://9wmfmugbkuqb"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view3_background.import]
@@ -42,7 +39,6 @@ sha1 = "44f86f78e7132686ff81d30d49551354117ff9db"
 [view4_background]
 uid = "uid://1m3s6caxw2cs7"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view4_background.import]
@@ -55,7 +51,6 @@ sha1 = "917a2644d8f350a7064e37cae930ef0748611054"
 [view5_background]
 uid = "uid://dkp6k82hyyx9"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view5_background.import]
@@ -68,7 +63,6 @@ sha1 = "3ed5aaaee69ec52b3cf1bc38da91c38deadf92ee"
 [view6_background]
 uid = "uid://1p6i5j14ntjs2"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view6_background.import]
@@ -81,7 +75,6 @@ sha1 = "d9d7bddf486770538cd733f3462549aaacc14ee9"
 [view7_background]
 uid = "uid://1ai8jmkx43e20"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view7_background.import]
@@ -94,7 +87,6 @@ sha1 = "2c6afd8b6624e02823fb505d4c2af89ef2dab80a"
 [view8_background]
 uid = "uid://6rotb1ra8wz"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view8_background.import]
@@ -107,12 +99,11 @@ sha1 = "ff288dc3517622a41253a37b20d25f372d4221bc"
 [view3]
 uid = "uid://1t4zal0ihe9fs"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
-palettes.row_1 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 1] }
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] }
+palettes.row_1 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 1] }
 cells.view3_sprite_0 = { rect = [72, 56, 56, 56], palette = "row_0" }
 cells.view3_sprite_1 = { rect = [72, 0, 56, 56], palette = "row_0" }
 cells.view3_sprite_2 = { rect = [72, 160, 56, 48], palette = "row_0" }
@@ -154,11 +145,10 @@ palettes = { row_0 = "47e41bced1a74b25d1b31bf8e5f6b0ea569c613b", row_1 = "29e0d9
 [view4]
 uid = "uid://196zh7up08o1p"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] }
 cells.view4_sprite_0 = { rect = [120, 0, 8, 176], palette = "row_0" }
 cells.view4_sprite_1 = { rect = [120, 176, 8, 72], palette = "row_0" }
 cells.view4_sprite_2 = { rect = [112, 0, 8, 88], palette = "row_0" }
@@ -216,11 +206,10 @@ palettes = { row_0 = "3d34d75f753b49360cfb20ace0c975f9d779958a" }
 [view7]
 uid = "uid://1av8qggfaud3u"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] }
 cells.view7_sprite_0 = { rect = [248, 0, 8, 168], palette = "row_0" }
 cells.view7_sprite_1 = { rect = [232, 0, 8, 160], palette = "row_0" }
 cells.view7_sprite_2 = { rect = [240, 0, 8, 160], palette = "row_0" }
@@ -363,11 +352,10 @@ palettes = { row_0 = "7e240350e0d7f1b4cc7ada23947d1bc2f95eadcb" }
 [view8]
 uid = "uid://wa0x8tyf8n57"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [192, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
-palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] }
 cells.view8_sprite_0 = { rect = [104, 40, 16, 40], palette = "row_0" }
 cells.view8_sprite_1 = { rect = [120, 0, 8, 72], palette = "row_0" }
 cells.view8_sprite_2 = { rect = [72, 120, 32, 16], palette = "row_0" }

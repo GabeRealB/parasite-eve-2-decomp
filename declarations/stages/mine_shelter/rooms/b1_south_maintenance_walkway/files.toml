@@ -16,7 +16,7 @@ type = "sound_bank"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://14l92fh3r6wpt", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://14l92fh3r6wpt", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
@@ -31,10 +31,10 @@ type = "bundle"
 index = 3
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://lhcsh4l3mg0j", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4.asset", part = "palettes/row_0" } },
-    { palette = { uid = "uid://lhcsh4l3mg0j", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4.asset", part = "palettes/row_1" } },
+    { palette = { uid = "uid://lhcsh4l3mg0j", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4.node", output = "palettes/row_0" } },
+    { palette = { uid = "uid://lhcsh4l3mg0j", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4.node", output = "palettes/row_1" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 5
@@ -48,7 +48,7 @@ chunks = { dialogue_0_atlas = "3d14994567ec2ab0ad5bb918f6c2525b05b918a2" }
 uid = "uid://ybs52nopryga"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://10tofikqteds8", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://10tofikqteds8", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -58,7 +58,7 @@ at = [{ stage = 4, folder = 1001, file = 1 }]
 uid = "uid://n5bm0sfef1cf"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://i77i0zue9y7w", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view2_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://i77i0zue9y7w", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view2_background.node" } },
 ]
 
 [view2.from.USA]
@@ -68,7 +68,7 @@ at = [{ stage = 4, folder = 1001, file = 2 }]
 uid = "uid://oabvucx8cgj8"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://uqe340ogeded", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view3_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://uqe340ogeded", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view3_background.node" } },
 ]
 
 [view3.from.USA]
@@ -82,13 +82,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://lhcsh4l3mg0j", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4.asset" } },
+    { image = { uid = "uid://lhcsh4l3mg0j", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4.node" } },
 ]
 
 [[view4.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1tyibhw9077p8", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4_background.asset" }
+asset = { uid = "uid://1tyibhw9077p8", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view4_background.node" }
 
 [view4.from.USA]
 at = [{ stage = 4, folder = 1001, file = 4 }]
@@ -98,7 +98,7 @@ chunks = { image = "672828230702d989568a2cdc0f40eb861181fe10" }
 uid = "uid://g8z470ptj1w0"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://yzyppneu4zjk", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view5_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://yzyppneu4zjk", path = "res://stages/mine_shelter/rooms/b1_south_maintenance_walkway/views/view5_background.node" } },
 ]
 
 [view5.from.USA]

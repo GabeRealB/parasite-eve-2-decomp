@@ -16,7 +16,7 @@ type = "sound_bank"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://1iktwag4y9usw", path = "res://stages/dryfield/rooms/back_street/day/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://1iktwag4y9usw", path = "res://stages/dryfield/rooms/back_street/day/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
@@ -31,17 +31,17 @@ type = "bundle"
 index = 3
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1hztpoplhpi9y", path = "res://stages/dryfield/rooms/back_street/day/views/view4.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1hztpoplhpi9y", path = "res://stages/dryfield/rooms/back_street/day/views/view4.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 4
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://5awk6agbm97n", path = "res://stages/dryfield/rooms/back_street/day/views/view5.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://5awk6agbm97n", path = "res://stages/dryfield/rooms/back_street/day/views/view5.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 5
@@ -55,7 +55,7 @@ chunks = { dialogue_0_atlas = "83d842bea538262c1f986ca426581827b799b0d4" }
 uid = "uid://iw0mi2i5jwjx"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://d96ynoe3aqgt", path = "res://stages/dryfield/rooms/back_street/day/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://d96ynoe3aqgt", path = "res://stages/dryfield/rooms/back_street/day/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -65,7 +65,7 @@ at = [{ stage = 2, folder = 501, file = 1 }]
 uid = "uid://1ewkt81vldl7f"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://f2ks1wulu11c", path = "res://stages/dryfield/rooms/back_street/day/views/view2_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://f2ks1wulu11c", path = "res://stages/dryfield/rooms/back_street/day/views/view2_background.node" } },
 ]
 
 [view2.from.USA]
@@ -75,7 +75,7 @@ at = [{ stage = 2, folder = 501, file = 2 }]
 uid = "uid://xx4pb5ayjpbo"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://6f2m8yw22hm", path = "res://stages/dryfield/rooms/back_street/day/views/view3_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://6f2m8yw22hm", path = "res://stages/dryfield/rooms/back_street/day/views/view3_background.node" } },
 ]
 
 [view3.from.USA]
@@ -89,13 +89,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1hztpoplhpi9y", path = "res://stages/dryfield/rooms/back_street/day/views/view4.asset" } },
+    { image = { uid = "uid://1hztpoplhpi9y", path = "res://stages/dryfield/rooms/back_street/day/views/view4.node" } },
 ]
 
 [[view4.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://7j8ec9acyf72", path = "res://stages/dryfield/rooms/back_street/day/views/view4_background.asset" }
+asset = { uid = "uid://7j8ec9acyf72", path = "res://stages/dryfield/rooms/back_street/day/views/view4_background.node" }
 
 [view4.from.USA]
 at = [{ stage = 2, folder = 501, file = 4 }]
@@ -109,13 +109,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://5awk6agbm97n", path = "res://stages/dryfield/rooms/back_street/day/views/view5.asset" } },
+    { image = { uid = "uid://5awk6agbm97n", path = "res://stages/dryfield/rooms/back_street/day/views/view5.node" } },
 ]
 
 [[view5.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1v7bj6u1b903r", path = "res://stages/dryfield/rooms/back_street/day/views/view5_background.asset" }
+asset = { uid = "uid://1v7bj6u1b903r", path = "res://stages/dryfield/rooms/back_street/day/views/view5_background.node" }
 
 [view5.from.USA]
 at = [{ stage = 2, folder = 501, file = 5 }]

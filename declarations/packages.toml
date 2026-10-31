@@ -44,6 +44,12 @@ stack = []
 [gameplay.target.psx]
 symbols = "psx/symbols.ld"
 
+[aya]
+uid = "uid://upo6m0w1osm2"
+kind = "package"
+public = ["include"]
+stack = []
+
 # What a language server reads: every package that compiles, for the config in use.
 
 [compile_database]

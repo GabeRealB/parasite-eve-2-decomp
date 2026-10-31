@@ -5,17 +5,17 @@ uid = "uid://qniwkgastgm8"
 kind = "folder"
 stream_data = false
 files = [
-    { name = "base", id = 0, asset = { uid = "uid://1ai38szd64sft", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/base.asset" } },
-    { name = "view1", id = 1, asset = { uid = "uid://hd76zctn1sjw", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view1.asset" } },
-    { name = "view2", id = 2, asset = { uid = "uid://1cvzoqp96340b", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view2.asset" } },
-    { name = "view3", id = 3, asset = { uid = "uid://79sa8aifvbhq", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view3.asset" } },
-    { name = "view4", id = 4, asset = { uid = "uid://1wt7zh7xqbcwj", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view4.asset" } },
-    { name = "view5", id = 5, asset = { uid = "uid://1ezgm4ji1fp2q", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view5.asset" } },
-    { name = "view6", id = 6, asset = { uid = "uid://8yj0ao0635kf", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view6.asset" } },
-    { name = "view7", id = 7, asset = { uid = "uid://17u5kem8765v3", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view7.asset" } },
-    { name = "view8", id = 8, asset = { uid = "uid://3t7k14fyo9ez", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view8.asset" } },
-    { name = "view9", id = 9, asset = { uid = "uid://1xrj7bbxy68l0", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view9.asset" } },
-    { name = "view10", id = 10, asset = { uid = "uid://t9501o6iyk6d", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view10.asset" } },
+    { name = "base", id = 0, asset = { uid = "uid://1ai38szd64sft", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/base.node" } },
+    { name = "view1", id = 1, asset = { uid = "uid://hd76zctn1sjw", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view1.node" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1cvzoqp96340b", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view2.node" } },
+    { name = "view3", id = 3, asset = { uid = "uid://79sa8aifvbhq", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view3.node" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1wt7zh7xqbcwj", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view4.node" } },
+    { name = "view5", id = 5, asset = { uid = "uid://1ezgm4ji1fp2q", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view5.node" } },
+    { name = "view6", id = 6, asset = { uid = "uid://8yj0ao0635kf", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view6.node" } },
+    { name = "view7", id = 7, asset = { uid = "uid://17u5kem8765v3", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view7.node" } },
+    { name = "view8", id = 8, asset = { uid = "uid://3t7k14fyo9ez", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view8.node" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1xrj7bbxy68l0", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view9.node" } },
+    { name = "view10", id = 10, asset = { uid = "uid://t9501o6iyk6d", path = "res://stages/shelter_neo_ark/rooms/1f_tent/files/view10.node" } },
 ]
 
 [folder.from.USA]
@@ -24,15 +24,14 @@ at = [{ stage = 5, folder = 2801 }]
 [dialogue_0_atlas]
 uid = "uid://w9plv2s3edb3"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 56]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
 importer = "pe2.images@ora"
@@ -46,15 +45,14 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_2_atlas]
 uid = "uid://ond3ow4b711s"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_2_atlas.import]
 importer = "pe2.images@ora"

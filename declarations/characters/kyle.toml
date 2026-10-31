@@ -3,12 +3,11 @@
 [gas_mask_texture]
 uid = "uid://4stj62bgbghs"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
-palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.node" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.node" }, at = [0, 1] }
 cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 
@@ -24,11 +23,10 @@ palettes = { default = "dfeb4ced2f05c9a053c417cca13b9b34a9e9de23", default_2 = "
 [m4a1_texture]
 uid = "uid://1b1ptw8c4pq5z"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.node" }, at = [0, 0] }
 
 [m4a1_texture.import]
 importer = "pe2.images@ora"
@@ -42,11 +40,10 @@ palettes = { default = "ff75b67c6d9f618b7944eae3722915a11c5fe7c8" }
 [m950_texture]
 uid = "uid://1uwi0yfhwp3qt"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.node" }, at = [0, 0] }
 
 [m950_texture.import]
 importer = "pe2.images@ora"
@@ -60,11 +57,10 @@ palettes = { default = "f5af948700d049413918b302e8ace952b19fd2c8" }
 [mm1_texture]
 uid = "uid://am93nzhg5od5"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.node" }, at = [0, 0] }
 
 [mm1_texture.import]
 importer = "pe2.images@ora"
@@ -78,11 +74,10 @@ palettes = { default = "0297bffdae11fd8a9a38c03ef59d41efb4a40060" }
 [p229_texture]
 uid = "uid://1nv7q8eelst4x"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
-palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://qemb3djlk7f1", path = "res://engine/vram/held_weapon_palette.node" }, at = [0, 0] }
 
 [p229_texture.import]
 importer = "pe2.images@ora"
@@ -96,12 +91,11 @@ palettes = { default = "05dcf3a9eedb573b641d10a33705df1ef2e36095" }
 [texture]
 uid = "uid://i1yrdvr4psdr"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 0] }
-palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 1] }
+palettes.default = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.node" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.node" }, at = [0, 1] }
 cells.page_0 = { rect = [0, 0, 128, 256], palette = "default" }
 cells.page_1 = { rect = [128, 0, 128, 256], palette = "default_2" }
 

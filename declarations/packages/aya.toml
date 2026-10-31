@@ -1,0 +1,74 @@
+# Aya's packages: what each source's slots hold, the models and frames it stores.
+
+[aya_10200]
+uid = "uid://pkq6zctcq1as"
+kind = "package"
+slot = "aya"
+sources = ["src/aya_10200.c"]
+bind.hand_left_open = { uid = "uid://9sm4h928zhlm", path = "res://characters/aya/10200/hand_left_open.node", output = "native" }
+bind.hand_left_closed = { uid = "uid://f82nerjgfqn6", path = "res://characters/aya/10200/hand_left_closed.node", output = "native" }
+bind.hand_right_open = { uid = "uid://jbzvx0e0j9qw", path = "res://characters/aya/10200/hand_right_open.node", output = "native" }
+bind.hand_right_closed = { uid = "uid://16fnydch8grzu", path = "res://characters/aya/10200/hand_right_closed.node", output = "native" }
+bind.body = { uid = "uid://rnk0dzsfq9n7", path = "res://characters/aya/10200/body.node", output = "native" }
+bind.eyes_open = { uid = "uid://wdmdjpvyovur", path = "res://characters/aya/10200/eyes_open.node", output = "words" }
+bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/aya/10200/eyes_half_closed.node", output = "words" }
+bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/10200/eyes_closed.node", output = "words" }
+bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/10200/mouth_rest.node", output = "words" }
+
+[aya_10200.target.psx]
+link_script = "psx/link.ld"
+
+[aya_10300]
+uid = "uid://gz0onrpki7ki"
+kind = "package"
+slot = "aya"
+sources = ["src/aya_10300.c"]
+bind.body = { uid = "uid://178c1fzlfalk5", path = "res://characters/aya/10300/body.node", output = "native" }
+bind.hand_left_open = { uid = "uid://15nmha2hfi98n", path = "res://characters/aya/10300/hand_left_open.node", output = "native" }
+bind.hand_left_closed = { uid = "uid://13zgdpqtqfmkf", path = "res://characters/aya/10300/hand_left_closed.node", output = "native" }
+bind.hand_right_open = { uid = "uid://pn0nqlxq7qy1", path = "res://characters/aya/10300/hand_right_open.node", output = "native" }
+bind.hand_right_closed = { uid = "uid://19ylu10rcv2jz", path = "res://characters/aya/10300/hand_right_closed.node", output = "native" }
+bind.eyes_open = { uid = "uid://1zmsq0rqx0gu", path = "res://characters/aya/10300/eyes_open.node", output = "words" }
+bind.eyes_half_closed = { uid = "uid://zb8ivzhp5t0w", path = "res://characters/aya/10300/eyes_half_closed.node", output = "words" }
+bind.eyes_closed = { uid = "uid://klal2y9l8ael", path = "res://characters/aya/10300/eyes_closed.node", output = "words" }
+bind.mouth_rest = { uid = "uid://q0c347avmygk", path = "res://characters/aya/10300/mouth_rest.node", output = "words" }
+bind.mouth_alternate = { uid = "uid://1pf66u5vaq3ux", path = "res://characters/aya/10300/mouth_alternate.node", output = "words" }
+
+[aya_10300.target.psx]
+link_script = "psx/link.ld"
+
+[aya_10400]
+uid = "uid://1poz67b78tdpm"
+kind = "package"
+slot = "aya"
+sources = ["src/aya_10400.c"]
+bind.body = { uid = "uid://1kx3bjs4l9836", path = "res://characters/aya/10400/body.node", output = "native" }
+bind.hand_left_both = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.node", output = "native" }
+bind.hand_right_open = { uid = "uid://3n75xecosgbh", path = "res://characters/aya/10400/hand_right_open.node", output = "native" }
+bind.hand_right_closed = { uid = "uid://1x7ipv1khfk4u", path = "res://characters/aya/10400/hand_right_closed.node", output = "native" }
+bind.eyes_open = { uid = "uid://11qcitnj36yhn", path = "res://characters/aya/10400/eyes_open.node", output = "words" }
+bind.eyes_half_closed = { uid = "uid://jqj9ppjaox1", path = "res://characters/aya/10400/eyes_half_closed.node", output = "words" }
+bind.eyes_closed = { uid = "uid://rr9dfll5tpb9", path = "res://characters/aya/10400/eyes_closed.node", output = "words" }
+bind.mouth_rest = { uid = "uid://1kd4b3khkr641", path = "res://characters/aya/10400/mouth_rest.node", output = "words" }
+bind.mouth_alternate = { uid = "uid://o7dfmsql58ar", path = "res://characters/aya/10400/mouth_alternate.node", output = "words" }
+
+[aya_10400.target.psx]
+link_script = "psx/link.ld"
+
+[aya_10500]
+uid = "uid://18drk5dg73b83"
+kind = "package"
+slot = "aya"
+sources = ["src/aya_10500.c"]
+bind.hand_left_open = { uid = "uid://1hl9viw34a84a", path = "res://characters/aya/10500/hand_left_open.node", output = "native" }
+bind.hand_left_closed = { uid = "uid://1s9mvxjeuack9", path = "res://characters/aya/10500/hand_left_closed.node", output = "native" }
+bind.hand_right_open = { uid = "uid://1t30ja55dz37z", path = "res://characters/aya/10500/hand_right_open.node", output = "native" }
+bind.hand_right_closed = { uid = "uid://4v4tnx26035c", path = "res://characters/aya/10500/hand_right_closed.node", output = "native" }
+bind.body = { uid = "uid://1fj3bthllccxa", path = "res://characters/aya/10500/body.node", output = "native" }
+bind.eyes_open = { uid = "uid://wdmdjpvyovur", path = "res://characters/aya/10200/eyes_open.node", output = "words" }
+bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/aya/10200/eyes_half_closed.node", output = "words" }
+bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/10200/eyes_closed.node", output = "words" }
+bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/10200/mouth_rest.node", output = "words" }
+
+[aya_10500.target.psx]
+link_script = "psx/link.ld"

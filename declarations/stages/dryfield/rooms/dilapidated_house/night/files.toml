@@ -16,7 +16,7 @@ type = "sound_bank"
 name = "dryfield_dilapidated_house_dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://w660kh3y7hae", path = "res://stages/dryfield/rooms/dilapidated_house/night/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://w660kh3y7hae", path = "res://stages/dryfield/rooms/dilapidated_house/night/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
@@ -31,65 +31,65 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1tl41bwpfsafi", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view2.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1tl41bwpfsafi", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view2.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 2
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1lc6mlc5zrb7y", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view3.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1lc6mlc5zrb7y", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view3.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 3
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://193k7jnh6hki", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view4.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://193k7jnh6hki", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view4.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 4
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1bs3gtz7o3hy1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view5.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://1bs3gtz7o3hy1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view5.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 5
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://10qqfz4z0szg1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view6.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://10qqfz4z0szg1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view6.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 6
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://8fdrdzow6l0d", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view7.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://8fdrdzow6l0d", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view7.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 7
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://10wfrw33uqloa", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view8.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://10wfrw33uqloa", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view8.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 10
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://f9gwagjqzbr5", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view11.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://f9gwagjqzbr5", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view11.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 11
@@ -103,7 +103,7 @@ chunks = { dryfield_dilapidated_house_dialogue_0_atlas = "beabd45cf5879da99bb6de
 uid = "uid://g17sd2jte5ci"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://6habvz47b6x0", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://6habvz47b6x0", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -117,13 +117,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1tl41bwpfsafi", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view2.asset" } },
+    { image = { uid = "uid://1tl41bwpfsafi", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view2.node" } },
 ]
 
 [[view2.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://9s3tij6ri52b", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view2_background.asset" }
+asset = { uid = "uid://9s3tij6ri52b", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view2_background.node" }
 
 [view2.from.USA]
 at = [{ stage = 3, folder = 901, file = 2 }]
@@ -137,13 +137,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1lc6mlc5zrb7y", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view3.asset" } },
+    { image = { uid = "uid://1lc6mlc5zrb7y", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view3.node" } },
 ]
 
 [[view3.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1o8q87sjnqnj2", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view3_background.asset" }
+asset = { uid = "uid://1o8q87sjnqnj2", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view3_background.node" }
 
 [view3.from.USA]
 at = [{ stage = 3, folder = 901, file = 3 }]
@@ -157,13 +157,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://193k7jnh6hki", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view4.asset" } },
+    { image = { uid = "uid://193k7jnh6hki", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view4.node" } },
 ]
 
 [[view4.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1fr0o48my7br4", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view4_background.asset" }
+asset = { uid = "uid://1fr0o48my7br4", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view4_background.node" }
 
 [view4.from.USA]
 at = [{ stage = 3, folder = 901, file = 4 }]
@@ -177,13 +177,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1bs3gtz7o3hy1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view5.asset" } },
+    { image = { uid = "uid://1bs3gtz7o3hy1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view5.node" } },
 ]
 
 [[view5.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1505jefzjyr20", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view5_background.asset" }
+asset = { uid = "uid://1505jefzjyr20", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view5_background.node" }
 
 [view5.from.USA]
 at = [{ stage = 3, folder = 901, file = 5 }]
@@ -197,13 +197,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://10qqfz4z0szg1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view6.asset" } },
+    { image = { uid = "uid://10qqfz4z0szg1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view6.node" } },
 ]
 
 [[view6.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1eop3blilybck", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view6_background.asset" }
+asset = { uid = "uid://1eop3blilybck", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view6_background.node" }
 
 [view6.from.USA]
 at = [{ stage = 3, folder = 901, file = 6 }]
@@ -217,13 +217,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://8fdrdzow6l0d", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view7.asset" } },
+    { image = { uid = "uid://8fdrdzow6l0d", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view7.node" } },
 ]
 
 [[view7.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://woeyia7terkk", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view7_background.asset" }
+asset = { uid = "uid://woeyia7terkk", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view7_background.node" }
 
 [view7.from.USA]
 at = [{ stage = 3, folder = 901, file = 7 }]
@@ -237,13 +237,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://10wfrw33uqloa", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view8.asset" } },
+    { image = { uid = "uid://10wfrw33uqloa", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view8.node" } },
 ]
 
 [[view8.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1kq7jd1bvimu6", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view8_background.asset" }
+asset = { uid = "uid://1kq7jd1bvimu6", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view8_background.node" }
 
 [view8.from.USA]
 at = [{ stage = 3, folder = 901, file = 8 }]
@@ -253,7 +253,7 @@ chunks = { image = "2b9ac77f46a1ef13272aec6d81a59f5c76178151" }
 uid = "uid://1fpsa92rjg5ml"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1ty7b86xlrggu", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view9_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1ty7b86xlrggu", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view9_background.node" } },
 ]
 
 [view9.from.USA]
@@ -263,7 +263,7 @@ at = [{ stage = 3, folder = 901, file = 9 }]
 uid = "uid://bwj1a1boadja"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1xsfn09isqil1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view10_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1xsfn09isqil1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view10_background.node" } },
 ]
 
 [view10.from.USA]
@@ -277,13 +277,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://f9gwagjqzbr5", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view11.asset" } },
+    { image = { uid = "uid://f9gwagjqzbr5", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view11.node" } },
 ]
 
 [[view11.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://ey6dgd6o9qlp", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view11_background.asset" }
+asset = { uid = "uid://ey6dgd6o9qlp", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view11_background.node" }
 
 [view11.from.USA]
 at = [{ stage = 3, folder = 901, file = 11 }]

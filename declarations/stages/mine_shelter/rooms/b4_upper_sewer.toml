@@ -5,21 +5,21 @@ uid = "uid://1spouusbxp73e"
 kind = "folder"
 stream_data = false
 files = [
-    { name = "base", id = 0, asset = { uid = "uid://1rl39spoggm5c", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/base.asset" } },
-    { name = "view1", id = 1, asset = { uid = "uid://1vrefmwhsl39g", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view1.asset" } },
-    { name = "view2", id = 2, asset = { uid = "uid://1g3un3rkvl3ps", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view2.asset" } },
-    { name = "view3", id = 3, asset = { uid = "uid://188dqsyleh0z9", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view3.asset" } },
-    { name = "view4", id = 4, asset = { uid = "uid://1r4qiwx00r7ss", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view4.asset" } },
-    { name = "view5", id = 5, asset = { uid = "uid://weplpn4m34p8", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view5.asset" } },
-    { name = "view6", id = 6, asset = { uid = "uid://9unr89tgzdcy", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view6.asset" } },
-    { name = "view7", id = 7, asset = { uid = "uid://pfuro7057fd", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view7.asset" } },
-    { name = "view8", id = 8, asset = { uid = "uid://v6q1zm2u92no", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view8.asset" } },
-    { name = "view9", id = 9, asset = { uid = "uid://12w1n1f2e1cy5", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view9.asset" } },
-    { name = "view10", id = 10, asset = { uid = "uid://16tbzweonn8zj", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view10.asset" } },
-    { name = "view11", id = 11, asset = { uid = "uid://2y07cnfm2fh8", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view11.asset" } },
-    { name = "view12", id = 12, asset = { uid = "uid://1xlcwdyn6fkmc", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view12.asset" } },
-    { name = "view13", id = 13, asset = { uid = "uid://1cuuez4ybraa3", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view13.asset" } },
-    { name = "view14", id = 14, asset = { uid = "uid://pjkcpwoifxn0", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view14.asset" } },
+    { name = "base", id = 0, asset = { uid = "uid://1rl39spoggm5c", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/base.node" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1vrefmwhsl39g", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view1.node" } },
+    { name = "view2", id = 2, asset = { uid = "uid://1g3un3rkvl3ps", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view2.node" } },
+    { name = "view3", id = 3, asset = { uid = "uid://188dqsyleh0z9", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view3.node" } },
+    { name = "view4", id = 4, asset = { uid = "uid://1r4qiwx00r7ss", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view4.node" } },
+    { name = "view5", id = 5, asset = { uid = "uid://weplpn4m34p8", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view5.node" } },
+    { name = "view6", id = 6, asset = { uid = "uid://9unr89tgzdcy", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view6.node" } },
+    { name = "view7", id = 7, asset = { uid = "uid://pfuro7057fd", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view7.node" } },
+    { name = "view8", id = 8, asset = { uid = "uid://v6q1zm2u92no", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view8.node" } },
+    { name = "view9", id = 9, asset = { uid = "uid://12w1n1f2e1cy5", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view9.node" } },
+    { name = "view10", id = 10, asset = { uid = "uid://16tbzweonn8zj", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view10.node" } },
+    { name = "view11", id = 11, asset = { uid = "uid://2y07cnfm2fh8", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view11.node" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1xlcwdyn6fkmc", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view12.node" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1cuuez4ybraa3", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view13.node" } },
+    { name = "view14", id = 14, asset = { uid = "uid://pjkcpwoifxn0", path = "res://stages/mine_shelter/rooms/b4_upper_sewer/files/view14.node" } },
 ]
 
 [folder.from.USA]
@@ -28,15 +28,14 @@ at = [{ stage = 4, folder = 4401 }]
 [dialogue_0_atlas]
 uid = "uid://1mwej517yjn81"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
 importer = "pe2.images@ora"

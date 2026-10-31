@@ -16,7 +16,7 @@ type = "sound_bank"
 name = "dryfield_souvenir_shop_dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://1jvf9wxhmn9ai", path = "res://stages/dryfield/rooms/souvenir_shop/night/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://1jvf9wxhmn9ai", path = "res://stages/dryfield/rooms/souvenir_shop/night/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
@@ -31,19 +31,19 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://7pwfjixe3j8j", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2.asset", part = "palettes/row_0" } },
-    { palette = { uid = "uid://7pwfjixe3j8j", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2.asset", part = "palettes/row_1" } },
+    { palette = { uid = "uid://7pwfjixe3j8j", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2.node", output = "palettes/row_0" } },
+    { palette = { uid = "uid://7pwfjixe3j8j", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2.node", output = "palettes/row_1" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 2
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1c4xr70eybhpz", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3.asset", part = "palettes/row_0" } },
-    { palette = { uid = "uid://1c4xr70eybhpz", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3.asset", part = "palettes/row_1" } },
+    { palette = { uid = "uid://1c4xr70eybhpz", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3.node", output = "palettes/row_0" } },
+    { palette = { uid = "uid://1c4xr70eybhpz", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3.node", output = "palettes/row_1" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 3
@@ -57,7 +57,7 @@ chunks = { dryfield_souvenir_shop_dialogue_0_atlas = "cb61a680e7df8702d894ef0058
 uid = "uid://w0x2f0fc0qzk"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1u2ueyquzuxlv", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1u2ueyquzuxlv", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -71,13 +71,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://7pwfjixe3j8j", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2.asset" } },
+    { image = { uid = "uid://7pwfjixe3j8j", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2.node" } },
 ]
 
 [[view2.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://3yl47khwzjxk", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2_background.asset" }
+asset = { uid = "uid://3yl47khwzjxk", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view2_background.node" }
 
 [view2.from.USA]
 at = [{ stage = 3, folder = 601, file = 2 }]
@@ -91,13 +91,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1c4xr70eybhpz", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3.asset" } },
+    { image = { uid = "uid://1c4xr70eybhpz", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3.node" } },
 ]
 
 [[view3.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://esmlatazdgit", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3_background.asset" }
+asset = { uid = "uid://esmlatazdgit", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3_background.node" }
 
 [view3.from.USA]
 at = [{ stage = 3, folder = 601, file = 3 }]

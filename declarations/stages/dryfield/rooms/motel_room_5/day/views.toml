@@ -3,7 +3,6 @@
 [view1_background]
 uid = "uid://28dy52fq5kzn"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view1_background.import]
@@ -16,7 +15,6 @@ sha1 = "e877326b841918bfd1222295781005415e13e254"
 [view2_background]
 uid = "uid://5r89igib3u8k"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view2_background.import]
@@ -29,7 +27,6 @@ sha1 = "4e94efc73a804f8b7e416844e0f1926f624d1406"
 [view3_background]
 uid = "uid://l2vcbk8h6xnf"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view3_background.import]
@@ -42,7 +39,6 @@ sha1 = "286bbb2068c0831cf666c57abb0d7db27b35ea3d"
 [view4_background]
 uid = "uid://16klcjvjlg7ud"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view4_background.import]
@@ -55,7 +51,6 @@ sha1 = "1b8c796d56679f38510229eda034425235368e39"
 [view5_background]
 uid = "uid://1ky8fk4ulo2dp"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view5_background.import]
@@ -68,7 +63,6 @@ sha1 = "f51d5f8fbb5251b8fe9aa78d91407d4c2627fa44"
 [view6_background]
 uid = "uid://ss4x9i5gcc03"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view6_background.import]
@@ -81,16 +75,15 @@ sha1 = "52bdd2fd62c880fced8d922cc46e3e965ab52b95"
 [view1]
 uid = "uid://chj0gtoziry7"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_4bpp"
 size = [248, 256]
-palettes.row_5_10 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [160, 5] }
-palettes.row_5_11 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [176, 5] }
-palettes.row_5_12 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [192, 5] }
-palettes.row_5_13 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [208, 5] }
-palettes.row_5_14 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [224, 5] }
-palettes.row_5_15 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [240, 5] }
+palettes.row_5_10 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [160, 5] }
+palettes.row_5_11 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [176, 5] }
+palettes.row_5_12 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [192, 5] }
+palettes.row_5_13 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [208, 5] }
+palettes.row_5_14 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [224, 5] }
+palettes.row_5_15 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [240, 5] }
 
 [view1.import]
 importer = "pe2.images@ora"

@@ -3,7 +3,6 @@
 [background]
 uid = "uid://1x0do78jqca67"
 kind = "image"
-role = "background"
 format = "bs"
 
 [background.import]

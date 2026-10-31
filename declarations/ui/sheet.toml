@@ -3,41 +3,40 @@
 [atlas]
 uid = "uid://1phwsc8thzr3b"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://zlu7juzpqhk1", path = "res://engine/vram/ui_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://zlu7juzpqhk1", path = "res://engine/vram/ui_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-palettes.shoulder = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [0, 0] }
-palettes.player_name = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [32, 0] }
-palettes.frame = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [48, 0] }
-palettes.pe_fire = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [64, 0] }
-palettes.pe_wind = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [80, 0] }
-palettes.pe_water = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [96, 0] }
-palettes.pe_earth = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [112, 0] }
-palettes.status = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [128, 0] }
-palettes.arrow_up = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [144, 0] }
-palettes.cursor = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [160, 0] }
-palettes.gauge = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [176, 0] }
-palettes.disc = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [192, 0] }
-palettes.marker_targeted = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [208, 0] }
-palettes.background = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [240, 0] }
-palettes.portrait = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [0, 1] }
-palettes."weapon.battery" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [0, 2] }
-palettes.lock_on = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [16, 2] }
-palettes.range_around = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [32, 2] }
-palettes.other_item = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [48, 2] }
-palettes."background.pulse" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [64, 2] }
-palettes.caption_earth = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [80, 2] }
-palettes.caption_wind = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [96, 2] }
-palettes."action_cursor.hotspot" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [112, 2] }
-palettes.action_cursor = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [128, 2] }
-palettes."ammunition.ammo_40mm" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [144, 2] }
-palettes.empty = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [160, 2] }
-palettes.pe_fallback = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [176, 2] }
-palettes."ammunition.ammo_44_magnum" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [192, 2] }
-palettes."other_item.ammo_9mm" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [208, 2] }
-palettes.unidentified = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [224, 2] }
-palettes.key_item = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.asset" }, at = [240, 2] }
+palettes.shoulder = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [0, 0] }
+palettes.player_name = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [32, 0] }
+palettes.frame = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [48, 0] }
+palettes.pe_fire = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [64, 0] }
+palettes.pe_wind = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [80, 0] }
+palettes.pe_water = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [96, 0] }
+palettes.pe_earth = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [112, 0] }
+palettes.status = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [128, 0] }
+palettes.arrow_up = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [144, 0] }
+palettes.cursor = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [160, 0] }
+palettes.gauge = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [176, 0] }
+palettes.disc = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [192, 0] }
+palettes.marker_targeted = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [208, 0] }
+palettes.background = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [240, 0] }
+palettes.portrait = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [0, 1] }
+palettes."weapon.battery" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [0, 2] }
+palettes.lock_on = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [16, 2] }
+palettes.range_around = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [32, 2] }
+palettes.other_item = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [48, 2] }
+palettes."background.pulse" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [64, 2] }
+palettes.caption_earth = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [80, 2] }
+palettes.caption_wind = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [96, 2] }
+palettes."action_cursor.hotspot" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [112, 2] }
+palettes.action_cursor = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [128, 2] }
+palettes."ammunition.ammo_40mm" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [144, 2] }
+palettes.empty = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [160, 2] }
+palettes.pe_fallback = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [176, 2] }
+palettes."ammunition.ammo_44_magnum" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [192, 2] }
+palettes."other_item.ammo_9mm" = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [208, 2] }
+palettes.unidentified = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [224, 2] }
+palettes.key_item = { slot = { uid = "uid://16npji49wkpmr", path = "res://engine/vram/ui_palettes.node" }, at = [240, 2] }
 cells.background = { rect = [0, 0, 32, 32], palette = "background" }
 cells.noise_tile = { rect = [32, 0, 32, 32] }
 cells."lock_on.0" = { rect = [64, 0, 32, 32], palette = "lock_on" }

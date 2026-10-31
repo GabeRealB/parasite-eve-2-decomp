@@ -16,24 +16,24 @@ type = "sound_bank"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://m3fv7lofgoaz", path = "res://stages/mine_shelter/rooms/b2_septic_tank/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://m3fv7lofgoaz", path = "res://stages/mine_shelter/rooms/b2_septic_tank/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.asset", part = "palettes/effect_row_10_17" } },
-    { palette = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.asset", part = "palettes/effect_row_10_18" } },
-    { palette = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.asset", part = "palettes/effect_row_10_19" } },
+    { palette = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.node", output = "palettes/effect_row_10_17" } },
+    { palette = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.node", output = "palettes/effect_row_10_18" } },
+    { palette = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.node", output = "palettes/effect_row_10_19" } },
 ]
-upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9], size = [320, 2] }
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 9], size = [320, 2] }
 
 [[base.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.asset" } },
+    { image = { uid = "uid://1pltn4lhhap8w", path = "res://stages/mine_shelter/rooms/b2_septic_tank/props/water_effects.node" } },
 ]
 
 [[base.slots]]
@@ -48,33 +48,33 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://r5whbiij3sqg", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view2.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://r5whbiij3sqg", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view2.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 2
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://12f2bj0dnvlgj", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view3.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://12f2bj0dnvlgj", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view3.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 3
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://kg7cpff5mb0e", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view4.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://kg7cpff5mb0e", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view4.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 4
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://vbl42kr3ay9p", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view5.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://vbl42kr3ay9p", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view5.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 6
@@ -88,7 +88,7 @@ chunks = { dialogue_0_atlas = "c8f0e3805634c7e749ece02e588a04df7e30d14d", palett
 uid = "uid://1ue9dbu44hafw"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1wk0ud3yuzf3s", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1wk0ud3yuzf3s", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -102,13 +102,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://r5whbiij3sqg", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view2.asset" } },
+    { image = { uid = "uid://r5whbiij3sqg", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view2.node" } },
 ]
 
 [[view2.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://3at9bsjnmld5", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view2_background.asset" }
+asset = { uid = "uid://3at9bsjnmld5", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view2_background.node" }
 
 [view2.from.USA]
 at = [{ stage = 4, folder = 3401, file = 2 }]
@@ -122,13 +122,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://12f2bj0dnvlgj", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view3.asset" } },
+    { image = { uid = "uid://12f2bj0dnvlgj", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view3.node" } },
 ]
 
 [[view3.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1qr17zjncna5p", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view3_background.asset" }
+asset = { uid = "uid://1qr17zjncna5p", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view3_background.node" }
 
 [view3.from.USA]
 at = [{ stage = 4, folder = 3401, file = 3 }]
@@ -142,13 +142,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://kg7cpff5mb0e", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view4.asset" } },
+    { image = { uid = "uid://kg7cpff5mb0e", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view4.node" } },
 ]
 
 [[view4.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1v96f897gux4h", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view4_background.asset" }
+asset = { uid = "uid://1v96f897gux4h", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view4_background.node" }
 
 [view4.from.USA]
 at = [{ stage = 4, folder = 3401, file = 4 }]
@@ -162,13 +162,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://vbl42kr3ay9p", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view5.asset" } },
+    { image = { uid = "uid://vbl42kr3ay9p", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view5.node" } },
 ]
 
 [[view5.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://o3xmqqz8gy7n", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view5_background.asset" }
+asset = { uid = "uid://o3xmqqz8gy7n", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view5_background.node" }
 
 [view5.from.USA]
 at = [{ stage = 4, folder = 3401, file = 5 }]
@@ -178,7 +178,7 @@ chunks = { image = "ac9507842d550ff8d05fad2534dd2e41692362dc" }
 uid = "uid://1f37i5yls4zh0"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://ke4wsughgkq5", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view6_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://ke4wsughgkq5", path = "res://stages/mine_shelter/rooms/b2_septic_tank/views/view6_background.node" } },
 ]
 
 [view6.from.USA]

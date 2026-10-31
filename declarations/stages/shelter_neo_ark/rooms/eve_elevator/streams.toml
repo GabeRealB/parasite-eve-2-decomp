@@ -3,7 +3,7 @@
 [movie_2]
 uid = "uid://frrxhl2dl5hu"
 kind = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/eve_elevator_movie_2" }
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/eve_elevator_movie_2" }
 group = 0
 id = 2
 sub_id = 0

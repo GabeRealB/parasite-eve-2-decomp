@@ -3,7 +3,7 @@
 [movie_6]
 uid = "uid://1p6fl0ky2kb7y"
 kind = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/observatory_movie_6" }
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/observatory_movie_6" }
 group = 0
 id = 6
 sub_id = 0
@@ -22,7 +22,7 @@ at = [{ stage = 1, folder = 1001, stream = "movie_6" }]
 [movie_7]
 uid = "uid://1ixs4yngl5mph"
 kind = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/observatory_movie_7" }
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/observatory_movie_7" }
 group = 0
 id = 7
 sub_id = 0

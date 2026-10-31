@@ -16,24 +16,24 @@ type = "sound_bank"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://1fhvxkwigo1it", path = "res://stages/shelter_neo_ark/rooms/pavilion/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://1fhvxkwigo1it", path = "res://stages/shelter_neo_ark/rooms/pavilion/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.asset", part = "palettes/effect_row_10_17" } },
-    { palette = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.asset", part = "palettes/effect_row_10_18" } },
-    { palette = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.asset", part = "palettes/effect_row_10_19" } },
+    { palette = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.node", output = "palettes/effect_row_10_17" } },
+    { palette = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.node", output = "palettes/effect_row_10_18" } },
+    { palette = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.node", output = "palettes/effect_row_10_19" } },
 ]
-upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 9], size = [320, 2] }
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 9], size = [320, 2] }
 
 [[base.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.asset" } },
+    { image = { uid = "uid://1c4itcdppc509", path = "res://stages/shelter_neo_ark/rooms/pavilion/props/water_effects.node" } },
 ]
 
 [[base.slots]]
@@ -48,51 +48,51 @@ type = "bundle"
 index = 1
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://158j6ek0bl0s9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2.asset", part = "palettes/row_0" } },
-    { palette = { uid = "uid://158j6ek0bl0s9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2.asset", part = "palettes/row_1" } },
+    { palette = { uid = "uid://158j6ek0bl0s9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2.node", output = "palettes/row_0" } },
+    { palette = { uid = "uid://158j6ek0bl0s9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2.node", output = "palettes/row_1" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 2
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://160g1xvpgb4sn", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://160g1xvpgb4sn", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 3
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1vq80de016y58", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4.asset", part = "palettes/row_0" } },
-    { palette = { uid = "uid://1vq80de016y58", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4.asset", part = "palettes/row_1" } },
+    { palette = { uid = "uid://1vq80de016y58", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4.node", output = "palettes/row_0" } },
+    { palette = { uid = "uid://1vq80de016y58", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4.node", output = "palettes/row_1" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 4
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://11izporjmiix6", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view5.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://11izporjmiix6", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view5.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 5
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://sdv9qgppjz1y", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view6.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://sdv9qgppjz1y", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view6.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 6
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://cg4l6v4e4rz3", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view7.asset", part = "palettes/row_0" } },
+    { palette = { uid = "uid://cg4l6v4e4rz3", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view7.node", output = "palettes/row_0" } },
 ]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" } }
+upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
 [[base.slots.resources]]
 index = 7
@@ -106,7 +106,7 @@ chunks = { dialogue_0_atlas = "bbefe6c5a7e701d95b6f2fb86890133ff2fe0a8b", palett
 uid = "uid://1exzw9jt7s2em"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1qki2lhx27w5l", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1qki2lhx27w5l", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -120,13 +120,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://158j6ek0bl0s9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2.asset" } },
+    { image = { uid = "uid://158j6ek0bl0s9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2.node" } },
 ]
 
 [[view2.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://16qwin52tgwp9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2_background.asset" }
+asset = { uid = "uid://16qwin52tgwp9", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view2_background.node" }
 
 [view2.from.USA]
 at = [{ stage = 5, folder = 1301, file = 2 }]
@@ -140,13 +140,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://160g1xvpgb4sn", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3.asset" } },
+    { image = { uid = "uid://160g1xvpgb4sn", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3.node" } },
 ]
 
 [[view3.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://9pjzuqzm39oh", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3_background.asset" }
+asset = { uid = "uid://9pjzuqzm39oh", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3_background.node" }
 
 [view3.from.USA]
 at = [{ stage = 5, folder = 1301, file = 3 }]
@@ -160,13 +160,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1vq80de016y58", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4.asset" } },
+    { image = { uid = "uid://1vq80de016y58", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4.node" } },
 ]
 
 [[view4.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://10hsn0x7rr44s", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4_background.asset" }
+asset = { uid = "uid://10hsn0x7rr44s", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view4_background.node" }
 
 [view4.from.USA]
 at = [{ stage = 5, folder = 1301, file = 4 }]
@@ -180,13 +180,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://11izporjmiix6", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view5.asset" } },
+    { image = { uid = "uid://11izporjmiix6", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view5.node" } },
 ]
 
 [[view5.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://9pjzuqzm39oh", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3_background.asset" }
+asset = { uid = "uid://9pjzuqzm39oh", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view3_background.node" }
 
 [view5.from.USA]
 at = [{ stage = 5, folder = 1301, file = 5 }]
@@ -200,13 +200,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://sdv9qgppjz1y", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view6.asset" } },
+    { image = { uid = "uid://sdv9qgppjz1y", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view6.node" } },
 ]
 
 [[view6.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://12cdntvzop2gi", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view6_background.asset" }
+asset = { uid = "uid://12cdntvzop2gi", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view6_background.node" }
 
 [view6.from.USA]
 at = [{ stage = 5, folder = 1301, file = 6 }]
@@ -220,13 +220,13 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://cg4l6v4e4rz3", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view7.asset" } },
+    { image = { uid = "uid://cg4l6v4e4rz3", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view7.node" } },
 ]
 
 [[view7.slots]]
 name = "background"
 type = "bs"
-asset = { uid = "uid://1lzmo7ha092o1", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view7_background.asset" }
+asset = { uid = "uid://1lzmo7ha092o1", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view7_background.node" }
 
 [view7.from.USA]
 at = [{ stage = 5, folder = 1301, file = 7 }]

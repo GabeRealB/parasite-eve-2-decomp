@@ -3,8 +3,7 @@
 [texture]
 uid = "uid://1lszyuxlyyz77"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://1woctxwwnoy2p", path = "res://engine/vram/ui_font.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://1woctxwwnoy2p", path = "res://engine/vram/ui_font.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
 palettes.fill = { executable = "ui/font/glyph_palettes" }

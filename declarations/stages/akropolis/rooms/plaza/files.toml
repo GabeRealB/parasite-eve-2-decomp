@@ -16,22 +16,22 @@ type = "sound_bank"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://1vn0pz2xvzdem", path = "res://stages/akropolis/rooms/plaza/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://1vn0pz2xvzdem", path = "res://stages/akropolis/rooms/plaza/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://f324lztforcz", path = "res://stages/akropolis/rooms/plaza/radio.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://f324lztforcz", path = "res://stages/akropolis/rooms/plaza/radio.node", output = "palettes/default" } },
 ]
-upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 8], size = [320, 3] }
+upload = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 8], size = [320, 3] }
 
 [[base.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://f324lztforcz", path = "res://stages/akropolis/rooms/plaza/radio.asset" } },
+    { image = { uid = "uid://f324lztforcz", path = "res://stages/akropolis/rooms/plaza/radio.node" } },
 ]
 page_slots = 3
 

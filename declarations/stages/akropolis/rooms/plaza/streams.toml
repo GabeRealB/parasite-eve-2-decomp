@@ -111,7 +111,7 @@ at = [{ stage = 1, folder = 501, stream = "movie_2_5" }]
 [movie_100]
 uid = "uid://16shbyuxtbq91"
 kind = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/plaza_movie_100" }
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/plaza_movie_100" }
 group = 0
 id = 100
 sub_id = 0

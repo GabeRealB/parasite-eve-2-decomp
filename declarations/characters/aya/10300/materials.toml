@@ -6,7 +6,7 @@ kind = "material"
 shader = "textured"
 surface = "opaque"
 blend = "add"
-main = { slot = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset" }, cell = "page_0", palette = "default" }
+main = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "cells/page_0@default" }
 
 [page_1]
 uid = "uid://19uczqssg3cp1"
@@ -14,4 +14,4 @@ kind = "material"
 shader = "textured"
 surface = "opaque"
 blend = "add"
-main = { slot = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset" }, cell = "page_1", palette = "default_2" }
+main = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "cells/page_1@default_2" }

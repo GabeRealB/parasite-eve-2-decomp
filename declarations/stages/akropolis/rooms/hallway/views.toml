@@ -3,7 +3,6 @@
 [view1_background]
 uid = "uid://ii4bxdmb7m3s"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view1_background.import]
@@ -16,7 +15,6 @@ sha1 = "fc5fb2f3f50e81a4c683f2632bc501e51ce8fdc3"
 [view2_background]
 uid = "uid://1u2ugf61hr7o1"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view2_background.import]
@@ -29,7 +27,6 @@ sha1 = "489ddadeec97620b88d3ed67cbb41ae01ab7b610"
 [view3_background]
 uid = "uid://qin7chk7zy4f"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view3_background.import]
@@ -42,7 +39,6 @@ sha1 = "7b348b203899d93e6fd448687d8974bc26d6a54c"
 [view4_background]
 uid = "uid://1c5ktqgylnjbq"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view4_background.import]
@@ -55,7 +51,6 @@ sha1 = "cfc371e33ffad2b33c3c60823cfaac580ece6ee2"
 [view5_background]
 uid = "uid://ve50ldy0jrpw"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view5_background.import]

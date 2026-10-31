@@ -5,9 +5,9 @@
 [body]
 uid = "uid://1fj3bthllccxa"
 kind = "model"
-mesh = { slot = { uid = "uid://9xhqdc4zh495", path = "res://characters/aya/meshes/body_10500.asset" } }
-materials.page_1 = { slot = { uid = "uid://paeu9g49tri7", path = "res://characters/aya/10200/materials/page_1.asset" } }
-materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://9xhqdc4zh495", path = "res://characters/aya/meshes/body_10500.node" } }
+materials.page_1 = { slot = { uid = "uid://paeu9g49tri7", path = "res://characters/aya/10200/materials/page_1.node" } }
+materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
 [body.from.USA]
 at = [{ stage = 0, file = 10500, slot = "aya_10500" }]
@@ -20,8 +20,8 @@ sha1 = "50410575dda756d0efe1bf969eb25b1d2ea0b02f"
 [hand_left_open]
 uid = "uid://1hl9viw34a84a"
 kind = "model"
-mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.asset" } }
-materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.node" } }
+materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
 [hand_left_open.from.USA]
 at = [{ stage = 0, file = 10500, slot = "aya_10500" }]
@@ -34,8 +34,8 @@ sha1 = "d72c809f9c1f9ceaee1832535ddb88c37cc6272f"
 [hand_right_open]
 uid = "uid://1t30ja55dz37z"
 kind = "model"
-mesh = { slot = { uid = "uid://1wqqv81bmkc2q", path = "res://characters/aya/meshes/hand_right_open_10200.asset" } }
-materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://1wqqv81bmkc2q", path = "res://characters/aya/meshes/hand_right_open_10200.node" } }
+materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
 [hand_right_open.from.USA]
 at = [{ stage = 0, file = 10500, slot = "aya_10500" }]
@@ -48,8 +48,8 @@ sha1 = "da48dbc3aef8a16fbf0ff16f3c8cde2f6b35bdef"
 [hand_left_closed]
 uid = "uid://1s9mvxjeuack9"
 kind = "model"
-mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.asset" } }
-materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.node" } }
+materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
 [hand_left_closed.from.USA]
 at = [{ stage = 0, file = 10500, slot = "aya_10500" }]
@@ -62,8 +62,8 @@ sha1 = "1cf4adbd762db2cc30df670eb42eab6d70314736"
 [hand_right_closed]
 uid = "uid://4v4tnx26035c"
 kind = "model"
-mesh = { slot = { uid = "uid://1ty6lldf785kc", path = "res://characters/aya/meshes/hand_right_closed_10200.asset" } }
-materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.asset" } }
+mesh = { slot = { uid = "uid://1ty6lldf785kc", path = "res://characters/aya/meshes/hand_right_closed_10200.node" } }
+materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
 [hand_right_closed.from.USA]
 at = [{ stage = 0, file = 10500, slot = "aya_10500" }]

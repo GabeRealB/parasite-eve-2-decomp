@@ -3,7 +3,7 @@
 [movie_100]
 uid = "uid://1cgs4kzugjgcc"
 kind = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/garage_night_movie_100" }
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/garage_night_movie_100" }
 group = 0
 id = 100
 sub_id = 0
@@ -22,7 +22,7 @@ at = [{ stage = 3, folder = 2401, stream = "movie_100" }]
 [movie_101]
 uid = "uid://1beljg4l7v1b4"
 kind = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/garage_night_movie_100" }
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/garage_night_movie_100" }
 group = 0
 id = 101
 sub_id = 0
@@ -41,7 +41,7 @@ at = [{ stage = 3, folder = 2401, stream = "movie_101" }]
 [movie_102]
 uid = "uid://1rtsg1c15iu73"
 kind = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.asset", part = "entries/garage_night_movie_102" }
+movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/garage_night_movie_102" }
 group = 0
 id = 102
 sub_id = 0
@@ -60,7 +60,7 @@ at = [{ stage = 3, folder = 2401, stream = "movie_102" }]
 [movie_103]
 uid = "uid://9yeag9ncualf"
 kind = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset", part = "entries/garage_night_movie_102" }
+movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/garage_night_movie_102" }
 group = 0
 id = 103
 sub_id = 0

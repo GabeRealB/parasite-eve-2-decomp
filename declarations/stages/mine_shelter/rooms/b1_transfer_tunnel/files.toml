@@ -16,7 +16,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://a18yergd13bk", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/image.asset" } },
+    { image = { uid = "uid://a18yergd13bk", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/image.node" } },
 ]
 
 [[base.slots]]
@@ -38,7 +38,7 @@ chunks = { image = "e552bc467aaa7ce828beda01c11e91d28da69a37" }
 uid = "uid://15uog5tnx0yw2"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1i2znf34aeh5e", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1i2znf34aeh5e", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -48,7 +48,7 @@ at = [{ stage = 4, folder = 2401, file = 1 }]
 uid = "uid://u451tu8dka34"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://d6i3vvjkfsio", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view2_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://d6i3vvjkfsio", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view2_background.node" } },
 ]
 
 [view2.from.USA]
@@ -58,7 +58,7 @@ at = [{ stage = 4, folder = 2401, file = 2 }]
 uid = "uid://15yr2owkzjq7v"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://19g7sn7s06bdf", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view3_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://19g7sn7s06bdf", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view3_background.node" } },
 ]
 
 [view3.from.USA]
@@ -68,7 +68,7 @@ at = [{ stage = 4, folder = 2401, file = 3 }]
 uid = "uid://1usp13a6e7ocn"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://wpcvphnv711h", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view4_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://wpcvphnv711h", path = "res://stages/mine_shelter/rooms/b1_transfer_tunnel/views/view4_background.node" } },
 ]
 
 [view4.from.USA]

@@ -3,7 +3,7 @@
 [body_10200]
 uid = "uid://gvro3fkpzood"
 kind = "mesh"
-skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.asset" } }
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10200.from.USA]
 at = [{ stage = 0, file = 10200, slot = "package" }]
@@ -56,7 +56,7 @@ sha1 = "3626947c0411c7a16db84f581ab88fa00062fb83"
 [body_10300]
 uid = "uid://1x23myeyxaqlq"
 kind = "mesh"
-skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.asset" } }
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10300.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -109,7 +109,7 @@ sha1 = "ae5fef081cc0d1d1e8d98cf65e2b876b8296734a"
 [body_10400]
 uid = "uid://1nev1wbgiepbs"
 kind = "mesh"
-skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.asset" } }
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10400.from.USA]
 at = [{ stage = 0, file = 10400, slot = "package" }]
@@ -162,7 +162,7 @@ sha1 = "f3c4d4e907f0530f428ae4fd19c62c4ef67d7daa"
 [body_10500]
 uid = "uid://9xhqdc4zh495"
 kind = "mesh"
-skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.asset" } }
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10500.from.USA]
 at = [{ stage = 0, file = 10500, slot = "aya_10500" }]

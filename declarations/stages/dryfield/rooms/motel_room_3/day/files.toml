@@ -16,7 +16,7 @@ type = "sound_bank"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://1fscnn1s1lt23", path = "res://stages/dryfield/rooms/motel_room_3/day/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://1fscnn1s1lt23", path = "res://stages/dryfield/rooms/motel_room_3/day/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
@@ -38,7 +38,7 @@ chunks = { dialogue_0_atlas = "275aa88f684bd01f72b429b308caf755d9a8fa50" }
 uid = "uid://1vyr8uhfisk1i"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1o8l54r36p97j", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1o8l54r36p97j", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -48,7 +48,7 @@ at = [{ stage = 2, folder = 1301, file = 1 }]
 uid = "uid://17weim2agg28s"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1ipjrgsghf332", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view2_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1ipjrgsghf332", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view2_background.node" } },
 ]
 
 [view2.from.USA]
@@ -58,7 +58,7 @@ at = [{ stage = 2, folder = 1301, file = 2 }]
 uid = "uid://1saqt0a8lg8z1"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://8xyr5d0xnlgk", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view3_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://8xyr5d0xnlgk", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view3_background.node" } },
 ]
 
 [view3.from.USA]
@@ -68,7 +68,7 @@ at = [{ stage = 2, folder = 1301, file = 3 }]
 uid = "uid://afr3nmhs504m"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://164n3lmrrwcao", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view4_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://164n3lmrrwcao", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view4_background.node" } },
 ]
 
 [view4.from.USA]
@@ -78,7 +78,7 @@ at = [{ stage = 2, folder = 1301, file = 4 }]
 uid = "uid://1bl0bj6u0o845"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://fnbgjpv0dsgz", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view5_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://fnbgjpv0dsgz", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view5_background.node" } },
 ]
 
 [view5.from.USA]
@@ -88,7 +88,7 @@ at = [{ stage = 2, folder = 1301, file = 5 }]
 uid = "uid://g6qlp75r17a9"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://f9douf4mks17", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view6_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://f9douf4mks17", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view6_background.node" } },
 ]
 
 [view6.from.USA]
@@ -98,7 +98,7 @@ at = [{ stage = 2, folder = 1301, file = 6 }]
 uid = "uid://g141cad2asnr"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://ad1yj1qj1s04", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view7_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://ad1yj1qj1s04", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view7_background.node" } },
 ]
 
 [view7.from.USA]
@@ -108,7 +108,7 @@ at = [{ stage = 2, folder = 1301, file = 7 }]
 uid = "uid://1qbjothiwqpkd"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://15dfsd8o9b6vq", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view8_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://15dfsd8o9b6vq", path = "res://stages/dryfield/rooms/motel_room_3/day/views/view8_background.node" } },
 ]
 
 [view8.from.USA]

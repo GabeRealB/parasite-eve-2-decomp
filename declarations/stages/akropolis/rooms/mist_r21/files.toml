@@ -8,7 +8,7 @@ kind = "file"
 name = "dialogue_0_atlas"
 type = "image"
 pages = [
-    { image = { uid = "uid://1wg6a2o7dzzii", path = "res://stages/akropolis/rooms/mist_r21/dialogue_0_atlas.asset" } },
+    { image = { uid = "uid://1wg6a2o7dzzii", path = "res://stages/akropolis/rooms/mist_r21/dialogue_0_atlas.node" } },
 ]
 
 [[base.slots]]
@@ -30,7 +30,7 @@ chunks = { dialogue_0_atlas = "ea5c88b21e2aff916b0f955295687e5c2270110c" }
 uid = "uid://rdyehav8dk68"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://1so2afymr9ioq", path = "res://stages/akropolis/rooms/mist_r21/views/view1_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://1so2afymr9ioq", path = "res://stages/akropolis/rooms/mist_r21/views/view1_background.node" } },
 ]
 
 [view1.from.USA]
@@ -40,7 +40,7 @@ at = [{ stage = 1, folder = 2101, file = 1 }]
 uid = "uid://1lfefy37v18gb"
 kind = "file"
 slots = [
-    { name = "background", type = "bs", asset = { uid = "uid://18rheyd49rjt0", path = "res://stages/akropolis/rooms/mist_r21/views/view2_background.asset" } },
+    { name = "background", type = "bs", asset = { uid = "uid://18rheyd49rjt0", path = "res://stages/akropolis/rooms/mist_r21/views/view2_background.node" } },
 ]
 
 [view2.from.USA]

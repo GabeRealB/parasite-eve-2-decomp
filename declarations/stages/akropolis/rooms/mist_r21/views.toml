@@ -3,7 +3,6 @@
 [view1_background]
 uid = "uid://1so2afymr9ioq"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view1_background.import]
@@ -16,7 +15,6 @@ sha1 = "9b78b915fd7ed494d846f6dc71593c180748c5ad"
 [view2_background]
 uid = "uid://18rheyd49rjt0"
 kind = "image"
-role = "background"
 format = "bs"
 
 [view2_background.import]

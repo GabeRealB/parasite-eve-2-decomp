@@ -3,7 +3,6 @@
 [splash]
 uid = "uid://14n91xjmf1x0w"
 kind = "image"
-role = "background"
 format = "bs"
 
 [splash.import]

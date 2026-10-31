@@ -3,12 +3,11 @@
 [bullseye_page]
 uid = "uid://1fulxftjapq7x"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
-palettes.clock_digits = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 0] }
-palettes.bullseyes = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 1] }
+palettes.clock_digits = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 0] }
+palettes.bullseyes = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 1] }
 cells."clock_digits.0" = { rect = [0, 0, 16, 24], palette = "clock_digits" }
 cells."clock_digits.1" = { rect = [16, 0, 16, 24], palette = "clock_digits" }
 cells."clock_digits.2" = { rect = [32, 0, 16, 24], palette = "clock_digits" }
@@ -36,28 +35,28 @@ uid = "uid://k7u1t7lkh8og"
 kind = "folder"
 stream_data = false
 streams = [
-    { name = "movie_100", type = "movie", asset = { uid = "uid://1djv0b7hp11rs", path = "res://stages/akropolis/rooms/mist_shooting_gallery/streams/movie_100.asset" } },
+    { name = "movie_100", type = "movie", asset = { uid = "uid://1djv0b7hp11rs", path = "res://stages/akropolis/rooms/mist_shooting_gallery/streams/movie_100.node" } },
 ]
 files = [
-    { name = "base", id = 0, asset = { uid = "uid://1bi6zkvafgyun", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/base.asset" } },
-    { name = "view1", id = 1, asset = { uid = "uid://9m25sg2tj5yw", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view1.asset" } },
-    { name = "view2", id = 2, asset = { uid = "uid://3t8qv8rnl1b8", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view2.asset" } },
-    { name = "view3", id = 3, asset = { uid = "uid://12i7wmoy7952r", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view3.asset" } },
-    { name = "view4", id = 4, asset = { uid = "uid://18rej22570ot5", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view4.asset" } },
-    { name = "view5", id = 5, asset = { uid = "uid://uz6r4hjl7guc", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view5.asset" } },
-    { name = "view6", id = 6, asset = { uid = "uid://85joeartpasw", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view6.asset" } },
-    { name = "view7", id = 7, asset = { uid = "uid://1t2tgy4sabza9", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view7.asset" } },
-    { name = "view8", id = 8, asset = { uid = "uid://xhpvwik2qgzj", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view8.asset" } },
-    { name = "view9", id = 9, asset = { uid = "uid://glbw143fjnoy", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view9.asset" } },
-    { name = "view10", id = 10, asset = { uid = "uid://1wc47e0pa718u", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view10.asset" } },
-    { name = "view11", id = 11, asset = { uid = "uid://gy6zu5q9wn28", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view11.asset" } },
-    { name = "view12", id = 12, asset = { uid = "uid://1sbhm4780yfg2", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view12.asset" } },
-    { name = "view13", id = 13, asset = { uid = "uid://rcfzdnd1ycra", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view13.asset" } },
-    { name = "view14", id = 14, asset = { uid = "uid://1frfaovgumego", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view14.asset" } },
-    { name = "view15", id = 15, asset = { uid = "uid://cysatgr1keid", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view15.asset" } },
-    { name = "view16", id = 16, asset = { uid = "uid://emqmb6ql7zqu", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view16.asset" } },
-    { name = "view17", id = 17, asset = { uid = "uid://1cc6bl672hj3f", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view17.asset" } },
-    { name = "view18", id = 18, asset = { uid = "uid://1f7yte900cz0l", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view18.asset" } },
+    { name = "base", id = 0, asset = { uid = "uid://1bi6zkvafgyun", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/base.node" } },
+    { name = "view1", id = 1, asset = { uid = "uid://9m25sg2tj5yw", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view1.node" } },
+    { name = "view2", id = 2, asset = { uid = "uid://3t8qv8rnl1b8", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view2.node" } },
+    { name = "view3", id = 3, asset = { uid = "uid://12i7wmoy7952r", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view3.node" } },
+    { name = "view4", id = 4, asset = { uid = "uid://18rej22570ot5", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view4.node" } },
+    { name = "view5", id = 5, asset = { uid = "uid://uz6r4hjl7guc", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view5.node" } },
+    { name = "view6", id = 6, asset = { uid = "uid://85joeartpasw", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view6.node" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1t2tgy4sabza9", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view7.node" } },
+    { name = "view8", id = 8, asset = { uid = "uid://xhpvwik2qgzj", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view8.node" } },
+    { name = "view9", id = 9, asset = { uid = "uid://glbw143fjnoy", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view9.node" } },
+    { name = "view10", id = 10, asset = { uid = "uid://1wc47e0pa718u", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view10.node" } },
+    { name = "view11", id = 11, asset = { uid = "uid://gy6zu5q9wn28", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view11.node" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1sbhm4780yfg2", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view12.node" } },
+    { name = "view13", id = 13, asset = { uid = "uid://rcfzdnd1ycra", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view13.node" } },
+    { name = "view14", id = 14, asset = { uid = "uid://1frfaovgumego", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view14.node" } },
+    { name = "view15", id = 15, asset = { uid = "uid://cysatgr1keid", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view15.node" } },
+    { name = "view16", id = 16, asset = { uid = "uid://emqmb6ql7zqu", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view16.node" } },
+    { name = "view17", id = 17, asset = { uid = "uid://1cc6bl672hj3f", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view17.node" } },
+    { name = "view18", id = 18, asset = { uid = "uid://1f7yte900cz0l", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view18.node" } },
 ]
 
 [folder.from.USA]
@@ -66,15 +65,14 @@ at = [{ stage = 1, folder = 2001 }]
 [dialogue_0_atlas]
 uid = "uid://7ax7js88seix"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
 importer = "pe2.images@ora"
@@ -88,15 +86,14 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [image]
 uid = "uid://rabkwz9r8io5"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [512, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [image.import]
 importer = "pe2.images@ora"
@@ -110,15 +107,14 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_2_atlas]
 uid = "uid://v7ylqnsa02vi"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_2_atlas.import]
 importer = "pe2.images@ora"

@@ -3,12 +3,11 @@
 [car]
 uid = "uid://175douh30hkzq"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.asset" }, at = [192, 0] }
+page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-palettes.effect_row_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 2] }
-palettes.effect_row_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.asset" }, at = [0, 3] }
+palettes.effect_row_2 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 2] }
+palettes.effect_row_3 = { slot = { uid = "uid://1gp7leszhiipc", path = "res://engine/vram/effect_palettes.node" }, at = [0, 3] }
 cells.dryfield_factory_model_06604_0 = { rect = [0, 165, 76, 46], palette = "effect_row_3" }
 cells.dryfield_factory_model_06604_1 = { rect = [0, 0, 128, 165], palette = "effect_row_3" }
 cells.dryfield_factory_model_06604_2 = { rect = [128, 0, 128, 224], palette = "effect_row_2" }

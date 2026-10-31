@@ -3,11 +3,10 @@
 [preview]
 uid = "uid://r68chpo471zl"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 86]
-palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://1r4i1k0syt8ik", path = "res://engine/vram/preview_palette.node" }, at = [0, 0] }
 
 [preview.import]
 importer = "pe2.images@ora"

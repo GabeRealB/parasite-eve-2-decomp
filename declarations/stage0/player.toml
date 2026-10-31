@@ -8,15 +8,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default_2" } },
 ]
 
 [[aya_10200.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" } },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node" } },
 ]
 page_slots = 6
 
@@ -36,15 +36,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "palettes/default_2" } },
 ]
 
 [[aya_10300.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.asset" } },
+    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node" } },
 ]
 page_slots = 6
 
@@ -64,14 +64,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node", output = "palettes/default" } },
 ]
 
 [[p08_snail.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node" } },
 ]
 
 [[p08_snail.slots]]
@@ -94,14 +94,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://syn84z2fmjcr", path = "res://weapons/m93r/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://syn84z2fmjcr", path = "res://weapons/m93r/texture.node", output = "palettes/default" } },
 ]
 
 [[m93r.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://syn84z2fmjcr", path = "res://weapons/m93r/texture.asset" } },
+    { image = { uid = "uid://syn84z2fmjcr", path = "res://weapons/m93r/texture.node" } },
 ]
 
 [[m93r.slots]]
@@ -124,14 +124,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1mcmcori39oln", path = "res://weapons/m950/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1mcmcori39oln", path = "res://weapons/m950/texture.node", output = "palettes/default" } },
 ]
 
 [[m950.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1mcmcori39oln", path = "res://weapons/m950/texture.asset" } },
+    { image = { uid = "uid://1mcmcori39oln", path = "res://weapons/m950/texture.node" } },
 ]
 
 [[m950.slots]]
@@ -154,14 +154,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node", output = "palettes/default" } },
 ]
 
 [[p08.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node" } },
 ]
 
 [[p08.slots]]
@@ -184,15 +184,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.node", output = "palettes/default" } },
 ]
 
 [[p229.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.asset" } },
+    { image = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.node" } },
 ]
 
 [[p229.slots]]
@@ -215,15 +215,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://9hgarq6cdjmo", path = "res://weapons/p229/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.node", output = "palettes/default" } },
 ]
 
 [[unused_85.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.asset" } },
+    { image = { uid = "uid://19yne8g5qfftd", path = "res://weapons/unused_85/texture.node" } },
 ]
 
 [[unused_85.slots]]
@@ -242,14 +242,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1j22069xl66hn", path = "res://weapons/unused_86/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1j22069xl66hn", path = "res://weapons/unused_86/texture.node", output = "palettes/default" } },
 ]
 
 [[unused_86.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1j22069xl66hn", path = "res://weapons/unused_86/texture.asset" } },
+    { image = { uid = "uid://1j22069xl66hn", path = "res://weapons/unused_86/texture.node" } },
 ]
 
 [[unused_86.slots]]
@@ -268,14 +268,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://v5qhplmk88gu", path = "res://weapons/unused_86/unused_87_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://v5qhplmk88gu", path = "res://weapons/unused_86/unused_87_texture.node", output = "palettes/default" } },
 ]
 
 [[unused_87.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://v5qhplmk88gu", path = "res://weapons/unused_86/unused_87_texture.asset" } },
+    { image = { uid = "uid://v5qhplmk88gu", path = "res://weapons/unused_86/unused_87_texture.node" } },
 ]
 
 [[unused_87.slots]]
@@ -294,14 +294,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://pgm5vz11u2z2", path = "res://weapons/mongoose/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://pgm5vz11u2z2", path = "res://weapons/mongoose/texture.node", output = "palettes/default" } },
 ]
 
 [[mongoose.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://pgm5vz11u2z2", path = "res://weapons/mongoose/texture.asset" } },
+    { image = { uid = "uid://pgm5vz11u2z2", path = "res://weapons/mongoose/texture.node" } },
 ]
 
 [[mongoose.slots]]
@@ -324,14 +324,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i0gfx2or0dox", path = "res://weapons/unused_86/unused_89_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://i0gfx2or0dox", path = "res://weapons/unused_86/unused_89_texture.node", output = "palettes/default" } },
 ]
 
 [[unused_89.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i0gfx2or0dox", path = "res://weapons/unused_86/unused_89_texture.asset" } },
+    { image = { uid = "uid://i0gfx2or0dox", path = "res://weapons/unused_86/unused_89_texture.node" } },
 ]
 
 [[unused_89.slots]]
@@ -350,14 +350,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.node", output = "palettes/default" } },
 ]
 
 [[grenade_pistol.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.asset" } },
+    { image = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.node" } },
 ]
 
 [[grenade_pistol.slots]]
@@ -376,14 +376,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://7gmlhblwc2a7", path = "res://weapons/mm1/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://7gmlhblwc2a7", path = "res://weapons/mm1/texture.node", output = "palettes/default" } },
 ]
 
 [[mm1.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://7gmlhblwc2a7", path = "res://weapons/mm1/texture.asset" } },
+    { image = { uid = "uid://7gmlhblwc2a7", path = "res://weapons/mm1/texture.node" } },
 ]
 
 [[mm1.slots]]
@@ -402,14 +402,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://3wocbnkcxwgv", path = "res://weapons/pa3/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://3wocbnkcxwgv", path = "res://weapons/pa3/texture.node", output = "palettes/default" } },
 ]
 
 [[pa3.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://3wocbnkcxwgv", path = "res://weapons/pa3/texture.asset" } },
+    { image = { uid = "uid://3wocbnkcxwgv", path = "res://weapons/pa3/texture.node" } },
 ]
 
 [[pa3.slots]]
@@ -428,14 +428,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://m4x6qkrzrxqq", path = "res://weapons/sp12/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://m4x6qkrzrxqq", path = "res://weapons/sp12/texture.node", output = "palettes/default" } },
 ]
 
 [[sp12.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://m4x6qkrzrxqq", path = "res://weapons/sp12/texture.asset" } },
+    { image = { uid = "uid://m4x6qkrzrxqq", path = "res://weapons/sp12/texture.node" } },
 ]
 
 [[sp12.slots]]
@@ -454,14 +454,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://12pbg2pydikyo", path = "res://weapons/as12/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://12pbg2pydikyo", path = "res://weapons/as12/texture.node", output = "palettes/default" } },
 ]
 
 [[as12.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://12pbg2pydikyo", path = "res://weapons/as12/texture.asset" } },
+    { image = { uid = "uid://12pbg2pydikyo", path = "res://weapons/as12/texture.node" } },
 ]
 
 [[as12.slots]]
@@ -480,15 +480,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" } },
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.node" } },
 ]
 
 [[m4a1.slots]]
@@ -511,14 +511,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1s7jnk65j60j9", path = "res://weapons/m249/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1s7jnk65j60j9", path = "res://weapons/m249/texture.node", output = "palettes/default" } },
 ]
 
 [[m249.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1s7jnk65j60j9", path = "res://weapons/m249/texture.asset" } },
+    { image = { uid = "uid://1s7jnk65j60j9", path = "res://weapons/m249/texture.node" } },
 ]
 
 [[m249.slots]]
@@ -541,14 +541,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node", output = "palettes/default" } },
 ]
 
 [[unused_91.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node" } },
 ]
 
 [[unused_91.slots]]
@@ -567,14 +567,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1nyrxddjckc44", path = "res://weapons/tonfa_baton/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1nyrxddjckc44", path = "res://weapons/tonfa_baton/texture.node", output = "palettes/default" } },
 ]
 
 [[tonfa_baton.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1nyrxddjckc44", path = "res://weapons/tonfa_baton/texture.asset" } },
+    { image = { uid = "uid://1nyrxddjckc44", path = "res://weapons/tonfa_baton/texture.node" } },
 ]
 
 [[tonfa_baton.slots]]
@@ -597,15 +597,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1_p1.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" } },
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.node" } },
 ]
 
 [[m4a1_p1.slots]]
@@ -628,15 +628,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1_p2.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset" } },
+    { image = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.node" } },
 ]
 
 [[m4a1_p2.slots]]
@@ -659,14 +659,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.node", output = "palettes/default" } },
 ]
 
 [[hypervelocity.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.asset" } },
+    { image = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.node" } },
 ]
 
 [[hypervelocity.slots]]
@@ -689,14 +689,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://shn32m7e3l3z", path = "res://weapons/gunblade/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://shn32m7e3l3z", path = "res://weapons/gunblade/texture.node", output = "palettes/default" } },
 ]
 
 [[gunblade.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://shn32m7e3l3z", path = "res://weapons/gunblade/texture.asset" } },
+    { image = { uid = "uid://shn32m7e3l3z", path = "res://weapons/gunblade/texture.node" } },
 ]
 
 [[gunblade.slots]]
@@ -715,14 +715,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node", output = "palettes/default" } },
 ]
 
 [[unused_97.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.asset" } },
+    { image = { uid = "uid://1uj6fezx064bq", path = "res://weapons/p08/texture.node" } },
 ]
 
 [[unused_97.slots]]
@@ -741,14 +741,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1thc0xio15tpz", path = "res://weapons/m4a1_hammer/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1thc0xio15tpz", path = "res://weapons/m4a1_hammer/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1_hammer.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1thc0xio15tpz", path = "res://weapons/m4a1_hammer/texture.asset" } },
+    { image = { uid = "uid://1thc0xio15tpz", path = "res://weapons/m4a1_hammer/texture.node" } },
 ]
 
 [[m4a1_hammer.slots]]
@@ -771,15 +771,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1y2k6zwojc7fd", path = "res://weapons/m4a1/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1_bayonet.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.asset" } },
+    { image = { uid = "uid://r83olx2s5cxz", path = "res://weapons/m4a1_bayonet/texture.node" } },
 ]
 
 [[m4a1_bayonet.slots]]
@@ -802,14 +802,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://9hmyayz043l9", path = "res://weapons/m4a1_grenade/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://9hmyayz043l9", path = "res://weapons/m4a1_grenade/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1_grenade.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://9hmyayz043l9", path = "res://weapons/m4a1_grenade/texture.asset" } },
+    { image = { uid = "uid://9hmyayz043l9", path = "res://weapons/m4a1_grenade/texture.node" } },
 ]
 
 [[m4a1_grenade.slots]]
@@ -828,14 +828,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://11xizcvgfpstc", path = "res://weapons/m4a1_pyke/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://11xizcvgfpstc", path = "res://weapons/m4a1_pyke/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1_pyke.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://11xizcvgfpstc", path = "res://weapons/m4a1_pyke/texture.asset" } },
+    { image = { uid = "uid://11xizcvgfpstc", path = "res://weapons/m4a1_pyke/texture.node" } },
 ]
 
 [[m4a1_pyke.slots]]
@@ -858,14 +858,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hrsm4u7pwwtu", path = "res://weapons/m4a1_javelin/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://hrsm4u7pwwtu", path = "res://weapons/m4a1_javelin/texture.node", output = "palettes/default" } },
 ]
 
 [[m4a1_javelin.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://hrsm4u7pwwtu", path = "res://weapons/m4a1_javelin/texture.asset" } },
+    { image = { uid = "uid://hrsm4u7pwwtu", path = "res://weapons/m4a1_javelin/texture.node" } },
 ]
 
 [[m4a1_javelin.slots]]
@@ -888,14 +888,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.node", output = "palettes/default" } },
 ]
 
 [[mp5a5.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" } },
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.node" } },
 ]
 
 [[mp5a5.slots]]
@@ -918,14 +918,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.node", output = "palettes/default" } },
 ]
 
 [[mp5a5_p1.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" } },
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.node" } },
 ]
 
 [[mp5a5_p1.slots]]
@@ -948,14 +948,14 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.node", output = "palettes/default" } },
 ]
 
 [[mp5a5_p2.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.asset" } },
+    { image = { uid = "uid://lhr14kac55jo", path = "res://weapons/mp5a5/texture.node" } },
 ]
 
 [[mp5a5_p2.slots]]
@@ -978,15 +978,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node", output = "palettes/default_2" } },
 ]
 
 [[aya_10400.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset" } },
+    { image = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node" } },
 ]
 
 [[aya_10400.slots]]
@@ -1005,15 +1005,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default_2" } },
 ]
 
 [[aya_10500.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" } },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node" } },
 ]
 page_slots = 6
 
@@ -1033,15 +1033,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default_2" } },
 ]
 
 [[aya_10600.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.asset" } },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node" } },
 ]
 page_slots = 6
 

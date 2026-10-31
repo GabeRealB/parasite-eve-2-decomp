@@ -9,25 +9,25 @@ name = "image"
 type = "image"
 sector_len = 0x600
 pages = [
-    { image = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset" } },
+    { image = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node" } },
 ]
 
 [[akropolis_map_page_0.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/box" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://13xlbgaggp5r1", path = "res://stages/akropolis/map/page_0.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[akropolis_map_page_0.slots]]
 name = "package"
@@ -47,25 +47,25 @@ name = "image"
 type = "image"
 sector_len = 0x600
 pages = [
-    { image = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset" } },
+    { image = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node" } },
 ]
 
 [[akropolis_map_page_2.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/box" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://6f4v6v7wznqx", path = "res://stages/akropolis/map/page_2.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[akropolis_map_page_2.slots]]
 name = "package"
@@ -85,25 +85,25 @@ name = "image"
 type = "image"
 sector_len = 0x600
 pages = [
-    { image = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset" } },
+    { image = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node" } },
 ]
 
 [[akropolis_map_page_3.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/box" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://1kbyvylyql7n4", path = "res://stages/akropolis/map/page_3.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [akropolis_map_page_3.from.USA]
 at = [{ stage = 0, file = 30103 }]
@@ -117,25 +117,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/box" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s2_00.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.asset" } },
+    { image = { uid = "uid://1k4tnsa3m158g", path = "res://stages/dryfield/map/day/page_0.node" } },
 ]
 
 [[mappic_s2_00.slots]]
@@ -155,25 +155,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/box" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s2_02.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.asset" } },
+    { image = { uid = "uid://7we0pwfzp966", path = "res://stages/dryfield/map/day/page_2.node" } },
 ]
 
 [[mappic_s2_02.slots]]
@@ -193,25 +193,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/box" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s2_03.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.asset" } },
+    { image = { uid = "uid://195v473e0uisn", path = "res://stages/dryfield/map/day/page_3.node" } },
 ]
 
 [[mappic_s2_03.slots]]
@@ -231,25 +231,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/box" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s3_00.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.asset" } },
+    { image = { uid = "uid://19ec2rw03p6ph", path = "res://stages/dryfield/map/night/page_0.node" } },
 ]
 
 [[mappic_s3_00.slots]]
@@ -269,25 +269,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/box" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s3_02.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.asset" } },
+    { image = { uid = "uid://1ebj0aj7qso8a", path = "res://stages/dryfield/map/night/page_2.node" } },
 ]
 
 [[mappic_s3_02.slots]]
@@ -307,25 +307,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/box" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s3_03.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.asset" } },
+    { image = { uid = "uid://1txeduii9ai77", path = "res://stages/dryfield/map/night/page_3.node" } },
 ]
 
 [[mappic_s3_03.slots]]
@@ -345,25 +345,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/box" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s4_00.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.asset" } },
+    { image = { uid = "uid://1uni7g97jnvun", path = "res://stages/mine_shelter/map/page_0.node" } },
 ]
 
 [[mappic_s4_00.slots]]
@@ -383,25 +383,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/box" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s4_02.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.asset" } },
+    { image = { uid = "uid://1lsobi7c9yjlm", path = "res://stages/mine_shelter/map/page_2.node" } },
 ]
 
 [[mappic_s4_02.slots]]
@@ -421,25 +421,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/box" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s4_03.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.asset" } },
+    { image = { uid = "uid://2d2tse6xs0tc", path = "res://stages/mine_shelter/map/page_3.node" } },
 ]
 
 [[mappic_s4_03.slots]]
@@ -459,25 +459,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/box" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s4_04.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.asset" } },
+    { image = { uid = "uid://hbouyepd8w09", path = "res://stages/mine_shelter/map/page_4.node" } },
 ]
 
 [[mappic_s4_04.slots]]
@@ -497,25 +497,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/box" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s4_05.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.asset" } },
+    { image = { uid = "uid://12rc3q8gi9k4y", path = "res://stages/mine_shelter/map/page_5.node" } },
 ]
 
 [[mappic_s4_05.slots]]
@@ -535,25 +535,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/box" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s4_06.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.asset" } },
+    { image = { uid = "uid://1rffdcz8c2662", path = "res://stages/mine_shelter/map/page_6.node" } },
 ]
 
 [[mappic_s4_06.slots]]
@@ -573,25 +573,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/box" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s4_07.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.asset" } },
+    { image = { uid = "uid://9g2tlt3m09zu", path = "res://stages/mine_shelter/map/page_7.node" } },
 ]
 
 [[mappic_s4_07.slots]]
@@ -611,25 +611,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/box" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s5_00.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.asset" } },
+    { image = { uid = "uid://19oh4emvb4oa4", path = "res://stages/shelter_neo_ark/map/page_0.node" } },
 ]
 
 [[mappic_s5_00.slots]]
@@ -649,25 +649,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/box" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s5_02.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.asset" } },
+    { image = { uid = "uid://jf2qnlio6z3e", path = "res://stages/shelter_neo_ark/map/page_2.node" } },
 ]
 
 [[mappic_s5_02.slots]]
@@ -687,25 +687,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/box" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s5_03.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.asset" } },
+    { image = { uid = "uid://rr8vphjkxpa1", path = "res://stages/shelter_neo_ark/map/page_3.node" } },
 ]
 
 [[mappic_s5_03.slots]]
@@ -725,25 +725,25 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/pattern" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/picture" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/cursor" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/telephone" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/box" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/marker_key" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/objective" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/arrow" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/marker_cross" } },
-    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset", part = "palettes/help" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/pattern" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/picture" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/cursor" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/telephone" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/box" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/marker_key" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/objective" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/arrow" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/marker_cross" } },
+    { palette = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node", output = "palettes/help" } },
 ]
-upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.asset" } }
+upload = { slot = { uid = "uid://fsmv9ev0ri61", path = "res://engine/vram/map_palettes.node" } }
 
 [[mappic_s5_04.slots]]
 name = "image"
 type = "image"
 sector_len = 0x500
 pages = [
-    { image = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.asset" } },
+    { image = { uid = "uid://51emsigkf6xl", path = "res://stages/shelter_neo_ark/map/page_4.node" } },
 ]
 
 [[mappic_s5_04.slots]]

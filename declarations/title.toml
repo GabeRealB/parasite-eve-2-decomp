@@ -3,7 +3,6 @@
 [background]
 uid = "uid://f1e963jhv4i4"
 kind = "image"
-role = "background"
 format = "bs"
 
 [background.import]
@@ -16,11 +15,10 @@ sha1 = "51e3bfec6e0392baacaf9e9e9d3cf8054db030db"
 [chrome_left]
 uid = "uid://ise7wq932mjc"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 128]
-palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.node" }, at = [0, 0] }
 
 [chrome_left.import]
 importer = "pe2.images@ora"
@@ -34,11 +32,10 @@ palettes = { default = "79361b435bccf7417a11e350b7dffe72b048efb5" }
 [chrome_right]
 uid = "uid://1mur93yy6mhb7"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.asset" }, at = [64, 0] }
+page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [128, 128]
-palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.asset" }, at = [0, 0] }
+palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.node" }, at = [0, 0] }
 
 [chrome_right.import]
 importer = "pe2.images@ora"

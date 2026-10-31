@@ -3,11 +3,10 @@
 [view9]
 uid = "uid://qlykjr7yto4r"
 kind = "image"
-role = "atlas"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [128, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
-palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.asset" }, at = [0, 0] }
+palettes.row_0 = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] }
 cells.view9_sprite_0 = { rect = [184, 248, 8, 8], palette = "row_0" }
 cells.view9_sprite_1 = { rect = [88, 0, 48, 32], palette = "row_0" }
 cells.view9_sprite_2 = { rect = [104, 192, 48, 32], palette = "row_0" }

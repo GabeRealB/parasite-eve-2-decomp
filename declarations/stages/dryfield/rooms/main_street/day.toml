@@ -5,20 +5,20 @@ uid = "uid://10wc2ft4f6fmp"
 kind = "folder"
 stream_data = false
 files = [
-    { name = "base", id = 0, asset = { uid = "uid://1p4pmc8w2p9rs", path = "res://stages/dryfield/rooms/main_street/day/files/base.asset" } },
-    { name = "view1", id = 1, asset = { uid = "uid://jde3qm1biboj", path = "res://stages/dryfield/rooms/main_street/day/files/view1.asset" } },
-    { name = "view2", id = 2, asset = { uid = "uid://3z6lno5zietz", path = "res://stages/dryfield/rooms/main_street/day/files/view2.asset" } },
-    { name = "view3", id = 3, asset = { uid = "uid://1wy0h0czgtixa", path = "res://stages/dryfield/rooms/main_street/day/files/view3.asset" } },
-    { name = "view4", id = 4, asset = { uid = "uid://gorea25owvg8", path = "res://stages/dryfield/rooms/main_street/day/files/view4.asset" } },
-    { name = "view5", id = 5, asset = { uid = "uid://856aw6bcydsl", path = "res://stages/dryfield/rooms/main_street/day/files/view5.asset" } },
-    { name = "view6", id = 6, asset = { uid = "uid://5rv0m3gwg4k7", path = "res://stages/dryfield/rooms/main_street/day/files/view6.asset" } },
-    { name = "view7", id = 7, asset = { uid = "uid://1lwi616gg0cez", path = "res://stages/dryfield/rooms/main_street/day/files/view7.asset" } },
-    { name = "view8", id = 8, asset = { uid = "uid://plnk3g6gjxv4", path = "res://stages/dryfield/rooms/main_street/day/files/view8.asset" } },
-    { name = "view9", id = 9, asset = { uid = "uid://1drzzonm8u30h", path = "res://stages/dryfield/rooms/main_street/day/files/view9.asset" } },
-    { name = "view10", id = 10, asset = { uid = "uid://dk86gh922vcu", path = "res://stages/dryfield/rooms/main_street/day/files/view10.asset" } },
-    { name = "view11", id = 11, asset = { uid = "uid://1jx1n95og6h4r", path = "res://stages/dryfield/rooms/main_street/day/files/view11.asset" } },
-    { name = "view12", id = 12, asset = { uid = "uid://1h3h5kmjvkdwk", path = "res://stages/dryfield/rooms/main_street/day/files/view12.asset" } },
-    { name = "view13", id = 13, asset = { uid = "uid://1711qlu9j4qt8", path = "res://stages/dryfield/rooms/main_street/day/files/view13.asset" } },
+    { name = "base", id = 0, asset = { uid = "uid://1p4pmc8w2p9rs", path = "res://stages/dryfield/rooms/main_street/day/files/base.node" } },
+    { name = "view1", id = 1, asset = { uid = "uid://jde3qm1biboj", path = "res://stages/dryfield/rooms/main_street/day/files/view1.node" } },
+    { name = "view2", id = 2, asset = { uid = "uid://3z6lno5zietz", path = "res://stages/dryfield/rooms/main_street/day/files/view2.node" } },
+    { name = "view3", id = 3, asset = { uid = "uid://1wy0h0czgtixa", path = "res://stages/dryfield/rooms/main_street/day/files/view3.node" } },
+    { name = "view4", id = 4, asset = { uid = "uid://gorea25owvg8", path = "res://stages/dryfield/rooms/main_street/day/files/view4.node" } },
+    { name = "view5", id = 5, asset = { uid = "uid://856aw6bcydsl", path = "res://stages/dryfield/rooms/main_street/day/files/view5.node" } },
+    { name = "view6", id = 6, asset = { uid = "uid://5rv0m3gwg4k7", path = "res://stages/dryfield/rooms/main_street/day/files/view6.node" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1lwi616gg0cez", path = "res://stages/dryfield/rooms/main_street/day/files/view7.node" } },
+    { name = "view8", id = 8, asset = { uid = "uid://plnk3g6gjxv4", path = "res://stages/dryfield/rooms/main_street/day/files/view8.node" } },
+    { name = "view9", id = 9, asset = { uid = "uid://1drzzonm8u30h", path = "res://stages/dryfield/rooms/main_street/day/files/view9.node" } },
+    { name = "view10", id = 10, asset = { uid = "uid://dk86gh922vcu", path = "res://stages/dryfield/rooms/main_street/day/files/view10.node" } },
+    { name = "view11", id = 11, asset = { uid = "uid://1jx1n95og6h4r", path = "res://stages/dryfield/rooms/main_street/day/files/view11.node" } },
+    { name = "view12", id = 12, asset = { uid = "uid://1h3h5kmjvkdwk", path = "res://stages/dryfield/rooms/main_street/day/files/view12.node" } },
+    { name = "view13", id = 13, asset = { uid = "uid://1711qlu9j4qt8", path = "res://stages/dryfield/rooms/main_street/day/files/view13.node" } },
 ]
 
 [folder.from.USA]
@@ -27,15 +27,14 @@ at = [{ stage = 2, folder = 201 }]
 [dialogue_0_atlas]
 uid = "uid://1bfokq1qguv54"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
 importer = "pe2.images@ora"

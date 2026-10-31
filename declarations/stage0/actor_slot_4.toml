@@ -12,7 +12,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" } },
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node" } },
 ]
 page_slots = 6
 
@@ -20,8 +20,8 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node", output = "palettes/default_2" } },
 ]
 
 [[desert_chaser_package.slots]]
@@ -44,7 +44,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1socdsrx1a8lu", path = "res://enemies/stalker/gray/texture.asset" } },
+    { image = { uid = "uid://1socdsrx1a8lu", path = "res://enemies/stalker/gray/texture.node" } },
 ]
 page_slots = 6
 
@@ -52,9 +52,9 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1socdsrx1a8lu", path = "res://enemies/stalker/gray/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1socdsrx1a8lu", path = "res://enemies/stalker/gray/texture.node", output = "palettes/default" } },
 ]
-upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" } }
 
 [[gray_stalker_package.slots]]
 name = "package"
@@ -72,7 +72,7 @@ kind = "file"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.asset" } },
+    { image = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.node" } },
 ]
 page_slots = 6
 
@@ -80,8 +80,8 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1l9ulr4ssqfp0", path = "res://enemies/stalker/zebra/texture.node", output = "palettes/default_2" } },
 ]
 
 [[zebra_stalker_package.slots]]
@@ -124,7 +124,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset" } },
+    { image = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.node" } },
 ]
 page_slots = 6
 
@@ -132,8 +132,8 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.asset", part = "palettes/row_1" } },
+    { palette = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1e5miujp9vl9j", path = "res://enemies/stranger/odd/texture_b_1.node", output = "palettes/row_1" } },
 ]
 
 [[odd_stranger_package_b.slots]]
@@ -156,7 +156,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset" } },
+    { image = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.node" } },
 ]
 page_slots = 6
 
@@ -164,8 +164,8 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://e821jdx40rvk", path = "res://enemies/stranger/horned/texture.node", output = "palettes/default_2" } },
 ]
 
 [[horned_stranger_package.slots]]
@@ -188,7 +188,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.asset" } },
+    { image = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.node" } },
 ]
 page_slots = 6
 
@@ -196,8 +196,8 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.node", output = "palettes/default" } },
+    { palette = { uid = "uid://10ebzmerax310", path = "res://enemies/stranger/odd/texture_4.node", output = "palettes/default_2" } },
 ]
 
 [[odd_stranger_package.slots]]
@@ -216,15 +216,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://omnexf7002h3", path = "res://enemies/golem/knight/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://omnexf7002h3", path = "res://enemies/golem/knight/texture.node", output = "palettes/default" } },
 ]
-upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" } }
 
 [[knight_golem_package.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://omnexf7002h3", path = "res://enemies/golem/knight/texture.asset" } },
+    { image = { uid = "uid://omnexf7002h3", path = "res://enemies/golem/knight/texture.node" } },
 ]
 page_slots = 6
 
@@ -288,7 +288,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset" } },
+    { image = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.node" } },
 ]
 page_slots = 6
 
@@ -296,24 +296,24 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.node", output = "palettes/default_2" } },
 ]
 
 [[mine_cavern_blizzard_chasers.slots]]
 name = "palette_2"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset", part = "palettes/default_3" } },
+    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.node", output = "palettes/default_3" } },
 ]
 
 [[mine_cavern_blizzard_chasers.slots]]
 name = "palette_3"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.asset", part = "palettes/default_4" } },
+    { palette = { uid = "uid://xddk58ei760n", path = "res://stages/mine_shelter/rooms/cavern/blizzard_chasers_texture.node", output = "palettes/default_4" } },
 ]
-upload = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3], size = [256, 2] }
+upload = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.node" }, at = [0, 3], size = [256, 2] }
 
 [[mine_cavern_blizzard_chasers.slots]]
 name = "package"
@@ -335,7 +335,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset" } },
+    { image = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.node" } },
 ]
 page_slots = 6
 
@@ -343,24 +343,24 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.node", output = "palettes/default_2" } },
 ]
 
 [[burner_package.slots]]
 name = "palette_2"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset", part = "palettes/default_3" } },
+    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.node", output = "palettes/default_3" } },
 ]
 
 [[burner_package.slots]]
 name = "palette_3"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.asset", part = "palettes/default_4" } },
+    { palette = { uid = "uid://1l6dplphb0p95", path = "res://enemies/burner/texture.node", output = "palettes/default_4" } },
 ]
-upload = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.asset" }, at = [0, 3], size = [256, 2] }
+upload = { slot = { uid = "uid://m7hcmgasvw3o", path = "res://engine/vram/actor_palettes.node" }, at = [0, 3], size = [256, 2] }
 
 [[burner_package.slots]]
 name = "package"
@@ -382,7 +382,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" } },
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node" } },
 ]
 page_slots = 6
 
@@ -390,23 +390,23 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_2" } },
 ]
 
 [[shelter_b3_dumping_hole_gluttons.slots]]
 name = "palette_2"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_3" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_3" } },
 ]
 
 [[shelter_b3_dumping_hole_gluttons.slots]]
 name = "palette_3"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_4" } },
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_5" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_4" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_5" } },
 ]
 
 [[shelter_b3_dumping_hole_gluttons.slots]]
@@ -435,15 +435,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://19pep4b10f5dh", path = "res://enemies/golem/bishop/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://19pep4b10f5dh", path = "res://enemies/golem/bishop/texture.node", output = "palettes/default" } },
 ]
-upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" } }
 
 [[bishop_golem_package.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://19pep4b10f5dh", path = "res://enemies/golem/bishop/texture.asset" } },
+    { image = { uid = "uid://19pep4b10f5dh", path = "res://enemies/golem/bishop/texture.node" } },
 ]
 page_slots = 6
 
@@ -507,7 +507,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1sjs0stigagp7", path = "res://enemies/stalker/ivory/texture.asset" } },
+    { image = { uid = "uid://1sjs0stigagp7", path = "res://enemies/stalker/ivory/texture.node" } },
 ]
 page_slots = 6
 
@@ -515,9 +515,9 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1sjs0stigagp7", path = "res://enemies/stalker/ivory/texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://1sjs0stigagp7", path = "res://enemies/stalker/ivory/texture.node", output = "palettes/default" } },
 ]
-upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.asset" } }
+upload = { slot = { uid = "uid://11pipfqna1uxw", path = "res://engine/vram/character_palette.node" } }
 
 [[ivory_stalker_package.slots]]
 name = "package"
@@ -539,7 +539,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" } },
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node" } },
 ]
 page_slots = 6
 
@@ -547,8 +547,8 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node", output = "palettes/default_2" } },
 ]
 
 [[desert_chaser_garage_package.slots]]
@@ -567,15 +567,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.node", output = "palettes/default_2" } },
 ]
 
 [[gary_palette.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.asset" } },
+    { image = { uid = "uid://1mnbcfdt2e9pq", path = "res://characters/gary/texture.node" } },
 ]
 page_slots = 6
 
@@ -583,14 +583,14 @@ page_slots = 6
 name = "shotgun_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://diyxigzws0xx", path = "res://characters/gary/shotgun_texture.asset", part = "palettes/default" } },
+    { palette = { uid = "uid://diyxigzws0xx", path = "res://characters/gary/shotgun_texture.node", output = "palettes/default" } },
 ]
 
 [[gary_palette.slots]]
 name = "shotgun_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://diyxigzws0xx", path = "res://characters/gary/shotgun_texture.asset" } },
+    { image = { uid = "uid://diyxigzws0xx", path = "res://characters/gary/shotgun_texture.node" } },
 ]
 
 [[gary_palette.slots]]
@@ -613,7 +613,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset" } },
+    { image = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node" } },
 ]
 page_slots = 6
 
@@ -621,8 +621,8 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1af3ea5w4jnd0", path = "res://enemies/chaser/desert/texture.node", output = "palettes/default_2" } },
 ]
 
 [[dryfield_water_tower_desert_chaser.slots]]
@@ -641,15 +641,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.node", output = "palettes/default_2" } },
 ]
 
 [[shelter_r47_pierce.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.asset" } },
+    { image = { uid = "uid://1ma4b1123pdwq", path = "res://characters/pierce/texture.node" } },
 ]
 page_slots = 6
 
@@ -673,7 +673,7 @@ type = "sound_bank"
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset" } },
+    { image = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node" } },
 ]
 page_slots = 6
 
@@ -681,23 +681,23 @@ page_slots = 6
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_2" } },
 ]
 
 [[shelter_b3_garbage_incinerator_gluttons.slots]]
 name = "palette_2"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_3" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_3" } },
 ]
 
 [[shelter_b3_garbage_incinerator_gluttons.slots]]
 name = "palette_3"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_4" } },
-    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.asset", part = "palettes/default_5" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_4" } },
+    { palette = { uid = "uid://hro31nqq31w5", path = "res://enemies/glutton/texture.node", output = "palettes/default_5" } },
 ]
 
 [[shelter_b3_garbage_incinerator_gluttons.slots]]
@@ -716,15 +716,15 @@ kind = "file"
 name = "dome_backdrops_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.asset", part = "palettes/outgoing" } },
-    { palette = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.asset", part = "palettes/incoming" } },
+    { palette = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.node", output = "palettes/outgoing" } },
+    { palette = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.node", output = "palettes/incoming" } },
 ]
 
 [[neo_ark_observatory_kyle.slots]]
 name = "dome_backdrops"
 type = "image"
 pages = [
-    { image = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.asset" } },
+    { image = { uid = "uid://js1xp03ddktk", path = "res://stages/shelter_neo_ark/rooms/observatory/dome_backdrop.node" } },
 ]
 page_slots = 6
 
@@ -744,15 +744,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default_2" } },
 ]
 
 [[shelter_b6_nursery_kyle.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node" } },
 ]
 page_slots = 6
 
@@ -782,15 +782,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.node", output = "palettes/default_2" } },
 ]
 
 [[neo_ark_submarine_tunnel_eve_and_no_9.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.asset" } },
+    { image = { uid = "uid://azv42w04vfqd", path = "res://characters/eve/texture.node" } },
 ]
 page_slots = 6
 
@@ -810,15 +810,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.node", output = "palettes/default_2" } },
 ]
 
 [[shelter_1f_tent_soldiers.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.asset" } },
+    { image = { uid = "uid://1f7f7dze23ko1", path = "res://characters/soldier_c/texture.node" } },
 ]
 page_slots = 6
 
@@ -838,15 +838,15 @@ kind = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default" } },
-    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset", part = "palettes/default_2" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node", output = "palettes/default_2" } },
 ]
 
 [[neo_ark_r31_kyle_and_eve.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.asset" } },
+    { image = { uid = "uid://i1yrdvr4psdr", path = "res://characters/kyle/texture.node" } },
 ]
 page_slots = 6
 

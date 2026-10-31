@@ -8,16 +8,16 @@ identifiers = { system = "PLAYSTATION", application = "PLAYSTATION", creation_da
 default_attributes = { gmt_offs = 36, xa_attrib = 32, xa_perm = 1365, xa_gid = 0, xa_uid = 0 }
 dummy_sectors = 150
 slots = [
-    { name = "license", type = "license", asset = { uid = "uid://vdx31ffeypvs", path = "res://disc/license.asset" } },
-    { name = "SYSTEM.CNF", type = "data", asset = { uid = "uid://jqe4f7yh1mge", path = "res://disc/system_config_2.asset" } },
-    { name = "PE_DISK.02", type = "data", asset = { uid = "uid://1g0xo6rrbudqm", path = "res://disc/disc_marker.asset" } },
-    { name = "SLUS_010.55", type = "data", asset = { uid = "uid://ke96sngcku4f", path = "res://main/executable.asset" } },
-    { name = "INIT.BS", type = "data", asset = { uid = "uid://1skpauej8oul1", path = "res://disc/init_image.asset" } },
-    { name = "STAGE0.HED", type = "data", asset = { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.asset" } },
-    { name = "STAGE0.CDF", type = "data", asset = { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.asset" } },
-    { name = "STAGE3.CDF", type = "data", asset = { uid = "uid://1wcpm47vl56d1", path = "res://disc/USA/stage3.asset" } },
-    { name = "STAGE4.CDF", type = "data", asset = { uid = "uid://1jmuik9hncwsr", path = "res://disc/USA/stage4.asset" } },
-    { name = "STAGE5.CDF", type = "data", asset = { uid = "uid://1oppn2fubwsqg", path = "res://disc/USA/stage5.asset" } },
-    { name = "INTER1.STR", type = "mixed", asset = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.asset" } },
-    { name = "DUMMY.DMY", type = "data", asset = { uid = "uid://kz8sahthlcdt", path = "res://disc/dummy.asset" } },
+    { name = "license", type = "license", asset = { uid = "uid://vdx31ffeypvs", path = "res://disc/license.node" } },
+    { name = "SYSTEM.CNF", type = "data", asset = { uid = "uid://jqe4f7yh1mge", path = "res://disc/system_config_2.node" } },
+    { name = "PE_DISK.02", type = "data", asset = { uid = "uid://1g0xo6rrbudqm", path = "res://disc/disc_marker.node" } },
+    { name = "SLUS_010.55", type = "data", asset = { uid = "uid://ke96sngcku4f", path = "res://main/executable.node" } },
+    { name = "INIT.BS", type = "data", asset = { uid = "uid://1skpauej8oul1", path = "res://disc/init_image.node" } },
+    { name = "STAGE0.HED", type = "data", asset = { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.node" } },
+    { name = "STAGE0.CDF", type = "data", asset = { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.node" } },
+    { name = "STAGE3.CDF", type = "data", asset = { uid = "uid://1wcpm47vl56d1", path = "res://disc/USA/stage3.node" } },
+    { name = "STAGE4.CDF", type = "data", asset = { uid = "uid://1jmuik9hncwsr", path = "res://disc/USA/stage4.node" } },
+    { name = "STAGE5.CDF", type = "data", asset = { uid = "uid://1oppn2fubwsqg", path = "res://disc/USA/stage5.node" } },
+    { name = "INTER1.STR", type = "mixed", asset = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node" } },
+    { name = "DUMMY.DMY", type = "data", asset = { uid = "uid://kz8sahthlcdt", path = "res://disc/dummy.node" } },
 ]

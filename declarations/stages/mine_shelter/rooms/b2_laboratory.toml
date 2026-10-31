@@ -5,22 +5,22 @@ uid = "uid://1tceevn4730g1"
 kind = "folder"
 stream_data = false
 files = [
-    { name = "base", id = 0, asset = { uid = "uid://1cgivlqnk7xx2", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/base.asset" } },
-    { name = "view1", id = 1, asset = { uid = "uid://1r9elghw8kvcf", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view1.asset" } },
-    { name = "view2", id = 2, asset = { uid = "uid://9o4jp57z6en6", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view2.asset" } },
-    { name = "view3", id = 3, asset = { uid = "uid://134v8ana08qnw", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view3.asset" } },
-    { name = "view4", id = 4, asset = { uid = "uid://qhdoyfz7plgf", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view4.asset" } },
-    { name = "view5", id = 5, asset = { uid = "uid://fbux1g8ct3rt", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view5.asset" } },
-    { name = "view6", id = 6, asset = { uid = "uid://244nvt39hx1j", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view6.asset" } },
-    { name = "view7", id = 7, asset = { uid = "uid://1rpcgba0ev2rd", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view7.asset" } },
-    { name = "view8", id = 8, asset = { uid = "uid://1db5kp9ah8994", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view8.asset" } },
-    { name = "view9", id = 9, asset = { uid = "uid://o0od5c1tro1y", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view9.asset" } },
-    { name = "view10", id = 10, asset = { uid = "uid://126h3hukn2ixu", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view10.asset" } },
-    { name = "view11", id = 11, asset = { uid = "uid://1e87xwlkwaczb", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view11.asset" } },
-    { name = "view12", id = 12, asset = { uid = "uid://4u0ivip8phju", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view12.asset" } },
-    { name = "view13", id = 13, asset = { uid = "uid://kzvl64fe8hlx", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view13.asset" } },
-    { name = "view14", id = 14, asset = { uid = "uid://h2ynm1fv7cwv", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view14.asset" } },
-    { name = "view15", id = 15, asset = { uid = "uid://8rc2eowhqczd", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view15.asset" } },
+    { name = "base", id = 0, asset = { uid = "uid://1cgivlqnk7xx2", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/base.node" } },
+    { name = "view1", id = 1, asset = { uid = "uid://1r9elghw8kvcf", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view1.node" } },
+    { name = "view2", id = 2, asset = { uid = "uid://9o4jp57z6en6", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view2.node" } },
+    { name = "view3", id = 3, asset = { uid = "uid://134v8ana08qnw", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view3.node" } },
+    { name = "view4", id = 4, asset = { uid = "uid://qhdoyfz7plgf", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view4.node" } },
+    { name = "view5", id = 5, asset = { uid = "uid://fbux1g8ct3rt", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view5.node" } },
+    { name = "view6", id = 6, asset = { uid = "uid://244nvt39hx1j", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view6.node" } },
+    { name = "view7", id = 7, asset = { uid = "uid://1rpcgba0ev2rd", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view7.node" } },
+    { name = "view8", id = 8, asset = { uid = "uid://1db5kp9ah8994", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view8.node" } },
+    { name = "view9", id = 9, asset = { uid = "uid://o0od5c1tro1y", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view9.node" } },
+    { name = "view10", id = 10, asset = { uid = "uid://126h3hukn2ixu", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view10.node" } },
+    { name = "view11", id = 11, asset = { uid = "uid://1e87xwlkwaczb", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view11.node" } },
+    { name = "view12", id = 12, asset = { uid = "uid://4u0ivip8phju", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view12.node" } },
+    { name = "view13", id = 13, asset = { uid = "uid://kzvl64fe8hlx", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view13.node" } },
+    { name = "view14", id = 14, asset = { uid = "uid://h2ynm1fv7cwv", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view14.node" } },
+    { name = "view15", id = 15, asset = { uid = "uid://8rc2eowhqczd", path = "res://stages/mine_shelter/rooms/b2_laboratory/files/view15.node" } },
 ]
 
 [folder.from.USA]
@@ -29,15 +29,14 @@ at = [{ stage = 4, folder = 3101 }]
 [dialogue_0_atlas]
 uid = "uid://e6rxbge7y741"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_0_atlas.import]
 importer = "pe2.images@ora"
@@ -51,15 +50,14 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_1_atlas]
 uid = "uid://1mqqtypnh9uzx"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.asset" }, at = [64, 0] }
+page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [248, 48]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_1_atlas.import]
 importer = "pe2.images@ora"
@@ -73,15 +71,14 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_3_atlas]
 uid = "uid://14la5w59nq3xa"
 kind = "image"
-role = "texture"
-page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.asset" }, at = [0, 0] }
+page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 56]
-palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [0, 2] }
-palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [16, 2] }
-palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [32, 2] }
-palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 2] }
-palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.asset" }, at = [48, 3] }
+palettes.text_0 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [0, 2] }
+palettes.text_1 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [16, 2] }
+palettes.text_2 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [32, 2] }
+palettes.text_3 = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 2] }
+palettes.plate = { slot = { uid = "uid://lmjscox2t1qy", path = "res://engine/vram/dialogue_palettes.node" }, at = [48, 3] }
 
 [dialogue_3_atlas.import]
 importer = "pe2.images@ora"
