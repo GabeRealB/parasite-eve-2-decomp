@@ -1,0 +1,17 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the asset
+
+[page_0]
+uid = "uid://t4mh2wsxq5ec"
+kind = "material"
+shader = "textured"
+surface = "opaque"
+blend = "add"
+main = { slot = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset" }, cell = "page_0", palette = "default" }
+
+[page_1]
+uid = "uid://12kvruz14xoi2"
+kind = "material"
+shader = "textured"
+surface = "opaque"
+blend = "add"
+main = { slot = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.asset" }, cell = "page_1", palette = "default_2" }

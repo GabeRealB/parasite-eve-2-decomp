@@ -20,3 +20,80 @@ source = "source.ora"
 at = [{ stage = 0, file = 10400, slot = "image", page = 0 }]
 sha1 = "5fde4a88130fce36b40afbb5a614e3ae2d6fbe19"
 palettes = { default = "6be4c71b2145dd45fae7247952871e4750807135", default_2 = "06fe0a65121b9a02591769b35b949200bb866f88" }
+
+# The stored models: a mesh with its slots filled.
+
+[body]
+uid = "uid://1kx3bjs4l9836"
+kind = "model"
+mesh = { slot = { uid = "uid://1nev1wbgiepbs", path = "res://characters/aya/meshes/body_10400.asset" } }
+materials.page_1 = { slot = { uid = "uid://12kvruz14xoi2", path = "res://characters/aya/10400/materials/page_1.asset" } }
+materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.asset" } }
+
+[body.from.USA]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 4
+size = 22824
+address = 2148620148
+symbol = "gAya10400BodyModel"
+sha1 = "615383b89362817a7a8470df1d76342ba7609f29"
+
+[hand_right_open]
+uid = "uid://3n75xecosgbh"
+kind = "model"
+mesh = { slot = { uid = "uid://835rokayshhu", path = "res://characters/aya/meshes/hand_right_open_10400.asset" } }
+materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.asset" } }
+
+[hand_right_open.from.USA]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 23936
+size = 1264
+address = 2148644080
+symbol = "gAya10400FirstPairHand1Model"
+sha1 = "7b1261e1320a1a6e2373aa1002b8faced6fba5e0"
+
+[hand_left_both]
+uid = "uid://1rt517gjy6uta"
+kind = "model"
+mesh = { slot = { uid = "uid://1k4l5qp7outm9", path = "res://characters/aya/meshes/hand_left_both_10400.asset" } }
+materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.asset" } }
+
+[hand_left_both.from.USA]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 22828
+size = 1108
+address = 2148642972
+symbol = "gAya10400Hand0Model"
+sha1 = "0a810c3ad6ba2050a2df6ca392fd1c4c4eea9a5c"
+
+[hand_right_closed]
+uid = "uid://1x7ipv1khfk4u"
+kind = "model"
+mesh = { slot = { uid = "uid://dxb6hla7f8u4", path = "res://characters/aya/meshes/hand_right_closed_10400.asset" } }
+materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.asset" } }
+
+[hand_right_closed.from.USA]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 25200
+size = 1108
+address = 2148645344
+symbol = "gAya10400SecondPairHand1Model"
+sha1 = "f3c4d4e907f0530f428ae4fd19c62c4ef67d7daa"
+
+[aya]
+uid = "uid://35hsv3rtnqsy"
+kind = "prefab"
+model = { slot = { uid = "uid://1kx3bjs4l9836", path = "res://characters/aya/10400/body.asset" } }
+children = [
+    { node = "left_hand", model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.asset" } } },
+    { node = "right_hand", model = { slot = { uid = "uid://1x7ipv1khfk4u", path = "res://characters/aya/10400/hand_right_closed.asset" } } },
+]
+
+[aya_open_hands]
+uid = "uid://vxqyvqd4zs39"
+kind = "prefab"
+model = { slot = { uid = "uid://1kx3bjs4l9836", path = "res://characters/aya/10400/body.asset" } }
+children = [
+    { node = "left_hand", model = { slot = { uid = "uid://1rt517gjy6uta", path = "res://characters/aya/10400/hand_left_both.asset" } } },
+    { node = "right_hand", model = { slot = { uid = "uid://3n75xecosgbh", path = "res://characters/aya/10400/hand_right_open.asset" } } },
+]

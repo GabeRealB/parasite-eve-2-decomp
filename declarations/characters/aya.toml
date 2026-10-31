@@ -20,3 +20,28 @@ source = "source.ora"
 at = [{ stage = 0, file = 609100, slot = "casual_image", page = 0 }]
 sha1 = "7b601997dfe2d9a99733e9667f7eec80298ae2ad"
 palettes = { default = "6ea0bf56ef1f39df744abccadb228ce3c560d168", default_2 = "9ac0e8f568a4f35480aa9dad241167ade2476397" }
+
+[skeleton]
+uid = "uid://1f2rkjlfoicx3"
+kind = "skeleton"
+joints = [
+    { name = "root", translation = [0, 0, 0], rotation = [0, 0, 0] },
+    { name = "pelvis", parent = "root", translation = [0, -927, 0], rotation = [0, 0, 0] },
+    { name = "waist", parent = "pelvis", translation = [0, -79, 3], rotation = [0, 0, 0] },
+    { name = "chest", parent = "waist", translation = [0, -160, -7], rotation = [0, 0, 0] },
+    { name = "head", parent = "chest", translation = [0, -292, -13], rotation = [0, 0, 0] },
+    { name = "right_shoulder", parent = "chest", translation = [71, -248, -24], rotation = [0, 0, 0] },
+    { name = "right_upper_arm", parent = "right_shoulder", translation = [100, 39, -2], rotation = [0, 0, 0] },
+    { name = "right_forearm", parent = "right_upper_arm", translation = [8, 248, -21], rotation = [0, 0, 0] },
+    { name = "right_hand", parent = "right_forearm", translation = [8, 216, 26], rotation = [0, 0, 0] },
+    { name = "left_shoulder", parent = "chest", translation = [-71, -248, -24], rotation = [0, 0, 0] },
+    { name = "left_upper_arm", parent = "left_shoulder", translation = [-101, 36, -2], rotation = [0, 0, 0] },
+    { name = "left_forearm", parent = "left_upper_arm", translation = [-9, 248, -21], rotation = [0, 0, 0] },
+    { name = "left_hand", parent = "left_forearm", translation = [-9, 216, 25], rotation = [0, 0, 0] },
+    { name = "right_thigh", parent = "pelvis", translation = [94, 40, 3], rotation = [0, 0, 0] },
+    { name = "right_shin", parent = "right_thigh", translation = [-20, 366, -38], rotation = [0, 0, 0] },
+    { name = "right_foot", parent = "right_shin", translation = [-22, 408, -42], rotation = [0, 0, 0] },
+    { name = "left_thigh", parent = "pelvis", translation = [-94, 40, 3], rotation = [0, 0, 0] },
+    { name = "left_shin", parent = "left_thigh", translation = [18, 366, -38], rotation = [0, 0, 0] },
+    { name = "left_foot", parent = "left_shin", translation = [20, 408, -42], rotation = [0, 0, 0] },
+]
