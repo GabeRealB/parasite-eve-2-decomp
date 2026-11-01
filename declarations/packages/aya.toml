@@ -1,74 +1,74 @@
 # Aya's packages: what each source's slots hold, the models and frames it stores.
 
-[aya_10200]
+[aya_mist]
 uid = "uid://pkq6zctcq1as"
 template = "package"
 slot = "aya"
-sources = ["src/aya_10200.c"]
-bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/10200/stored_hand_left"
-bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/10200/hand_left"
-bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/10200/stored_hand_right"
-bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/10200/hand_right"
-bind.body = "uid://vinvx0m1i1zv#outfit/10200/body"
-bind.eyes_open = { uid = "uid://wdmdjpvyovur", path = "res://characters/aya/10200/eyes_open.node" }
-bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/aya/10200/eyes_half_closed.node" }
-bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/10200/eyes_closed.node" }
-bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/10200/mouth_rest.node" }
+sources = ["src/aya_mist.c"]
+bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/mist/stored_hand_left"
+bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/mist/hand_left"
+bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/mist/stored_hand_right"
+bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/mist/hand_right"
+bind.body = "uid://vinvx0m1i1zv#outfit/mist/body"
+bind.eyes_open = { uid = "uid://wdmdjpvyovur", path = "res://characters/aya/mist/eyes_open.node" }
+bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/aya/mist/eyes_half_closed.node" }
+bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/mist/eyes_closed.node" }
+bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist/mouth_rest.node" }
 
-[aya_10200.target.psx]
+[aya_mist.target.psx]
 link_script = "psx/link.ld"
 
-[aya_10300]
+[aya_dryfield]
 uid = "uid://gz0onrpki7ki"
 template = "package"
 slot = "aya"
-sources = ["src/aya_10300.c"]
-bind.body = "uid://vinvx0m1i1zv#outfit/10300/body"
-bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/10300/stored_hand_left"
-bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/10300/hand_left"
-bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/10300/stored_hand_right"
-bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/10300/hand_right"
-bind.eyes_open = { uid = "uid://1zmsq0rqx0gu", path = "res://characters/aya/10300/eyes_open.node" }
-bind.eyes_half_closed = { uid = "uid://zb8ivzhp5t0w", path = "res://characters/aya/10300/eyes_half_closed.node" }
-bind.eyes_closed = { uid = "uid://klal2y9l8ael", path = "res://characters/aya/10300/eyes_closed.node" }
-bind.mouth_rest = { uid = "uid://q0c347avmygk", path = "res://characters/aya/10300/mouth_rest.node" }
-bind.mouth_alternate = { uid = "uid://1pf66u5vaq3ux", path = "res://characters/aya/10300/mouth_alternate.node" }
+sources = ["src/aya_dryfield.c"]
+bind.body = "uid://vinvx0m1i1zv#outfit/dryfield/body"
+bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/dryfield/stored_hand_left"
+bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/dryfield/hand_left"
+bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/dryfield/stored_hand_right"
+bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/dryfield/hand_right"
+bind.eyes_open = { uid = "uid://1zmsq0rqx0gu", path = "res://characters/aya/dryfield/eyes_open.node" }
+bind.eyes_half_closed = { uid = "uid://zb8ivzhp5t0w", path = "res://characters/aya/dryfield/eyes_half_closed.node" }
+bind.eyes_closed = { uid = "uid://klal2y9l8ael", path = "res://characters/aya/dryfield/eyes_closed.node" }
+bind.mouth_rest = { uid = "uid://q0c347avmygk", path = "res://characters/aya/dryfield/mouth_rest.node" }
+bind.mouth_alternate = { uid = "uid://1pf66u5vaq3ux", path = "res://characters/aya/dryfield/mouth_alternate.node" }
 
-[aya_10300.target.psx]
+[aya_dryfield.target.psx]
 link_script = "psx/link.ld"
 
-[aya_10400]
+[aya_akropolis]
 uid = "uid://1poz67b78tdpm"
 template = "package"
 slot = "aya"
-sources = ["src/aya_10400.c"]
-bind.body = "uid://vinvx0m1i1zv#outfit/10400/body"
-bind.hand_left_both = "uid://vinvx0m1i1zv#outfit/10400/hand_left"
-bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/10400/stored_hand_right"
-bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/10400/hand_right"
-bind.eyes_open = { uid = "uid://11qcitnj36yhn", path = "res://characters/aya/10400/eyes_open.node" }
-bind.eyes_half_closed = { uid = "uid://jqj9ppjaox1", path = "res://characters/aya/10400/eyes_half_closed.node" }
-bind.eyes_closed = { uid = "uid://rr9dfll5tpb9", path = "res://characters/aya/10400/eyes_closed.node" }
-bind.mouth_rest = { uid = "uid://1kd4b3khkr641", path = "res://characters/aya/10400/mouth_rest.node" }
-bind.mouth_alternate = { uid = "uid://o7dfmsql58ar", path = "res://characters/aya/10400/mouth_alternate.node" }
+sources = ["src/aya_akropolis.c"]
+bind.body = "uid://vinvx0m1i1zv#outfit/akropolis/body"
+bind.hand_left_both = "uid://vinvx0m1i1zv#outfit/akropolis/hand_left"
+bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/akropolis/stored_hand_right"
+bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/akropolis/hand_right"
+bind.eyes_open = { uid = "uid://11qcitnj36yhn", path = "res://characters/aya/akropolis/eyes_open.node" }
+bind.eyes_half_closed = { uid = "uid://jqj9ppjaox1", path = "res://characters/aya/akropolis/eyes_half_closed.node" }
+bind.eyes_closed = { uid = "uid://rr9dfll5tpb9", path = "res://characters/aya/akropolis/eyes_closed.node" }
+bind.mouth_rest = { uid = "uid://1kd4b3khkr641", path = "res://characters/aya/akropolis/mouth_rest.node" }
+bind.mouth_alternate = { uid = "uid://o7dfmsql58ar", path = "res://characters/aya/akropolis/mouth_alternate.node" }
 
-[aya_10400.target.psx]
+[aya_akropolis.target.psx]
 link_script = "psx/link.ld"
 
-[aya_10500]
+[aya_range]
 uid = "uid://18drk5dg73b83"
 template = "package"
 slot = "aya"
-sources = ["src/aya_10500.c"]
-bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/10500/stored_hand_left"
-bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/10500/hand_left"
-bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/10500/stored_hand_right"
-bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/10500/hand_right"
-bind.body = "uid://vinvx0m1i1zv#outfit/10500/body"
-bind.eyes_open = { uid = "uid://wdmdjpvyovur", path = "res://characters/aya/10200/eyes_open.node" }
-bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/aya/10200/eyes_half_closed.node" }
-bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/10200/eyes_closed.node" }
-bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/10200/mouth_rest.node" }
+sources = ["src/aya_range.c"]
+bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/range/stored_hand_left"
+bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/range/hand_left"
+bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/range/stored_hand_right"
+bind.hand_right_closed = "uid://vinvx0m1i1zv#outfit/range/hand_right"
+bind.body = "uid://vinvx0m1i1zv#outfit/range/body"
+bind.eyes_open = { uid = "uid://wdmdjpvyovur", path = "res://characters/aya/mist/eyes_open.node" }
+bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/aya/mist/eyes_half_closed.node" }
+bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/mist/eyes_closed.node" }
+bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist/mouth_rest.node" }
 
-[aya_10500.target.psx]
+[aya_range.target.psx]
 link_script = "psx/link.ld"

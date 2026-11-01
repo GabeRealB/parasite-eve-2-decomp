@@ -6,7 +6,7 @@ template = "material"
 shader = "textured"
 surface = "opaque"
 blend = "add"
-main = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node", output = "cells/page_0@default" }
+main = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/akropolis/texture.node", output = "cells/page_0@default" }
 
 [page_1]
 uid = "uid://12kvruz14xoi2"
@@ -14,4 +14,4 @@ template = "material"
 shader = "textured"
 surface = "opaque"
 blend = "add"
-main = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node", output = "cells/page_1@default_2" }
+main = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/akropolis/texture.node", output = "cells/page_1@default_2" }

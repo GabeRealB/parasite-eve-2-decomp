@@ -409,32 +409,32 @@ characters/anmc_woman_3/body	Body of the woman No. 9 kills in the Dryfield dilap
 characters/anmc_woman_2/body	19-part view-space figure of the woman in the Akropolis cafeteria before she changes, placed actor 1 of variant 1 until the battle scene replaces her with actor_210600.	
 weapons/as12/bank	Aya's animation bank while the AS12 shotgun is equipped: ready and firing clips from the weapon's attack state plus gameplay's idle, walk, run, turn, aim, reload, hit, PE, stair and item-use clips.	
 weapons/as12/model	One-part AS12 weapon model spawned as the player's held weapon (weapon 15) and parent of its muzzle flash and reload effects; the companion spawn path is open.	
-aya_10200_image_06AC4	No reached use found: the three-frame (eyes closing, by position) and five-frame blink head-texture sequences A2 and A4 of this Aya costume; the caption senders of values 1 and 3 are undecoded.	
-aya_10200_image_06E04	No reached use found: middle 50x16 frame of this Aya costume's head-texture sequences A2-A4; the mechanism is known but which captions send the starting message is undecoded.	
-aya_10200_image_07144	No reached use found: head-texture sequence A3 of this Aya costume, the three A frames played in reverse after message value 2; the caption senders are undecoded.	
-aya_10200_image_07484	28x20 head-texture patch of this Aya costume, stored twice: the resting frame of sequence B uploaded on scene reset, and an identical B1 copy sent only by undecoded caption messages.	
-aya_10200_model_0019C	One-part attachment 0 model of Aya's rig (a hand attachment), spawned at every player spawn in costume variants 2, 3 and 4; the pair-0 copies of its descriptor have no use found.	
-aya_10200_model_00A5C	No reached use found: one-part pair-0 attachment 1 model of Aya's rig in two costume packages; its task descriptors exist but player spawns only ever pass pair 1.	
-aya_10200_model_00F0C	One-part attachment 1 model of Aya's rig, parented to body joint 8 at every player spawn (costume variants 3 and 4) and the parent of the equipped weapon model.	
-aya_10200_model_02B58	Aya's 19-bone player body for costume variant 3, spawned at every room start; also the mesh mirrored by the reflections in the Akropolis east elevator hall and the Dryfield motel rooms.	
-aya_10300_image_0674C	50x16 head-texture rest frame of Aya's costume variant 2 (sequence A1), uploaded on scene reset; also first/last frame of sequences A2-A4, whose caption senders are undecoded.	
-aya_10300_image_06A8C	No reached use found: middle 50x16 frame of head-texture sequences A2-A4 of Aya's costume variant 2; which captions send the starting message is undecoded.	
-aya_10300_image_06DCC	No reached use found: third 50x16 frame of head-texture sequences A2-A4 of Aya's costume variant 2 (the one left on screen by A2); caption senders are undecoded.	
-aya_10300_image_0710C	28x20 head-texture rest frame of sequence B (B2) for Aya's costume variant 2, uploaded with A1 on the scene reset message.	
-aya_10300_image_0735C	No reached use found: 28x20 single frame of head-texture sequence B1 for Aya's costume variant 2, selected only by message value 4 from undecoded caption records.	
-aya_10300_model_019A8	Aya's 19-bone player body for costume variant 2, spawned as the player at every room start; animated by the equipped weapon's bank.	
-aya_10300_model_05734	No reached use found: one-part pair-0 attachment 0 model of Aya's costume variant 2; its task descriptor exists but player spawns only pass pair 1.	
-aya_10300_model_05FF4	No reached use found: one-part pair-0 attachment 1 model of Aya's costume variant 2; its task descriptor exists but player spawns only pass pair 1.	
-aya_10300_model_064A4	One-part attachment 1 of Aya's costume variant 2 (presumably a hand), parented to body joint 8 at every player spawn and the parent of the equipped weapon model.	
-aya_10400_image_066C4	Three-frame and five-frame (blink) head-texture sequences A2 and A4 of Aya's costume variant 1, started by caption scene steps in the cafeteria, pod tunnel/gantry, dumping hole, incinerator and garage.	
-aya_10400_image_06D44	Head-texture sequence A3 of Aya's costume variant 1: the three A frames in reverse, started by caption scene steps in the same scenes that play A2, except the dumping hole.	
-aya_10400_image_07084	28x20 head-texture rest frame of sequence B (B2) for Aya's costume variant 1, uploaded on scene reset or message value 5.	
-aya_10400_image_072D4	28x20 alternate frame of head-texture sequence B (B1) for Aya's costume variant 1, shown by caption scene steps in the Akropolis cafeteria and the pod service gantry.	
-aya_10400_model_01A48	Aya's 19-bone player body for costume variant 1, spawned as the player at every room load; its hands are separate attachment models.	
-aya_10400_model_05AC4	One-bone hand attachment 0 of Aya's costume variant 1, one model named by both pair descriptors; spawned on body at every player spawn through pair 1 only.	
-aya_10400_model_05F58	No reached use found: one-bone pair-0 hand attachment 1 of Aya's costume variant 1; its descriptor exists but the only spawns pass pair 1.	
-aya_10400_model_06408	One-bone hand attachment 1 of Aya's costume variant 1, parented to body joint 8 at every player spawn and the parent of the equipped weapon model.	
-aya_10500_model_02BB8	Aya's 19-bone player body for costume variant 4, spawned as the player at every room load; its hands are separate attachment models.	
+aya_mist_image_06AC4	No reached use found: the three-frame (eyes closing, by position) and five-frame blink head-texture sequences A2 and A4 of this Aya costume; the caption senders of values 1 and 3 are undecoded.	
+aya_mist_image_06E04	No reached use found: middle 50x16 frame of this Aya costume's head-texture sequences A2-A4; the mechanism is known but which captions send the starting message is undecoded.	
+aya_mist_image_07144	No reached use found: head-texture sequence A3 of this Aya costume, the three A frames played in reverse after message value 2; the caption senders are undecoded.	
+aya_mist_image_07484	28x20 head-texture patch of this Aya costume, stored twice: the resting frame of sequence B uploaded on scene reset, and an identical B1 copy sent only by undecoded caption messages.	
+aya_mist_model_0019C	One-part attachment 0 model of Aya's rig (a hand attachment), spawned at every player spawn in costume variants 2, 3 and 4; the pair-0 copies of its descriptor have no use found.	
+aya_mist_model_00A5C	No reached use found: one-part pair-0 attachment 1 model of Aya's rig in two costume packages; its task descriptors exist but player spawns only ever pass pair 1.	
+aya_mist_model_00F0C	One-part attachment 1 model of Aya's rig, parented to body joint 8 at every player spawn (costume variants 3 and 4) and the parent of the equipped weapon model.	
+aya_mist_model_02B58	Aya's 19-bone player body for costume variant 3, spawned at every room start; also the mesh mirrored by the reflections in the Akropolis east elevator hall and the Dryfield motel rooms.	
+aya_dryfield_image_0674C	50x16 head-texture rest frame of Aya's costume variant 2 (sequence A1), uploaded on scene reset; also first/last frame of sequences A2-A4, whose caption senders are undecoded.	
+aya_dryfield_image_06A8C	No reached use found: middle 50x16 frame of head-texture sequences A2-A4 of Aya's costume variant 2; which captions send the starting message is undecoded.	
+aya_dryfield_image_06DCC	No reached use found: third 50x16 frame of head-texture sequences A2-A4 of Aya's costume variant 2 (the one left on screen by A2); caption senders are undecoded.	
+aya_dryfield_image_0710C	28x20 head-texture rest frame of sequence B (B2) for Aya's costume variant 2, uploaded with A1 on the scene reset message.	
+aya_dryfield_image_0735C	No reached use found: 28x20 single frame of head-texture sequence B1 for Aya's costume variant 2, selected only by message value 4 from undecoded caption records.	
+aya_dryfield_model_019A8	Aya's 19-bone player body for costume variant 2, spawned as the player at every room start; animated by the equipped weapon's bank.	
+aya_dryfield_model_05734	No reached use found: one-part pair-0 attachment 0 model of Aya's costume variant 2; its task descriptor exists but player spawns only pass pair 1.	
+aya_dryfield_model_05FF4	No reached use found: one-part pair-0 attachment 1 model of Aya's costume variant 2; its task descriptor exists but player spawns only pass pair 1.	
+aya_dryfield_model_064A4	One-part attachment 1 of Aya's costume variant 2 (presumably a hand), parented to body joint 8 at every player spawn and the parent of the equipped weapon model.	
+aya_akropolis_image_066C4	Three-frame and five-frame (blink) head-texture sequences A2 and A4 of Aya's costume variant 1, started by caption scene steps in the cafeteria, pod tunnel/gantry, dumping hole, incinerator and garage.	
+aya_akropolis_image_06D44	Head-texture sequence A3 of Aya's costume variant 1: the three A frames in reverse, started by caption scene steps in the same scenes that play A2, except the dumping hole.	
+aya_akropolis_image_07084	28x20 head-texture rest frame of sequence B (B2) for Aya's costume variant 1, uploaded on scene reset or message value 5.	
+aya_akropolis_image_072D4	28x20 alternate frame of head-texture sequence B (B1) for Aya's costume variant 1, shown by caption scene steps in the Akropolis cafeteria and the pod service gantry.	
+aya_akropolis_model_01A48	Aya's 19-bone player body for costume variant 1, spawned as the player at every room load; its hands are separate attachment models.	
+aya_akropolis_model_05AC4	One-bone hand attachment 0 of Aya's costume variant 1, one model named by both pair descriptors; spawned on body at every player spawn through pair 1 only.	
+aya_akropolis_model_05F58	No reached use found: one-bone pair-0 hand attachment 1 of Aya's costume variant 1; its descriptor exists but the only spawns pass pair 1.	
+aya_akropolis_model_06408	One-bone hand attachment 1 of Aya's costume variant 1, parented to body joint 8 at every player spawn and the parent of the equipped weapon model.	
+aya_range_model_02BB8	Aya's 19-bone player body for costume variant 4, spawned as the player at every room load; its hands are separate attachment models.	
 characters/eve/body	19-part Aya-shaped stand-in body placed by scene packages (Dryfield r08, pod tunnels, Neo Ark garden, submarine tunnel, r31) as Aya's double or a second Aya; also Eve's second body in actor_560800.	Named as Aya's body, but it is never the player's own model: the uses show a scene double/second Aya figure, and in the pod service gantry scene it is Eve's body after the swap.
 enemies/bat/body	Body of the bat enemy, placed in Dryfield, mine and Akropolis observatory rooms with room-gated wave entrances; any damaging hit kills it and hides it.	
 enemies/bat/burst_wing_left	One-part bat wing handed to gameplay's burst-body-part effect on a bat's burst death and flown as a tumbling part; chosen at random instead of the right wing.	
@@ -2772,7 +2772,7 @@ enemies/glutton/palette_3	Two 256-colour palette rows of the Glutton's fourth an
 enemies/golem/bishop/palette	Palette of the enemies/golem/body of enemies/golem/bishop/package, placed in eight rooms: its first 256-colour row colours all 478 faces; the second row has no reader.	
 enemies/stalker/ivory/palette	Palette of the ivory stalker (enemies/stalker/ivory/package): its first 256-colour row colours the body, both arms and four death chunks; the second row is unused.	
 rooms/neo_ark/observatory/dome_backdrops_palette	Two source palettes of actor_450200's backdrop cross-fade: read back from video memory, scaled each frame and re-uploaded for the outgoing and incoming backdrops.	
-pe2clut_29	Aya's player-model palette (aya_10400): rows 245 and 246 for her body's two texture pages, row 245 also for her hand models and embedded sequence images.	
+pe2clut_29	Aya's player-model palette (aya_akropolis): rows 245 and 246 for her body's two texture pages, row 245 also for her hand models and embedded sequence images.	
 characters/soldier_c/palette	Two 256-colour palette rows, one per page, of the Soldier C body in actor_460200.	
 enemies/brahman/palette	Two 256-colour palette rows of Brahman in shelter R48: the first for the torso's first page, the second for the page shared by the torso and three other models.	
 enemies/brahman/palette_2	256-colour palette row of the third page of Brahman's torso in shelter R48, until a dying orb emitter or a destroyed arm overwrites it.	
@@ -2893,7 +2893,7 @@ pe2clut_396	256-colour sprite palette shared by mapped views 30 and 38 of the sh
 pe2clut_397	256-colour sprite palette shared by mapped views 31 and 39 of the shelter B3 garbage incinerator (logical view 15), stored in each view file.	
 pe2clut_398	256-colour sprite palette of mapped view 32 of the shelter B3 garbage incinerator (pe2img_1192, logical view 6 in room 5), stored in the view file itself.	
 pe2clut_399	256-colour sprite palette of view 33 of the shelter B3 garbage incinerator (pe2img_1193), a view selected by actor_342000's event task.	
-pe2clut_4	Two 256-colour palette rows of the player body in aya_10200 and aya_10500: one row per texture page, also used by the hands and attachment models.	
+pe2clut_4	Two 256-colour palette rows of the player body in aya_mist and aya_range: one row per texture page, also used by the hands and attachment models.	
 weapons/as12/preview_palette	256-colour palette of the AS12 preview picture (weapons/as12/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 pe2clut_400	256-colour sprite palette of mapped view 35 of the shelter B3 garbage incinerator (pe2img_1187, logical view 6 in room 7), stored in the view file itself.	
 pe2clut_401	256-colour sprite palette of mapped view 37 of the shelter B3 garbage incinerator (pe2img_1189, logical view 8 in room 7), stored in the view file itself.	
@@ -2924,7 +2924,7 @@ weapons/hypervelocity/preview_palette	256-colour palette of the Hypervelocity pr
 weapons/gunblade/preview_palette	256-colour palette of the Gunblade preview picture (weapons/gunblade/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 weapons/m4a1_hammer/preview_palette	256-colour palette of the M4A1 Hammer preview picture (weapons/m4a1_hammer/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 weapons/m4a1_bayonet/preview_palette	256-colour palette of the M4A1 Bayonet preview picture (weapons/m4a1_bayonet/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
-characters/aya/10300/palette	Two 256-colour palette rows of the player body in aya_10300, one per texture page, also used by its attachment models; the same chunk in rooms/neo_ark/power_plant_2/beta_generator has no use found.	
+characters/aya/dryfield/palette	Two 256-colour palette rows of the player body in aya_dryfield, one per texture page, also used by its attachment models; the same chunk in rooms/neo_ark/power_plant_2/beta_generator has no use found.	
 weapons/m4a1_grenade/preview_palette	256-colour palette of the M4A1 Grenade preview picture (weapons/m4a1_grenade/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 weapons/m4a1_pyke/preview_palette	256-colour palette of the M4A1 Pyke preview picture (weapons/m4a1_pyke/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
 weapons/m4a1_javelin/preview_palette	256-colour palette of the M4A1 Javelin preview picture (weapons/m4a1_javelin/preview_image) shown by gameplay's item menu when that weapon is the selected row.	
@@ -3666,7 +3666,7 @@ stages/akropolis/rooms/square/views/view5_image	8-bit sheet of the 31 depth-sort
 stages/akropolis/rooms/square/views/view6_image	8-bit sheet (two pages) of the 91 depth-sorted occluder sprites of akropolis_square's mapped view 6.	
 stages/akropolis/rooms/square/views/view7_image	8-bit sheet (two pages) of the 94 depth-sorted occluder sprites of akropolis_square's mapped view 7.	
 stages/akropolis/rooms/square/views/view8_image	8-bit sheet of the 53 depth-sorted occluder sprites of akropolis_square's mapped view 8.	
-pe2img_31	Two-page 8-bit body and hand texture of the player model in aya_10400 (resource variant 1, set on leaving for the Acropolis); a head rectangle is overwritten by the texture sequences.	
+pe2img_31	Two-page 8-bit body and hand texture of the player model in aya_akropolis (resource variant 1, set on leaving for the Acropolis); a head rectangle is overwritten by the texture sequences.	
 stages/akropolis/story_calls_atlas	4-bit caption glyph atlas with name plates for the telephone cutscene's dialogue, brought in as view 9's image in akropolis_square, akropolis_fire_escape and mist_parking.	
 stages/akropolis/rooms/square/views/view15_image	640x240 8-bit panorama of the square, panned across the screen as three strips by akropolis_square's scrolling backdrop task during the arrival scene (view 15).	
 stages/akropolis/rooms/east_elevator_hall/dialogue_0_atlas	4-bit caption glyph atlas of akropolis_east_elevator_hall's dialogue, drawn by gameplay's caption code whenever the room shows text.	
@@ -3765,7 +3765,7 @@ stages/akropolis/rooms/sanctuary/views/view6_image	8-bit sheet (two pages) of th
 stages/akropolis/rooms/sanctuary/views/view7_image	8-bit sheet (two pages) of the 24 depth-sorted room sprites of akropolis_sanctuary's view 7.	
 stages/akropolis/rooms/sanctuary/views/view8_image	8-bit sheet of the 9 depth-sorted room sprites of akropolis_sanctuary's view 8.	
 stages/akropolis/rooms/sanctuary/views/view9_image	8-bit sheet of the 4 depth-sorted room sprites of akropolis_sanctuary's view 9.	
-pe2img_4	Two-page 8-bit body texture of the player model in aya_10200 and aya_10500, queued by gameplay's character resource loader at the load screen and re-uploaded by actor_150400's reload.	
+pe2img_4	Two-page 8-bit body texture of the player model in aya_mist and aya_range, queued by gameplay's character resource loader at the load screen and re-uploaded by actor_150400's reload.	
 weapons/pa3/preview_image	Item preview picture of weapon 0x8C, the PA3, drawn in gameplay's item menu panels when that weapon is selected.	
 stages/akropolis/rooms/sanctuary/views/view11_image	8-bit sheet (two pages) of the 8 depth-sorted room sprites of akropolis_sanctuary's view 11.	
 stages/akropolis/rooms/sanctuary/views/view12_image	8-bit sheet of the 32 room sprites of akropolis_sanctuary's view 12, with two alternative batches switched by the arrival scene script.	
@@ -3876,7 +3876,7 @@ pe2img_496	8-bit sheet of the 27 occluder sprites of dryfield_main_street's mapp
 pe2img_497	8-bit sheet of the 26 occluder sprites of dryfield_main_street's mapped view 6.	
 pe2img_498	8-bit sheet (three pages) of the occluder sprites of dryfield_main_street's mapped view 7.	
 pe2img_499	8-bit sheet of the 12 occluder sprites of dryfield_main_street's mapped view 10.	
-characters/aya/10300/image	Two-page 8-bit body texture of the player model in aya_10300, queued by gameplay's character resource loader at the load screen; the copy in rooms/neo_ark/power_plant_2/beta_generator's file has no use found.	
+characters/aya/dryfield/image	Two-page 8-bit body texture of the player model in aya_dryfield, queued by gameplay's character resource loader at the load screen; the copy in rooms/neo_ark/power_plant_2/beta_generator's file has no use found.	
 weapons/m4a1_hammer/preview_image	Item preview picture of weapon 0x98, the M4A1 Hammer, drawn in gameplay's item menu panels when that weapon is selected.	
 pe2img_500	8-bit sheet (two pages) of the 53 occluder sprites of dryfield_main_street's mapped view 13.	
 dryfield_general_store_dialogue_0_atlas	4-bit caption glyph atlas of the general store's dialogue, shared by dryfield_general_store and dryfield_night_general_store.	

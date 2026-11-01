@@ -1047,22 +1047,22 @@ static u16 _gPlayerActorWeaponAimYawSteps[PLAYER_ACTOR_WEAPON_COUNT] = {
 /// remain writable and require the corresponding costume package loaded.
 /// The player advances a frame every four eligible actor ticks.
 static GpuImageUpload* const* _gPlayerActorEyeTextureSequences[16] = {
-    gAya10400EyesRestSequence,
-    gAya10300EyesRestSequence,
-    gAya10200EyesRestSequence,
-    gAya10500EyesRestSequence,
-    gAya10400EyesClosingSequence,
-    gAya10300EyesClosingSequence,
-    gAya10200EyesClosingSequence,
-    gAya10500EyesClosingSequence,
-    gAya10400EyesOpeningSequence,
-    gAya10300EyesOpeningSequence,
-    gAya10200EyesOpeningSequence,
-    gAya10500EyesOpeningSequence,
-    gAya10400EyesBlinkSequence,
-    gAya10300EyesBlinkSequence,
-    gAya10200EyesBlinkSequence,
-    gAya10500EyesBlinkSequence,
+    gAyaAkropolisEyesRestSequence,
+    gAyaDryfieldEyesRestSequence,
+    gAyaMistEyesRestSequence,
+    gAyaRangeEyesRestSequence,
+    gAyaAkropolisEyesClosingSequence,
+    gAyaDryfieldEyesClosingSequence,
+    gAyaMistEyesClosingSequence,
+    gAyaRangeEyesClosingSequence,
+    gAyaAkropolisEyesOpeningSequence,
+    gAyaDryfieldEyesOpeningSequence,
+    gAyaMistEyesOpeningSequence,
+    gAyaRangeEyesOpeningSequence,
+    gAyaAkropolisEyesBlinkSequence,
+    gAyaDryfieldEyesBlinkSequence,
+    gAyaMistEyesBlinkSequence,
+    gAyaRangeEyesBlinkSequence,
 };
 /// Mouth texture frame sequences selected by mouth state and player resource variant.
 ///
@@ -1073,14 +1073,14 @@ static GpuImageUpload* const* _gPlayerActorEyeTextureSequences[16] = {
 /// Upload lists remain writable and require the costume package loaded;
 /// the player advances a frame every eight eligible actor ticks.
 static GpuImageUpload* const* _gPlayerActorMouthTextureSequences[8] = {
-    gAya10400MouthOpenSequence,
-    gAya10300MouthOpenSequence,
-    gAya10200MouthAlternateSequence,
-    gAya10500MouthAlternateSequence,
-    gAya10400MouthRestSequence,
-    gAya10300MouthRestSequence,
-    gAya10200MouthRestSequence,
-    gAya10500MouthRestSequence,
+    gAyaAkropolisMouthOpenSequence,
+    gAyaDryfieldMouthOpenSequence,
+    gAyaMistMouthAlternateSequence,
+    gAyaRangeMouthAlternateSequence,
+    gAyaAkropolisMouthRestSequence,
+    gAyaDryfieldMouthRestSequence,
+    gAyaMistMouthRestSequence,
+    gAyaRangeMouthRestSequence,
 };
 /// Thirty-three retained zero/one bytes with no identified reader.
 ///

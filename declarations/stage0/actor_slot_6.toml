@@ -84,15 +84,15 @@ template = "file"
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "palettes/default" } },
-    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "palettes/default_2" } },
+    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/dryfield/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/dryfield/texture.node", output = "palettes/default_2" } },
 ]
 
 [[aya_texture_605300.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node" } },
+    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/dryfield/texture.node" } },
 ]
 page_slots = 6
 

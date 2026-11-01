@@ -637,90 +637,90 @@ stages/akropolis/actors/helicopter_landing_pad_no_9/package	main memory	trace-20
 helicopter_departure	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80131e20-0x801550cf	0/file511000	3	5	0		
 helicopter_departure	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		
 helicopter_departure	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80131e20-0x801550cf	0/file511000	3	5	0		overwritten by mist_rupert of 0/file113000 at event 41298
-aya_10200	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		overwritten by aya_10400 of 0/aya_10400 at event 12727
-aya_10200	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		
-aya_10200	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		
-aya_10200	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		
-aya_10200	main memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		
-aya_10200	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80115770-0x8011d0e3	0/aya_10200	6	0	0		
-aya_10400	main memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1						0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10400	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		overwritten by aya_10200 of 0/aya_10200 at event 41588
-aya_10400	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
-aya_10500	main memory	trace-20261012-145054	session 1						0x80115770-0x8011d1b7	0/file10500	6	0	0		
-aya_10500	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80115770-0x8011d1b7	0/file10500	6	0	0		overwritten by aya_10200 of 0/aya_10200 at event 8478
+aya_mist	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80115770-0x8011d0e3	0/aya_mist	6	0	0		overwritten by aya_akropolis of 0/aya_akropolis at event 12727
+aya_mist	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x80115770-0x8011d0e3	0/aya_mist	6	0	0		
+aya_mist	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80115770-0x8011d0e3	0/aya_mist	6	0	0		
+aya_mist	main memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x80115770-0x8011d0e3	0/aya_mist	6	0	0		
+aya_mist	main memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x80115770-0x8011d0e3	0/aya_mist	6	0	0		
+aya_mist	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80115770-0x8011d0e3	0/aya_mist	6	0	0		
+aya_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1						0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		overwritten by aya_mist of 0/aya_mist at event 41588
+aya_akropolis	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x80115770-0x8011cce3	0/aya_akropolis	6	0	0		
+aya_range	main memory	trace-20261012-145054	session 1						0x80115770-0x8011d1b7	0/file10500	6	0	0		
+aya_range	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x80115770-0x8011d1b7	0/file10500	6	0	0		overwritten by aya_mist of 0/aya_mist at event 8478
 title/background	main memory	trace-20261012-145054	session 1						0x801d7000-0x801dcfef	0/title_screen	0	0	0		
 title/background	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x801d7000-0x801dcfef	0/title_screen	0	0	0		overwritten by stages/akropolis/rooms/mist_shooting_gallery/views/view15_background of 1/mist_shooting_gallery/file15 at event 708
 title/background	main memory	trace-20261012-152043	session 1						0x801d7000-0x801dcfef	0/title_screen	0	0	0		overwritten by load_screens/acropolis_square/background of 0/load_screen_acropolis_square at event 57
@@ -5057,82 +5057,82 @@ weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	akropolis_s
 weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0,243,16,1	0/mp5a5	0	0	0		
 weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,243,16,1	0/mp5a5	0	0	0		overwritten by weapons/p08/palette of 0/p08_snail at event 41590
 weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1						0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,245,256,2	0/aya_10400	6	0	0		
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,245,256,2	0/aya_10400	6	0	0		overwritten by pe2clut_4 of 0/aya_10200 at event 41585
-pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0,245,256,2	0/aya_10400	6	0	0		
+pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1						0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,245,256,2	0/aya_akropolis	6	0	0		overwritten by pe2clut_4 of 0/aya_mist at event 41585
+pe2clut_29	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0,245,256,2	0/aya_akropolis	6	0	0		
 ui/caption_font/palette	video memory	trace-20261012-145054	session 1						0,255,256,6	0/load_screen_detailed_caption	0	0	0		
 ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0,255,256,6	0/load_screen_detailed_caption	0	0	0		
 ui/caption_font/palette	video memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		0,255,256,6	0/load_screen_detailed_caption	0	0	0		overwritten by stages/akropolis/rooms/west_elevator_hall/views/view5_palette of bundle:stages/akropolis/rooms/west_elevator_hall/views/view5_palette at event 18059
@@ -5601,13 +5601,13 @@ stages/akropolis/rooms/mist_shooting_gallery/views/view17_file_palette	video mem
 weapons/pa3/preview_palette	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,253,256,1	0/file20113	-8	-3	3		overwritten by items/buckshot/palette of 0/file20413 at event 12075
 weapons/pa3/preview_palette	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,253,256,1	0/file20113	-8	-3	3		overwritten by weapons/m4a1/preview_palette of 0/file20116 at event 12045
 pe2clut_4	video memory	trace-20261012-145054	session 1						0,245,256,2	0/file10500	6	0	0		
-pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,245,256,2	0/aya_10200	6	0	0		overwritten by pe2clut_29 of 0/aya_10400 at event 12727
-pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,245,256,2	0/aya_10200	6	0	0		
-pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,245,256,2	0/aya_10200	6	0	0		
-pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,245,256,2	0/file10500	6	0	0		overwritten by pe2clut_4 of 0/aya_10200 at event 8478
-pe2clut_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0,245,256,2	0/aya_10200	6	0	0		
-pe2clut_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0,245,256,2	0/aya_10200	6	0	0		
-pe2clut_4	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,245,256,2	0/aya_10200	6	0	0		
+pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,245,256,2	0/aya_mist	6	0	0		overwritten by pe2clut_29 of 0/aya_akropolis at event 12727
+pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,245,256,2	0/aya_mist	6	0	0		
+pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,245,256,2	0/aya_mist	6	0	0		
+pe2clut_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,245,256,2	0/file10500	6	0	0		overwritten by pe2clut_4 of 0/aya_mist at event 8478
+pe2clut_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0,245,256,2	0/aya_mist	6	0	0		
+pe2clut_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0,245,256,2	0/aya_mist	6	0	0		
+pe2clut_4	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,245,256,2	0/aya_mist	6	0	0		
 weapons/m4a1/preview_palette	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,253,256,1	0/file20116	-8	-3	3		overwritten by weapons/pa3/preview_palette of 0/file20113 at event 12056
 weapons/tonfa_baton/preview_palette	video memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		0,254,256,1	0/file20119	0	-2	3		
 weapons/tonfa_baton/preview_palette	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0,254,256,1	0/file20119	0	-2	3		
@@ -6359,7 +6359,7 @@ pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	
 pe2img_190	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		896,0,128,256	0/akropolis_map_page_2	0	0	0		overwritten by pe2img_189 of 0/akropolis_map_page_1 at event 40987
 pe2img_191	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		896,0,128,256	0/akropolis_map_page_3	0	0	0		overwritten by items/9mm_pb/image of 0/file20401 at event 8195
 title/chrome_image	video memory	trace-20261012-145054	session 1						768,256,128,96	0/title_screen	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_4 of 0/file10500 at event 135
-title/chrome_image	video memory	trace-20261012-152043	session 1						768,256,128,96	0/title_screen	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_31 of 0/aya_10400 at event 61
+title/chrome_image	video memory	trace-20261012-152043	session 1						768,256,128,96	0/title_screen	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_31 of 0/aya_akropolis at event 61
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		512,256,128,256	0/file200700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		512,256,128,256	0/file200700	2	4	0		
 encounters/rat_and_moth/image	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		512,256,128,256	0/file200700	2	4	0		
@@ -6982,82 +6982,82 @@ stages/akropolis/rooms/square/views/view7_image	video memory	trace-20261012-1520
 stages/akropolis/rooms/square/views/view7_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	7	896,0,128,256	1/akropolis_square/file7	0	0	0		overwritten by stages/akropolis/rooms/square/views/view8_image of 1/akropolis_square/file8 at event 188
 stages/akropolis/rooms/square/views/view8_image	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1	8	960,0,64,256	1/akropolis_square/file8	0	0	0		overwritten by stages/akropolis/rooms/square/views/view7_image of 1/akropolis_square/file7 at event 18273
 stages/akropolis/rooms/square/views/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	8	960,0,64,256	1/akropolis_square/file8	0	0	0		overwritten by stages/akropolis/rooms/square/views/view4_image of 1/akropolis_square/file4 at event 268
-pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1						768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		768,256,128,256	0/aya_10400	6	0	0		
-pe2img_31	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		768,256,128,256	0/aya_10400	6	0	0		overwritten by pe2img_4 of 0/aya_10200 at event 41585
-pe2img_31	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		768,256,128,256	0/aya_10400	6	0	0		
+pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_plaza	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-145054	session 1	1	akropolis_west_elevator_hall	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1						768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_bridge	2	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	2	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	4	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_east_elevator_hall	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fire_escape	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	1	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_forked_road	2	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_fountain	2	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_hallway	1	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_helicopter_landing_pad	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_observatory	2	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	1	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	2	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_patio	3	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_promenade	2	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	120	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	96	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_security_room	1	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
+pe2img_31	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		768,256,128,256	0/aya_akropolis	6	0	0		overwritten by pe2img_4 of 0/aya_mist at event 41585
+pe2img_31	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		768,256,128,256	0/aya_akropolis	6	0	0		
 stages/akropolis/story_calls_atlas	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1	9	960,0,64,64	1/akropolis_square/file9	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by stages/akropolis/rooms/square/views/view6_image of 1/akropolis_square/file6 at event 18396
 stages/akropolis/story_calls_atlas	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1	9	960,0,64,64	1/mist_parking/file9	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by stages/akropolis/rooms/mist_parking/views/view7_image of 1/mist_parking/file7 at event 12504
 stages/akropolis/story_calls_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_cafeteria	1	3	9	960,0,64,64	1/akropolis_square/file9	0	0	0	its last 192 rows are blank filler, not counted as part of it	
@@ -7644,13 +7644,13 @@ stages/akropolis/rooms/sanctuary/views/view7_image	video memory	trace-20261012-1
 stages/akropolis/rooms/sanctuary/views/view8_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	3	8	960,0,64,256	1/akropolis_sanctuary/file8	0	0	0		overwritten by stages/akropolis/rooms/sanctuary/views/view3_image of 1/akropolis_sanctuary/file3 at event 14305
 stages/akropolis/rooms/sanctuary/views/view9_image	video memory	trace-20261012-152043	session 1	1	akropolis_sanctuary	1	1	9	960,0,64,224	1/akropolis_sanctuary/file9	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by stages/akropolis/rooms/sanctuary/views/view3_image of 1/akropolis_sanctuary/file3 at event 12659
 pe2img_4	video memory	trace-20261012-145054	session 1						768,256,128,256	0/file10500	6	0	0		
-pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		768,256,128,256	0/aya_10200	6	0	0		overwritten by pe2img_31 of 0/aya_10400 at event 12727
-pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		768,256,128,256	0/aya_10200	6	0	0		
-pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		768,256,128,256	0/aya_10200	6	0	0		
-pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		768,256,128,256	0/file10500	6	0	0		overwritten by pe2img_4 of 0/aya_10200 at event 8478
-pe2img_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		768,256,128,256	0/aya_10200	6	0	0		
-pe2img_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		768,256,128,256	0/aya_10200	6	0	0		
-pe2img_4	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		768,256,128,256	0/aya_10200	6	0	0		
+pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		768,256,128,256	0/aya_mist	6	0	0		overwritten by pe2img_31 of 0/aya_akropolis at event 12727
+pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		768,256,128,256	0/aya_mist	6	0	0		
+pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		768,256,128,256	0/aya_mist	6	0	0		
+pe2img_4	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		768,256,128,256	0/file10500	6	0	0		overwritten by pe2img_4 of 0/aya_mist at event 8478
+pe2img_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		768,256,128,256	0/aya_mist	6	0	0		
+pe2img_4	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		768,256,128,256	0/aya_mist	6	0	0		
+pe2img_4	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		768,256,128,256	0/aya_mist	6	0	0		
 weapons/pa3/preview_image	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		448,128,64,96	0/file20113	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by items/buckshot/image of 0/file20413 at event 12075
 weapons/pa3/preview_image	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		448,128,64,96	0/file20113	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by weapons/m4a1/preview_image of 0/file20116 at event 12045
 stages/akropolis/rooms/roof_garden/dialogue_0_atlas	video memory	trace-20261012-152043	session 1	1	akropolis_roof_garden	1	1		384,0,64,32	1/akropolis_roof_garden/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	

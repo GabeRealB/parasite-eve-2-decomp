@@ -668,7 +668,7 @@ the on-disk directory name and the `stages.json` key, falling back to `<id>` /
 `file<id>` for anything still unnamed.
 
 Nine stage-0 packages are reachable through more than one file id (`10500` and
-`10600` both load `aya_10500`). Only one file can carry the package's name —
+`10600` both load `aya_range`). Only one file can carry the package's name —
 names must be unique within a container — so those extra ids keep their default
 `file<id>` key rather than a name that would claim to be the primary.
 

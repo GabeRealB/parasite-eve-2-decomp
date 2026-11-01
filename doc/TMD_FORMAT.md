@@ -144,7 +144,7 @@ table must remain valid until the GPU finishes consuming them.
 
 The groups corresponding to skeletal parts are drawn under their own bone
 matrices, so **vertices only share a coordinate space within a part**. The
-vertex array holds each part in its own local frame: in `aya_10200` the left
+vertex array holds each part in its own local frame: in `aya_mist` the left
 and right arm both span `x[-39, 40]`, sitting inside one another, and drawing all 19 parts
 together gives a lump with no legs or head. Rendered one at a time the parts
 are plainly a head, an upper arm, a forearm, a thigh, a shin and a foot.
@@ -155,7 +155,7 @@ Two consequences:
   skeleton entries, not the number of stream groups. Packaged streams have
   `partCount + 1` group terminators: one per skeleton part and one for a final
   group that can draw pre-transformed primitives without another matrix load.
-  `aya_10200` is 19, the Kyle body 20, `actor_100300` 19. Parts with no
+  `aya_mist` is 19, the Kyle body 20, `actor_100300` 19. Parts with no
   geometry are joints.
 * **The rest pose ships in the `TmdSource`.** The runtime matrices live in
   `TmdObject.coords`, a `GfxCoord` array — 0x50 bytes each, which is why
@@ -176,7 +176,7 @@ Two consequences:
   copies the matrices into `TmdObject.coords`, so animation changes the runtime
   pose while the source skeleton remains unchanged.
   The `partVertexCounts` table describes the part-local vertex groups (352
-  entries in total for `aya_10200`, 300 for the Kyle body). It does not prove
+  entries in total for `aya_mist`, 300 for the Kyle body). It does not prove
   the complete array extent: the tables in `actor_110300`, `actor_110800` and
   one `actor_311900` source sum to 357 while their vertex arrays contain 360
   entries. Use the established asset boundaries for total geometry lengths;

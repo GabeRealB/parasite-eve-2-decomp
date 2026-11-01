@@ -1,58 +1,58 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
 
-[aya_10200]
+[aya_mist]
 uid = "uid://18186pikpmwr6"
 template = "file"
 
-[[aya_10200.slots]]
+[[aya_mist.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default" } },
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default_2" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/mist/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/mist/texture.node", output = "palettes/default_2" } },
 ]
 
-[[aya_10200.slots]]
+[[aya_mist.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node" } },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/mist/texture.node" } },
 ]
 page_slots = 6
 
-[[aya_10200.slots]]
+[[aya_mist.slots]]
 name = "package"
 type = "package"
 
-[aya_10200.from.USA]
+[aya_mist.from.USA]
 at = [{ stage = 0, file = 10200 }]
 chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
 
-[aya_10300]
+[aya_dryfield]
 uid = "uid://sjomc8qdhlrz"
 template = "file"
 
-[[aya_10300.slots]]
+[[aya_dryfield.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "palettes/default" } },
-    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node", output = "palettes/default_2" } },
+    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/dryfield/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/dryfield/texture.node", output = "palettes/default_2" } },
 ]
 
-[[aya_10300.slots]]
+[[aya_dryfield.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/10300/texture.node" } },
+    { image = { uid = "uid://ia3kabh7feir", path = "res://characters/aya/dryfield/texture.node" } },
 ]
 page_slots = 6
 
-[[aya_10300.slots]]
+[[aya_dryfield.slots]]
 name = "package"
 type = "package"
 
-[aya_10300.from.USA]
+[aya_dryfield.from.USA]
 at = [{ stage = 0, file = 10300 }]
 chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2" }
 
@@ -970,87 +970,59 @@ type = "package"
 at = [{ stage = 0, file = 10332 }]
 chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
 
-[aya_10400]
+[aya_akropolis]
 uid = "uid://1teumqyjo551d"
 template = "file"
 
-[[aya_10400.slots]]
+[[aya_akropolis.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node", output = "palettes/default" } },
-    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node", output = "palettes/default_2" } },
+    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/akropolis/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/akropolis/texture.node", output = "palettes/default_2" } },
 ]
 
-[[aya_10400.slots]]
+[[aya_akropolis.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/10400/texture.node" } },
+    { image = { uid = "uid://1nx6qteo80dg8", path = "res://characters/aya/akropolis/texture.node" } },
 ]
 
-[[aya_10400.slots]]
+[[aya_akropolis.slots]]
 name = "package"
 type = "package"
 
-[aya_10400.from.USA]
+[aya_akropolis.from.USA]
 at = [{ stage = 0, file = 10400 }]
 chunks = { image = "61f4b513814507d49d32932f2f46ae4f6bb2ba88", palette = "060e8dea2a0231536204a8a83956a8f90f7a145f" }
 
-[aya_10500]
+[aya_range]
 uid = "uid://12p2cb5hbm5yz"
 template = "file"
 
-[[aya_10500.slots]]
+[[aya_range.slots]]
 name = "palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default" } },
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default_2" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/mist/texture.node", output = "palettes/default" } },
+    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/mist/texture.node", output = "palettes/default_2" } },
 ]
 
-[[aya_10500.slots]]
+[[aya_range.slots]]
 name = "image"
 type = "image"
 pages = [
-    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node" } },
+    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/mist/texture.node" } },
 ]
 page_slots = 6
 
-[[aya_10500.slots]]
-name = "aya_10500"
+[[aya_range.slots]]
+name = "aya_range"
 type = "package"
 
-[aya_10500.from.USA]
-at = [{ stage = 0, file = 10500 }]
-chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
-
-[aya_10600]
-uid = "uid://1pvs9smoxrzj0"
-template = "file"
-
-[[aya_10600.slots]]
-name = "palette"
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default" } },
-    { palette = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node", output = "palettes/default_2" } },
-]
-
-[[aya_10600.slots]]
-name = "image"
-type = "image"
-pages = [
-    { image = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.node" } },
-]
-page_slots = 6
-
-[[aya_10600.slots]]
-name = "aya_10500"
-type = "package"
-
-[aya_10600.from.USA]
-at = [{ stage = 0, file = 10600 }]
+[aya_range.from.USA]
+at = [{ stage = 0, file = 10500 }, { stage = 0, file = 10600 }]
 chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
 
 [grenade_pistol_fragmentation_sounds]

@@ -25,72 +25,72 @@ palettes = { default = "b577e8c57e9b10fd96d55de2234ba0b736838650", default_2 = "
 [body]
 uid = "uid://178c1fzlfalk5"
 template = "model"
-mesh = { slot = { uid = "uid://1x23myeyxaqlq", path = "res://characters/aya/meshes/body_10300.node" } }
-materials.page_1 = { slot = { uid = "uid://19uczqssg3cp1", path = "res://characters/aya/10300/materials/page_1.node" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
+mesh = { slot = { uid = "uid://1x23myeyxaqlq", path = "res://characters/aya/meshes/body_dryfield.node" } }
+materials.page_1 = { slot = { uid = "uid://19uczqssg3cp1", path = "res://characters/aya/dryfield/materials/page_1.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/dryfield/materials/page_0.node" } }
 
 [body.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 4
 size = 21912
 address = 2148620148
-symbol = "gAya10300BodyModel"
+symbol = "gAyaDryfieldBodyModel"
 sha1 = "930d45098d5d38a8f057e7fd4357ee09b75efcfe"
 
 [hand_left_open]
 uid = "uid://15nmha2hfi98n"
 template = "model"
-mesh = { slot = { uid = "uid://10fwi70p8xjv4", path = "res://characters/aya/meshes/hand_left_open_10300.node" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
+mesh = { slot = { uid = "uid://10fwi70p8xjv4", path = "res://characters/aya/meshes/hand_left_open_dryfield.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/dryfield/materials/page_0.node" } }
 
 [hand_left_open.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 21916
 size = 1088
 address = 2148642060
-symbol = "gAya10300FirstPairHand0Model"
+symbol = "gAyaDryfieldFirstPairHand0Model"
 sha1 = "59a46b3e9728a35bfdd04cdc9981bee7a7bb4ec8"
 
 [hand_right_open]
 uid = "uid://pn0nqlxq7qy1"
 template = "model"
-mesh = { slot = { uid = "uid://14e46fpwxxoj3", path = "res://characters/aya/meshes/hand_right_open_10300.node" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
+mesh = { slot = { uid = "uid://14e46fpwxxoj3", path = "res://characters/aya/meshes/hand_right_open_dryfield.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/dryfield/materials/page_0.node" } }
 
 [hand_right_open.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 24092
 size = 1264
 address = 2148644236
-symbol = "gAya10300FirstPairHand1Model"
+symbol = "gAyaDryfieldFirstPairHand1Model"
 sha1 = "9c15358ad6abe64894b620c32da5c66bfd633ff6"
 
 [hand_left_closed]
 uid = "uid://13zgdpqtqfmkf"
 template = "model"
-mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.node" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
+mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_mist.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/dryfield/materials/page_0.node" } }
 
 [hand_left_closed.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 23004
 size = 1088
 address = 2148643148
-symbol = "gAya10300SecondPairHand0Model"
+symbol = "gAyaDryfieldSecondPairHand0Model"
 sha1 = "7a8a0bf0efc83732f44f10ecc47c59891b4c53eb"
 
 [hand_right_closed]
 uid = "uid://19ylu10rcv2jz"
 template = "model"
-mesh = { slot = { uid = "uid://tu55n0w44lk4", path = "res://characters/aya/meshes/hand_right_closed_10300.node" } }
-materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/10300/materials/page_0.node" } }
+mesh = { slot = { uid = "uid://tu55n0w44lk4", path = "res://characters/aya/meshes/hand_right_closed_dryfield.node" } }
+materials.page_0 = { slot = { uid = "uid://j5zz2yowhexx", path = "res://characters/aya/dryfield/materials/page_0.node" } }
 
 [hand_right_closed.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 25356
 size = 1088
 address = 2148645500
-symbol = "gAya10300SecondPairHand1Model"
+symbol = "gAyaDryfieldSecondPairHand1Model"
 sha1 = "ae5fef081cc0d1d1e8d98cf65e2b876b8296734a"
 
 # The frames the game uploads over the face at run time: stored in the package, palettes those of the head's cell.

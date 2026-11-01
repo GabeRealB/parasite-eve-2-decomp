@@ -58,8 +58,8 @@ at = [{ stage = 0, group = 0 }]
 uid = "uid://1mhe0176ghala"
 template = "file_group"
 files = [
-    { name = "aya_10200", id = 200, asset = { uid = "uid://18186pikpmwr6", path = "res://stage0/player/aya_10200.node" } },
-    { name = "aya_10300", id = 300, asset = { uid = "uid://sjomc8qdhlrz", path = "res://stage0/player/aya_10300.node" } },
+    { name = "aya_mist", id = 200, asset = { uid = "uid://18186pikpmwr6", path = "res://stage0/player/aya_mist.node" } },
+    { name = "aya_dryfield", id = 300, asset = { uid = "uid://sjomc8qdhlrz", path = "res://stage0/player/aya_dryfield.node" } },
     { name = "p08_snail", id = 301, asset = { uid = "uid://qo94o02aiidk", path = "res://stage0/player/p08_snail.node" } },
     { name = "m93r", id = 302, asset = { uid = "uid://13l72aniqazqw", path = "res://stage0/player/m93r.node" } },
     { name = "m950", id = 303, asset = { uid = "uid://5mijeayle2e8", path = "res://stage0/player/m950.node" } },
@@ -92,9 +92,9 @@ files = [
     { name = "mp5a5", id = 330, asset = { uid = "uid://kogi2su73kev", path = "res://stage0/player/mp5a5.node" } },
     { name = "mp5a5_p1", id = 331, asset = { uid = "uid://1cjjwyrgwd85z", path = "res://stage0/player/mp5a5_p1.node" } },
     { name = "mp5a5_p2", id = 332, asset = { uid = "uid://xsvhp1z0ustu", path = "res://stage0/player/mp5a5_p2.node" } },
-    { name = "aya_10400", id = 400, asset = { uid = "uid://1teumqyjo551d", path = "res://stage0/player/aya_10400.node" } },
-    { name = "aya_10500", id = 500, asset = { uid = "uid://12p2cb5hbm5yz", path = "res://stage0/player/aya_10500.node" } },
-    { name = "aya_10600", id = 600, asset = { uid = "uid://1pvs9smoxrzj0", path = "res://stage0/player/aya_10600.node" } },
+    { name = "aya_akropolis", id = 400, asset = { uid = "uid://1teumqyjo551d", path = "res://stage0/player/aya_akropolis.node" } },
+    { name = "aya_range", id = 500, asset = { uid = "uid://12p2cb5hbm5yz", path = "res://stage0/player/aya_range.node" } },
+    { name = "file10600", id = 600, asset = { uid = "uid://12p2cb5hbm5yz", path = "res://stage0/player/aya_range.node" } },
     { name = "grenade_pistol_fragmentation_sounds", id = 1000, asset = { uid = "uid://2evjom07asuv", path = "res://stage0/player/grenade_pistol_fragmentation_sounds.node" } },
     { name = "grenade_pistol_fragmentation_sounds_11001", id = 1001, asset = { uid = "uid://2evjom07asuv", path = "res://stage0/player/grenade_pistol_fragmentation_sounds.node" } },
     { name = "grenade_pistol_airburst_sounds", id = 1002, asset = { uid = "uid://16tzst50vkfrw", path = "res://stage0/player/grenade_pistol_airburst_sounds.node" } },

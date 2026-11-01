@@ -414,7 +414,7 @@ load_addr = 0x80115770
 global_vram_start = 0x80010000
 global_vram_end = 0x80115770
 
-[aya.overlays.aya_10200]
+[aya.overlays.aya_mist]
 label = "46 bones"
 id = 46
 objects = [
@@ -429,10 +429,10 @@ objects = [
   { kind = "modelSource", at = "0x1190", in_c = true },
   { kind = "model", at = "0x11B4", in_c = true },
   { kind = "modelSource", at = "0x6AA0", in_c = true },
-  { unit = "aya_10200/aya_10200", data = "0x4" },
+  { unit = "aya_mist/aya_mist", data = "0x4" },
 ]
 
-[aya.overlays.aya_10300]
+[aya.overlays.aya_dryfield]
 label = "7 bones - too few for a full costume"
 id = 7
 objects = [
@@ -447,10 +447,10 @@ objects = [
   { kind = "modelSource", at = "0x62E8", in_c = true },
   { kind = "model", at = "0x630C", in_c = true },
   { kind = "modelSource", at = "0x6728", in_c = true },
-  { unit = "aya_10300/aya_10300", data = "0x4" },
+  { unit = "aya_dryfield/aya_dryfield", data = "0x4" },
 ]
 
-[aya.overlays.aya_10400]
+[aya.overlays.aya_akropolis]
 label = "44 bones"
 id = 44
 objects = [
@@ -463,10 +463,10 @@ objects = [
   { kind = "modelSource", at = "0x624C", in_c = true },
   { kind = "model", at = "0x6270", in_c = true },
   { kind = "modelSource", at = "0x66A0", in_c = true },
-  { unit = "aya_10400/aya_10400", data = "0x4" },
+  { unit = "aya_akropolis/aya_akropolis", data = "0x4" },
 ]
 
-[aya.overlays.aya_10500]
+[aya.overlays.aya_range]
 label = "41 bones"
 id = 41
 objects = [
@@ -481,7 +481,7 @@ objects = [
   { kind = "modelSource", at = "0x1190", in_c = true },
   { kind = "model", at = "0x11B4", in_c = true },
   { kind = "modelSource", at = "0x6B74", in_c = true },
-  { unit = "aya_10500/aya_10500", data = "0x4" },
+  { unit = "aya_range/aya_range", data = "0x4" },
 ]
 
 [aya.overlays.game_over]
