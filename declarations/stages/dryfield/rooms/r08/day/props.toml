@@ -2,7 +2,7 @@
 
 [gradient]
 uid = "uid://q6f84n92kzc7"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [16, 16]
@@ -44,7 +44,7 @@ palettes = { effect_row_1 = "a271eb333410bb797116608ac9a77bd5020c8e77", effect_r
 
 [smoke]
 uid = "uid://1shzrudqy61n2"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [496, 256]

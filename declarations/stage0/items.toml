@@ -2,7 +2,7 @@
 
 [options]
 uid = "uid://ppi9n3iftdf8"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -12,7 +12,7 @@ at = [{ stage = 0, file = 20100 }]
 
 [p08_snail_preview]
 uid = "uid://1ak9itvtgbb9w"
-kind = "file"
+template = "file"
 
 [[p08_snail_preview.slots]]
 name = "palette"
@@ -38,7 +38,7 @@ chunks = { palette = "2942c1e2bc3ec07114fc630faf04642952c76ff6", image = "4254a5
 
 [m93r_preview]
 uid = "uid://netnhx2w9lu5"
-kind = "file"
+template = "file"
 
 [[m93r_preview.slots]]
 name = "palette"
@@ -64,7 +64,7 @@ chunks = { palette = "d3b6302a3956f9782c62883b94440dbb427f5f76", image = "d00466
 
 [m950_preview]
 uid = "uid://c3vlaezxlug6"
-kind = "file"
+template = "file"
 
 [[m950_preview.slots]]
 name = "palette"
@@ -90,7 +90,7 @@ chunks = { palette = "d44e0e9508717c1438e111efcdd6524a7ea791a5", image = "587ccc
 
 [p08_preview]
 uid = "uid://1lzqzv401lnny"
-kind = "file"
+template = "file"
 
 [[p08_preview.slots]]
 name = "palette"
@@ -116,7 +116,7 @@ chunks = { palette = "2238f3267cc894f812e840a3db5e1ced4268fb71", image = "cf3241
 
 [p229_preview]
 uid = "uid://1sl9lhikjf4b5"
-kind = "file"
+template = "file"
 
 [[p229_preview.slots]]
 name = "palette"
@@ -142,7 +142,7 @@ chunks = { palette = "594c2b8644d63e73edbd8766c071c580f05b3d77", image = "3691f6
 
 [mongoose_preview]
 uid = "uid://q4koby7fzmd1"
-kind = "file"
+template = "file"
 
 [[mongoose_preview.slots]]
 name = "palette"
@@ -168,7 +168,7 @@ chunks = { palette = "1e9ba489914cc95a57eae2372833b946c45b56a0", image = "6930b7
 
 [grenade_pistol_preview]
 uid = "uid://1lg9vse4t6gu3"
-kind = "file"
+template = "file"
 
 [[grenade_pistol_preview.slots]]
 name = "palette"
@@ -194,7 +194,7 @@ chunks = { palette = "e54f877df04ffdb63b389a7db9dce43168cd9325", image = "a09434
 
 [mm1_preview]
 uid = "uid://pnc4wgvnzv9g"
-kind = "file"
+template = "file"
 
 [[mm1_preview.slots]]
 name = "palette"
@@ -220,7 +220,7 @@ chunks = { palette = "2ac0189c966ffaf680a4db4b137fc87f36081973", image = "9a3b9d
 
 [pa3_preview]
 uid = "uid://1rbcj2nabifn2"
-kind = "file"
+template = "file"
 
 [[pa3_preview.slots]]
 name = "palette"
@@ -246,7 +246,7 @@ chunks = { palette = "287c76ab4db7cff666e5de95f98cf5fce3b9df74", image = "f09d3e
 
 [sp12_preview]
 uid = "uid://jk5xrcfhhmsu"
-kind = "file"
+template = "file"
 
 [[sp12_preview.slots]]
 name = "palette"
@@ -272,7 +272,7 @@ chunks = { palette = "a8b51c4069cf8319ca4b498daf77707abeadeff7", image = "89d8be
 
 [as12_preview]
 uid = "uid://xwk5dy0p5swo"
-kind = "file"
+template = "file"
 
 [[as12_preview.slots]]
 name = "palette"
@@ -298,7 +298,7 @@ chunks = { palette = "3d768c8771ba1fa0675a18b9f178a958925ec498", image = "36ac1c
 
 [m4a1_preview]
 uid = "uid://w680s68ww8kc"
-kind = "file"
+template = "file"
 
 [[m4a1_preview.slots]]
 name = "palette"
@@ -324,7 +324,7 @@ chunks = { palette = "f773aba022b2f7bbefaae356b35c83bcb4d16a61", image = "759f11
 
 [m249_preview]
 uid = "uid://1g93prxm9bex5"
-kind = "file"
+template = "file"
 
 [[m249_preview.slots]]
 name = "palette"
@@ -350,7 +350,7 @@ chunks = { palette = "06722861dd90795bd90e1f183b22a8fb5f365807", image = "a535d0
 
 [tonfa_baton_preview]
 uid = "uid://18umcshvkd9xz"
-kind = "file"
+template = "file"
 
 [[tonfa_baton_preview.slots]]
 name = "palette"
@@ -376,7 +376,7 @@ chunks = { palette = "0f68d093a11a1b55a5b8dd4707c450600cdee528", image = "f88b40
 
 [m4a1_p1_preview]
 uid = "uid://tcwsvuaamz1j"
-kind = "file"
+template = "file"
 
 [[m4a1_p1_preview.slots]]
 name = "palette"
@@ -402,7 +402,7 @@ chunks = { palette = "142666b83e90cf71eb431361f312d70880135e1b", image = "62ad66
 
 [m4a1_p2_preview]
 uid = "uid://li8sw0qov88r"
-kind = "file"
+template = "file"
 
 [[m4a1_p2_preview.slots]]
 name = "palette"
@@ -428,7 +428,7 @@ chunks = { palette = "60327d0482d686e29ccf2f5183c5459be533555f", image = "7d0d4d
 
 [hypervelocity_preview]
 uid = "uid://161w9ll1hj6h8"
-kind = "file"
+template = "file"
 
 [[hypervelocity_preview.slots]]
 name = "palette"
@@ -454,7 +454,7 @@ chunks = { palette = "d7cfe727e0e8cb6faf4d9a77d061fd7b8536361e", image = "08a52f
 
 [gunblade_preview]
 uid = "uid://167yk7am5robg"
-kind = "file"
+template = "file"
 
 [[gunblade_preview.slots]]
 name = "palette"
@@ -480,7 +480,7 @@ chunks = { palette = "b937b6e77425448b0dd548506f6854c2df907d8b", image = "8f4291
 
 [m4a1_hammer_preview]
 uid = "uid://ylk626wmzaxi"
-kind = "file"
+template = "file"
 
 [[m4a1_hammer_preview.slots]]
 name = "palette"
@@ -506,7 +506,7 @@ chunks = { palette = "8531057094e1e843da85414a6b9d59d4d9ca82c4", image = "0eea66
 
 [m4a1_bayonet_preview]
 uid = "uid://1b2917a1gm6sw"
-kind = "file"
+template = "file"
 
 [[m4a1_bayonet_preview.slots]]
 name = "palette"
@@ -532,7 +532,7 @@ chunks = { palette = "9527cb2804844854b502ad783ca80e251ffa80f1", image = "41bf75
 
 [m4a1_grenade_preview]
 uid = "uid://1t8mq7tlub9kc"
-kind = "file"
+template = "file"
 
 [[m4a1_grenade_preview.slots]]
 name = "palette"
@@ -558,7 +558,7 @@ chunks = { palette = "4bae1be66efcecf5e300dd3ed173017d4d987e59", image = "609e41
 
 [m4a1_pyke_preview]
 uid = "uid://5hmzhxkjnzfc"
-kind = "file"
+template = "file"
 
 [[m4a1_pyke_preview.slots]]
 name = "palette"
@@ -584,7 +584,7 @@ chunks = { palette = "873e749be3a1d53de3e51f6185769749b8b83ea1", image = "b6fb10
 
 [m4a1_javelin_preview]
 uid = "uid://1n4c5gsde1213"
-kind = "file"
+template = "file"
 
 [[m4a1_javelin_preview.slots]]
 name = "palette"
@@ -610,7 +610,7 @@ chunks = { palette = "3cf4daa284d08f35f2fc056fae15164ac6d41068", image = "6aaea3
 
 [mp5a5_preview]
 uid = "uid://782scog9fp8y"
-kind = "file"
+template = "file"
 
 [[mp5a5_preview.slots]]
 name = "palette"
@@ -636,7 +636,7 @@ chunks = { palette = "e2cdb9c6ada091f04751581346ab7bed5b3c1452", image = "5cba59
 
 [mp5a5_p1_preview]
 uid = "uid://1lvsf9kvlnez9"
-kind = "file"
+template = "file"
 
 [[mp5a5_p1_preview.slots]]
 name = "palette"
@@ -662,7 +662,7 @@ chunks = { palette = "b2e3485ce854db47c17353d4a176595d4b6a5da6", image = "63b0e7
 
 [mp5a5_p2_preview]
 uid = "uid://1wikf8hz9j3ti"
-kind = "file"
+template = "file"
 
 [[mp5a5_p2_preview.slots]]
 name = "palette"
@@ -688,7 +688,7 @@ chunks = { palette = "d9d20fea3f0d2ba4883f6294e1d27d5526e29598", image = "1de61a
 
 [disc_swap_1]
 uid = "uid://5oo3spyxbmpk"
-kind = "file"
+template = "file"
 
 [[disc_swap_1.slots]]
 name = "palette"
@@ -717,7 +717,7 @@ chunks = { palette = "1253ac0ed427ecd898c3e8ba265874d95883de09", image = "6edd3c
 
 [disc_swap_2]
 uid = "uid://1pil9h3bbmslc"
-kind = "file"
+template = "file"
 
 [[disc_swap_2.slots]]
 name = "palette"
@@ -746,7 +746,7 @@ chunks = { palette = "1253ac0ed427ecd898c3e8ba265874d95883de09", image = "6edd3c
 
 [ui]
 uid = "uid://1ste87umhi7ac"
-kind = "file"
+template = "file"
 
 [[ui.slots]]
 name = "font_image"
@@ -834,7 +834,7 @@ chunks = { font_image = "be2e0e8b8369be9d2a7889b0335a6ee579de630c", dialogue_pal
 
 [stub_20200]
 uid = "uid://n04zmney194w"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -844,7 +844,7 @@ at = [{ stage = 0, file = 20200 }]
 
 [parthenon_key]
 uid = "uid://12t82s9ctwdqo"
-kind = "file"
+template = "file"
 
 [[parthenon_key.slots]]
 name = "palette"
@@ -870,7 +870,7 @@ chunks = { palette = "4a36b3eabdc584f0d63095bd05a6805d16e15ed8", image = "f4b00f
 
 [micro_device]
 uid = "uid://16gyx7ivphlhc"
-kind = "file"
+template = "file"
 
 [[micro_device.slots]]
 name = "palette"
@@ -896,7 +896,7 @@ chunks = { palette = "6592f23abb8d6b3d5969b6b6bf715d3b249e00cb", image = "848c4c
 
 [red_key]
 uid = "uid://116dwncp5akpw"
-kind = "file"
+template = "file"
 
 [[red_key.slots]]
 name = "palette"
@@ -922,7 +922,7 @@ chunks = { palette = "778590acf89f3c15e84276f35461c03d57019b4d", image = "eba65d
 
 [blue_key]
 uid = "uid://f9vgds6glpo4"
-kind = "file"
+template = "file"
 
 [[blue_key.slots]]
 name = "palette"
@@ -948,7 +948,7 @@ chunks = { palette = "8966eee4a92298c50738f77257a8413e01906844", image = "6ba6b8
 
 [armory_cardkey]
 uid = "uid://12qc3sh36wiw6"
-kind = "file"
+template = "file"
 
 [[armory_cardkey.slots]]
 name = "palette"
@@ -974,7 +974,7 @@ chunks = { palette = "397c6eb99eabd89031f8be9bce09807b0fd28212", image = "a3f57e
 
 [mist_badge]
 uid = "uid://8hxqu6uzkd03"
-kind = "file"
+template = "file"
 
 [[mist_badge.slots]]
 name = "palette"
@@ -1000,7 +1000,7 @@ chunks = { palette = "8dfb7d08210fbd43982403065f94c0f04e2bdf37", image = "128841
 
 [mendel_sept_issue]
 uid = "uid://11idw1t2stodn"
-kind = "file"
+template = "file"
 
 [[mendel_sept_issue.slots]]
 name = "palette"
@@ -1026,7 +1026,7 @@ chunks = { palette = "52362733efa621b72d79c0918b95eaf7e4523f18", image = "a817fa
 
 [clipboard]
 uid = "uid://1c437j7w5ocdl"
-kind = "file"
+template = "file"
 
 [[clipboard.slots]]
 name = "palette"
@@ -1052,7 +1052,7 @@ chunks = { palette = "0d6a85a4df6814327681940eca25c1c5cdf3f49a", image = "deeaf0
 
 [mist_search_warrant]
 uid = "uid://1qpp9oymu5bkt"
-kind = "file"
+template = "file"
 
 [[mist_search_warrant.slots]]
 name = "palette"
@@ -1078,7 +1078,7 @@ chunks = { palette = "72c7c5af9d07ade8c813c6ebc5e0c80e72bc5739", image = "4d0328
 
 [nmc_photo]
 uid = "uid://zxj1uxe0v7h2"
-kind = "file"
+template = "file"
 
 [[nmc_photo.slots]]
 name = "palette"
@@ -1104,7 +1104,7 @@ chunks = { palette = "e79ce86116d63351320d6abffca2fd9ea6084ae8", image = "4c55b0
 
 [manual]
 uid = "uid://1fi0ubhvr1b47"
-kind = "file"
+template = "file"
 
 [[manual.slots]]
 name = "palette"
@@ -1130,7 +1130,7 @@ chunks = { palette = "33812d7778aa6e0a791e771c759bc8de0383f8ce", image = "782d56
 
 [dryfield_map]
 uid = "uid://14vbvj0qpbkry"
-kind = "file"
+template = "file"
 
 [[dryfield_map.slots]]
 name = "palette"
@@ -1156,7 +1156,7 @@ chunks = { palette = "ef39bcd4c71d4a1236aa4fa2b0cf969814241cea", image = "0e37a0
 
 [motel_key_no6]
 uid = "uid://f8urrx7mpre0"
-kind = "file"
+template = "file"
 
 [[motel_key_no6.slots]]
 name = "palette"
@@ -1184,7 +1184,7 @@ chunks = { palette = "9dee04aa582e56bf0706765144f481480e11283d", image = "bad83a
 
 [saloon_key]
 uid = "uid://17nwz5ggbjrso"
-kind = "file"
+template = "file"
 
 [[saloon_key.slots]]
 name = "palette"
@@ -1210,7 +1210,7 @@ chunks = { palette = "6331076573005c73f1189c4d07dfe06fef559da3", image = "004adc
 
 [monkey_wrench]
 uid = "uid://n45xm5hy6z1r"
-kind = "file"
+template = "file"
 
 [[monkey_wrench.slots]]
 name = "palette"
@@ -1236,7 +1236,7 @@ chunks = { palette = "3342cf794464f98dae053b95e5837f76df1286d7", image = "a5f00d
 
 [lobby_key]
 uid = "uid://1ihn1gugdhfd3"
-kind = "file"
+template = "file"
 
 [[lobby_key.slots]]
 name = "palette"
@@ -1262,7 +1262,7 @@ chunks = { palette = "e1eedb3bdefc1196e26a5f2e26c2f6e7ad88bf60", image = "d01c2f
 
 [bronco_masterkey]
 uid = "uid://bukcfo7ar5ro"
-kind = "file"
+template = "file"
 
 [[bronco_masterkey.slots]]
 name = "palette"
@@ -1288,7 +1288,7 @@ chunks = { palette = "b0ad369ad68cd7ec92384974f79c29c5948df4df", image = "eb63e6
 
 [wire_rope]
 uid = "uid://1cuxxyv1zp2ri"
-kind = "file"
+template = "file"
 
 [[wire_rope.slots]]
 name = "palette"
@@ -1314,7 +1314,7 @@ chunks = { palette = "8b4cb862266d6ea17ec2031bb7524b2910423de1", image = "5e27a3
 
 [factory_key]
 uid = "uid://19tleq68hbuii"
-kind = "file"
+template = "file"
 
 [[factory_key.slots]]
 name = "palette"
@@ -1340,7 +1340,7 @@ chunks = { palette = "8953ad28e8425e5e671f6c5f2ce057a14c57d0ea", image = "15fccc
 
 [truck_key]
 uid = "uid://1sdufrbb7gwl5"
-kind = "file"
+template = "file"
 
 [[truck_key.slots]]
 name = "palette"
@@ -1366,7 +1366,7 @@ chunks = { palette = "3ffca6eae1f2956089bc96738cc9b4b217bc2920", image = "92e14a
 
 [jerry_can]
 uid = "uid://yqu6e0mybnqb"
-kind = "file"
+template = "file"
 
 [[jerry_can.slots]]
 name = "palette"
@@ -1392,7 +1392,7 @@ chunks = { palette = "9543a9f1ab26d1cf37378282304c757b444d5da4", image = "a0bac8
 
 [gasoline]
 uid = "uid://weaxjif28xv1"
-kind = "file"
+template = "file"
 
 [[gasoline.slots]]
 name = "palette"
@@ -1418,7 +1418,7 @@ chunks = { palette = "b5e6f22ecdc2fffa8ee77b2f2028ea7b3acc242e", image = "973f0a
 
 [ice_bag]
 uid = "uid://1vhhvjoy9amqp"
-kind = "file"
+template = "file"
 
 [[ice_bag.slots]]
 name = "palette"
@@ -1444,7 +1444,7 @@ chunks = { palette = "baab835c664955c788bae2c3c9770bdaa2256edf", image = "31aa22
 
 [bag_of_water]
 uid = "uid://1ru3ixxh2xlty"
-kind = "file"
+template = "file"
 
 [[bag_of_water.slots]]
 name = "palette"
@@ -1470,7 +1470,7 @@ chunks = { palette = "da2e7aec0d795f569a8ac1535c9aadcfc24b3c17", image = "6d0255
 
 [bottlecap_magnet]
 uid = "uid://17h06rzr45owq"
-kind = "file"
+template = "file"
 
 [[bottlecap_magnet.slots]]
 name = "palette"
@@ -1496,7 +1496,7 @@ chunks = { palette = "ba1f3a1be81ccd71330f967db8296cbd599bfa76", image = "9bb1cf
 
 [suv_key]
 uid = "uid://1d5qviclnvu7z"
-kind = "file"
+template = "file"
 
 [[suv_key.slots]]
 name = "palette"
@@ -1522,7 +1522,7 @@ chunks = { palette = "d238dd6f5fa68d7d89b8e85c4102f2ef09652886", image = "7e572b
 
 [oak_board]
 uid = "uid://kqcvx73c6j4s"
-kind = "file"
+template = "file"
 
 [[oak_board.slots]]
 name = "palette"
@@ -1548,7 +1548,7 @@ chunks = { palette = "ac45f5d931cdddcb50f3e4f8075d998ceaeb09fc", image = "05c7ab
 
 [jumper_plug]
 uid = "uid://6yxiawawc2l4"
-kind = "file"
+template = "file"
 
 [[jumper_plug.slots]]
 name = "palette"
@@ -1574,7 +1574,7 @@ chunks = { palette = "17fd202fce7b1a86388d9d48fe52c5dd662cea94", image = "5333aa
 
 [bowmans_card]
 uid = "uid://1iipilqbuv7k0"
-kind = "file"
+template = "file"
 
 [[bowmans_card.slots]]
 name = "palette"
@@ -1600,7 +1600,7 @@ chunks = { palette = "28d0d98b44692b07d758163e8bb7865c8fc0630e", image = "de88e6
 
 [yoshidas_card]
 uid = "uid://18hn43ak1g1n7"
-kind = "file"
+template = "file"
 
 [[yoshidas_card.slots]]
 name = "palette"
@@ -1626,7 +1626,7 @@ chunks = { palette = "ac241fd92661ca5bf6402485322c500eb3b629cc", image = "b75e7f
 
 [electric_car_key]
 uid = "uid://gkrh7mhba00g"
-kind = "file"
+template = "file"
 
 [[electric_car_key.slots]]
 name = "palette"
@@ -1652,7 +1652,7 @@ chunks = { palette = "66b61ce0d0fc403b113ce5fb8435cf74333355f3", image = "3f9b97
 
 [teddy_bear]
 uid = "uid://1s042a2hmatty"
-kind = "file"
+template = "file"
 
 [[teddy_bear.slots]]
 name = "palette"
@@ -1678,7 +1678,7 @@ chunks = { palette = "9092f22005f78ae3997230c9e91d8a7a4885a312", image = "b3962e
 
 [pierces_memo]
 uid = "uid://1e7joeoduhqvk"
-kind = "file"
+template = "file"
 
 [[pierces_memo.slots]]
 name = "palette"
@@ -1704,7 +1704,7 @@ chunks = { palette = "1b6e30cc53190115084b6c67612f155da6e7f08a", image = "1787f2
 
 [unused_126]
 uid = "uid://1viot2spsj9i1"
-kind = "file"
+template = "file"
 
 [[unused_126.slots]]
 name = "palette"
@@ -1730,7 +1730,7 @@ chunks = { palette = "8953ad28e8425e5e671f6c5f2ce057a14c57d0ea", image = "15fccc
 
 [aeris_sept_issue]
 uid = "uid://1e9zgyt660jt0"
-kind = "file"
+template = "file"
 
 [[aeris_sept_issue.slots]]
 name = "palette"
@@ -1756,7 +1756,7 @@ chunks = { palette = "23ec47fe99c673212318bd3f2680ff5447439df9", image = "7e436f
 
 [mr_douglas_letter]
 uid = "uid://th2w86f9b7oj"
-kind = "file"
+template = "file"
 
 [[mr_douglas_letter.slots]]
 name = "palette"
@@ -1782,7 +1782,7 @@ chunks = { palette = "54ca03f18d10bcbd7a0956586a2c6abd0fe1891b", image = "fc90eb
 
 [unused_129]
 uid = "uid://1ljl7zx2m7z5k"
-kind = "file"
+template = "file"
 
 [[unused_129.slots]]
 name = "palette"
@@ -1808,7 +1808,7 @@ chunks = { palette = "d775726605c393bfc914ebd6aa9a309b46a81677", image = "0e1ffe
 
 [unused_12a]
 uid = "uid://1mvzluc5nhfui"
-kind = "file"
+template = "file"
 
 [[unused_12a.slots]]
 name = "palette"
@@ -1834,7 +1834,7 @@ chunks = { palette = "1027709f284bb8ecb434c0e8670e7aba59fc11a9", image = "ae36e0
 
 [unused_12b]
 uid = "uid://1dxwsk60wfcdg"
-kind = "file"
+template = "file"
 
 [[unused_12b.slots]]
 name = "palette"
@@ -1860,7 +1860,7 @@ chunks = { palette = "ce6a6c4c35fd04dec63e30211e1c847765488265", image = "2051b7
 
 [jumper_plug_12c]
 uid = "uid://qu57jp355jdw"
-kind = "file"
+template = "file"
 
 [[jumper_plug_12c.slots]]
 name = "palette"
@@ -1886,7 +1886,7 @@ chunks = { palette = "17fd202fce7b1a86388d9d48fe52c5dd662cea94", image = "5333aa
 
 [micro_device_12d]
 uid = "uid://a8iza56qn6oy"
-kind = "file"
+template = "file"
 
 [[micro_device_12d.slots]]
 name = "palette"
@@ -1912,7 +1912,7 @@ chunks = { palette = "6592f23abb8d6b3d5969b6b6bf715d3b249e00cb", image = "848c4c
 
 [recovery1]
 uid = "uid://2t5j13b8mmee"
-kind = "file"
+template = "file"
 
 [[recovery1.slots]]
 name = "palette"
@@ -1938,7 +1938,7 @@ chunks = { palette = "5fb588fa069c4265d3f5933168933b1e71ff2603", image = "038750
 
 [recovery2]
 uid = "uid://avuv2tea37p8"
-kind = "file"
+template = "file"
 
 [[recovery2.slots]]
 name = "palette"
@@ -1964,7 +1964,7 @@ chunks = { palette = "a217d9c871c36af1ef27bbc9a3ec8dff8a09224b", image = "086026
 
 [recovery3]
 uid = "uid://lfzway24n116"
-kind = "file"
+template = "file"
 
 [[recovery3.slots]]
 name = "palette"
@@ -1990,7 +1990,7 @@ chunks = { palette = "4a0bd795472475c51af0ca6192b73eb3815b4a20", image = "ba485f
 
 [stim]
 uid = "uid://1rqy5wphp53ag"
-kind = "file"
+template = "file"
 
 [[stim.slots]]
 name = "palette"
@@ -2016,7 +2016,7 @@ chunks = { palette = "a0156158b6f2d93286b8d14902d7b1ff9e1ebcf4", image = "4ff3f2
 
 [cola]
 uid = "uid://1nuv045t9560f"
-kind = "file"
+template = "file"
 
 [[cola.slots]]
 name = "palette"
@@ -2042,7 +2042,7 @@ chunks = { palette = "e3074b0b71f506dee748bb54999864cee7080b17", image = "c55e07
 
 [mp_boost1]
 uid = "uid://1a7rnd6883ekf"
-kind = "file"
+template = "file"
 
 [[mp_boost1.slots]]
 name = "palette"
@@ -2068,7 +2068,7 @@ chunks = { palette = "517a7d1a71a4353554c2b95e371006d70241ed10", image = "d79764
 
 [mp_boost2]
 uid = "uid://dsn443adgs6h"
-kind = "file"
+template = "file"
 
 [[mp_boost2.slots]]
 name = "palette"
@@ -2094,7 +2094,7 @@ chunks = { palette = "b4697244b0292b1ead57bbc2b45faee037e6895c", image = "e3622c
 
 [penicillin]
 uid = "uid://13he89b6n5g8o"
-kind = "file"
+template = "file"
 
 [[penicillin.slots]]
 name = "palette"
@@ -2120,7 +2120,7 @@ chunks = { palette = "fc0bd7257924a222eb32576decfb69d90902822d", image = "2ec1bb
 
 [smg_clip_holder]
 uid = "uid://1t7glcq25byny"
-kind = "file"
+template = "file"
 
 [[smg_clip_holder.slots]]
 name = "palette"
@@ -2146,7 +2146,7 @@ chunks = { palette = "29c9665fde9709f876722a64e3e61dc47f3623a6", image = "72a0e1
 
 [rifle_clip_holder]
 uid = "uid://1l507s6vap16u"
-kind = "file"
+template = "file"
 
 [[rifle_clip_holder.slots]]
 name = "palette"
@@ -2172,7 +2172,7 @@ chunks = { palette = "78f8ed874f38494828a1c88ec65d9c705de28c99", image = "6eed85
 
 [lipstick]
 uid = "uid://1hvv7rzymg9u0"
-kind = "file"
+template = "file"
 
 [[lipstick.slots]]
 name = "palette"
@@ -2198,7 +2198,7 @@ chunks = { palette = "dcf7d7dd78f0d4bf86100886cfdf7fd6319f8da2", image = "63f3cd
 
 [snail_magazine]
 uid = "uid://2ue45sn8khfx"
-kind = "file"
+template = "file"
 
 [[snail_magazine.slots]]
 name = "palette"
@@ -2224,7 +2224,7 @@ chunks = { palette = "f4489cd3d8351a243685bc32d11e8c3059ecb76c", image = "d3b0be
 
 [belt_pouch]
 uid = "uid://sjstlh8fmnlc"
-kind = "file"
+template = "file"
 
 [[belt_pouch.slots]]
 name = "palette"
@@ -2250,7 +2250,7 @@ chunks = { palette = "396466604ab22df0dafb4fedf29be6fd764bc67d", image = "0e9f8a
 
 [md_player]
 uid = "uid://hfs74ldlhs3g"
-kind = "file"
+template = "file"
 
 [[md_player.slots]]
 name = "palette"
@@ -2276,7 +2276,7 @@ chunks = { palette = "add2d3d6019f831df317a156b4df2993acbd125b", image = "7aa636
 
 [pyrokinesis_level1_shop]
 uid = "uid://1vkdkdgn6r4pm"
-kind = "file"
+template = "file"
 
 [[pyrokinesis_level1_shop.slots]]
 name = "palette"
@@ -2302,7 +2302,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [pyrokinesis_level2_shop]
 uid = "uid://pnt8f40b97mh"
-kind = "file"
+template = "file"
 
 [[pyrokinesis_level2_shop.slots]]
 name = "palette"
@@ -2328,7 +2328,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [pyrokinesis_level3_shop]
 uid = "uid://gzwcv6byrgo8"
-kind = "file"
+template = "file"
 
 [[pyrokinesis_level3_shop.slots]]
 name = "palette"
@@ -2354,7 +2354,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [combustion_level1_shop]
 uid = "uid://1weucx86fhvd2"
-kind = "file"
+template = "file"
 
 [[combustion_level1_shop.slots]]
 name = "palette"
@@ -2380,7 +2380,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [combustion_level2_shop]
 uid = "uid://dh5h8sre2ozc"
-kind = "file"
+template = "file"
 
 [[combustion_level2_shop.slots]]
 name = "palette"
@@ -2406,7 +2406,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [combustion_level3_shop]
 uid = "uid://asgh8ryokhzc"
-kind = "file"
+template = "file"
 
 [[combustion_level3_shop.slots]]
 name = "palette"
@@ -2432,7 +2432,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [inferno_level1_shop]
 uid = "uid://n8ou23m0oj6r"
-kind = "file"
+template = "file"
 
 [[inferno_level1_shop.slots]]
 name = "palette"
@@ -2458,7 +2458,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [inferno_level2_shop]
 uid = "uid://1wgdlp43bfl80"
-kind = "file"
+template = "file"
 
 [[inferno_level2_shop.slots]]
 name = "palette"
@@ -2484,7 +2484,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [inferno_level3_shop]
 uid = "uid://qse01jemvvf0"
-kind = "file"
+template = "file"
 
 [[inferno_level3_shop.slots]]
 name = "palette"
@@ -2510,7 +2510,7 @@ chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "504861
 
 [necrosis_level1_shop]
 uid = "uid://fgoiho4vqnmt"
-kind = "file"
+template = "file"
 
 [[necrosis_level1_shop.slots]]
 name = "palette"
@@ -2536,7 +2536,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [necrosis_level2_shop]
 uid = "uid://p86wiyh8gufh"
-kind = "file"
+template = "file"
 
 [[necrosis_level2_shop.slots]]
 name = "palette"
@@ -2562,7 +2562,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [necrosis_level3_shop]
 uid = "uid://n01ahse0w0iw"
-kind = "file"
+template = "file"
 
 [[necrosis_level3_shop.slots]]
 name = "palette"
@@ -2588,7 +2588,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [plasma_level1_shop]
 uid = "uid://1nie02ofx9izj"
-kind = "file"
+template = "file"
 
 [[plasma_level1_shop.slots]]
 name = "palette"
@@ -2614,7 +2614,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [plasma_level2_shop]
 uid = "uid://31kxdm30hv6b"
-kind = "file"
+template = "file"
 
 [[plasma_level2_shop.slots]]
 name = "palette"
@@ -2640,7 +2640,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [plasma_level3_shop]
 uid = "uid://axa9kdczjpjl"
-kind = "file"
+template = "file"
 
 [[plasma_level3_shop.slots]]
 name = "palette"
@@ -2666,7 +2666,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [apobiosis_level1_shop]
 uid = "uid://ad2due54zom0"
-kind = "file"
+template = "file"
 
 [[apobiosis_level1_shop.slots]]
 name = "palette"
@@ -2692,7 +2692,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [apobiosis_level2_shop]
 uid = "uid://1flcioqoozbne"
-kind = "file"
+template = "file"
 
 [[apobiosis_level2_shop.slots]]
 name = "palette"
@@ -2718,7 +2718,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [apobiosis_level3_shop]
 uid = "uid://1rz7sxgyxjmt"
-kind = "file"
+template = "file"
 
 [[apobiosis_level3_shop.slots]]
 name = "palette"
@@ -2744,7 +2744,7 @@ chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15
 
 [metabolism_level1_shop]
 uid = "uid://1bmiul27t9csb"
-kind = "file"
+template = "file"
 
 [[metabolism_level1_shop.slots]]
 name = "palette"
@@ -2770,7 +2770,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [metabolism_level2_shop]
 uid = "uid://7dn58y2vb2ev"
-kind = "file"
+template = "file"
 
 [[metabolism_level2_shop.slots]]
 name = "palette"
@@ -2796,7 +2796,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [metabolism_level3_shop]
 uid = "uid://1bfy4llsqkv57"
-kind = "file"
+template = "file"
 
 [[metabolism_level3_shop.slots]]
 name = "palette"
@@ -2822,7 +2822,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [healing_level1_shop]
 uid = "uid://1axa2ea6yauzp"
-kind = "file"
+template = "file"
 
 [[healing_level1_shop.slots]]
 name = "palette"
@@ -2848,7 +2848,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [healing_level2_shop]
 uid = "uid://1s4frxxf8oyfk"
-kind = "file"
+template = "file"
 
 [[healing_level2_shop.slots]]
 name = "palette"
@@ -2874,7 +2874,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [healing_level3_shop]
 uid = "uid://5rwiuzac2gsh"
-kind = "file"
+template = "file"
 
 [[healing_level3_shop.slots]]
 name = "palette"
@@ -2900,7 +2900,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [lifedrain_level1_shop]
 uid = "uid://a99d0s0ify0v"
-kind = "file"
+template = "file"
 
 [[lifedrain_level1_shop.slots]]
 name = "palette"
@@ -2926,7 +2926,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [lifedrain_level2_shop]
 uid = "uid://s8awwfysl0px"
-kind = "file"
+template = "file"
 
 [[lifedrain_level2_shop.slots]]
 name = "palette"
@@ -2952,7 +2952,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [lifedrain_level3_shop]
 uid = "uid://6lgu4ugd8ppp"
-kind = "file"
+template = "file"
 
 [[lifedrain_level3_shop.slots]]
 name = "palette"
@@ -2978,7 +2978,7 @@ chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4b
 
 [antibody_level1_shop]
 uid = "uid://12t5dyrss8tu2"
-kind = "file"
+template = "file"
 
 [[antibody_level1_shop.slots]]
 name = "palette"
@@ -3004,7 +3004,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [antibody_level2_shop]
 uid = "uid://157khexkzi0lq"
-kind = "file"
+template = "file"
 
 [[antibody_level2_shop.slots]]
 name = "palette"
@@ -3030,7 +3030,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [antibody_level3_shop]
 uid = "uid://h5vxi5bo0xxn"
-kind = "file"
+template = "file"
 
 [[antibody_level3_shop.slots]]
 name = "palette"
@@ -3056,7 +3056,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [energyshot_level1_shop]
 uid = "uid://1rkh649k5t7wi"
-kind = "file"
+template = "file"
 
 [[energyshot_level1_shop.slots]]
 name = "palette"
@@ -3082,7 +3082,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [energyshot_level2_shop]
 uid = "uid://150q8e3h04ors"
-kind = "file"
+template = "file"
 
 [[energyshot_level2_shop.slots]]
 name = "palette"
@@ -3108,7 +3108,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [energyshot_level3_shop]
 uid = "uid://1eme55thhj9ex"
-kind = "file"
+template = "file"
 
 [[energyshot_level3_shop.slots]]
 name = "palette"
@@ -3134,7 +3134,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [energyball_level1_shop]
 uid = "uid://1dc3tjt80a4tg"
-kind = "file"
+template = "file"
 
 [[energyball_level1_shop.slots]]
 name = "palette"
@@ -3160,7 +3160,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [energyball_level2_shop]
 uid = "uid://pg8lft8o3xnc"
-kind = "file"
+template = "file"
 
 [[energyball_level2_shop.slots]]
 name = "palette"
@@ -3186,7 +3186,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [energyball_level3_shop]
 uid = "uid://16e9l72q7zs4d"
-kind = "file"
+template = "file"
 
 [[energyball_level3_shop.slots]]
 name = "palette"
@@ -3212,7 +3212,7 @@ chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13
 
 [unused_33]
 uid = "uid://1mp5t7iltfaui"
-kind = "file"
+template = "file"
 
 [[unused_33.slots]]
 name = "palette"
@@ -3238,7 +3238,7 @@ chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "fd71c0
 
 [unused_34]
 uid = "uid://3a49igl67982"
-kind = "file"
+template = "file"
 
 [[unused_34.slots]]
 name = "palette"
@@ -3264,7 +3264,7 @@ chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "2e9c66
 
 [unused_35]
 uid = "uid://a1hjfhks9pbf"
-kind = "file"
+template = "file"
 
 [[unused_35.slots]]
 name = "palette"
@@ -3290,7 +3290,7 @@ chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "d7a137
 
 [skull_crystal]
 uid = "uid://15bj9qkqpeq6n"
-kind = "file"
+template = "file"
 
 [[skull_crystal.slots]]
 name = "palette"
@@ -3316,7 +3316,7 @@ chunks = { palette = "b6f36624168ad6ca28d8b8897e4ecbbb0326bc49", image = "2988d8
 
 [medicine_wheel]
 uid = "uid://8udosmh6sdzv"
-kind = "file"
+template = "file"
 
 [[medicine_wheel.slots]]
 name = "palette"
@@ -3342,7 +3342,7 @@ chunks = { palette = "702c219a6ec9571d4ff0b6ebc48a3deaacf453f9", image = "8cf8b3
 
 [holy_water]
 uid = "uid://1jwifyklb2y22"
-kind = "file"
+template = "file"
 
 [[holy_water.slots]]
 name = "palette"
@@ -3368,7 +3368,7 @@ chunks = { palette = "8471240365e4e6eef8e201ff3dee322301f57dd6", image = "66f6e9
 
 [ofuda]
 uid = "uid://1efp19slnwu7f"
-kind = "file"
+template = "file"
 
 [[ofuda.slots]]
 name = "palette"
@@ -3394,7 +3394,7 @@ chunks = { palette = "8a6885ed62f5f64517bf4381edd6bc8259c2aa61", image = "aa3886
 
 [flare]
 uid = "uid://uwjdq63u0snc"
-kind = "file"
+template = "file"
 
 [[flare.slots]]
 name = "palette"
@@ -3420,7 +3420,7 @@ chunks = { palette = "75f43942ad6f2bdf194451b221fecfda15b49bfe", image = "dfbd6b
 
 [pepper_spray]
 uid = "uid://6r2xh594lhl7"
-kind = "file"
+template = "file"
 
 [[pepper_spray.slots]]
 name = "palette"
@@ -3446,7 +3446,7 @@ chunks = { palette = "070f6300897d636dad25f28ea7e04ea8d3d8d671", image = "63aebe
 
 [protein_capsule]
 uid = "uid://xbr0xqzdyhjc"
-kind = "file"
+template = "file"
 
 [[protein_capsule.slots]]
 name = "palette"
@@ -3472,7 +3472,7 @@ chunks = { palette = "2e6520c451d934637d3d1b0bbbf7a6a0a75ba26b", image = "6b78d0
 
 [ringers_solution]
 uid = "uid://swfo8f5uo9x1"
-kind = "file"
+template = "file"
 
 [[ringers_solution.slots]]
 name = "palette"
@@ -3498,7 +3498,7 @@ chunks = { palette = "dd94846353c63c60081e7e9b4a77f839ab5ea753", image = "601f82
 
 [eau_de_toilette]
 uid = "uid://1gf52qx7e1j1z"
-kind = "file"
+template = "file"
 
 [[eau_de_toilette.slots]]
 name = "palette"
@@ -3524,7 +3524,7 @@ chunks = { palette = "120f7dc32d8661423dc0a1cfa46ddca25b37372e", image = "9a5682
 
 [hunter_goggles]
 uid = "uid://1ez9th2f98glm"
-kind = "file"
+template = "file"
 
 [[hunter_goggles.slots]]
 name = "palette"
@@ -3550,7 +3550,7 @@ chunks = { palette = "636d81f62ef364957a9bad89a0933b83b1d88ac2", image = "1544ac
 
 [gps]
 uid = "uid://nglebvgc6crb"
-kind = "file"
+template = "file"
 
 [[gps.slots]]
 name = "palette"
@@ -3576,7 +3576,7 @@ chunks = { palette = "1027709f284bb8ecb434c0e8670e7aba59fc11a9", image = "ae36e0
 
 [combat_light]
 uid = "uid://lalcfgsnqqn2"
-kind = "file"
+template = "file"
 
 [[combat_light.slots]]
 name = "palette"
@@ -3602,7 +3602,7 @@ chunks = { palette = "b18af84a7b2ac0730e6bca230b1ffb25f6d781ec", image = "7c58aa
 
 [hammer]
 uid = "uid://hss5s15rd3c7"
-kind = "file"
+template = "file"
 
 [[hammer.slots]]
 name = "palette"
@@ -3628,7 +3628,7 @@ chunks = { palette = "ecce81ba967e4de9b326566543b331ccb660449e", image = "f9a8a9
 
 [pyke]
 uid = "uid://mtq2pjsj0ydo"
-kind = "file"
+template = "file"
 
 [[pyke.slots]]
 name = "palette"
@@ -3654,7 +3654,7 @@ chunks = { palette = "04ad2c2f08dcc5ae850769828faa96b07a910166", image = "f56cd4
 
 [javelin]
 uid = "uid://1mhfgyeucxsa5"
-kind = "file"
+template = "file"
 
 [[javelin.slots]]
 name = "palette"
@@ -3680,7 +3680,7 @@ chunks = { palette = "6fb5c5512e702c77c7557874cd94eda1b9577f2e", image = "74fed3
 
 [m203]
 uid = "uid://1iofbzq0a3y2f"
-kind = "file"
+template = "file"
 
 [[m203.slots]]
 name = "palette"
@@ -3706,7 +3706,7 @@ chunks = { palette = "bffe3bca94fce67650d860f69112bd38f5f2d9c1", image = "fa1a34
 
 [m9]
 uid = "uid://1cekv8ckdsk8g"
-kind = "file"
+template = "file"
 
 [[m9.slots]]
 name = "palette"
@@ -3732,7 +3732,7 @@ chunks = { palette = "4ed3bc009b2c735787a21bc22a6c33eea2cecf07", image = "80c79c
 
 [9mm_pb]
 uid = "uid://3exwwzx8h3vy"
-kind = "file"
+template = "file"
 
 [[9mm_pb.slots]]
 name = "palette"
@@ -3758,7 +3758,7 @@ chunks = { palette = "f193f090f9a387b7676dfa34f7721a47ff99d878", image = "658d3b
 
 [9mm_hydra]
 uid = "uid://l9ipd618x2ls"
-kind = "file"
+template = "file"
 
 [[9mm_hydra.slots]]
 name = "palette"
@@ -3784,7 +3784,7 @@ chunks = { palette = "5db61acfa34267effbaf2835fbf244b1a821f0a8", image = "db7f1d
 
 [9mm_spartan]
 uid = "uid://db3lmleuwfl3"
-kind = "file"
+template = "file"
 
 [[9mm_spartan.slots]]
 name = "palette"
@@ -3810,7 +3810,7 @@ chunks = { palette = "737a6d768c63682d960c90a03fb7733a33853660", image = "71ecfc
 
 [44_magnum]
 uid = "uid://1pfui04uvqgyf"
-kind = "file"
+template = "file"
 
 [[44_magnum.slots]]
 name = "palette"
@@ -3836,7 +3836,7 @@ chunks = { palette = "bf4551e775a708614a4c81fee29460ffd260943e", image = "3193f6
 
 [44_maeda_sp]
 uid = "uid://qh5qkxov61g"
-kind = "file"
+template = "file"
 
 [[44_maeda_sp.slots]]
 name = "palette"
@@ -3862,7 +3862,7 @@ chunks = { palette = "6fb9fd9dbdb7553aaaf6321e264338804c201ab5", image = "d5c5a9
 
 [44_poison]
 uid = "uid://j6txh7t5bxmz"
-kind = "file"
+template = "file"
 
 [[44_poison.slots]]
 name = "palette"
@@ -3888,7 +3888,7 @@ chunks = { palette = "6fb9fd9dbdb7553aaaf6321e264338804c201ab5", image = "d5c5a9
 
 [grenade]
 uid = "uid://nbvr39ulckbf"
-kind = "file"
+template = "file"
 
 [[grenade.slots]]
 name = "palette"
@@ -3914,7 +3914,7 @@ chunks = { palette = "44443cc311f1119106fb054dfd1cebacb600fcea", image = "6b8e11
 
 [airburst]
 uid = "uid://6lkgkpx6feel"
-kind = "file"
+template = "file"
 
 [[airburst.slots]]
 name = "palette"
@@ -3940,7 +3940,7 @@ chunks = { palette = "3b5875ebe867325dbdd8e34df4e44084a6f80445", image = "5bbb65
 
 [riot]
 uid = "uid://nkuc6rwap4nl"
-kind = "file"
+template = "file"
 
 [[riot.slots]]
 name = "palette"
@@ -3966,7 +3966,7 @@ chunks = { palette = "2b114df405ae825ab5aba5b64ace2b9df4084f65", image = "7b5c86
 
 [buckshot]
 uid = "uid://1rjaj71fk5h84"
-kind = "file"
+template = "file"
 
 [[buckshot.slots]]
 name = "palette"
@@ -3992,7 +3992,7 @@ chunks = { palette = "bb72c9e7ec6a5ebf90f82778ceb44983f931f0bc", image = "ec0f54
 
 [firefly]
 uid = "uid://wbaebdjacah5"
-kind = "file"
+template = "file"
 
 [[firefly.slots]]
 name = "palette"
@@ -4018,7 +4018,7 @@ chunks = { palette = "ad4413f160b3f2efee408739f1182160b4daf231", image = "da78da
 
 [rifled_slug]
 uid = "uid://q6xs0onp09h8"
-kind = "file"
+template = "file"
 
 [[rifled_slug.slots]]
 name = "palette"
@@ -4044,7 +4044,7 @@ chunks = { palette = "4877802617f1e6cc36fedc616c1a214687164793", image = "bdc21a
 
 [5_56_rifle]
 uid = "uid://x5gfq6zogbj9"
-kind = "file"
+template = "file"
 
 [[5_56_rifle.slots]]
 name = "palette"
@@ -4070,7 +4070,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [paralizer]
 uid = "uid://1tg7fn4g27gv3"
-kind = "file"
+template = "file"
 
 [[paralizer.slots]]
 name = "palette"
@@ -4096,7 +4096,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [flashbomb]
 uid = "uid://19dq3l6do6wj5"
-kind = "file"
+template = "file"
 
 [[flashbomb.slots]]
 name = "palette"
@@ -4122,7 +4122,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [battery]
 uid = "uid://1c1ia21rxyeuz"
-kind = "file"
+template = "file"
 
 [[battery.slots]]
 name = "palette"
@@ -4148,7 +4148,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [hypervelocity_battery]
 uid = "uid://12mqesbz0df5f"
-kind = "file"
+template = "file"
 
 [[hypervelocity_battery.slots]]
 name = "palette"
@@ -4174,7 +4174,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [hammer_battery]
 uid = "uid://w2i83hvkcgs6"
-kind = "file"
+template = "file"
 
 [[hammer_battery.slots]]
 name = "palette"
@@ -4200,7 +4200,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [fuel]
 uid = "uid://j4pvu4wgkv0g"
-kind = "file"
+template = "file"
 
 [[fuel.slots]]
 name = "palette"
@@ -4226,7 +4226,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [javelin_battery]
 uid = "uid://1kn6cz2yakecc"
-kind = "file"
+template = "file"
 
 [[javelin_battery.slots]]
 name = "palette"
@@ -4252,7 +4252,7 @@ chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c
 
 [leather_jacket]
 uid = "uid://1ld1an0lfy1bg"
-kind = "file"
+template = "file"
 
 [[leather_jacket.slots]]
 name = "palette"
@@ -4278,7 +4278,7 @@ chunks = { palette = "1e39543b68dbff2b7f47a78d4289fd71e8bfd0a2", image = "3b9eb1
 
 [tactical_armor]
 uid = "uid://1li1kwxx5b3sm"
-kind = "file"
+template = "file"
 
 [[tactical_armor.slots]]
 name = "palette"
@@ -4304,7 +4304,7 @@ chunks = { palette = "4a4064b200da70849e6bd1163f95c2145d3f8694", image = "9a1eac
 
 [combat_armor]
 uid = "uid://ih09lbbt9dk0"
-kind = "file"
+template = "file"
 
 [[combat_armor.slots]]
 name = "palette"
@@ -4330,7 +4330,7 @@ chunks = { palette = "1f2d2e836dcfba0c3be8f2843312fc2f90838530", image = "e9f356
 
 [assault_suit]
 uid = "uid://th3fmsrxxqjx"
-kind = "file"
+template = "file"
 
 [[assault_suit.slots]]
 name = "palette"
@@ -4356,7 +4356,7 @@ chunks = { palette = "0bc07136b39cf5cc7a3fb1b455858c8802296964", image = "12d28d
 
 [pasgt_vest]
 uid = "uid://1uak6seooylpn"
-kind = "file"
+template = "file"
 
 [[pasgt_vest.slots]]
 name = "palette"
@@ -4382,7 +4382,7 @@ chunks = { palette = "04d843dac976cf55cf158edab9fed42fac657693", image = "efa18a
 
 [tactical_vest]
 uid = "uid://1bzbcxfc6ylyv"
-kind = "file"
+template = "file"
 
 [[tactical_vest.slots]]
 name = "palette"
@@ -4408,7 +4408,7 @@ chunks = { palette = "ef2a0be1d4ae9cd3751835d4dbe798f9b38bb24a", image = "89c075
 
 [eod_suit]
 uid = "uid://bu9oijrbidn2"
-kind = "file"
+template = "file"
 
 [[eod_suit.slots]]
 name = "palette"
@@ -4434,7 +4434,7 @@ chunks = { palette = "c044f4f010a4ec7bf3df1c72f405ae94cd67ea59", image = "933d7a
 
 [turtle_vest]
 uid = "uid://mw35sokf66e5"
-kind = "file"
+template = "file"
 
 [[turtle_vest.slots]]
 name = "palette"
@@ -4460,7 +4460,7 @@ chunks = { palette = "1e3e5279f83c88118c5308d664f20a26968f0cc2", image = "3e7851
 
 [chicken_plate]
 uid = "uid://1dfml5rknnkws"
-kind = "file"
+template = "file"
 
 [[chicken_plate.slots]]
 name = "palette"
@@ -4486,7 +4486,7 @@ chunks = { palette = "845ef09840d644ae258006e648a2c90f071e0baa", image = "e8cd43
 
 [nbc_suit]
 uid = "uid://sm0ojliv93jc"
-kind = "file"
+template = "file"
 
 [[nbc_suit.slots]]
 name = "palette"
@@ -4512,7 +4512,7 @@ chunks = { palette = "167d9180fc5b78be4ffe90b682f569cf70d24cf1", image = "7556a4
 
 [psysuit]
 uid = "uid://1d2u0yks2fy7c"
-kind = "file"
+template = "file"
 
 [[psysuit.slots]]
 name = "palette"
@@ -4538,7 +4538,7 @@ chunks = { palette = "d36f593e2f764918a780be8f353e6e0bc23c1810", image = "43534b
 
 [aya_special]
 uid = "uid://1umcdtkhppqaz"
-kind = "file"
+template = "file"
 
 [[aya_special.slots]]
 name = "palette"
@@ -4564,7 +4564,7 @@ chunks = { palette = "5a29eaab55ee26ac7721205641e6054a3dfd19a7", image = "795986
 
 [shoulder_holster]
 uid = "uid://1o6po69v1txv6"
-kind = "file"
+template = "file"
 
 [[shoulder_holster.slots]]
 name = "palette"
@@ -4590,7 +4590,7 @@ chunks = { palette = "66b3635cf709d125bf175487436c1d681b9ed48b", image = "44de01
 
 [monk_robe]
 uid = "uid://o1oqu39lsf0a"
-kind = "file"
+template = "file"
 
 [[monk_robe.slots]]
 name = "palette"
@@ -4616,7 +4616,7 @@ chunks = { palette = "05199d5d78699cb95c851f3090e8fa7a334a1614", image = "f9b1c8
 
 [nmc_names]
 uid = "uid://gahlbypbge93"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -4626,7 +4626,7 @@ at = [{ stage = 0, file = 20600 }]
 
 [enemy_rat]
 uid = "uid://1fnq9p9hzi8we"
-kind = "file"
+template = "file"
 
 [[enemy_rat.slots]]
 name = "preview_palette"
@@ -4652,7 +4652,7 @@ chunks = { preview_palette = "d937aa2371da36a5c77088e8dbecb254f1aa61ec", preview
 
 [enemy_moth]
 uid = "uid://1pzed9fsupoax"
-kind = "file"
+template = "file"
 
 [[enemy_moth.slots]]
 name = "preview_palette"
@@ -4678,7 +4678,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_bass]
 uid = "uid://wal2yh1fwa5k"
-kind = "file"
+template = "file"
 
 [[enemy_bass.slots]]
 name = "preview_palette"
@@ -4704,7 +4704,7 @@ chunks = { preview_palette = "9dc778cfeabccf1aa0c87f35d0eae8b4dcaadbf1", preview
 
 [enemy_bat]
 uid = "uid://10n0gl64uxoxf"
-kind = "file"
+template = "file"
 
 [[enemy_bat.slots]]
 name = "preview_palette"
@@ -4730,7 +4730,7 @@ chunks = { preview_palette = "e1396c6870c7e46c3d5a0bdc2d8bb01a137020c6", preview
 
 [enemy_scorpion]
 uid = "uid://kx6n4bkn720g"
-kind = "file"
+template = "file"
 
 [[enemy_scorpion.slots]]
 name = "preview_palette"
@@ -4756,7 +4756,7 @@ chunks = { preview_palette = "16bf04eafc2aaf6bbc93d598d9a754bb554999b8", preview
 
 [enemy_black_beetle]
 uid = "uid://lbykswla17h4"
-kind = "file"
+template = "file"
 
 [[enemy_black_beetle.slots]]
 name = "preview_palette"
@@ -4782,7 +4782,7 @@ chunks = { preview_palette = "d5288673a2a55f4ebe0bdb8bcb864d83e6d6a0c6", preview
 
 [enemy_maggot]
 uid = "uid://onmttxlmzs6o"
-kind = "file"
+template = "file"
 
 [[enemy_maggot.slots]]
 name = "preview_palette"
@@ -4808,7 +4808,7 @@ chunks = { preview_palette = "1e64322148f9832202d99bff4e724a06c8f4d278", preview
 
 [enemy_green_amoeba]
 uid = "uid://692x60vjr0ak"
-kind = "file"
+template = "file"
 
 [[enemy_green_amoeba.slots]]
 name = "preview_palette"
@@ -4834,7 +4834,7 @@ chunks = { preview_palette = "1d5a98435f75c2307515f83598e23c5ab4255e19", preview
 
 [enemy_red_amoeba]
 uid = "uid://eq9vwmzimf99"
-kind = "file"
+template = "file"
 
 [[enemy_red_amoeba.slots]]
 name = "preview_palette"
@@ -4860,7 +4860,7 @@ chunks = { preview_palette = "be5557553c018a8f24c128897a78b71b38f164f6", preview
 
 [enemy_chicken_man_a]
 uid = "uid://15blgeivhi9q6"
-kind = "file"
+template = "file"
 
 [[enemy_chicken_man_a.slots]]
 name = "preview_palette"
@@ -4886,7 +4886,7 @@ chunks = { preview_palette = "f423f18d36913260d020ccfa0e6dd57cddc857e2", preview
 
 [enemy_chicken_man_b]
 uid = "uid://y9ujf2w0dgt1"
-kind = "file"
+template = "file"
 
 [[enemy_chicken_man_b.slots]]
 name = "preview_palette"
@@ -4912,7 +4912,7 @@ chunks = { preview_palette = "1d97e7d32d35e31a698879592c47dd1f4fa0bd28", preview
 
 [enemy_chicken_walker]
 uid = "uid://6lvwiu94zr5y"
-kind = "file"
+template = "file"
 
 [[enemy_chicken_walker.slots]]
 name = "preview_palette"
@@ -4938,7 +4938,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_chicken_rider]
 uid = "uid://1e3a05vhuiwv6"
-kind = "file"
+template = "file"
 
 [[enemy_chicken_rider.slots]]
 name = "preview_palette"
@@ -4964,7 +4964,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_chicken_hopper]
 uid = "uid://5tho5ju3i8s1"
-kind = "file"
+template = "file"
 
 [[enemy_chicken_hopper.slots]]
 name = "preview_palette"
@@ -4990,7 +4990,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_cone_head]
 uid = "uid://11bkukunyzqr3"
-kind = "file"
+template = "file"
 
 [[enemy_cone_head.slots]]
 name = "preview_palette"
@@ -5016,7 +5016,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_turtle_head]
 uid = "uid://44e8fsfh8zeq"
-kind = "file"
+template = "file"
 
 [[enemy_turtle_head.slots]]
 name = "preview_palette"
@@ -5042,7 +5042,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_parasite_baby]
 uid = "uid://1n6b7mk0zez5s"
-kind = "file"
+template = "file"
 
 [[enemy_parasite_baby.slots]]
 name = "preview_palette"
@@ -5068,7 +5068,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_blood_suckler]
 uid = "uid://kykx1rob0yvf"
-kind = "file"
+template = "file"
 
 [[enemy_blood_suckler.slots]]
 name = "preview_palette"
@@ -5094,7 +5094,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_desert_chaser]
 uid = "uid://mppb9n1ufa4z"
-kind = "file"
+template = "file"
 
 [[enemy_desert_chaser.slots]]
 name = "preview_palette"
@@ -5120,7 +5120,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_stealth_punisher]
 uid = "uid://qtddelgk4u4m"
-kind = "file"
+template = "file"
 
 [[enemy_stealth_punisher.slots]]
 name = "preview_palette"
@@ -5146,7 +5146,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_doppel_punisher]
 uid = "uid://1lojjoukm6et6"
-kind = "file"
+template = "file"
 
 [[enemy_doppel_punisher.slots]]
 name = "preview_palette"
@@ -5172,7 +5172,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_night_singer]
 uid = "uid://17lu5x04vcuk7"
-kind = "file"
+template = "file"
 
 [[enemy_night_singer.slots]]
 name = "preview_palette"
@@ -5198,7 +5198,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_parasite_flyer]
 uid = "uid://jxlisr9hk97v"
-kind = "file"
+template = "file"
 
 [[enemy_parasite_flyer.slots]]
 name = "preview_palette"
@@ -5224,7 +5224,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_stalker]
 uid = "uid://ol8nee4gwfuc"
-kind = "file"
+template = "file"
 
 [[enemy_stalker.slots]]
 name = "preview_palette"
@@ -5250,7 +5250,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_sea_diver]
 uid = "uid://x83meqfcie4d"
-kind = "file"
+template = "file"
 
 [[enemy_sea_diver.slots]]
 name = "preview_palette"
@@ -5276,7 +5276,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_smart_cone]
 uid = "uid://uaasjaloma5h"
-kind = "file"
+template = "file"
 
 [[enemy_smart_cone.slots]]
 name = "preview_palette"
@@ -5302,7 +5302,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_cone_walker]
 uid = "uid://1714c3ox9irl1"
-kind = "file"
+template = "file"
 
 [[enemy_cone_walker.slots]]
 name = "preview_palette"
@@ -5328,7 +5328,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_half_desert]
 uid = "uid://8hhd8i0mrnw5"
-kind = "file"
+template = "file"
 
 [[enemy_half_desert.slots]]
 name = "preview_palette"
@@ -5354,7 +5354,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_parasite_dama]
 uid = "uid://3u8v4skqz4bd"
-kind = "file"
+template = "file"
 
 [[enemy_parasite_dama.slots]]
 name = "preview_palette"
@@ -5380,7 +5380,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_stealth_head]
 uid = "uid://1e4q4gzhvs57x"
-kind = "file"
+template = "file"
 
 [[enemy_stealth_head.slots]]
 name = "preview_palette"
@@ -5406,7 +5406,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_laser_turret_1]
 uid = "uid://gkwax3hzyr9k"
-kind = "file"
+template = "file"
 
 [[enemy_laser_turret_1.slots]]
 name = "preview_palette"
@@ -5432,7 +5432,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_laser_turret_2]
 uid = "uid://1eo5ivnhof5is"
-kind = "file"
+template = "file"
 
 [[enemy_laser_turret_2.slots]]
 name = "preview_palette"
@@ -5458,7 +5458,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_laser_turret_3]
 uid = "uid://xqf6oyh48x4j"
-kind = "file"
+template = "file"
 
 [[enemy_laser_turret_3.slots]]
 name = "preview_palette"
@@ -5484,7 +5484,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_laser_turret_4]
 uid = "uid://x4shm8lei86z"
-kind = "file"
+template = "file"
 
 [[enemy_laser_turret_4.slots]]
 name = "preview_palette"
@@ -5510,7 +5510,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_laser_turret_machine_gun]
 uid = "uid://h50h62lhpruu"
-kind = "file"
+template = "file"
 
 [[enemy_laser_turret_machine_gun.slots]]
 name = "preview_palette"
@@ -5536,7 +5536,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_pawn_golem_beam_sword]
 uid = "uid://1s2rjolb77vu6"
-kind = "file"
+template = "file"
 
 [[enemy_pawn_golem_beam_sword.slots]]
 name = "preview_palette"
@@ -5562,7 +5562,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_pawn_golem_grenade_launcher]
 uid = "uid://cb931kb1767"
-kind = "file"
+template = "file"
 
 [[enemy_pawn_golem_grenade_launcher.slots]]
 name = "preview_palette"
@@ -5588,7 +5588,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_rook_golem_beam_sword]
 uid = "uid://zwrx2ywr3h70"
-kind = "file"
+template = "file"
 
 [[enemy_rook_golem_beam_sword.slots]]
 name = "preview_palette"
@@ -5614,7 +5614,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_rook_golem_grenade_launcher]
 uid = "uid://1fqithg98b9au"
-kind = "file"
+template = "file"
 
 [[enemy_rook_golem_grenade_launcher.slots]]
 name = "preview_palette"
@@ -5640,7 +5640,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_knight_golem]
 uid = "uid://1xorsndq4c3xz"
-kind = "file"
+template = "file"
 
 [[enemy_knight_golem.slots]]
 name = "preview_palette"
@@ -5666,7 +5666,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_bishop_golem]
 uid = "uid://h67gm6n6k9ag"
-kind = "file"
+template = "file"
 
 [[enemy_bishop_golem.slots]]
 name = "preview_palette"
@@ -5692,7 +5692,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_glasses_woman]
 uid = "uid://lxkjtr2qbva4"
-kind = "file"
+template = "file"
 
 [[enemy_glasses_woman.slots]]
 name = "preview_palette"
@@ -5718,7 +5718,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_gunther_1]
 uid = "uid://j0ql6qjur4bo"
-kind = "file"
+template = "file"
 
 [[enemy_gunther_1.slots]]
 name = "preview_palette"
@@ -5744,7 +5744,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_gunther_2]
 uid = "uid://1uj6qs0n49tgl"
-kind = "file"
+template = "file"
 
 [[enemy_gunther_2.slots]]
 name = "preview_palette"
@@ -5770,7 +5770,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_blizzard_chaser]
 uid = "uid://vzn2bhancoc0"
-kind = "file"
+template = "file"
 
 [[enemy_blizzard_chaser.slots]]
 name = "preview_palette"
@@ -5796,7 +5796,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_zombie_blizzard_chaser]
 uid = "uid://1n6p62uirfyos"
-kind = "file"
+template = "file"
 
 [[enemy_zombie_blizzard_chaser.slots]]
 name = "preview_palette"
@@ -5822,7 +5822,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_gigant_sapiens]
 uid = "uid://evtwwtq0nyoo"
-kind = "file"
+template = "file"
 
 [[enemy_gigant_sapiens.slots]]
 name = "preview_palette"
@@ -5848,7 +5848,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_glutton_first_encounter]
 uid = "uid://v6pkfx5a4lta"
-kind = "file"
+template = "file"
 
 [[enemy_glutton_first_encounter.slots]]
 name = "preview_palette"
@@ -5874,7 +5874,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_glutton_second_encounter]
 uid = "uid://yz4fshj2a0tf"
-kind = "file"
+template = "file"
 
 [[enemy_glutton_second_encounter.slots]]
 name = "preview_palette"
@@ -5900,7 +5900,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_amplifier_a]
 uid = "uid://1j9tg0hvaw65m"
-kind = "file"
+template = "file"
 
 [[enemy_amplifier_a.slots]]
 name = "preview_palette"
@@ -5926,7 +5926,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_amplifier_b]
 uid = "uid://wgn0bjahvunw"
-kind = "file"
+template = "file"
 
 [[enemy_amplifier_b.slots]]
 name = "preview_palette"
@@ -5952,7 +5952,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_giant_stalker]
 uid = "uid://1a8149pbrhuai"
-kind = "file"
+template = "file"
 
 [[enemy_giant_stalker.slots]]
 name = "preview_palette"
@@ -5978,7 +5978,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_brahman_a]
 uid = "uid://k4n6n04v30cf"
-kind = "file"
+template = "file"
 
 [[enemy_brahman_a.slots]]
 name = "preview_palette"
@@ -6004,7 +6004,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_brahman_b]
 uid = "uid://16yeqdjjylrej"
-kind = "file"
+template = "file"
 
 [[enemy_brahman_b.slots]]
 name = "preview_palette"
@@ -6030,7 +6030,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_brahman_c]
 uid = "uid://h1i2i3yc0dkp"
-kind = "file"
+template = "file"
 
 [[enemy_brahman_c.slots]]
 name = "preview_palette"
@@ -6056,7 +6056,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_brahman_d]
 uid = "uid://19luy0ececpny"
-kind = "file"
+template = "file"
 
 [[enemy_brahman_d.slots]]
 name = "preview_palette"
@@ -6082,7 +6082,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_clear_brahman_a]
 uid = "uid://1hjuzflt92p19"
-kind = "file"
+template = "file"
 
 [[enemy_clear_brahman_a.slots]]
 name = "preview_palette"
@@ -6108,7 +6108,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_clear_brahman_b]
 uid = "uid://d7yvbhg90rpz"
-kind = "file"
+template = "file"
 
 [[enemy_clear_brahman_b.slots]]
 name = "preview_palette"
@@ -6134,7 +6134,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_clear_brahman_c]
 uid = "uid://1kq8i9de2dr0g"
-kind = "file"
+template = "file"
 
 [[enemy_clear_brahman_c.slots]]
 name = "preview_palette"
@@ -6160,7 +6160,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_clear_brahman_d]
 uid = "uid://2x8rrrjyzej3"
-kind = "file"
+template = "file"
 
 [[enemy_clear_brahman_d.slots]]
 name = "preview_palette"
@@ -6186,7 +6186,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_sabotender]
 uid = "uid://13u0p7smqdjhw"
-kind = "file"
+template = "file"
 
 [[enemy_sabotender.slots]]
 name = "preview_palette"
@@ -6212,7 +6212,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [enemy_chocobo]
 uid = "uid://1j5qi9b59h6xo"
-kind = "file"
+template = "file"
 
 [[enemy_chocobo.slots]]
 name = "preview_palette"
@@ -6238,7 +6238,7 @@ chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview
 
 [pyrokinesis_level1_menu]
 uid = "uid://1ri4s6peok4hp"
-kind = "file"
+template = "file"
 
 [[pyrokinesis_level1_menu.slots]]
 name = "palette"
@@ -6264,7 +6264,7 @@ chunks = { palette = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7", image = "607717
 
 [pyrokinesis_level2_menu]
 uid = "uid://pf8d31istlqw"
-kind = "file"
+template = "file"
 
 [[pyrokinesis_level2_menu.slots]]
 name = "palette"
@@ -6290,7 +6290,7 @@ chunks = { palette = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2", image = "b3a076
 
 [pyrokinesis_level3_menu]
 uid = "uid://1bsnfh2v1hkz4"
-kind = "file"
+template = "file"
 
 [[pyrokinesis_level3_menu.slots]]
 name = "palette"
@@ -6316,7 +6316,7 @@ chunks = { palette = "9ef565721dfa75d5d0dcd5f78686649fc756e54a", image = "faaa12
 
 [combustion_level1_menu]
 uid = "uid://1rwgcbg69apa4"
-kind = "file"
+template = "file"
 
 [[combustion_level1_menu.slots]]
 name = "palette"
@@ -6342,7 +6342,7 @@ chunks = { palette = "31c590c2e4cf1c4ffefd2b372bf69294ff4f0e8a", image = "a1894c
 
 [combustion_level2_menu]
 uid = "uid://8u9ng0q4dkxr"
-kind = "file"
+template = "file"
 
 [[combustion_level2_menu.slots]]
 name = "palette"
@@ -6368,7 +6368,7 @@ chunks = { palette = "2fb5d2fb1b9367e843c7a32a822c1b94fce50497", image = "8e8d2a
 
 [combustion_level3_menu]
 uid = "uid://1x4m44gz4bxfj"
-kind = "file"
+template = "file"
 
 [[combustion_level3_menu.slots]]
 name = "palette"
@@ -6394,7 +6394,7 @@ chunks = { palette = "2439af9a4c5278ef336053bf81870690c147efac", image = "b6546f
 
 [inferno_level1_menu]
 uid = "uid://107hl3my5igz6"
-kind = "file"
+template = "file"
 
 [[inferno_level1_menu.slots]]
 name = "palette"
@@ -6420,7 +6420,7 @@ chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a5659
 
 [inferno_level2_menu]
 uid = "uid://16epd6lskfjio"
-kind = "file"
+template = "file"
 
 [[inferno_level2_menu.slots]]
 name = "palette"
@@ -6446,7 +6446,7 @@ chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a5659
 
 [inferno_level3_menu]
 uid = "uid://14l5893knj7s0"
-kind = "file"
+template = "file"
 
 [[inferno_level3_menu.slots]]
 name = "palette"
@@ -6472,7 +6472,7 @@ chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a5659
 
 [necrosis_level1_menu]
 uid = "uid://itnqv5pvcqq4"
-kind = "file"
+template = "file"
 
 [[necrosis_level1_menu.slots]]
 name = "palette"
@@ -6498,7 +6498,7 @@ chunks = { palette = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7", image = "607717
 
 [necrosis_level2_menu]
 uid = "uid://xq13vmfywezc"
-kind = "file"
+template = "file"
 
 [[necrosis_level2_menu.slots]]
 name = "palette"
@@ -6524,7 +6524,7 @@ chunks = { palette = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2", image = "b3a076
 
 [necrosis_level3_menu]
 uid = "uid://1xpblz13uaf9q"
-kind = "file"
+template = "file"
 
 [[necrosis_level3_menu.slots]]
 name = "palette"
@@ -6550,7 +6550,7 @@ chunks = { palette = "9ef565721dfa75d5d0dcd5f78686649fc756e54a", image = "faaa12
 
 [plasma_level1_menu]
 uid = "uid://t17gy0j3o9qp"
-kind = "file"
+template = "file"
 
 [[plasma_level1_menu.slots]]
 name = "palette"
@@ -6576,7 +6576,7 @@ chunks = { palette = "cda7a47004e31870c3e47306b7d36de3f1ca84c1", image = "bd8682
 
 [plasma_level2_menu]
 uid = "uid://1cxfqr9ank1o7"
-kind = "file"
+template = "file"
 
 [[plasma_level2_menu.slots]]
 name = "palette"
@@ -6602,7 +6602,7 @@ chunks = { palette = "6703f4174841fd5a2a08307fb4d768ed3d65d3cb", image = "64948b
 
 [plasma_level3_menu]
 uid = "uid://x8l0vd2pcvz7"
-kind = "file"
+template = "file"
 
 [[plasma_level3_menu.slots]]
 name = "palette"
@@ -6628,7 +6628,7 @@ chunks = { palette = "6302181c66ea973c52a5ae43e4ee821be6b7aa8f", image = "29e93c
 
 [apobiosis_level1_menu]
 uid = "uid://153rpbt5pslx"
-kind = "file"
+template = "file"
 
 [[apobiosis_level1_menu.slots]]
 name = "palette"
@@ -6654,7 +6654,7 @@ chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e
 
 [apobiosis_level2_menu]
 uid = "uid://yn71mjf0ag1y"
-kind = "file"
+template = "file"
 
 [[apobiosis_level2_menu.slots]]
 name = "palette"
@@ -6680,7 +6680,7 @@ chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e3
 
 [apobiosis_level3_menu]
 uid = "uid://vt38zna1mq5v"
-kind = "file"
+template = "file"
 
 [[apobiosis_level3_menu.slots]]
 name = "palette"
@@ -6706,7 +6706,7 @@ chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29
 
 [metabolism_level1_menu]
 uid = "uid://fbsk73h02hv9"
-kind = "file"
+template = "file"
 
 [[metabolism_level1_menu.slots]]
 name = "palette"
@@ -6732,7 +6732,7 @@ chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e
 
 [metabolism_level2_menu]
 uid = "uid://1gh0vnybn9cw9"
-kind = "file"
+template = "file"
 
 [[metabolism_level2_menu.slots]]
 name = "palette"
@@ -6758,7 +6758,7 @@ chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e3
 
 [metabolism_level3_menu]
 uid = "uid://1dswjuprtypve"
-kind = "file"
+template = "file"
 
 [[metabolism_level3_menu.slots]]
 name = "palette"
@@ -6784,7 +6784,7 @@ chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29
 
 [healing_level1_menu]
 uid = "uid://olasazcmnbc3"
-kind = "file"
+template = "file"
 
 [[healing_level1_menu.slots]]
 name = "palette"
@@ -6810,7 +6810,7 @@ chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e
 
 [healing_level2_menu]
 uid = "uid://k56nwfbrqwoo"
-kind = "file"
+template = "file"
 
 [[healing_level2_menu.slots]]
 name = "palette"
@@ -6836,7 +6836,7 @@ chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e3
 
 [healing_level3_menu]
 uid = "uid://25v69m9cxq6t"
-kind = "file"
+template = "file"
 
 [[healing_level3_menu.slots]]
 name = "palette"
@@ -6862,7 +6862,7 @@ chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29
 
 [lifedrain_level1_menu]
 uid = "uid://1mcyeibfyj1u"
-kind = "file"
+template = "file"
 
 [[lifedrain_level1_menu.slots]]
 name = "palette"
@@ -6888,7 +6888,7 @@ chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e
 
 [lifedrain_level2_menu]
 uid = "uid://1igojws4sihf2"
-kind = "file"
+template = "file"
 
 [[lifedrain_level2_menu.slots]]
 name = "palette"
@@ -6914,7 +6914,7 @@ chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e3
 
 [lifedrain_level3_menu]
 uid = "uid://cho97xqp0k7d"
-kind = "file"
+template = "file"
 
 [[lifedrain_level3_menu.slots]]
 name = "palette"
@@ -6940,7 +6940,7 @@ chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29
 
 [antibody_level1_menu]
 uid = "uid://1jngyvhbl8fpj"
-kind = "file"
+template = "file"
 
 [[antibody_level1_menu.slots]]
 name = "palette"
@@ -6966,7 +6966,7 @@ chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e
 
 [antibody_level2_menu]
 uid = "uid://1nab5dby0kdt6"
-kind = "file"
+template = "file"
 
 [[antibody_level2_menu.slots]]
 name = "palette"
@@ -6992,7 +6992,7 @@ chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e3
 
 [antibody_level3_menu]
 uid = "uid://qbhldsktjw5v"
-kind = "file"
+template = "file"
 
 [[antibody_level3_menu.slots]]
 name = "palette"
@@ -7018,7 +7018,7 @@ chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29
 
 [energyshot_level1_menu]
 uid = "uid://9vuyidq7av1x"
-kind = "file"
+template = "file"
 
 [[energyshot_level1_menu.slots]]
 name = "palette"
@@ -7044,7 +7044,7 @@ chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e
 
 [energyshot_level2_menu]
 uid = "uid://1ufyac18l7vny"
-kind = "file"
+template = "file"
 
 [[energyshot_level2_menu.slots]]
 name = "palette"
@@ -7070,7 +7070,7 @@ chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e3
 
 [energyshot_level3_menu]
 uid = "uid://1br3wcsgsolqp"
-kind = "file"
+template = "file"
 
 [[energyshot_level3_menu.slots]]
 name = "palette"
@@ -7096,7 +7096,7 @@ chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29
 
 [energyball_level1_menu]
 uid = "uid://1mpqmuwqlfnib"
-kind = "file"
+template = "file"
 
 [[energyball_level1_menu.slots]]
 name = "palette"
@@ -7122,7 +7122,7 @@ chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e
 
 [energyball_level2_menu]
 uid = "uid://12j82lz1qr13o"
-kind = "file"
+template = "file"
 
 [[energyball_level2_menu.slots]]
 name = "palette"
@@ -7148,7 +7148,7 @@ chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e3
 
 [energyball_level3_menu]
 uid = "uid://1awunci3tmtrh"
-kind = "file"
+template = "file"
 
 [[energyball_level3_menu.slots]]
 name = "palette"
@@ -7174,7 +7174,7 @@ chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29
 
 [help_objective_0]
 uid = "uid://1i59s9eykkjv0"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_148", type = "text" },
 ]
@@ -7184,7 +7184,7 @@ at = [{ stage = 0, file = 20800 }, { stage = 0, file = 20801 }]
 
 [help_objective_2]
 uid = "uid://al5p6gjkuqkn"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_149", type = "text" },
 ]
@@ -7194,7 +7194,7 @@ at = [{ stage = 0, file = 20802 }]
 
 [help_objective_3]
 uid = "uid://178klr3llpi7b"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_150", type = "text" },
 ]
@@ -7204,7 +7204,7 @@ at = [{ stage = 0, file = 20803 }]
 
 [help_objective_4]
 uid = "uid://1jpaadvl7uwz5"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_151", type = "text" },
 ]
@@ -7214,7 +7214,7 @@ at = [{ stage = 0, file = 20804 }]
 
 [help_objective_5]
 uid = "uid://cphp8gd6r53a"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_152", type = "text" },
 ]
@@ -7224,7 +7224,7 @@ at = [{ stage = 0, file = 20805 }]
 
 [help_objective_6]
 uid = "uid://1ve1wjjub0k9e"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_153", type = "text" },
 ]
@@ -7234,7 +7234,7 @@ at = [{ stage = 0, file = 20806 }]
 
 [help_objective_7]
 uid = "uid://vnsa06y1kepx"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_154", type = "text" },
 ]
@@ -7244,7 +7244,7 @@ at = [{ stage = 0, file = 20807 }]
 
 [help_objective_8]
 uid = "uid://14ueguzw35fj2"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_155", type = "text" },
 ]
@@ -7254,7 +7254,7 @@ at = [{ stage = 0, file = 20808 }]
 
 [help_objective_9]
 uid = "uid://19uodbe64bqfv"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_156", type = "text" },
 ]
@@ -7264,7 +7264,7 @@ at = [{ stage = 0, file = 20809 }]
 
 [help_objective_10]
 uid = "uid://1c8bjhp7mul9z"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_157", type = "text" },
 ]
@@ -7274,7 +7274,7 @@ at = [{ stage = 0, file = 20810 }]
 
 [help_objective_11]
 uid = "uid://14pb17xuxiunr"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_158", type = "text" },
 ]
@@ -7284,7 +7284,7 @@ at = [{ stage = 0, file = 20811 }]
 
 [help_objective_12]
 uid = "uid://1srsiyq9jh2kr"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_159", type = "text" },
 ]
@@ -7294,7 +7294,7 @@ at = [{ stage = 0, file = 20812 }]
 
 [help_objective_13]
 uid = "uid://6j3s3qgqwbis"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_160", type = "text" },
 ]
@@ -7304,7 +7304,7 @@ at = [{ stage = 0, file = 20813 }]
 
 [help_objective_14]
 uid = "uid://skgc05hpx01c"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_161", type = "text" },
 ]
@@ -7314,7 +7314,7 @@ at = [{ stage = 0, file = 20814 }]
 
 [help_objective_15]
 uid = "uid://1tnpiesw41jp7"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_162", type = "text" },
 ]
@@ -7324,7 +7324,7 @@ at = [{ stage = 0, file = 20815 }]
 
 [help_objective_16]
 uid = "uid://bgwsqmt5satn"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_163", type = "text" },
 ]
@@ -7334,7 +7334,7 @@ at = [{ stage = 0, file = 20816 }]
 
 [help_objective_17]
 uid = "uid://1xl24tcwd3ueo"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_164", type = "text" },
 ]
@@ -7344,7 +7344,7 @@ at = [{ stage = 0, file = 20817 }]
 
 [help_objective_18]
 uid = "uid://wpftrey8exw4"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_165", type = "text" },
 ]
@@ -7354,7 +7354,7 @@ at = [{ stage = 0, file = 20818 }]
 
 [help_objective_19]
 uid = "uid://f0hytawztcas"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_166", type = "text" },
 ]
@@ -7364,7 +7364,7 @@ at = [{ stage = 0, file = 20819 }]
 
 [help_objective_20]
 uid = "uid://24r7sgibu4xj"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_167", type = "text" },
 ]
@@ -7374,7 +7374,7 @@ at = [{ stage = 0, file = 20820 }]
 
 [help_objective_21]
 uid = "uid://43a5hatm7omg"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_168", type = "text" },
 ]
@@ -7384,7 +7384,7 @@ at = [{ stage = 0, file = 20821 }]
 
 [help_objective_22]
 uid = "uid://uo0zhp3jfh0w"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_169", type = "text" },
 ]
@@ -7394,7 +7394,7 @@ at = [{ stage = 0, file = 20822 }]
 
 [help_objective_23]
 uid = "uid://gqa6mxknar0f"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_170", type = "text" },
 ]
@@ -7404,7 +7404,7 @@ at = [{ stage = 0, file = 20823 }]
 
 [help_objective_24]
 uid = "uid://1jkkx4b5x5x1p"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_171", type = "text" },
 ]
@@ -7414,7 +7414,7 @@ at = [{ stage = 0, file = 20824 }]
 
 [help_objective_25]
 uid = "uid://1k8ofw9frnks6"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_172", type = "text" },
 ]
@@ -7424,7 +7424,7 @@ at = [{ stage = 0, file = 20825 }]
 
 [help_objective_26]
 uid = "uid://wclr1xtysjzh"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_173", type = "text" },
 ]
@@ -7434,7 +7434,7 @@ at = [{ stage = 0, file = 20826 }]
 
 [help_objective_27]
 uid = "uid://o38qyaji2379"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_174", type = "text" },
 ]
@@ -7444,7 +7444,7 @@ at = [{ stage = 0, file = 20827 }]
 
 [help_objective_28]
 uid = "uid://c2ahdosinf4g"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_175", type = "text" },
 ]
@@ -7454,7 +7454,7 @@ at = [{ stage = 0, file = 20828 }]
 
 [help_objective_29]
 uid = "uid://j7jo32fn6prj"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_176", type = "text" },
 ]
@@ -7464,7 +7464,7 @@ at = [{ stage = 0, file = 20829 }]
 
 [help_objective_30]
 uid = "uid://ymh3obu1wnp3"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_177", type = "text" },
 ]
@@ -7474,7 +7474,7 @@ at = [{ stage = 0, file = 20830 }]
 
 [help_objective_31]
 uid = "uid://1wb3vmboicm5g"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_178", type = "text" },
 ]
@@ -7484,7 +7484,7 @@ at = [{ stage = 0, file = 20831 }]
 
 [help_objective_32]
 uid = "uid://64snzw8gk7tn"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_179", type = "text" },
 ]
@@ -7494,7 +7494,7 @@ at = [{ stage = 0, file = 20832 }]
 
 [help_objective_33]
 uid = "uid://84f9tvlmpwtn"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_180", type = "text" },
 ]
@@ -7504,7 +7504,7 @@ at = [{ stage = 0, file = 20833 }]
 
 [help_objective_34]
 uid = "uid://1onyr3cobtnlj"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_181", type = "text" },
 ]
@@ -7514,7 +7514,7 @@ at = [{ stage = 0, file = 20834 }]
 
 [help_objective_35]
 uid = "uid://1g3hauwarfdav"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_182", type = "text" },
 ]
@@ -7524,7 +7524,7 @@ at = [{ stage = 0, file = 20835 }]
 
 [help_objective_36]
 uid = "uid://5a8r7af0zyii"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_183", type = "text" },
 ]
@@ -7534,7 +7534,7 @@ at = [{ stage = 0, file = 20836 }]
 
 [help_objective_37]
 uid = "uid://1xqz1hli61zcu"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_184", type = "text" },
 ]
@@ -7544,7 +7544,7 @@ at = [{ stage = 0, file = 20837 }]
 
 [help_objective_38]
 uid = "uid://1k4juzx4fcwek"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_185", type = "text" },
 ]
@@ -7554,7 +7554,7 @@ at = [{ stage = 0, file = 20838 }]
 
 [help_objective_39]
 uid = "uid://erutf0zmyjx2"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_186", type = "text" },
 ]
@@ -7564,7 +7564,7 @@ at = [{ stage = 0, file = 20839 }]
 
 [help_objective_40]
 uid = "uid://1k09qsjyakbzk"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_187", type = "text" },
 ]
@@ -7574,7 +7574,7 @@ at = [{ stage = 0, file = 20840 }]
 
 [help_objective_41]
 uid = "uid://e7zbs2ego69o"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_188", type = "text" },
 ]
@@ -7584,7 +7584,7 @@ at = [{ stage = 0, file = 20841 }]
 
 [help_objective_42]
 uid = "uid://rqk2vw6odkuh"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_189", type = "text" },
 ]
@@ -7594,7 +7594,7 @@ at = [{ stage = 0, file = 20842 }]
 
 [help_objective_43]
 uid = "uid://8i72crz4ggkm"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_190", type = "text" },
 ]
@@ -7604,7 +7604,7 @@ at = [{ stage = 0, file = 20843 }]
 
 [help_objective_44]
 uid = "uid://1956wkhr154jy"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_191", type = "text" },
 ]
@@ -7614,7 +7614,7 @@ at = [{ stage = 0, file = 20844 }]
 
 [help_objective_45]
 uid = "uid://3vssn4z0ns64"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_192", type = "text" },
 ]
@@ -7624,7 +7624,7 @@ at = [{ stage = 0, file = 20845 }]
 
 [help_objective_46]
 uid = "uid://chm1cyrtcaho"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_193", type = "text" },
 ]
@@ -7634,7 +7634,7 @@ at = [{ stage = 0, file = 20846 }]
 
 [help_objective_47]
 uid = "uid://lcgu7ctn31hp"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_194", type = "text" },
 ]
@@ -7644,7 +7644,7 @@ at = [{ stage = 0, file = 20847 }]
 
 [help_objective_48]
 uid = "uid://17y5tqnosxyj"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_195", type = "text" },
 ]
@@ -7654,7 +7654,7 @@ at = [{ stage = 0, file = 20848 }]
 
 [help_objective_49]
 uid = "uid://by7vtvpdgq9b"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_196", type = "text" },
 ]
@@ -7664,7 +7664,7 @@ at = [{ stage = 0, file = 20849 }]
 
 [help_objective_50]
 uid = "uid://1pd2iizai9zwh"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_197", type = "text" },
 ]
@@ -7674,7 +7674,7 @@ at = [{ stage = 0, file = 20850 }]
 
 [help_objective_51]
 uid = "uid://rab0ngefc0dk"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_198", type = "text" },
 ]
@@ -7684,7 +7684,7 @@ at = [{ stage = 0, file = 20851 }]
 
 [help_objective_52]
 uid = "uid://x8iurdzquc3f"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_199", type = "text" },
 ]
@@ -7694,7 +7694,7 @@ at = [{ stage = 0, file = 20852 }]
 
 [help_objective_53]
 uid = "uid://141e5jaxap2z4"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_200", type = "text" },
 ]
@@ -7704,7 +7704,7 @@ at = [{ stage = 0, file = 20853 }]
 
 [help_objective_54]
 uid = "uid://90gwsoixdpbr"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_201", type = "text" },
 ]
@@ -7714,7 +7714,7 @@ at = [{ stage = 0, file = 20854 }]
 
 [help_objective_55]
 uid = "uid://t05x9ni7a1p4"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_202", type = "text" },
 ]
@@ -7724,7 +7724,7 @@ at = [{ stage = 0, file = 20855 }]
 
 [help_objective_56]
 uid = "uid://aiuw2rkk3rlr"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_203", type = "text" },
 ]
@@ -7734,7 +7734,7 @@ at = [{ stage = 0, file = 20856 }]
 
 [help_objective_57]
 uid = "uid://1n33rc65tpo72"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_203", type = "text" },
 ]
@@ -7744,7 +7744,7 @@ at = [{ stage = 0, file = 20857 }]
 
 [help_objective_58]
 uid = "uid://vzamk1mk9yza"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_204", type = "text" },
 ]
@@ -7754,7 +7754,7 @@ at = [{ stage = 0, file = 20858 }]
 
 [help_objective_59]
 uid = "uid://qesqgg0f0m3m"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_205", type = "text" },
 ]
@@ -7764,7 +7764,7 @@ at = [{ stage = 0, file = 20859 }]
 
 [help_objective_60]
 uid = "uid://1xibkfjsvpqef"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_206", type = "text" },
 ]
@@ -7774,7 +7774,7 @@ at = [{ stage = 0, file = 20860 }]
 
 [help_objective_61]
 uid = "uid://1a9ac2amft0s5"
-kind = "file"
+template = "file"
 slots = [
     { name = "txt_207", type = "text" },
 ]
@@ -7784,7 +7784,7 @@ at = [{ stage = 0, file = 20861 }]
 
 [game_over]
 uid = "uid://190pb77vcqs28"
-kind = "file"
+template = "file"
 
 [[game_over.slots]]
 name = "glyph_palette_block"
@@ -7836,7 +7836,7 @@ chunks = { glyph_palette_block = "a9ff54fadbd523350fe31a02275fc125319f2b3b", tra
 
 [aya_death_1]
 uid = "uid://ellkuljb32n7"
-kind = "file"
+template = "file"
 slots = [
     { name = "bank", type = "sound_bank" },
 ]
@@ -7846,7 +7846,7 @@ at = [{ stage = 0, file = 20930 }]
 
 [aya_death_2]
 uid = "uid://mv4daq3rhztb"
-kind = "file"
+template = "file"
 slots = [
     { name = "bank", type = "sound_bank" },
 ]
@@ -7856,7 +7856,7 @@ at = [{ stage = 0, file = 20931 }]
 
 [aya_death_3]
 uid = "uid://4x0q7gnvfctg"
-kind = "file"
+template = "file"
 slots = [
     { name = "bank", type = "sound_bank" },
 ]
@@ -7866,7 +7866,7 @@ at = [{ stage = 0, file = 20932 }]
 
 [kyle_death_1]
 uid = "uid://d298tew0e82l"
-kind = "file"
+template = "file"
 slots = [
     { name = "bank", type = "sound_bank" },
 ]
@@ -7876,7 +7876,7 @@ at = [{ stage = 0, file = 20933 }]
 
 [kyle_death_2]
 uid = "uid://1vb9q1b49qwhp"
-kind = "file"
+template = "file"
 slots = [
     { name = "bank", type = "sound_bank" },
 ]
@@ -7886,7 +7886,7 @@ at = [{ stage = 0, file = 20934 }]
 
 [kyle_death_3]
 uid = "uid://71y7l1h7qiae"
-kind = "file"
+template = "file"
 slots = [
     { name = "bank", type = "sound_bank" },
 ]
@@ -7896,7 +7896,7 @@ at = [{ stage = 0, file = 20935 }]
 
 [ending]
 uid = "uid://1ri63rzowcyjc"
-kind = "file"
+template = "file"
 
 [[ending.slots]]
 name = "glyph_palette_block"

@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://wow6itrwh9fr"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -86,7 +86,7 @@ chunks = { dialogue_0_atlas = "675395c4091fbbefedc0a97e48998fe666906537" }
 
 [view1]
 uid = "uid://1s3hg4lk00sn3"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://xrivpmx0mbem", path = "res://stages/dryfield/rooms/motel_room_1/day/views/view1_background.node" } },
 ]
@@ -96,7 +96,7 @@ at = [{ stage = 2, folder = 1101, file = 1 }]
 
 [view2]
 uid = "uid://1aaurtl03sw78"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1c2if7zep35i8", path = "res://stages/dryfield/rooms/motel_room_1/day/views/view2_background.node" } },
 ]
@@ -106,7 +106,7 @@ at = [{ stage = 2, folder = 1101, file = 2 }]
 
 [view3]
 uid = "uid://1m7baxzrqv6nj"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1ojh6aojir0wv", path = "res://stages/dryfield/rooms/motel_room_1/day/views/view3_background.node" } },
 ]
@@ -116,7 +116,7 @@ at = [{ stage = 2, folder = 1101, file = 3 }]
 
 [view4]
 uid = "uid://2yqnauavpomo"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -136,7 +136,7 @@ chunks = { image = "d25c734a597bcdde544f661f0608dbd45f0a3d35" }
 
 [view5]
 uid = "uid://2telp7ndvc5e"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -156,7 +156,7 @@ chunks = { image = "64d9de67d046128a59e5223914a603248c399345" }
 
 [view6]
 uid = "uid://mt633kwqnkkg"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -176,7 +176,7 @@ chunks = { image = "1641df69d85082bbf876a1041cce2f3ec61a24cd" }
 
 [view7]
 uid = "uid://e4vdvt2f9ce5"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -196,7 +196,7 @@ chunks = { image = "918cba8fa1c6c180533a42b00e925dc66079b9fa" }
 
 [view8]
 uid = "uid://1adin7j58g4im"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -216,7 +216,7 @@ chunks = { image = "7c71c86a0c6e67194ddac9f53770869f2059bb02" }
 
 [view9]
 uid = "uid://z5gb5a8paw44"
-kind = "file"
+template = "file"
 
 [[view9.slots]]
 name = "image"

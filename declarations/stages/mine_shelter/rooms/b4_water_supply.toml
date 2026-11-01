@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://1vg5zegf5z3lu"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://lkrd9geei2y6", path = "res://stages/mine_shelter/rooms/b4_water_supply/files/base.node" } },
@@ -24,7 +24,7 @@ at = [{ stage = 4, folder = 4601 }]
 
 [dialogue_0_atlas]
 uid = "uid://w8seg1j6brq"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 32]

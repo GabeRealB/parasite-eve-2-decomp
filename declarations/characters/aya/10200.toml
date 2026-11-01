@@ -2,7 +2,7 @@
 
 [texture]
 uid = "uid://cpbbcp5we1s4"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -24,7 +24,7 @@ palettes = { default = "161ab89296b46a476391b8eacb7408c55dde0760", default_2 = "
 
 [body]
 uid = "uid://rnk0dzsfq9n7"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://gvro3fkpzood", path = "res://characters/aya/meshes/body_10200.node" } }
 materials.page_1 = { slot = { uid = "uid://paeu9g49tri7", path = "res://characters/aya/10200/materials/page_1.node" } }
 materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
@@ -39,7 +39,7 @@ sha1 = "fb1a9ffefe6dd310d76e5df87aa4e9f21a5af394"
 
 [hand_left_open]
 uid = "uid://9sm4h928zhlm"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.node" } }
 materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
@@ -53,7 +53,7 @@ sha1 = "d72c809f9c1f9ceaee1832535ddb88c37cc6272f"
 
 [hand_right_open]
 uid = "uid://jbzvx0e0j9qw"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://1wqqv81bmkc2q", path = "res://characters/aya/meshes/hand_right_open_10200.node" } }
 materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
@@ -67,7 +67,7 @@ sha1 = "da48dbc3aef8a16fbf0ff16f3c8cde2f6b35bdef"
 
 [hand_left_closed]
 uid = "uid://f82nerjgfqn6"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://157y6p12tuiv3", path = "res://characters/aya/meshes/hand_left_open_10200.node" } }
 materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
@@ -81,7 +81,7 @@ sha1 = "1cf4adbd762db2cc30df670eb42eab6d70314736"
 
 [hand_right_closed]
 uid = "uid://16fnydch8grzu"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://1ty6lldf785kc", path = "res://characters/aya/meshes/hand_right_closed_10200.node" } }
 materials.page_0 = { slot = { uid = "uid://1r5txtlx224c2", path = "res://characters/aya/10200/materials/page_0.node" } }
 
@@ -97,7 +97,7 @@ sha1 = "3626947c0411c7a16db84f581ab88fa00062fb83"
 
 [eyes_open]
 uid = "uid://wdmdjpvyovur"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [50, 16]
 
@@ -113,7 +113,7 @@ sha1 = "389ef606f5c80cf707cd06cc7ab00f8e53f6a686"
 
 [eyes_half_closed]
 uid = "uid://16y82c6qbdb33"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [50, 16]
 
@@ -129,7 +129,7 @@ sha1 = "a63eab49ca8d9b26f1450e7098356868d85753e8"
 
 [eyes_closed]
 uid = "uid://hly3xgviep0o"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [50, 16]
 
@@ -145,7 +145,7 @@ sha1 = "774603c0f70a650ede4b2451e75069d2396c618a"
 
 [mouth_rest]
 uid = "uid://ckn35d9cm31"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [28, 20]
 

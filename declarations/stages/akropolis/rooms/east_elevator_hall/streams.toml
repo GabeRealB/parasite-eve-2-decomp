@@ -2,7 +2,7 @@
 
 [scene_3]
 uid = "uid://kvg34rbmzfa7"
-kind = "scene_audio"
+template = "scene_audio"
 group = 1
 id = 3
 sub_id = 11

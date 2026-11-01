@@ -2,7 +2,7 @@
 
 [messages]
 uid = "uid://1jjk3r2k54bgz"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]

@@ -1,7 +1,7 @@
 # A declaration: the disc layout and its slots, no game data.
 
 uid = "uid://2d68ucbje3g9"
-kind = "disc"
+template = "disc"
 image = { name = "SLUS-01042.bin", cue = "SLUS-01042.cue", size = 588978432, sha1 = "e8c7e3c93ea2a0e7d73a170af646fd132ac5b984" }
 track = { type = "data", xa_edc = true, new_type = false }
 identifiers = { system = "PLAYSTATION", application = "PLAYSTATION", creation_date = "0000050212500000+36" }

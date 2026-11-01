@@ -2,7 +2,7 @@
 
 [smoke]
 uid = "uid://16h579e6iaz87"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [240, 256]
@@ -21,7 +21,7 @@ palettes = { effect_row_9_19 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effec
 
 [incinerator]
 uid = "uid://9mnpv2xm1txw"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

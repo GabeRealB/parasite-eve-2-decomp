@@ -2,7 +2,7 @@
 
 [sprites_2]
 uid = "uid://7xg3uotiat4a"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -153,7 +153,7 @@ palettes = { row_0 = "b5b046161f3650fed0d76c847aba17045dcb403e", view45_row_0 = 
 
 [smoke]
 uid = "uid://1osqersldhetw"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [512, 256]
@@ -172,7 +172,7 @@ palettes = { effect_row_9_19 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effec
 
 [sprites]
 uid = "uid://1wd7atl1sqhqf"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -238,7 +238,7 @@ palettes = { row_0 = "b5b046161f3650fed0d76c847aba17045dcb403e" }
 
 [chains]
 uid = "uid://1odrg94truk6e"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]

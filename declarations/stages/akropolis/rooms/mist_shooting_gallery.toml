@@ -2,7 +2,7 @@
 
 [bullseye_page]
 uid = "uid://1fulxftjapq7x"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -32,7 +32,7 @@ palettes = { clock_digits = "1024c2959616eb438b197131d5ea3c5559f82b9a", bullseye
 
 [folder]
 uid = "uid://k7u1t7lkh8og"
-kind = "folder"
+template = "folder"
 stream_data = false
 streams = [
     { name = "movie_100", type = "movie", asset = { uid = "uid://1djv0b7hp11rs", path = "res://stages/akropolis/rooms/mist_shooting_gallery/streams/movie_100.node" } },
@@ -64,7 +64,7 @@ at = [{ stage = 1, folder = 2001 }]
 
 [dialogue_0_atlas]
 uid = "uid://7ax7js88seix"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
@@ -85,7 +85,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 
 [image]
 uid = "uid://rabkwz9r8io5"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [512, 48]
@@ -106,7 +106,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 
 [dialogue_2_atlas]
 uid = "uid://v7ylqnsa02vi"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]

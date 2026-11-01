@@ -2,7 +2,7 @@
 
 [logo]
 uid = "uid://1gb2yj5qn6crk"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [120, 24]

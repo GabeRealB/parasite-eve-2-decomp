@@ -2,7 +2,7 @@
 
 [texture_akropolis]
 uid = "uid://8k02somh1ij1"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
@@ -24,7 +24,7 @@ palettes = { default = "8c34c29d34e8e423a29e00dcef37983d45df06a4", default_2 = "
 
 [texture_dryfield]
 uid = "uid://1hsffgjk201ux"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]

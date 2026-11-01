@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://1jxhld72tskdz"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "e48764a25c2b701dd835240f21653c67397b2ddf"
 
 [view2_background]
 uid = "uid://1sa4xus5tbv9v"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "ebae90f73a400384675d1bfdd9b90a074c6cf0df"
 
 [view3_background]
 uid = "uid://1m4lwclmih1jz"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -38,7 +38,7 @@ sha1 = "171bfc5378815e9d8ac52a2b3d9feaca06e1a1aa"
 
 [view4_background]
 uid = "uid://11re186dbdwc1"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -50,7 +50,7 @@ sha1 = "1697b2d0b46ab6f090dd5bfbd1b5ac67732eb2b3"
 
 [view5_background]
 uid = "uid://jd0bj62t2rup"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]
@@ -62,7 +62,7 @@ sha1 = "ff5aa7a75752e0abd59fecf5c37553682d3d1c5c"
 
 [view6_background]
 uid = "uid://wuildq28idl1"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view6_background.import]
@@ -74,7 +74,7 @@ sha1 = "8a9a162bfde511088df336f863557c5143e34604"
 
 [view7_background]
 uid = "uid://1ck8iso9rfqvo"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view7_background.import]
@@ -86,7 +86,7 @@ sha1 = "0b60b43bc48482add71895ab7c2e0b5e19360963"
 
 [view8_background]
 uid = "uid://1oz7a1wc9s7b7"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view8_background.import]
@@ -98,7 +98,7 @@ sha1 = "7f2cb5dffc9ca66de1b3cd470e4df1673267ef7f"
 
 [view3]
 uid = "uid://wuyqd5hkdomx"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -143,7 +143,7 @@ palettes = { row_0 = "1ef9bdea00fcb08360a89fba006756dc1bbfe640" }
 
 [view7]
 uid = "uid://23bh3m1as0pd"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]

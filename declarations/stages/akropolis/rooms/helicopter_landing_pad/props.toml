@@ -2,7 +2,7 @@
 
 [lift_page]
 uid = "uid://1uimpwyaq8b9b"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -22,7 +22,7 @@ palettes = { lift = "a2431ebdaa9ec7d90aeb70c0cf26f2348ff3de7f", cable = "e9023b6
 
 [radio]
 uid = "uid://17l7x5n7ilkb6"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [224, 256]

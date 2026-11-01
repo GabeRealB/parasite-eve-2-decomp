@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://1epdpmzi15nev"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "e5f52b58c7f3b8eeb5ebfa1b4ef59f09d8e48b94"
 
 [view2_background]
 uid = "uid://1s58xnx51hbi0"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "99ff34b725d60e4c0d3e38526d43f3444a393fe7"
 
 [view3_background]
 uid = "uid://tl5p2z9bp7f4"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -38,7 +38,7 @@ sha1 = "bb12a35cd456effebdd66263c8e292a23c522c9b"
 
 [view4_background]
 uid = "uid://zepviaemsome"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -50,7 +50,7 @@ sha1 = "b06f8611556144123eefc14231e4910849b31d61"
 
 [view5_background]
 uid = "uid://1gi3aky8shddv"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]
@@ -62,7 +62,7 @@ sha1 = "0a3632ecfae6313479f0741c27c307908368448d"
 
 [view6_background]
 uid = "uid://1vciq1ihegddx"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view6_background.import]
@@ -74,7 +74,7 @@ sha1 = "9b9d7154bee824dfda06ab443f0aaf863cb377a1"
 
 [view7_background]
 uid = "uid://oltdbz7xv3is"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view7_background.import]
@@ -86,7 +86,7 @@ sha1 = "6222ee29708eb29e13f07d4e3979d968e011fdf0"
 
 [view8_background]
 uid = "uid://jfkt71028x8y"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view8_background.import]
@@ -98,7 +98,7 @@ sha1 = "1ab711a6e66ba74f490c534464e765c5590ef4ee"
 
 [view9_background]
 uid = "uid://1csw3m4hjr9wc"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view9_background.import]
@@ -110,7 +110,7 @@ sha1 = "8d444112097e79b707f265dd6b01244daf02fc41"
 
 [view10_background]
 uid = "uid://j8qcorqqqcdr"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view10_background.import]
@@ -122,7 +122,7 @@ sha1 = "3568489ad51f423637de9451141952d9619e3633"
 
 [view11_background]
 uid = "uid://9d8quodskgrm"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view11_background.import]
@@ -134,7 +134,7 @@ sha1 = "8af37cd0d9f72d0e060b815912dfe73bb7a99d3f"
 
 [view12_background]
 uid = "uid://17wec4lqsyv4s"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view12_background.import]
@@ -146,7 +146,7 @@ sha1 = "0a3dcb50d4a29230851e1f6c0105a03f439b8d94"
 
 [view2]
 uid = "uid://1mk8g26xnvz6z"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -219,7 +219,7 @@ palettes = { row_0 = "60f185e355a8dfc6c47a25f0c428d148f0aa316a" }
 
 [view3]
 uid = "uid://19rq9x2pso5rm"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -283,7 +283,7 @@ palettes = { row_0 = "90b8edda58d6894324fdcac79891c8a5a49e4bda" }
 
 [view4]
 uid = "uid://1qdbds0rcqtw4"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -343,7 +343,7 @@ palettes = { row_0 = "aa93f35f2a20f4fd58373a7e827b77591f55ec7e" }
 
 [view5]
 uid = "uid://7fnfoa5yoaj3"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -366,7 +366,7 @@ palettes = { row_0 = "6e75ad30155f459ea201d4e3d160ff38f585c16c" }
 
 [view7]
 uid = "uid://1qt5gct49mgdz"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
@@ -408,7 +408,7 @@ palettes = { row_0 = "26adf01ce6415be23eb86f611af0ca5c5e370d02", row_1 = "ab1627
 
 [view8]
 uid = "uid://11e1c7iuv80la"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
@@ -573,7 +573,7 @@ palettes = { row_0 = "7e33d2299498e6e91b763cd2bc6d5ea178c3a8f9", row_1 = "404303
 
 [view10]
 uid = "uid://1l6v6sw7vbk8h"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]

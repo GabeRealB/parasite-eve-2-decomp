@@ -2,7 +2,7 @@
 
 [brain_stinger_package]
 uid = "uid://1jdgh2t1mu74h"
-kind = "file"
+template = "file"
 
 [[brain_stinger_package.slots]]
 name = "sounds"
@@ -34,7 +34,7 @@ chunks = { palette = "08d4b12e9582ba84d25a8c07cfbdd88870828a8c", image = "1caf05
 
 [bog_diver_package]
 uid = "uid://wqphk9kjwm1w"
-kind = "file"
+template = "file"
 
 [[bog_diver_package.slots]]
 name = "sounds"
@@ -66,7 +66,7 @@ chunks = { image = "8d469690f741c924f8da63c5c4c9b63f9c9f8164", palette = "8f97aa
 
 [rat_and_moth_package]
 uid = "uid://de52knaggckt"
-kind = "file"
+template = "file"
 
 [[rat_and_moth_package.slots]]
 name = "sounds"
@@ -98,7 +98,7 @@ chunks = { palette = "469560ea3f8c2c4e40cbec65ea6e5359d6dfe45a", image = "491d4b
 
 [odd_stranger_package_b]
 uid = "uid://1c3b5zozd7d2x"
-kind = "file"
+template = "file"
 
 [[odd_stranger_package_b.slots]]
 name = "sounds"
@@ -130,7 +130,7 @@ chunks = { image = "df80e66ff9cd19441469dbeb450f5229fd6b4be9", palette = "7bb032
 
 [brute_and_mossback_package]
 uid = "uid://1nu6uwgauqhn2"
-kind = "file"
+template = "file"
 
 [[brute_and_mossback_package.slots]]
 name = "image"
@@ -158,7 +158,7 @@ chunks = { image = "e043e14585b93c4bbf962c8d5a8a515c5a0b20b7", palette = "73b032
 
 [bone_suckler_package]
 uid = "uid://lpg8zufb83xo"
-kind = "file"
+template = "file"
 
 [[bone_suckler_package.slots]]
 name = "sounds"
@@ -190,7 +190,7 @@ chunks = { image = "a266eb18ebc85eeb477fda2106711c6e27c31462", palette = "1ca0bf
 
 [horned_stranger_package]
 uid = "uid://ka6nusajbixf"
-kind = "file"
+template = "file"
 
 [[horned_stranger_package.slots]]
 name = "sounds"
@@ -222,7 +222,7 @@ chunks = { image = "8de5c40e312b871e142303a328240231bd3144dd", palette = "bbc1f8
 
 [mind_suckler_package]
 uid = "uid://15g76hb88z8gb"
-kind = "file"
+template = "file"
 
 [[mind_suckler_package.slots]]
 name = "sounds"
@@ -254,7 +254,7 @@ chunks = { palette = "77d22ff86f4c3605827849ccdb4ade56164a8f7b", image = "ab5c0f
 
 [scavenger_package]
 uid = "uid://i2y68q9hjs1q"
-kind = "file"
+template = "file"
 
 [[scavenger_package.slots]]
 name = "sounds"
@@ -286,7 +286,7 @@ chunks = { palette = "90b4f12eb5003da40c1ffbae46fc1dd251bea82f", image = "36c2d1
 
 [odd_stranger_package]
 uid = "uid://zq01hh2q0wsi"
-kind = "file"
+template = "file"
 
 [[odd_stranger_package.slots]]
 name = "sounds"
@@ -318,7 +318,7 @@ chunks = { image = "d9cac39e687af20cfbb9686c10cad9748590f93e", palette = "934a7f
 
 [grinning_stranger_package]
 uid = "uid://me5oo6n2u5f8"
-kind = "file"
+template = "file"
 
 [[grinning_stranger_package.slots]]
 name = "sounds"
@@ -350,7 +350,7 @@ chunks = { image = "833d890dcdcdd1183253a282063b77fc9797dfb5", palette = "601689
 
 [pawn_golem_beam_sword_package]
 uid = "uid://1xham9omdu86"
-kind = "file"
+template = "file"
 
 [[pawn_golem_beam_sword_package.slots]]
 name = "palette"
@@ -386,7 +386,7 @@ chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e6
 
 [watcher_package]
 uid = "uid://12b7fsk6waxjv"
-kind = "file"
+template = "file"
 
 [[watcher_package.slots]]
 name = "sounds"
@@ -418,7 +418,7 @@ chunks = { palette = "5a5eb02dcda169ac3d1e9015d64697808eecd3fc", image = "93d7f4
 
 [rook_golem_beam_sword_package]
 uid = "uid://1w1hdk0v0ty94"
-kind = "file"
+template = "file"
 
 [[rook_golem_beam_sword_package.slots]]
 name = "palette"
@@ -454,7 +454,7 @@ chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "de
 
 [green_and_red_amoeba_package]
 uid = "uid://1xzp85hjglygd"
-kind = "file"
+template = "file"
 
 [[green_and_red_amoeba_package.slots]]
 name = "sounds"
@@ -486,7 +486,7 @@ chunks = { palette = "b22d25ea63b0221035d826c1226e6578d7eb9a75", image = "b71bcf
 
 [scorpion_package]
 uid = "uid://ir1aa95t30pc"
-kind = "file"
+template = "file"
 
 [[scorpion_package.slots]]
 name = "sounds"
@@ -518,7 +518,7 @@ chunks = { palette = "ea63ddeefafdd98381734adb91da4bc3303f9246", image = "8928db
 
 [maggot_package]
 uid = "uid://dpsff3ibvs8u"
-kind = "file"
+template = "file"
 
 [[maggot_package.slots]]
 name = "sounds"
@@ -550,7 +550,7 @@ chunks = { palette = "58c356d989ddd4c5ef6d03f7df979ba425f8d0cd", image = "788e39
 
 [shelter_b2_pod_bottom_ending_scene]
 uid = "uid://5zze8i0qh67y"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -560,7 +560,7 @@ at = [{ stage = 0, file = 303600 }]
 
 [bat_package]
 uid = "uid://1rfy9i341v7q6"
-kind = "file"
+template = "file"
 
 [[bat_package.slots]]
 name = "sounds"
@@ -592,7 +592,7 @@ chunks = { palette = "bd8e9ef3d60f7c5b15c9d5874bfdd9ce04b138f0", image = "8f587d
 
 [black_beetle_package]
 uid = "uid://1jojqhek5xfhh"
-kind = "file"
+template = "file"
 
 [[black_beetle_package.slots]]
 name = "sounds"
@@ -624,7 +624,7 @@ chunks = { palette = "4230a6af3f81868fb0447839b5ab3c2e87f1b7c6", image = "5448c0
 
 [blood_suckler_package]
 uid = "uid://1cqkgxc18dnqv"
-kind = "file"
+template = "file"
 
 [[blood_suckler_package.slots]]
 name = "sounds"
@@ -656,7 +656,7 @@ chunks = { image = "bb930db912821ff1ed889d1e1f2fa8e462f9a27f", palette = "d193fc
 
 [bass_sounds]
 uid = "uid://1pxnt8gnaqof7"
-kind = "file"
+template = "file"
 
 [[bass_sounds.slots]]
 name = "sounds"
@@ -688,7 +688,7 @@ chunks = { image = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e", palette = "852234
 
 [mad_chaser_package]
 uid = "uid://sa4ivbrjrk5y"
-kind = "file"
+template = "file"
 
 [[mad_chaser_package.slots]]
 name = "image"
@@ -716,7 +716,7 @@ chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a20
 
 [akropolis_forked_road_sucklerceph_and_skull_stalker]
 uid = "uid://aq9hkgjvpy8i"
-kind = "file"
+template = "file"
 
 [[akropolis_forked_road_sucklerceph_and_skull_stalker.slots]]
 name = "sounds"
@@ -748,7 +748,7 @@ chunks = { palette = "77e262d392f75995eb0ee5021a47ca414bb75e7a", image = "3e5fc2
 
 [actor_304900]
 uid = "uid://ax1ejxyscv7r"
-kind = "file"
+template = "file"
 
 [[actor_304900.slots]]
 name = "sounds_1"
@@ -780,7 +780,7 @@ chunks = { recolor_image = "fb5fd0b04c67cd310335286dbaf81fe307859c4b", recolor_p
 
 [caterpillar_package]
 uid = "uid://2j117716kalh"
-kind = "file"
+template = "file"
 
 [[caterpillar_package.slots]]
 name = "sounds"
@@ -812,7 +812,7 @@ chunks = { palette = "e72c1cf19726fb72865a1959f75e4129637426fe", image = "6d3b8d
 
 [pawn_golem_grenade_launcher_package]
 uid = "uid://ieq9m56hx82e"
-kind = "file"
+template = "file"
 
 [[pawn_golem_grenade_launcher_package.slots]]
 name = "palette"
@@ -848,7 +848,7 @@ chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e6
 
 [rook_golem_grenade_launcher_package]
 uid = "uid://sj6hdjbhkvt9"
-kind = "file"
+template = "file"
 
 [[rook_golem_grenade_launcher_package.slots]]
 name = "palette"
@@ -884,7 +884,7 @@ chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "de
 
 [sucklerceph_and_slouch_package]
 uid = "uid://18c6twy7ihtv3"
-kind = "file"
+template = "file"
 
 [[sucklerceph_and_slouch_package.slots]]
 name = "sounds"
@@ -916,7 +916,7 @@ chunks = { palette = "50b8eff0cc658a7a33a2745cbc6f2c0adb45d208", image = "3c0e48
 
 [skull_stalker_and_creeping_stranger_package]
 uid = "uid://18s4wu2617ghm"
-kind = "file"
+template = "file"
 
 [[skull_stalker_and_creeping_stranger_package.slots]]
 name = "sounds"
@@ -948,7 +948,7 @@ chunks = { palette = "e38155b119b7aad70d96339be2f981f2019ed2df", image = "be60a7
 
 [akropolis_plaza_police_officers]
 uid = "uid://19omwrx266e17"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -958,7 +958,7 @@ at = [{ stage = 0, file = 310100 }]
 
 [police_rookie_texture]
 uid = "uid://ee5l7mu9f1d5"
-kind = "file"
+template = "file"
 
 [[police_rookie_texture.slots]]
 name = "palette"
@@ -982,7 +982,7 @@ chunks = { palette = "2f1ccdb1ef44d094e4b72643eb8d5d0341ecda3d", image = "295d17
 
 [police_sergeant_texture]
 uid = "uid://1rq7e8n0p3w0z"
-kind = "file"
+template = "file"
 
 [[police_sergeant_texture.slots]]
 name = "palette"
@@ -1006,7 +1006,7 @@ chunks = { palette = "2bc1e3c2da38ecb8d9c56e16734e07d54c546745", image = "3f045d
 
 [akropolis_cafeteria_rupert]
 uid = "uid://1gsn6trp5g7to"
-kind = "file"
+template = "file"
 
 [[akropolis_cafeteria_rupert.slots]]
 name = "palette"
@@ -1048,7 +1048,7 @@ chunks = { palette = "53b42eed79ee377d528b0ef902efac03eb1b9702", image = "8f26a2
 
 [lesser_stranger_package]
 uid = "uid://pyjxhq2vk6xk"
-kind = "file"
+template = "file"
 
 [[lesser_stranger_package.slots]]
 name = "sounds"
@@ -1080,7 +1080,7 @@ chunks = { image = "ccf80335ac038783f8cea5057060cc41c92fdcd3", palette = "a8b856
 
 [akropolis_security_room_security_monitors]
 uid = "uid://1b0gvq97ondmz"
-kind = "file"
+template = "file"
 
 [[akropolis_security_room_security_monitors.slots]]
 name = "palette"
@@ -1108,7 +1108,7 @@ chunks = { palette = "53b42eed79ee377d528b0ef902efac03eb1b9702", image = "8f26a2
 
 [akropolis_patio_swat_member]
 uid = "uid://lio7o5xb1nxc"
-kind = "file"
+template = "file"
 
 [[akropolis_patio_swat_member.slots]]
 name = "palette"
@@ -1136,7 +1136,7 @@ chunks = { palette = "2bd9873cebf853700b9ef8dc0ba75264a4a872bb", image = "eb7fef
 
 [akropolis_patio_leaping_strangers]
 uid = "uid://znm2f50wjpet"
-kind = "file"
+template = "file"
 
 [[akropolis_patio_leaping_strangers.slots]]
 name = "palette"
@@ -1164,7 +1164,7 @@ chunks = { image = "833d890dcdcdd1183253a282063b77fc9797dfb5", palette = "601689
 
 [dryfield_main_street_desert_chaser]
 uid = "uid://10rqisslfox38"
-kind = "file"
+template = "file"
 
 [[dryfield_main_street_desert_chaser.slots]]
 name = "image"
@@ -1192,7 +1192,7 @@ chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4
 
 [dryfield_toilet_anmc_woman]
 uid = "uid://inlym9ctdve4"
-kind = "file"
+template = "file"
 
 [[dryfield_toilet_anmc_woman.slots]]
 name = "image"
@@ -1220,7 +1220,7 @@ chunks = { image = "a7dc49a72f1d470da1724f357d11a4baa01b1f82", palette = "62518a
 
 [dryfield_breezeway_desert_chaser]
 uid = "uid://mar8hh0ak0ni"
-kind = "file"
+template = "file"
 
 [[dryfield_breezeway_desert_chaser.slots]]
 name = "image"
@@ -1248,7 +1248,7 @@ chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4
 
 [dryfield_night_motel_balcony_gary_and_flint]
 uid = "uid://3kjyxxk5ges8"
-kind = "file"
+template = "file"
 
 [[dryfield_night_motel_balcony_gary_and_flint.slots]]
 name = "palette"
@@ -1290,7 +1290,7 @@ chunks = { shotgun_palette = "007900c7447f49e1e37889eebfad46fc875ab172", shotgun
 
 [shelter_b2_north_maintenance_walkway_stinger_scene]
 uid = "uid://1nt6bv77i6t4q"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -1300,7 +1300,7 @@ at = [{ stage = 0, file = 341300 }]
 
 [shelter_b3_dumping_hole_mad_chaser]
 uid = "uid://1nuldiei4wg33"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -1310,7 +1310,7 @@ at = [{ stage = 0, file = 341700 }]
 
 [shelter_b3_garbage_incinerator_glutton_door_scene]
 uid = "uid://1eyzzhxr76l5v"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -1320,7 +1320,7 @@ at = [{ stage = 0, file = 341900 }]
 
 [shelter_b3_garbage_incinerator_glutton_trap_scene]
 uid = "uid://1ldherz8vd71e"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -1330,7 +1330,7 @@ at = [{ stage = 0, file = 342000 }]
 
 [shelter_b3_dumping_hole_blaze_scene]
 uid = "uid://1k36sussvv3pc"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -1340,7 +1340,7 @@ at = [{ stage = 0, file = 342100 }]
 
 [shelter_b3_garbage_incinerator_summoned_mad_chaser]
 uid = "uid://1bsslg4xkrnry"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -1350,7 +1350,7 @@ at = [{ stage = 0, file = 342200 }]
 
 [shelter_b3_garbage_incinerator_mad_chaser]
 uid = "uid://8fxaep6pg7t"
-kind = "file"
+template = "file"
 
 [[shelter_b3_garbage_incinerator_mad_chaser.slots]]
 name = "image"
@@ -1378,7 +1378,7 @@ chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a20
 
 [shelter_b6_corridor_eve]
 uid = "uid://2s32mxxqcdu7"
-kind = "file"
+template = "file"
 
 [[shelter_b6_corridor_eve.slots]]
 name = "masked_palette"
@@ -1406,7 +1406,7 @@ chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_i
 
 [shelter_b6_training_room_eve_and_kyle]
 uid = "uid://5d41yf3kxjif"
-kind = "file"
+template = "file"
 
 [[shelter_b6_training_room_eve_and_kyle.slots]]
 name = "palette"
@@ -1448,7 +1448,7 @@ chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89
 
 [neo_ark_forest_zone_horned_stranger]
 uid = "uid://1aqcpemth907h"
-kind = "file"
+template = "file"
 
 [[neo_ark_forest_zone_horned_stranger.slots]]
 name = "image"
@@ -1476,7 +1476,7 @@ chunks = { image = "8de5c40e312b871e142303a328240231bd3144dd", palette = "bbc1f8
 
 [shelter_b2_pod_bottom_tentacle_scene]
 uid = "uid://10kwbst8qfktb"
-kind = "file"
+template = "file"
 
 [[shelter_b2_pod_bottom_tentacle_scene.slots]]
 name = "tentacle_image"

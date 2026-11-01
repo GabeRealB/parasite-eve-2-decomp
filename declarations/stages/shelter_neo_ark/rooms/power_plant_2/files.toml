@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1uhhzkss5d02l"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -85,7 +85,7 @@ chunks = { dialogue_0_atlas = "964c3d0f63e4688d9ae08ecf2dcbe147b8316dff" }
 
 [view1]
 uid = "uid://14wfwytp96we2"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1jh4fuf03m07h", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/views/view1_background.node" } },
 ]
@@ -95,7 +95,7 @@ at = [{ stage = 5, folder = 1601, file = 1 }]
 
 [view2]
 uid = "uid://wh5vbz5cwuw1"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -115,7 +115,7 @@ chunks = { image = "7c590e29518a5e78d95fcacf278738d0c7ea0920" }
 
 [view3]
 uid = "uid://52hn6i3yrvo5"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -135,7 +135,7 @@ chunks = { image = "c69c5e9e9df88f92e85f516cca34b719899568c7" }
 
 [view4]
 uid = "uid://1st92aprsyzyu"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -155,7 +155,7 @@ chunks = { image = "a4a34c648fd51ee344d3a4c5787e0332c5344602" }
 
 [view5]
 uid = "uid://2hqs6r1s9lts"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -175,7 +175,7 @@ chunks = { image = "8b40ea348b787b0526b7b8f12efc6cebf4016e22" }
 
 [view6]
 uid = "uid://yf0fggz75864"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -195,7 +195,7 @@ chunks = { image = "72bf0c2901f46c0df790f2308739d2af8e4a09af" }
 
 [view7]
 uid = "uid://pd4bppsgvbzo"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1a5q3lkau3pxf", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/views/view7_background.node" } },
 ]
@@ -205,7 +205,7 @@ at = [{ stage = 5, folder = 1601, file = 7 }]
 
 [view8]
 uid = "uid://n6jfg45qcxf3"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://i9j7oxxakbj9", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/views/view8_background.node" } },
 ]
@@ -215,7 +215,7 @@ at = [{ stage = 5, folder = 1601, file = 8 }]
 
 [view9]
 uid = "uid://5o3xzdgmh5up"
-kind = "file"
+template = "file"
 
 [[view9.slots]]
 name = "image"

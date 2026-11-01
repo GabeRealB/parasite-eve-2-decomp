@@ -2,7 +2,7 @@
 
 [flame_texture]
 uid = "uid://5mzcl8xesw9i"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [256, 0] }
 mode = "indexed_8bpp"
 size = [64, 16]
@@ -19,7 +19,7 @@ palettes = { default = "584c7c3e7634c53abb05a0e3268f45d78ceb3bb1" }
 
 [folder]
 uid = "uid://blhqxuoexg3c"
-kind = "folder"
+template = "folder"
 stream_data = true
 streams = [
     { name = "scene_10", type = "scene_audio", asset = { uid = "uid://keyb0p5upipg", path = "res://stages/mine_shelter/rooms/b1_pod_access_tunnel/streams/scene_10.node" } },
@@ -47,7 +47,7 @@ at = [{ stage = 4, folder = 1701 }]
 
 [dialogue_0_atlas]
 uid = "uid://1liz845tln9f1"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 32]

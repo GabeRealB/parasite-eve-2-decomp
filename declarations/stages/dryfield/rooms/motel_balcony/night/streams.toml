@@ -2,7 +2,7 @@
 
 [movie_100]
 uid = "uid://jy5eamher1iu"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/motel_balcony_night_movie_100" }
 group = 0
 id = 100
@@ -21,7 +21,7 @@ at = [{ stage = 3, folder = 2901, stream = "movie_100" }]
 
 [movie_101]
 uid = "uid://e0vfkcma4cv1"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/motel_balcony_night_movie_101" }
 group = 0
 id = 101
@@ -40,7 +40,7 @@ at = [{ stage = 3, folder = 2901, stream = "movie_101" }]
 
 [movie_102]
 uid = "uid://eyap8y8pfmax"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/motel_balcony_night_movie_100" }
 group = 0
 id = 102
@@ -59,7 +59,7 @@ at = [{ stage = 3, folder = 2901, stream = "movie_102" }]
 
 [movie_103]
 uid = "uid://12orax1tke6ap"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/motel_balcony_night_movie_103" }
 group = 0
 id = 103
@@ -78,7 +78,7 @@ at = [{ stage = 3, folder = 2901, stream = "movie_103" }]
 
 [scene_58]
 uid = "uid://1kowswnqm9z6c"
-kind = "scene_audio"
+template = "scene_audio"
 group = 3
 id = 58
 sub_id = 11
@@ -96,7 +96,7 @@ at = [{ stage = 3, folder = 2901, stream = "scene_58" }]
 
 [scene_59]
 uid = "uid://s6hro3q0j8j2"
-kind = "scene_audio"
+template = "scene_audio"
 group = 3
 id = 59
 sub_id = 11
@@ -114,7 +114,7 @@ at = [{ stage = 3, folder = 2901, stream = "scene_59" }]
 
 [scene_60]
 uid = "uid://1xxa4y116tu15"
-kind = "scene_audio"
+template = "scene_audio"
 group = 3
 id = 60
 sub_id = 11

@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://1j6mzgmhglcn9"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "6712670c95a4788d7bab1273ea90c909be8b2d3f"
 
 [view2_background]
 uid = "uid://1jri8zo7wvsf2"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "167549c7467e6ad00f58d220b417e6e4db074184"
 
 [view3_background]
 uid = "uid://10qcaxn7m8v66"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -38,7 +38,7 @@ sha1 = "d5b31be0ba847a67b3881c13e314d88c31bdb379"
 
 [view4_background]
 uid = "uid://3bkkow7uvxwp"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -50,7 +50,7 @@ sha1 = "c8a8c989fdcedb6251a285aaac428148598ba945"
 
 [view5_background]
 uid = "uid://1qhcfcgumrgyk"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]
@@ -62,7 +62,7 @@ sha1 = "44c258a7f8bdac098341eef745ec2a8eefe42ccb"
 
 [view6_background]
 uid = "uid://88t9tht3kixb"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view6_background.import]
@@ -74,7 +74,7 @@ sha1 = "2305a61afb5fdbde6d653415ea5515acb39d2060"
 
 [view7_background]
 uid = "uid://2ineby2308v8"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view7_background.import]
@@ -86,7 +86,7 @@ sha1 = "978316f866e629391a1b45dc881f2ca5b495e7ba"
 
 [view8_background]
 uid = "uid://4098suxjpaod"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view8_background.import]
@@ -98,7 +98,7 @@ sha1 = "9d2f2b292a297408d82329874b0ff063706a8d38"
 
 [view3]
 uid = "uid://t8095mriulw7"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -128,7 +128,7 @@ palettes = { row_0 = "267ffea4ac6fb93139bcc5eea005a3a2e4547f33" }
 
 [view4]
 uid = "uid://xgoztxw8si78"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -163,7 +163,7 @@ palettes = { row_0 = "33605f218df72060d9c1be52eea5184927650798" }
 
 [view5]
 uid = "uid://b1xllol7ln5k"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 144]

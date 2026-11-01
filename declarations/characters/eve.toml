@@ -2,7 +2,7 @@
 
 [masked_texture]
 uid = "uid://v8n8kv3bc1oa"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -22,7 +22,7 @@ palettes = { default = "7386fc8e83e30a92b28f50c7ea2616fb0501b0ef", default_2 = "
 
 [texture]
 uid = "uid://azv42w04vfqd"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -42,7 +42,7 @@ palettes = { default = "37c70cad02a9042c1ae6782d2c919126c06d5c67", default_2 = "
 
 [texture_2]
 uid = "uid://10w3zll3gyevh"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

@@ -2,7 +2,7 @@
 
 [texture]
 uid = "uid://1lszyuxlyyz77"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1woctxwwnoy2p", path = "res://engine/vram/ui_font.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]

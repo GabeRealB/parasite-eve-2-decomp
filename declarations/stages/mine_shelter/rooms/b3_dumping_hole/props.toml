@@ -2,7 +2,7 @@
 
 [explosion]
 uid = "uid://17nsztom79d79"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [512, 256]
@@ -69,7 +69,7 @@ palettes = { effect_row_0 = "9b382e8d84e2bd0ba0a9107cad362eef47487560", effect_r
 
 [rising_prop]
 uid = "uid://1cvagx0n0xfd9"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [224, 256]

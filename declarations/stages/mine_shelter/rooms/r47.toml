@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://vcypqwykobvb"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://gq3nvln3owu9", path = "res://stages/mine_shelter/rooms/r47/files/base.node" } },
@@ -59,7 +59,7 @@ at = [{ stage = 4, folder = 4701 }]
 
 [dialogue_0_atlas]
 uid = "uid://1kg8uqfu3intu"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
@@ -80,7 +80,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 
 [dialogue_1_atlas]
 uid = "uid://1vigi687wstyr"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [249, 48]
@@ -101,7 +101,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 
 [dialogue_2_atlas]
 uid = "uid://1f2mz1ftybvfa"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]

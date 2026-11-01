@@ -2,7 +2,7 @@
 
 [shotgun_texture]
 uid = "uid://diyxigzws0xx"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
@@ -19,7 +19,7 @@ palettes = { default = "4a9d43f59bb04397de974620a25ffcd51234f088" }
 
 [texture]
 uid = "uid://1mnbcfdt2e9pq"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

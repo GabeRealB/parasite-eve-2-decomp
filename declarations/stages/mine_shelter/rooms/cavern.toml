@@ -2,7 +2,7 @@
 
 [blizzard_chasers_texture]
 uid = "uid://xddk58ei760n"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [512, 256]
@@ -26,7 +26,7 @@ palettes = { default = "9a71722d39347f758625e6ce34567ec40cc39c97", default_2 = "
 
 [folder]
 uid = "uid://3o2ak6ad7brp"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://yn4rywcgjm7r", path = "res://stages/mine_shelter/rooms/cavern/files/base.node" } },
@@ -62,7 +62,7 @@ at = [{ stage = 4, folder = 201 }]
 
 [dialogue_0_atlas]
 uid = "uid://1jta2nhiim8vg"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]

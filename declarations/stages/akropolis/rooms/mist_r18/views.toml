@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://eufey1zs2ced"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "8abf06327f8b842a919a8fef7107ef8a60877273"
 
 [view2_background]
 uid = "uid://1nyxc9oad8era"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "0f9a206daa9f91969ace4d9dac04e1b1718731b7"
 
 [view3_background]
 uid = "uid://1t3v1gh4nz1mt"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -38,7 +38,7 @@ sha1 = "cc5158df0410c9abb952b0f178b9e730eb3ea9f1"
 
 [view4_background]
 uid = "uid://wmq20qnary5d"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -50,7 +50,7 @@ sha1 = "f3a6798a48b04edcf51212d78fcc44224992315a"
 
 [view4_page_1]
 uid = "uid://j072hwmwdjuv"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -77,7 +77,7 @@ palettes = { default = "a9f8bf13257a228dcdde0913aff7f348ddf025db" }
 
 [view5_background]
 uid = "uid://gplnor9klywg"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]
@@ -89,7 +89,7 @@ sha1 = "448363677d823c0840f822ffd9b48e6795d68488"
 
 [view6_background]
 uid = "uid://wkjdel1at1gu"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view6_background.import]
@@ -101,7 +101,7 @@ sha1 = "e4cfa59e15d0581dba4c1b64946098eef0d693b1"
 
 [view6_page_1]
 uid = "uid://piyr8fqlxepb"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -135,7 +135,7 @@ palettes = { default = "06fb5c682f4c1a8a552095ac0623819e603db363" }
 
 [view7_background]
 uid = "uid://yh0n6ccr42gc"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view7_background.import]
@@ -147,7 +147,7 @@ sha1 = "961ac498b96d9bb61e3675e2e256b431c5a5ba81"
 
 [view10_background]
 uid = "uid://1q8bp79i5rhdr"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view10_background.import]

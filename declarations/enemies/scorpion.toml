@@ -2,7 +2,7 @@
 
 [preview]
 uid = "uid://1lte9zj6sneg0"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://11t0an647k29l", path = "res://engine/vram/tall_preview.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [120, 128]
@@ -19,7 +19,7 @@ palettes = { default = "eaeac7fff93f5270d460254582981b6b50ae46ee" }
 
 [texture]
 uid = "uid://1ljmnig3fupao"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]

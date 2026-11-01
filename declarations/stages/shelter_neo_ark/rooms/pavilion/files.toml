@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1pztobvirj0pk"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -104,7 +104,7 @@ chunks = { dialogue_0_atlas = "bbefe6c5a7e701d95b6f2fb86890133ff2fe0a8b", palett
 
 [view1]
 uid = "uid://1exzw9jt7s2em"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1qki2lhx27w5l", path = "res://stages/shelter_neo_ark/rooms/pavilion/views/view1_background.node" } },
 ]
@@ -114,7 +114,7 @@ at = [{ stage = 5, folder = 1301, file = 1 }]
 
 [view2]
 uid = "uid://qgaih5zu2z4o"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -134,7 +134,7 @@ chunks = { image = "76a2428e6ec85184bd08e7db9145b00bf8dbf5ec" }
 
 [view3]
 uid = "uid://1weqr0nlz38hl"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -154,7 +154,7 @@ chunks = { image = "1e3e5632e16f7aea812fb0a1771f99dc92682300" }
 
 [view4]
 uid = "uid://1gr2mk3imoowh"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -174,7 +174,7 @@ chunks = { image = "1f8a462d12dd516d7cda433ad1ee3ec044540884" }
 
 [view5]
 uid = "uid://bpq3r1bych4h"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -194,7 +194,7 @@ chunks = { image = "41a68a5db02e93876fb3f1bdc1fe8c4882531067" }
 
 [view6]
 uid = "uid://tbdh9m4bc3b0"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -214,7 +214,7 @@ chunks = { image = "c0bffd9e62920c119aaf425e8460b249976003fb" }
 
 [view7]
 uid = "uid://1c2zitwm9qczz"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"

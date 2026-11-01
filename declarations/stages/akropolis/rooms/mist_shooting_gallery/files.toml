@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1bi6zkvafgyun"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -161,7 +161,7 @@ chunks = { dialogue_0_atlas = "eec03d0b7c4a9e7e550b2f0b13e2e14f50c793a2", image 
 
 [view1]
 uid = "uid://9m25sg2tj5yw"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://35945wx9c7g4", path = "res://stages/akropolis/rooms/mist_shooting_gallery/views/view1_background.node" } },
 ]
@@ -171,7 +171,7 @@ at = [{ stage = 1, folder = 2001, file = 1 }]
 
 [view2]
 uid = "uid://3t8qv8rnl1b8"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://2uzd8ll3s786", path = "res://stages/akropolis/rooms/mist_shooting_gallery/views/view2_background.node" } },
 ]
@@ -181,7 +181,7 @@ at = [{ stage = 1, folder = 2001, file = 2 }]
 
 [view3]
 uid = "uid://12i7wmoy7952r"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1ul2b7qilb5pe", path = "res://stages/akropolis/rooms/mist_shooting_gallery/views/view3_background.node" } },
 ]
@@ -191,7 +191,7 @@ at = [{ stage = 1, folder = 2001, file = 3 }]
 
 [view4]
 uid = "uid://18rej22570ot5"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -212,7 +212,7 @@ chunks = { image = "a5f4edb6d8c799ecab52164e8f9a2fdde1bd0a29" }
 
 [view5]
 uid = "uid://uz6r4hjl7guc"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -233,7 +233,7 @@ chunks = { image = "65982efc1baf7fe6059a756912aae3dddf6cece6" }
 
 [view6]
 uid = "uid://85joeartpasw"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://6xepxigenay9", path = "res://stages/akropolis/rooms/mist_shooting_gallery/views/view6_background.node" } },
 ]
@@ -243,7 +243,7 @@ at = [{ stage = 1, folder = 2001, file = 6 }]
 
 [view7]
 uid = "uid://1t2tgy4sabza9"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -264,7 +264,7 @@ chunks = { image = "a3adde6bc651550579e59cf3ed7c85d8cf5c0b03" }
 
 [view8]
 uid = "uid://xhpvwik2qgzj"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -285,7 +285,7 @@ chunks = { image = "620ed20e48a2cdb92fc84304235dd17462fb742b" }
 
 [view9]
 uid = "uid://glbw143fjnoy"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://yto1cfrtg5yd", path = "res://stages/akropolis/rooms/mist_shooting_gallery/views/view9_background.node" } },
 ]
@@ -295,7 +295,7 @@ at = [{ stage = 1, folder = 2001, file = 9 }]
 
 [view10]
 uid = "uid://1wc47e0pa718u"
-kind = "file"
+template = "file"
 
 [[view10.slots]]
 name = "image"
@@ -316,7 +316,7 @@ chunks = { image = "0ab846bf70342c5e40088473f7a68dc2b7aead6b" }
 
 [view11]
 uid = "uid://gy6zu5q9wn28"
-kind = "file"
+template = "file"
 
 [[view11.slots]]
 name = "image"
@@ -337,7 +337,7 @@ chunks = { image = "b69dd8708430cb5f392d6426e178ce053c0df238" }
 
 [view12]
 uid = "uid://1sbhm4780yfg2"
-kind = "file"
+template = "file"
 
 [[view12.slots]]
 name = "image"
@@ -358,7 +358,7 @@ chunks = { image = "8bf124ac341d745c2f02886d0b8a9d1462e48930" }
 
 [view13]
 uid = "uid://rcfzdnd1ycra"
-kind = "file"
+template = "file"
 
 [[view13.slots]]
 name = "image"
@@ -379,7 +379,7 @@ chunks = { image = "2c8641fe58f28cb55ec5fb0a83d07fffeac4e0c1" }
 
 [view14]
 uid = "uid://1frfaovgumego"
-kind = "file"
+template = "file"
 
 [[view14.slots]]
 name = "image"
@@ -400,7 +400,7 @@ chunks = { image = "8eed645d44d66b79b6fd1c16e688bc3a04aed7a5" }
 
 [view15]
 uid = "uid://cysatgr1keid"
-kind = "file"
+template = "file"
 
 [[view15.slots]]
 name = "image"
@@ -421,7 +421,7 @@ chunks = { image = "39566f2c6ebbf2a92cdd79a82b67fee33ef208c0" }
 
 [view16]
 uid = "uid://emqmb6ql7zqu"
-kind = "file"
+template = "file"
 
 [[view16.slots]]
 name = "image"
@@ -442,7 +442,7 @@ chunks = { image = "5432501f65b44baaa52a8928be65b97d06f31cff" }
 
 [view17]
 uid = "uid://1cc6bl672hj3f"
-kind = "file"
+template = "file"
 
 [[view17.slots]]
 name = "image"
@@ -471,7 +471,7 @@ chunks = { image = "77ef2932d6c472d1914a38175ebcab5d4c15615c", palette = "5bcb91
 
 [view18]
 uid = "uid://1f7yte900cz0l"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://18v5ymc4m642u", path = "res://stages/akropolis/rooms/mist_shooting_gallery/views/view18_background.node" } },
 ]

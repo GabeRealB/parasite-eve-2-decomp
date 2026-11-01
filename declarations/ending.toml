@@ -2,7 +2,7 @@
 
 [credits_font_0]
 uid = "uid://binbyhfa0ewz"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -34,7 +34,7 @@ palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e
 
 [credits_font_1]
 uid = "uid://j5ynvx2x8i0x"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -66,7 +66,7 @@ palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e
 
 [logos]
 uid = "uid://t0wkc20tu0i5"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://qnx1brk2em4b", path = "res://engine/vram/credits_logos.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 80]

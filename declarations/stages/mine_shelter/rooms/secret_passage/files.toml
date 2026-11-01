@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://j3vvbaaaue47"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -100,7 +100,7 @@ chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499
 
 [view1]
 uid = "uid://12axj4y20mvq2"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://qiiq296vfv9k", path = "res://stages/mine_shelter/rooms/secret_passage/views/view1_background.node" } },
 ]
@@ -110,7 +110,7 @@ at = [{ stage = 4, folder = 801, file = 1 }]
 
 [view2]
 uid = "uid://gd3xnvsg4qq7"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://12ogdxm9qizhj", path = "res://stages/mine_shelter/rooms/secret_passage/views/view2_background.node" } },
 ]
@@ -120,7 +120,7 @@ at = [{ stage = 4, folder = 801, file = 2 }]
 
 [view3]
 uid = "uid://ulen3iduhwo5"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -140,7 +140,7 @@ chunks = { image = "853d30f800cd3fded68b30e5ffe4f0efcf913f5d" }
 
 [view4]
 uid = "uid://17911hkwlml3s"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -160,7 +160,7 @@ chunks = { image = "12e22002e26e3542326814c9cb0ef6c868018035" }
 
 [view5]
 uid = "uid://klzmt776iakb"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -180,7 +180,7 @@ chunks = { image = "bdf196779d39268bceb196da1da45d0f8b71cbb6" }
 
 [view6]
 uid = "uid://4ss6tys0siob"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -200,7 +200,7 @@ chunks = { image = "82f371203924d0fb43b4fbe1c21e41886793a11f" }
 
 [view7]
 uid = "uid://1t5svxocwbmkj"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -220,7 +220,7 @@ chunks = { image = "c2920fd32bc04673a222c59f807ad933d989d975" }
 
 [view8]
 uid = "uid://1vg56qs9jd2s7"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1wk9dt9pwmt8x", path = "res://stages/mine_shelter/rooms/secret_passage/views/view8_background.node" } },
 ]

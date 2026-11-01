@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://qre5r607ypes"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://yhy6rjwau4df", path = "res://stages/mine_shelter/rooms/b1_sterilization_room/files/base.node" } },
@@ -37,7 +37,7 @@ at = [{ stage = 4, folder = 1601 }]
 
 [dialogue_0_atlas]
 uid = "uid://t2l9omq881df"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [249, 48]
@@ -58,7 +58,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 
 [dialogue_1_atlas]
 uid = "uid://1e9dotwceihek"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [320, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]

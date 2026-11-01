@@ -1,7 +1,7 @@
 # A declaration: the disc layout and its slots, no game data.
 
 uid = "uid://1jmuik9hncwsr"
-kind = "stage"
+template = "stage"
 at = [
     { disc = "disk2", slots = ["STAGE4.CDF"] },
 ]

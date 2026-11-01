@@ -2,7 +2,7 @@
 
 [preview]
 uid = "uid://1bzb9y94ry73h"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 96]
@@ -19,7 +19,7 @@ palettes = { default = "2e37f4c88cd7e6cdc11d802591b155613f4e862c" }
 
 [texture]
 uid = "uid://hrsm4u7pwwtu"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]

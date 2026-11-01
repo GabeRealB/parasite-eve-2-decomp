@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://198byo3vqf2pm"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://9b8rmh5hffum", path = "res://stages/dryfield/rooms/general_store/night/files/base.node" } },
@@ -29,7 +29,7 @@ at = [{ stage = 3, folder = 301 }]
 
 [dialogue_0_atlas]
 uid = "uid://t869eyeuo455"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]

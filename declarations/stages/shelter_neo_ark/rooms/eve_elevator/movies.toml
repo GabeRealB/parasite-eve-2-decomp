@@ -3,7 +3,7 @@
 
 [movie_2]
 uid = "uid://1quzpncgl9joa"
-kind = "movie"
+template = "movie"
 format = "str"
 
 [movie_2.from.USA]

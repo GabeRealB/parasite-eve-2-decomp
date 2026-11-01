@@ -2,7 +2,7 @@
 
 [page_0]
 uid = "uid://19oh4emvb4oa4"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]
@@ -46,7 +46,7 @@ palettes = { pattern = "d0da72bd734c8a0460a92f7db632e91945f587d4", picture = "92
 
 [page_2]
 uid = "uid://jf2qnlio6z3e"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]
@@ -90,7 +90,7 @@ palettes = { pattern = "d8772328ef45f930a9a7d0c65f7ae7c8caa9ef1d", picture = "7f
 
 [page_3]
 uid = "uid://rr8vphjkxpa1"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]
@@ -134,7 +134,7 @@ palettes = { pattern = "122cce8726f9f5d8750aa4318bf7f913e7fb93a9", picture = "5a
 
 [page_4]
 uid = "uid://51emsigkf6xl"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://qy0eoildj00s", path = "res://engine/vram/map_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 240]

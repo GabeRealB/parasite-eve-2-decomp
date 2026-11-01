@@ -2,7 +2,7 @@
 
 [atlas]
 uid = "uid://1phwsc8thzr3b"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://zlu7juzpqhk1", path = "res://engine/vram/ui_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]

@@ -2,7 +2,7 @@
 
 [map_stage_0]
 uid = "uid://cu0c2duk8x7p"
-kind = "file"
+template = "file"
 
 [[map_stage_0.slots]]
 name = "logo_palette"
@@ -123,7 +123,7 @@ chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb
 
 [map_dryfield]
 uid = "uid://s1p64tsq77ud"
-kind = "file"
+template = "file"
 
 [[map_dryfield.slots]]
 name = "logo_palette"
@@ -244,7 +244,7 @@ chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb
 
 [map_dryfield_full]
 uid = "uid://u4579i7bblls"
-kind = "file"
+template = "file"
 
 [[map_dryfield_full.slots]]
 name = "logo_palette"
@@ -369,7 +369,7 @@ chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb
 
 [map_shelter]
 uid = "uid://mod8scogy3si"
-kind = "file"
+template = "file"
 
 [[map_shelter.slots]]
 name = "image"
@@ -462,7 +462,7 @@ chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb
 
 [map_neo_ark]
 uid = "uid://1ujssdao4nm6k"
-kind = "file"
+template = "file"
 
 [[map_neo_ark.slots]]
 name = "image"

@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://vl2hctv39l52"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -137,7 +137,7 @@ chunks = { palette_1 = "51b9fe53c3a093b46551e0777a550cb7c0e7aba3", image = "cb21
 
 [view1]
 uid = "uid://17zkk4stg8k6c"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1o58voavmjkr1", path = "res://stages/akropolis/rooms/bridge/views/view1_background.node" } },
 ]
@@ -147,7 +147,7 @@ at = [{ stage = 1, folder = 1401, file = 1 }]
 
 [view2]
 uid = "uid://1nkw6kn720lpd"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -167,7 +167,7 @@ chunks = { image = "2902826784be595dab2bc317de45fb2f86ff048e" }
 
 [view3]
 uid = "uid://1ou6wgsiepcdp"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image_0"
@@ -195,7 +195,7 @@ chunks = { image_0 = "3a4252daacbe9c5138fba661eb83e7d62c21b705", image_1 = "31a8
 
 [view4]
 uid = "uid://19le0tkxfm1kn"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image_0"
@@ -223,7 +223,7 @@ chunks = { image_0 = "d536047d81d6706877295b7dba7f29764d14ec28", image_1 = "581f
 
 [view5]
 uid = "uid://qx4urhtormi"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image_0"
@@ -251,7 +251,7 @@ chunks = { image_0 = "808afc250beb7754f71232ef0286442040ab003d", image_1 = "21e8
 
 [view6]
 uid = "uid://1i5tpfyrrgdtd"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -271,7 +271,7 @@ chunks = { image = "f9f1c5233ed248c409177484e83329dc6ddaecf0" }
 
 [view7]
 uid = "uid://1w7r7e5pzihjs"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image_0"
@@ -299,7 +299,7 @@ chunks = { image_0 = "0afd0d8091c8715ac6953fc9fc050b82ef161f87", image_1 = "0088
 
 [view8]
 uid = "uid://dl3s13bz9f7e"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -320,7 +320,7 @@ chunks = { image = "dcad22d51969b6c117b848c7b15d5bb133cb812e" }
 
 [view9]
 uid = "uid://3oflpomc1sqt"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1hrnzqv23v2ru", path = "res://stages/akropolis/rooms/bridge/views/view9_background.node" } },
 ]
@@ -330,7 +330,7 @@ at = [{ stage = 1, folder = 1401, file = 9 }]
 
 [view10]
 uid = "uid://14brvq0gjo7ab"
-kind = "file"
+template = "file"
 
 [[view10.slots]]
 name = "image_0"

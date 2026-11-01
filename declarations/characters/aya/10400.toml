@@ -2,7 +2,7 @@
 
 [texture]
 uid = "uid://1nx6qteo80dg8"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -24,7 +24,7 @@ palettes = { default = "6be4c71b2145dd45fae7247952871e4750807135", default_2 = "
 
 [body]
 uid = "uid://1kx3bjs4l9836"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://1nev1wbgiepbs", path = "res://characters/aya/meshes/body_10400.node" } }
 materials.page_1 = { slot = { uid = "uid://12kvruz14xoi2", path = "res://characters/aya/10400/materials/page_1.node" } }
 materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.node" } }
@@ -39,7 +39,7 @@ sha1 = "615383b89362817a7a8470df1d76342ba7609f29"
 
 [hand_right_open]
 uid = "uid://3n75xecosgbh"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://835rokayshhu", path = "res://characters/aya/meshes/hand_right_open_10400.node" } }
 materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.node" } }
 
@@ -53,7 +53,7 @@ sha1 = "7b1261e1320a1a6e2373aa1002b8faced6fba5e0"
 
 [hand_left_both]
 uid = "uid://1rt517gjy6uta"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://1k4l5qp7outm9", path = "res://characters/aya/meshes/hand_left_both_10400.node" } }
 materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.node" } }
 
@@ -67,7 +67,7 @@ sha1 = "0a810c3ad6ba2050a2df6ca392fd1c4c4eea9a5c"
 
 [hand_right_closed]
 uid = "uid://1x7ipv1khfk4u"
-kind = "model"
+template = "model"
 mesh = { slot = { uid = "uid://dxb6hla7f8u4", path = "res://characters/aya/meshes/hand_right_closed_10400.node" } }
 materials.page_0 = { slot = { uid = "uid://t4mh2wsxq5ec", path = "res://characters/aya/10400/materials/page_0.node" } }
 
@@ -83,7 +83,7 @@ sha1 = "f3c4d4e907f0530f428ae4fd19c62c4ef67d7daa"
 
 [eyes_open]
 uid = "uid://11qcitnj36yhn"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [50, 16]
 
@@ -99,7 +99,7 @@ sha1 = "188380f2a46a3832bb83bd45346d826ff974d60d"
 
 [eyes_half_closed]
 uid = "uid://jqj9ppjaox1"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [50, 16]
 
@@ -115,7 +115,7 @@ sha1 = "d0fdd16a174289e72f39dacb3d470d2ee092a4dd"
 
 [eyes_closed]
 uid = "uid://rr9dfll5tpb9"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [50, 16]
 
@@ -131,7 +131,7 @@ sha1 = "0042300a83ce2d2a63fc5ea45c278d363689ac4f"
 
 [mouth_rest]
 uid = "uid://1kd4b3khkr641"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [28, 20]
 
@@ -147,7 +147,7 @@ sha1 = "996ac70688e63f17a2ea419fa14739bb49bd722f"
 
 [mouth_alternate]
 uid = "uid://o7dfmsql58ar"
-kind = "image"
+template = "texture"
 mode = "indexed_8bpp"
 size = [28, 20]
 

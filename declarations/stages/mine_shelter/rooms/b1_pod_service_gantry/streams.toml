@@ -2,7 +2,7 @@
 
 [movie_100]
 uid = "uid://xb4jutk52wnw"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/b1_pod_service_gantry_movie_100" }
 group = 0
 id = 100
@@ -21,7 +21,7 @@ at = [{ stage = 4, folder = 2301, stream = "movie_100" }]
 
 [scene_8_11]
 uid = "uid://x4c1fbdzzol1"
-kind = "scene_audio"
+template = "scene_audio"
 group = 6
 id = 8
 sub_id = 11
@@ -39,7 +39,7 @@ at = [{ stage = 4, folder = 2301, stream = "scene_8_11" }]
 
 [scene_8_21]
 uid = "uid://6f1am76hb486"
-kind = "scene_audio"
+template = "scene_audio"
 group = 6
 id = 8
 sub_id = 21
@@ -57,7 +57,7 @@ at = [{ stage = 4, folder = 2301, stream = "scene_8_21" }]
 
 [scene_8_31]
 uid = "uid://f3o9mf5w5ttw"
-kind = "scene_audio"
+template = "scene_audio"
 group = 6
 id = 8
 sub_id = 31
@@ -75,7 +75,7 @@ at = [{ stage = 4, folder = 2301, stream = "scene_8_31" }]
 
 [scene_9]
 uid = "uid://dx7uxtzch9oc"
-kind = "scene_audio"
+template = "scene_audio"
 group = 6
 id = 9
 sub_id = 11

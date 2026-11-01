@@ -2,7 +2,7 @@
 
 [gas_mask_texture]
 uid = "uid://4stj62bgbghs"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -22,7 +22,7 @@ palettes = { default = "dfeb4ced2f05c9a053c417cca13b9b34a9e9de23", default_2 = "
 
 [m4a1_texture]
 uid = "uid://1b1ptw8c4pq5z"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
@@ -39,7 +39,7 @@ palettes = { default = "ff75b67c6d9f618b7944eae3722915a11c5fe7c8" }
 
 [m950_texture]
 uid = "uid://1uwi0yfhwp3qt"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
@@ -56,7 +56,7 @@ palettes = { default = "f5af948700d049413918b302e8ace952b19fd2c8" }
 
 [mm1_texture]
 uid = "uid://am93nzhg5od5"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
@@ -73,7 +73,7 @@ palettes = { default = "0297bffdae11fd8a9a38c03ef59d41efb4a40060" }
 
 [p229_texture]
 uid = "uid://1nv7q8eelst4x"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
@@ -90,7 +90,7 @@ palettes = { default = "05dcf3a9eedb573b641d10a33705df1ef2e36095" }
 
 [texture]
 uid = "uid://i1yrdvr4psdr"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

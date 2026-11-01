@@ -2,7 +2,7 @@
 
 [level1_menu_picture]
 uid = "uid://rj6uip1eyx1c"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [80, 64]
@@ -19,7 +19,7 @@ palettes = { default = "f37f7b456a320f37fa1fb7582e6f9590463d6dbe" }
 
 [level2_menu_picture]
 uid = "uid://plqpzgq9m85k"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [80, 64]
@@ -36,7 +36,7 @@ palettes = { default = "d9490140601f2ff57aeaafc465360742d6e19672" }
 
 [level3_menu_picture]
 uid = "uid://su0p1s0jw25n"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [80, 64]
@@ -53,7 +53,7 @@ palettes = { default = "4f8d5ed0e2406ea65bd1535358c4f92402acc0d8" }
 
 [shop_picture]
 uid = "uid://1j2is4wmsgda4"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 96]

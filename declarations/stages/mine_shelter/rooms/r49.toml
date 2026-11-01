@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://85ybowqtc2gq"
-kind = "folder"
+template = "folder"
 stream_data = false
 streams = [
     { name = "movie_100", type = "movie", asset = { uid = "uid://ubcme6gh78lo", path = "res://stages/mine_shelter/rooms/r49/streams/movie_100.node" } },
@@ -19,7 +19,7 @@ at = [{ stage = 4, folder = 4901 }]
 
 [dialogue_0_atlas]
 uid = "uid://17kt3nuhhw02m"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 48]

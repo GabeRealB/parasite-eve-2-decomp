@@ -2,7 +2,7 @@
 
 [pod_still_0]
 uid = "uid://1r7l4xblgoyj9"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [320, 240]
@@ -19,7 +19,7 @@ palettes = { row_0 = "4bbbc3e9f1b379845747fecd44925b5304eccc68" }
 
 [pod_still_1]
 uid = "uid://j7yrmr0nuxxf"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [320, 240]

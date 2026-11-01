@@ -2,7 +2,7 @@
 
 [debris]
 uid = "uid://xx1a18oafijp"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -22,7 +22,7 @@ palettes = { effect_row_9_19 = "733590e2c3b8c95a2e7d305c1171fbd28e58ca42", effec
 
 [wall]
 uid = "uid://18i6iyzj6xtxm"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 128]

@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1vydqyd93wzpo"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "dryfield_r04_glyph_page"
@@ -125,7 +125,7 @@ chunks = { dryfield_r04_glyph_page = "13873ef2308a1552312e965839e6fc8390526226",
 
 [view1]
 uid = "uid://175blyo1jhxt0"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1ufz9wz0j87qp", path = "res://stages/dryfield/rooms/r08/day/views/view1_background.node" } },
 ]
@@ -135,7 +135,7 @@ at = [{ stage = 2, folder = 801, file = 1 }]
 
 [view2]
 uid = "uid://192beacuulrzf"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -155,7 +155,7 @@ chunks = { image = "5c47a8e5ad52083575ab7ef2b2079e6d740ced8d" }
 
 [view3]
 uid = "uid://etiqcrbxip2u"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -175,7 +175,7 @@ chunks = { image = "e5872ece12d9dc9be67b5a2cdc083d8401139dd7" }
 
 [view4]
 uid = "uid://2s911e753gwp"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -195,7 +195,7 @@ chunks = { image = "e83d96265100b4b495fccb470cc9546377c3238c" }
 
 [view5]
 uid = "uid://xsq3l0xugvqf"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -215,7 +215,7 @@ chunks = { image = "ab5db1ae3f3f06d315d1ddbd5a5dc2bad3e2cd12" }
 
 [view6]
 uid = "uid://rpeu047q70j0"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"

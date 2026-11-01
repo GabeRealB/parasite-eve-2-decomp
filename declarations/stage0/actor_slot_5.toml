@@ -2,7 +2,7 @@
 
 [brahman_package]
 uid = "uid://16artf8nc6ghx"
-kind = "file"
+template = "file"
 
 [[brahman_package.slots]]
 name = "sounds"
@@ -65,7 +65,7 @@ chunks = { palette = "0c9359adefd01a71482e7f176cd9213bf800789b", palette_2 = "24
 
 [no_9_golem_package_akropolis]
 uid = "uid://wsunjw1yuekn"
-kind = "file"
+template = "file"
 
 [[no_9_golem_package_akropolis.slots]]
 name = "sounds"
@@ -104,7 +104,7 @@ chunks = { palette = "cf9959f2952722bf78513b1393525cbec4f57018", palette_2 = "2a
 
 [akropolis_helicopter_landing_pad_helicopter_departure]
 uid = "uid://14b78coep5ik2"
-kind = "file"
+template = "file"
 
 [[akropolis_helicopter_landing_pad_helicopter_departure.slots]]
 name = "bloodied_palette"
@@ -146,7 +146,7 @@ chunks = { mongoose_palette = "8f6157892c27b8ef032406255fd0db63ca76498a", mongoo
 
 [no_9_golem_package_dryfield]
 uid = "uid://1xa46m5j0disl"
-kind = "file"
+template = "file"
 
 [[no_9_golem_package_dryfield.slots]]
 name = "sounds"
@@ -185,7 +185,7 @@ chunks = { palette = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea", palette_2 = "e4
 
 [actor_521200]
 uid = "uid://1q6jsaomc5fhf"
-kind = "file"
+template = "file"
 
 [[actor_521200.slots]]
 name = "palette"
@@ -208,7 +208,7 @@ chunks = { image = "fc957a8e7bd0312e97379ca4076177225f94abc6", palette = "cccfc1
 
 [dryfield_night_r08_eve_and_golems]
 uid = "uid://lasohtbk0qyh"
-kind = "file"
+template = "file"
 
 [[dryfield_night_r08_eve_and_golems.slots]]
 name = "palette"
@@ -236,7 +236,7 @@ chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "739323
 
 [pawn_palette]
 uid = "uid://1badneqpqjyk4"
-kind = "file"
+template = "file"
 
 [[pawn_palette.slots]]
 name = "palette"
@@ -268,7 +268,7 @@ chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", golem_weapons_p
 
 [actor_548100]
 uid = "uid://tj9xp7etjuxu"
-kind = "file"
+template = "file"
 slots = [
     { name = "actor_548100", type = "package" },
 ]
@@ -278,7 +278,7 @@ at = [{ stage = 0, file = 548100 }]
 
 [shelter_b1_pod_service_gantry_no_9]
 uid = "uid://ivctuzqdkr4d"
-kind = "file"
+template = "file"
 
 [[shelter_b1_pod_service_gantry_no_9.slots]]
 name = "no_9_sounds"

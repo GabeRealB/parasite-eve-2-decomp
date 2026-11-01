@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://nb5r651ta2i0"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "e52f4a410257f634545ee0532601fc8527c44607"
 
 [view2_background]
 uid = "uid://3nbcccseq593"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "3ed9652deccf3459caaac471b9db7f9d8d7bb170"
 
 [view3_background]
 uid = "uid://kphnn7spemj8"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]

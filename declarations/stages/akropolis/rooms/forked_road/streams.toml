@@ -2,7 +2,7 @@
 
 [movie_7]
 uid = "uid://g9jpt38upy9u"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/forked_road_movie_7" }
 group = 0
 id = 7
@@ -21,7 +21,7 @@ at = [{ stage = 1, folder = 901, stream = "movie_7" }]
 
 [movie_8]
 uid = "uid://1pc0d0h3j8c9m"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/forked_road_movie_8" }
 group = 0
 id = 8

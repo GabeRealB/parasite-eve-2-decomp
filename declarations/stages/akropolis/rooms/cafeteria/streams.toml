@@ -2,7 +2,7 @@
 
 [movie_100]
 uid = "uid://1qgvmt6gh4c0l"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/cafeteria_movie_100" }
 group = 0
 id = 100
@@ -21,7 +21,7 @@ at = [{ stage = 1, folder = 401, stream = "movie_100" }]
 
 [scene_6]
 uid = "uid://1jwn6kq9y2le2"
-kind = "scene_audio"
+template = "scene_audio"
 group = 1
 id = 6
 sub_id = 11

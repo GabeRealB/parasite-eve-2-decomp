@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://jrmuwotubsdm"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -76,7 +76,7 @@ chunks = { dialogue_0_atlas = "716a84a0b813b6fe569165e3afb0010f1e34aee1", palett
 
 [view1]
 uid = "uid://10f5s8kvk57xi"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1pha637oac32l", path = "res://stages/shelter_neo_ark/rooms/garden/views/view1_background.node" } },
 ]
@@ -86,7 +86,7 @@ at = [{ stage = 5, folder = 1501, file = 1 }]
 
 [view2]
 uid = "uid://dqp6xhtv64a8"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -106,7 +106,7 @@ chunks = { image = "70668b902504eabb357ea8ad742b82fb331cb28d" }
 
 [view3]
 uid = "uid://p8pb0wtz8mse"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -126,7 +126,7 @@ chunks = { image = "b0ead0648395c6ba0ebbb652043a49b92fd81f33" }
 
 [view4]
 uid = "uid://14foyqc62gu92"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -146,7 +146,7 @@ chunks = { image = "24ec6a75a410aedd720ad3d1f0583191fb2cfc74" }
 
 [view5]
 uid = "uid://9zqy15lih98p"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://191i5ocytbc1z", path = "res://stages/shelter_neo_ark/rooms/garden/views/view5_background.node" } },
 ]
@@ -156,7 +156,7 @@ at = [{ stage = 5, folder = 1501, file = 5 }]
 
 [view6]
 uid = "uid://yply0yhd0iop"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://ihzidgudiyyy", path = "res://stages/shelter_neo_ark/rooms/garden/views/view6_background.node" } },
 ]
@@ -166,7 +166,7 @@ at = [{ stage = 5, folder = 1501, file = 6 }]
 
 [view7]
 uid = "uid://16sz3889bssc5"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://q7pqfnvqzo68", path = "res://stages/shelter_neo_ark/rooms/garden/views/view7_background.node" } },
 ]

@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://1rprc1h1trl8w"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://wow6itrwh9fr", path = "res://stages/dryfield/rooms/motel_room_1/day/files/base.node" } },
@@ -22,7 +22,7 @@ at = [{ stage = 2, folder = 1101 }]
 
 [dialogue_0_atlas]
 uid = "uid://1t7svmzwhkmw5"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 32]

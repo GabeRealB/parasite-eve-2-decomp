@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1vi3wbqo19cin"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -128,7 +128,7 @@ chunks = { dialogue_0_atlas = "5003ed85b77ca3fdeb5ac773b4a268c3d75d6534", image 
 
 [view1]
 uid = "uid://1nnkw72yshhzq"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://2424rrdsvk2o", path = "res://stages/dryfield/rooms/garage/night/views/view1_background.node" } },
 ]
@@ -138,7 +138,7 @@ at = [{ stage = 3, folder = 2401, file = 1 }]
 
 [view2]
 uid = "uid://g52s8n9qryk8"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -158,7 +158,7 @@ chunks = { image = "2451e310fb4a4ac53d6a9f7271518eb29cc071ea" }
 
 [view3]
 uid = "uid://k0l2u22vblms"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -178,7 +178,7 @@ chunks = { image = "39a0b7218b25dc2f61766073075cbeacf0ec36f1" }
 
 [view4]
 uid = "uid://1ahhbw23menj6"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -198,7 +198,7 @@ chunks = { image = "13cef965809b3ac47eae1c8d9c6c8e653700a899" }
 
 [view5]
 uid = "uid://hrrreo973xbd"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -218,7 +218,7 @@ chunks = { image = "fe0149df9f6aa78531a180a0c47ed0986f8da8e1" }
 
 [view6]
 uid = "uid://1g5ktvyleoqvw"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -238,7 +238,7 @@ chunks = { image = "00fb05e48226fb57489cf46c6b3647078de2ac69" }
 
 [view7]
 uid = "uid://2h696xgp6hkc"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -258,7 +258,7 @@ chunks = { image = "5bb0b7930e0b030875b4db8e378a9334211303b1" }
 
 [view8]
 uid = "uid://6684t7tls6g4"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://lp8yhm4b21xy", path = "res://stages/dryfield/rooms/garage/night/views/view8_background.node" } },
 ]
@@ -268,7 +268,7 @@ at = [{ stage = 3, folder = 2401, file = 8 }]
 
 [view9]
 uid = "uid://173rlh8i1gpo3"
-kind = "file"
+template = "file"
 
 [[view9.slots]]
 name = "image"
@@ -288,7 +288,7 @@ chunks = { image = "5cc13a2753373d5a5369c443e1cd8e0042529a76" }
 
 [view10]
 uid = "uid://1tdt5r5ytdttr"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1cbm8k2ca8wrz", path = "res://stages/dryfield/rooms/garage/night/views/view10_background.node" } },
 ]
@@ -298,7 +298,7 @@ at = [{ stage = 3, folder = 2401, file = 10 }]
 
 [view11]
 uid = "uid://36bclss0aksl"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1df6xkdtiby5", path = "res://stages/dryfield/rooms/garage/night/views/view11_background.node" } },
 ]
@@ -308,7 +308,7 @@ at = [{ stage = 3, folder = 2401, file = 11 }]
 
 [view12]
 uid = "uid://r2syf9okth0"
-kind = "file"
+template = "file"
 
 [[view12.slots]]
 name = "image"
@@ -328,7 +328,7 @@ chunks = { image = "d23fff9c49dd41cfa0b9baef47f6987060d65af3" }
 
 [view13]
 uid = "uid://ut101e3rmoei"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://muie3epm1dc7", path = "res://stages/dryfield/rooms/garage/night/views/view13_background.node" } },
 ]
@@ -338,7 +338,7 @@ at = [{ stage = 3, folder = 2401, file = 13 }]
 
 [view14]
 uid = "uid://1keft7yq7s3de"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://aoexm1z2cpw2", path = "res://stages/dryfield/rooms/garage/night/views/view14_background.node" } },
 ]
@@ -348,7 +348,7 @@ at = [{ stage = 3, folder = 2401, file = 14 }]
 
 [view15]
 uid = "uid://1irpd42ptapd8"
-kind = "file"
+template = "file"
 
 [[view15.slots]]
 name = "image"
@@ -368,7 +368,7 @@ chunks = { image = "e5ee4a9e652d5cab91ba153a7aa93f3b28deb6ed" }
 
 [view99]
 uid = "uid://12wv68hmuqgsg"
-kind = "file"
+template = "file"
 slots = [
     { name = "desert_chaser_sounds", type = "sound_bank" },
     { name = "background", type = "bs", asset = { uid = "uid://1viibdm17nzms", path = "res://stages/dryfield/rooms/garage/day/views/view14_background.node" } },

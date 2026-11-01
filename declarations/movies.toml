@@ -5,7 +5,7 @@
 
 [inter_0]                       # INTER0.STR
 uid = "uid://1pucxqjuau6zg"
-kind = "stream"
+template = "stream"
 entries.stage0_movie_100 = { movie = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" } }
 entries.cafeteria_movie_100 = { movie = { uid = "uid://16bhza8ezllmy", path = "res://stages/akropolis/rooms/cafeteria/movies/movie_100.node" } }
 entries.plaza_movie_100 = { movie = { uid = "uid://1wylkczfvlb8o", path = "res://stages/akropolis/rooms/plaza/movies/movie_100.node" } }
@@ -34,7 +34,7 @@ sha1 = "34a744a7a9896ff966373b507dd35e95c336b406"
 
 [inter_1]                       # INTER1.STR
 uid = "uid://e5or642we8nj"
-kind = "stream"
+template = "stream"
 entries.stage0_movie_100 = { movie = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" } }
 entries.dilapidated_house_night_movie_100 = { movie = { uid = "uid://k411zszjuk5y", path = "res://stages/dryfield/rooms/dilapidated_house/night/movies/movie_100.node" } }
 entries.garage_night_movie_100 = { movie = { uid = "uid://5mqbg1nqm3o9", path = "res://stages/dryfield/rooms/garage/night/movies/movie_100.node" } }

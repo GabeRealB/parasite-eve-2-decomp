@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://an7rtwcbqqxp"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "ef2d4404095b463dbec13969d0c3e15bc73a1133"
 
 [view2_background]
 uid = "uid://1eamko7lokgdx"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "1c261af5dca85bb0df27e6da21ed3b3738c54c4d"
 
 [view2_page_1]
 uid = "uid://zb63mw1hlse4"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -70,7 +70,7 @@ palettes = { row_0 = "287d868fa02e83c5c3d89d664ac76f5e0c8393b6", row_1 = "e04b8a
 
 [view3_background]
 uid = "uid://qjh8hiyby2o4"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -82,7 +82,7 @@ sha1 = "fc2bfcbe86d42163b7a0b4611308231500ef040c"
 
 [view3_page_1]
 uid = "uid://18fpdoolg0ail"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -163,7 +163,7 @@ palettes = { row_0 = "d7b74f22147c3cb6643aa147af43de0c99101ed5", row_1 = "69d341
 
 [view4]
 uid = "uid://1w0chblcali2t"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -240,7 +240,7 @@ palettes = { default = "739acc5864b39e1e1a79f1961c871e133eedd4c7" }
 
 [view4_background]
 uid = "uid://qfhyt4ex3qpi"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -252,7 +252,7 @@ sha1 = "571b28a924000863213455ee026fd1b9bc4ca89e"
 
 [view5]
 uid = "uid://dw55hinx9svd"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [384, 256]
@@ -295,7 +295,7 @@ palettes = { default = "0c5261549b0fb5b71acc614e7c5fa37d29888af4" }
 
 [view5_background]
 uid = "uid://uld9frlf3dd5"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]

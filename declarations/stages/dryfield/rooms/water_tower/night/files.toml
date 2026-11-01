@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1g8a7jjmoa40"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -122,7 +122,7 @@ chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499
 
 [view1]
 uid = "uid://1kr4wfq4gzwh7"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1m8vta7k3o8d9", path = "res://stages/dryfield/rooms/water_tower/night/views/view1_background.node" } },
 ]
@@ -132,7 +132,7 @@ at = [{ stage = 3, folder = 2001, file = 1 }]
 
 [view2]
 uid = "uid://1x4n6kfcqlpbk"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -152,7 +152,7 @@ chunks = { image = "08b942c33892b73375fcb3e7432ef02e9687fc36" }
 
 [view3]
 uid = "uid://dxytfku398a1"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -172,7 +172,7 @@ chunks = { image = "8d8a8c87787870ef88bc0aa798b91bc460e36001" }
 
 [view4]
 uid = "uid://1799o5ryttmd9"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -192,7 +192,7 @@ chunks = { image = "f2c5b8134268b6511f0756b8ddeee35e73c4fd6b" }
 
 [view5]
 uid = "uid://x9weipmgmid8"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -212,7 +212,7 @@ chunks = { image = "3b0fc739834cf9b4494bfb01bcf3a7cf91dd3ffb" }
 
 [view6]
 uid = "uid://o9mtnyrshfda"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -232,7 +232,7 @@ chunks = { image = "6b7c75785a707a3e3f991c8ed7e5e7332714b525" }
 
 [view7]
 uid = "uid://lh9dxvd2j93e"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -252,7 +252,7 @@ chunks = { image = "e974f494b4b161bb168d4886b0da18d9a6e77cad" }
 
 [view8]
 uid = "uid://w2txvmvhhzju"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -272,7 +272,7 @@ chunks = { image = "e65f3337c0f29bc800d6c43981d6ec829f205a45" }
 
 [view9]
 uid = "uid://1o2oseqbizsjv"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://pm82gf6knbrg", path = "res://stages/dryfield/rooms/water_tower/night/views/view9_background.node" } },
 ]
@@ -282,7 +282,7 @@ at = [{ stage = 3, folder = 2001, file = 9 }]
 
 [view10]
 uid = "uid://lbgj73hlyu72"
-kind = "file"
+template = "file"
 
 [[view10.slots]]
 name = "image"

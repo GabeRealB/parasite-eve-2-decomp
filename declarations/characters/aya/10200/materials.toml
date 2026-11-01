@@ -2,7 +2,7 @@
 
 [page_0]
 uid = "uid://1r5txtlx224c2"
-kind = "material"
+template = "material"
 shader = "textured"
 surface = "opaque"
 blend = "add"
@@ -10,7 +10,7 @@ main = { uid = "uid://cpbbcp5we1s4", path = "res://characters/aya/10200/texture.
 
 [page_1]
 uid = "uid://paeu9g49tri7"
-kind = "material"
+template = "material"
 shader = "textured"
 surface = "opaque"
 blend = "add"

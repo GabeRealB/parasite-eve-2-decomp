@@ -2,7 +2,7 @@
 
 [gameplay]
 uid = "uid://3zg81cuz90q"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -13,7 +13,7 @@ at = [{ stage = 0, file = 0 }]
 
 [title]
 uid = "uid://swvvgzpql4fk"
-kind = "file"
+template = "file"
 
 [[title.slots]]
 name = "sounds"
@@ -109,7 +109,7 @@ chunks = { font_image = "be2e0e8b8369be9d2a7889b0335a6ee579de630c", dialogue_pal
 
 [title_screen]
 uid = "uid://16bvb11pu8wbt"
-kind = "file"
+template = "file"
 
 [[title_screen.slots]]
 name = "background"
@@ -139,7 +139,7 @@ chunks = { chrome_palette = "2d38102565e03e543c68396df95ab9a35247be24", chrome_i
 
 [load_screen_detailed_caption]
 uid = "uid://17pgwew839yc7"
-kind = "file"
+template = "file"
 
 [[load_screen_detailed_caption.slots]]
 name = "caption_font_image"
@@ -168,7 +168,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_motel_room_6]
 uid = "uid://rwmh9qls3fia"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_motel_room_6.slots]]
 name = "caption_font_image"
@@ -202,7 +202,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_acropolis_square]
 uid = "uid://9j09den9b98l"
-kind = "file"
+template = "file"
 
 [[load_screen_acropolis_square.slots]]
 name = "caption_font_image"
@@ -236,7 +236,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_acropolis_other]
 uid = "uid://xnhrvhgisg39"
-kind = "file"
+template = "file"
 
 [[load_screen_acropolis_other.slots]]
 name = "caption_font_image"
@@ -270,7 +270,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_mist_arrival]
 uid = "uid://1x88eqf8vxsc7"
-kind = "file"
+template = "file"
 
 [[load_screen_mist_arrival.slots]]
 name = "caption_font_image"
@@ -304,7 +304,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_mist_departure]
 uid = "uid://6q4hd3kwtouy"
-kind = "file"
+template = "file"
 
 [[load_screen_mist_departure.slots]]
 name = "caption_font_image"
@@ -338,7 +338,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_unselected_9]
 uid = "uid://b1r3qlr5e7w6"
-kind = "file"
+template = "file"
 
 [[load_screen_unselected_9.slots]]
 name = "caption_font_image"
@@ -367,7 +367,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_main_street]
 uid = "uid://1nf0kus3cfye5"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_main_street.slots]]
 name = "caption_font_image"
@@ -401,7 +401,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_trailer_coach]
 uid = "uid://1jhwdzl7xm2h1"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_trailer_coach.slots]]
 name = "caption_font_image"
@@ -435,7 +435,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_lobby_chapter_3]
 uid = "uid://1gc9m6fl98zlb"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_lobby_chapter_3.slots]]
 name = "caption_font_image"
@@ -469,7 +469,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_trailer_chapter_3]
 uid = "uid://1k0y4y3bpenfa"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_trailer_chapter_3.slots]]
 name = "caption_font_image"
@@ -503,7 +503,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_other_chapter_3]
 uid = "uid://14rxpy0ra57ri"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_other_chapter_3.slots]]
 name = "caption_font_image"
@@ -537,7 +537,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_other_chapter_4]
 uid = "uid://tqhfnsr43ub9"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_other_chapter_4.slots]]
 name = "caption_font_image"
@@ -571,7 +571,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_mine_refuge_chapter_4]
 uid = "uid://1qgusn0ctk7pb"
-kind = "file"
+template = "file"
 
 [[load_screen_mine_refuge_chapter_4.slots]]
 name = "caption_font_image"
@@ -605,7 +605,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_sterilization_chapter_4]
 uid = "uid://ufzhiuguw4ua"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_sterilization_chapter_4.slots]]
 name = "caption_font_image"
@@ -639,7 +639,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_incinerator_chapter_4]
 uid = "uid://58tgk214r4o4"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_incinerator_chapter_4.slots]]
 name = "caption_font_image"
@@ -673,7 +673,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_lobby_chapter_4]
 uid = "uid://i6hjrttpfffs"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_lobby_chapter_4.slots]]
 name = "caption_font_image"
@@ -707,7 +707,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_trailer_chapter_4]
 uid = "uid://1pt0ralb3p7sv"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_trailer_chapter_4.slots]]
 name = "caption_font_image"
@@ -741,7 +741,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_laboratory_chapter_4]
 uid = "uid://9lljs66tyz8t"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_laboratory_chapter_4.slots]]
 name = "caption_font_image"
@@ -775,7 +775,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_pod_chapter_4]
 uid = "uid://sxvs8brosrb9"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_pod_chapter_4.slots]]
 name = "caption_font_image"
@@ -809,7 +809,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_mine_refuge_chapter_5]
 uid = "uid://ajkxpccrwq37"
-kind = "file"
+template = "file"
 
 [[load_screen_mine_refuge_chapter_5.slots]]
 name = "caption_font_image"
@@ -843,7 +843,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_sterilization_chapter_5]
 uid = "uid://ebpou1hnbjw6"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_sterilization_chapter_5.slots]]
 name = "caption_font_image"
@@ -877,7 +877,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_incinerator_chapter_5]
 uid = "uid://1qnszvquqjsay"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_incinerator_chapter_5.slots]]
 name = "caption_font_image"
@@ -911,7 +911,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_lobby_chapter_5]
 uid = "uid://f64yb3xhoesm"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_lobby_chapter_5.slots]]
 name = "caption_font_image"
@@ -945,7 +945,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_trailer_chapter_5]
 uid = "uid://ymepp3j4ajkh"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_trailer_chapter_5.slots]]
 name = "caption_font_image"
@@ -979,7 +979,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_laboratory_chapter_5]
 uid = "uid://rw44bocppzu9"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_laboratory_chapter_5.slots]]
 name = "caption_font_image"
@@ -1013,7 +1013,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_pod_chapter_5]
 uid = "uid://u4rv3zmtctpk"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_pod_chapter_5.slots]]
 name = "caption_font_image"
@@ -1047,7 +1047,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_nursery]
 uid = "uid://1hvtbx7uq17k0"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_nursery.slots]]
 name = "caption_font_image"
@@ -1081,7 +1081,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_parking_chapter_5]
 uid = "uid://1uzlyc287dpt8"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_parking_chapter_5.slots]]
 name = "caption_font_image"
@@ -1115,7 +1115,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_night_other_chapter_5]
 uid = "uid://2q5addrv4mjy"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_night_other_chapter_5.slots]]
 name = "caption_font_image"
@@ -1149,7 +1149,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_unselected_33]
 uid = "uid://1qi9wepkcz2dc"
-kind = "file"
+template = "file"
 
 [[load_screen_unselected_33.slots]]
 name = "caption_font_image"
@@ -1178,7 +1178,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_unselected_34]
 uid = "uid://xckev3r1rfju"
-kind = "file"
+template = "file"
 
 [[load_screen_unselected_34.slots]]
 name = "caption_font_image"
@@ -1207,7 +1207,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_heliport]
 uid = "uid://1xtmum2qfj5wt"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_heliport.slots]]
 name = "caption_font_image"
@@ -1241,7 +1241,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_sterilization_chapter_6]
 uid = "uid://ppvb06a786qf"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_sterilization_chapter_6.slots]]
 name = "caption_font_image"
@@ -1275,7 +1275,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_laboratory_chapter_6]
 uid = "uid://5v3sxb6fwyg5"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_laboratory_chapter_6.slots]]
 name = "caption_font_image"
@@ -1309,7 +1309,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_parking_chapter_6]
 uid = "uid://12a1rry5a72de"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_parking_chapter_6.slots]]
 name = "caption_font_image"
@@ -1343,7 +1343,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_dryfield_other]
 uid = "uid://1lybdgksxs5q3"
-kind = "file"
+template = "file"
 
 [[load_screen_dryfield_other.slots]]
 name = "caption_font_image"
@@ -1377,7 +1377,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [load_screen_shelter_parking_chapter_4]
 uid = "uid://ecjsb96p4obf"
-kind = "file"
+template = "file"
 
 [[load_screen_shelter_parking_chapter_4.slots]]
 name = "caption_font_image"
@@ -1411,7 +1411,7 @@ chunks = { caption_font_image = "b74465538751adb80ee4804069306f129585106c", capt
 
 [mode_splash_replay]
 uid = "uid://g000rcmpgwbb"
-kind = "file"
+template = "file"
 slots = [
     { name = "splash", type = "bs", asset = { uid = "uid://v8csf3kvq7fo", path = "res://game_modes/replay/splash.node" } },
 ]
@@ -1421,7 +1421,7 @@ at = [{ stage = 0, file = 41 }]
 
 [mode_splash_bounty]
 uid = "uid://1aw2pq7mu0a70"
-kind = "file"
+template = "file"
 slots = [
     { name = "splash", type = "bs", asset = { uid = "uid://10m6n69uui9ek", path = "res://game_modes/bounty/splash.node" } },
 ]
@@ -1431,7 +1431,7 @@ at = [{ stage = 0, file = 42 }]
 
 [mode_splash_scavenger]
 uid = "uid://u10dv6m2nou5"
-kind = "file"
+template = "file"
 slots = [
     { name = "splash", type = "bs", asset = { uid = "uid://14n91xjmf1x0w", path = "res://game_modes/scavenger/splash.node" } },
 ]
@@ -1441,7 +1441,7 @@ at = [{ stage = 0, file = 43 }]
 
 [mode_splash_nightmare]
 uid = "uid://o6t6wtq81ok7"
-kind = "file"
+template = "file"
 slots = [
     { name = "splash", type = "bs", asset = { uid = "uid://mrlsxgise63x", path = "res://game_modes/nightmare/splash.node" } },
 ]

@@ -2,7 +2,7 @@
 
 [logo]
 uid = "uid://tudppllo4muy"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1ndxe29dxqbxv", path = "res://engine/vram/shared_sheets.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [128, 64]
@@ -19,7 +19,7 @@ palettes = { default = "9b1bf0cd993dfb8bdfc03951b20b24ae1ba75fd0" }
 
 [logo_shadow]
 uid = "uid://owlpds0b4ml8"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1ndxe29dxqbxv", path = "res://engine/vram/shared_sheets.node" }, at = [64, 64] }
 mode = "indexed_8bpp"
 size = [128, 64]

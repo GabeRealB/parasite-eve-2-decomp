@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://bmmlnclea2d9"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "a63223a94ecc78c35071b408f06066c8ad929cfb"
 
 [view2_background]
 uid = "uid://itwwo97zg8qv"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "bc2b49696bc6884c794fbe165b6cb2e3830e3813"
 
 [view3_background]
 uid = "uid://g233h2fg1jx4"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -38,7 +38,7 @@ sha1 = "b24c547e8d4f6df08683cc894792a0843188096a"
 
 [view4_background]
 uid = "uid://1mmjo2vrf4aq1"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -50,7 +50,7 @@ sha1 = "cc08dfcd56d7e9eacaed5e6ad54147084c031f98"
 
 [view5_background]
 uid = "uid://13yg0cat4dnn4"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]
@@ -62,7 +62,7 @@ sha1 = "546f52e763322ca02d97813b66ea71de9444f571"
 
 [view6_background]
 uid = "uid://1ut8ahbbnhby9"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view6_background.import]
@@ -74,7 +74,7 @@ sha1 = "da5baeb5aeb5e0e6e07ed4f1f1b4aa937c2e5489"
 
 [view7_background]
 uid = "uid://1ey1tuktoti4w"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view7_background.import]
@@ -86,7 +86,7 @@ sha1 = "6c9b9a1090ed840ac1c255f39f7bda7f8305e7fc"
 
 [view8_background]
 uid = "uid://gfi6pnds40vy"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view8_background.import]
@@ -98,7 +98,7 @@ sha1 = "6fabb40406e8923ccbf7f4292056c0ea9823c08a"
 
 [view9_background]
 uid = "uid://1vtmyhcc5v6wx"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view9_background.import]
@@ -110,7 +110,7 @@ sha1 = "fa64f9432cbc8c1a37b3c21b0a075df34b113fb1"
 
 [view10_background]
 uid = "uid://9nfoqqbskuph"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view10_background.import]
@@ -122,7 +122,7 @@ sha1 = "ddb981040c66cac3af161d038908db964b302ad0"
 
 [view13_background]
 uid = "uid://17n8v88yuh7vs"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view13_background.import]
@@ -134,7 +134,7 @@ sha1 = "060326d813a3cd6bc5ee29f3d88b0e6b4b931e75"
 
 [view2]
 uid = "uid://10e1ywvwlo2jx"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -168,7 +168,7 @@ palettes = { row_0 = "8c46fd0cc166fca5ce2bab598b57225d2997ec6e" }
 
 [view3]
 uid = "uid://2yenum2dip27"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -200,7 +200,7 @@ palettes = { row_0 = "eb8e2b4cce4fbf20d9cd66680d00edbcf0ac7b7d", row_1 = "273899
 
 [view4]
 uid = "uid://1o2uoi0slg1k2"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -274,7 +274,7 @@ palettes = { row_0 = "e3677d7d5d06b7de866463cc7336a514940331ca", row_1 = "6b84d3
 
 [view5]
 uid = "uid://18pn0y75ais66"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -343,7 +343,7 @@ palettes = { row_0 = "3041a755e68bea87c6c75bbd186962c7ca3400bc" }
 
 [view6]
 uid = "uid://1m0d34lyrbtp1"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -451,7 +451,7 @@ palettes = { row_0 = "7acf86976da08ec7c64abd68659ed088009e8b2e" }
 
 [view7]
 uid = "uid://1ij9ruw5607ks"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

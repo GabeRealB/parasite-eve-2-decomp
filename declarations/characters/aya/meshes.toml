@@ -2,7 +2,7 @@
 
 [body_10200]
 uid = "uid://gvro3fkpzood"
-kind = "mesh"
+template = "mesh"
 skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10200.from.USA]
@@ -16,7 +16,7 @@ sha1 = "fb1a9ffefe6dd310d76e5df87aa4e9f21a5af394"
 
 [hand_left_open_10200]
 uid = "uid://157y6p12tuiv3"
-kind = "mesh"
+template = "mesh"
 
 [hand_left_open_10200.from.USA]
 at = [{ stage = 0, file = 10200, slot = "package" }]
@@ -29,7 +29,7 @@ sha1 = "d72c809f9c1f9ceaee1832535ddb88c37cc6272f"
 
 [hand_right_open_10200]
 uid = "uid://1wqqv81bmkc2q"
-kind = "mesh"
+template = "mesh"
 
 [hand_right_open_10200.from.USA]
 at = [{ stage = 0, file = 10200, slot = "package" }]
@@ -42,7 +42,7 @@ sha1 = "da48dbc3aef8a16fbf0ff16f3c8cde2f6b35bdef"
 
 [hand_right_closed_10200]
 uid = "uid://1ty6lldf785kc"
-kind = "mesh"
+template = "mesh"
 
 [hand_right_closed_10200.from.USA]
 at = [{ stage = 0, file = 10200, slot = "package" }]
@@ -55,7 +55,7 @@ sha1 = "3626947c0411c7a16db84f581ab88fa00062fb83"
 
 [body_10300]
 uid = "uid://1x23myeyxaqlq"
-kind = "mesh"
+template = "mesh"
 skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10300.from.USA]
@@ -69,7 +69,7 @@ sha1 = "930d45098d5d38a8f057e7fd4357ee09b75efcfe"
 
 [hand_left_open_10300]
 uid = "uid://10fwi70p8xjv4"
-kind = "mesh"
+template = "mesh"
 
 [hand_left_open_10300.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -82,7 +82,7 @@ sha1 = "59a46b3e9728a35bfdd04cdc9981bee7a7bb4ec8"
 
 [hand_right_open_10300]
 uid = "uid://14e46fpwxxoj3"
-kind = "mesh"
+template = "mesh"
 
 [hand_right_open_10300.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -95,7 +95,7 @@ sha1 = "9c15358ad6abe64894b620c32da5c66bfd633ff6"
 
 [hand_right_closed_10300]
 uid = "uid://tu55n0w44lk4"
-kind = "mesh"
+template = "mesh"
 
 [hand_right_closed_10300.from.USA]
 at = [{ stage = 0, file = 10300, slot = "package" }]
@@ -108,7 +108,7 @@ sha1 = "ae5fef081cc0d1d1e8d98cf65e2b876b8296734a"
 
 [body_10400]
 uid = "uid://1nev1wbgiepbs"
-kind = "mesh"
+template = "mesh"
 skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10400.from.USA]
@@ -122,7 +122,7 @@ sha1 = "615383b89362817a7a8470df1d76342ba7609f29"
 
 [hand_right_open_10400]
 uid = "uid://835rokayshhu"
-kind = "mesh"
+template = "mesh"
 
 [hand_right_open_10400.from.USA]
 at = [{ stage = 0, file = 10400, slot = "package" }]
@@ -135,7 +135,7 @@ sha1 = "7b1261e1320a1a6e2373aa1002b8faced6fba5e0"
 
 [hand_left_both_10400]
 uid = "uid://1k4l5qp7outm9"
-kind = "mesh"
+template = "mesh"
 
 [hand_left_both_10400.from.USA]
 at = [{ stage = 0, file = 10400, slot = "package" }]
@@ -148,7 +148,7 @@ sha1 = "0a810c3ad6ba2050a2df6ca392fd1c4c4eea9a5c"
 
 [hand_right_closed_10400]
 uid = "uid://dxb6hla7f8u4"
-kind = "mesh"
+template = "mesh"
 
 [hand_right_closed_10400.from.USA]
 at = [{ stage = 0, file = 10400, slot = "package" }]
@@ -161,7 +161,7 @@ sha1 = "f3c4d4e907f0530f428ae4fd19c62c4ef67d7daa"
 
 [body_10500]
 uid = "uid://9xhqdc4zh495"
-kind = "mesh"
+template = "mesh"
 skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [body_10500.from.USA]

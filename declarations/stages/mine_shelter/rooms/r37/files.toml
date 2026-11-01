@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://15sk6xeudco6a"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "image"
@@ -28,7 +28,7 @@ chunks = { image = "e552bc467aaa7ce828beda01c11e91d28da69a37" }
 
 [view1]
 uid = "uid://1dmiercikrtre"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://m8xbd72hrei9", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view1_background.node" } },
 ]
@@ -38,7 +38,7 @@ at = [{ stage = 4, folder = 3701, file = 1 }]
 
 [view2]
 uid = "uid://1cgf7gccouoat"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1xxtgifffep69", path = "res://stages/mine_shelter/rooms/r37/views/view2_background.node" } },
 ]
@@ -48,7 +48,7 @@ at = [{ stage = 4, folder = 3701, file = 2 }]
 
 [view3]
 uid = "uid://1nbucfmhdzzf1"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1b0oz0h87sy6m", path = "res://stages/mine_shelter/rooms/r37/views/view3_background.node" } },
 ]

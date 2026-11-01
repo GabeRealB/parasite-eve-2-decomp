@@ -2,7 +2,7 @@
 
 [movie_100]
 uid = "uid://18na8aqoqvj4"
-kind = "movie_slot"
+template = "movie_slot"
 group = 0
 id = 100
 sub_id = 0

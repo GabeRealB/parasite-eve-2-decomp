@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://16yo9n0l8vl5i"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -155,7 +155,7 @@ chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499
 
 [view1]
 uid = "uid://im4vnrczjr7p"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1wf12mf1kem73", path = "res://stages/shelter_neo_ark/rooms/shrine/views/view1_background.node" } },
 ]
@@ -165,7 +165,7 @@ at = [{ stage = 5, folder = 2101, file = 1 }]
 
 [view2]
 uid = "uid://18q9xz3j1vrne"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://54eswce76xo3", path = "res://stages/shelter_neo_ark/rooms/shrine/views/view2_background.node" } },
 ]
@@ -175,7 +175,7 @@ at = [{ stage = 5, folder = 2101, file = 2 }]
 
 [view3]
 uid = "uid://w9ny0k03444j"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -195,7 +195,7 @@ chunks = { image = "1a57b8cbd40889dc15bfea06cda7675ad9c3e955" }
 
 [view4]
 uid = "uid://1t8x5asp8hiqd"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -215,7 +215,7 @@ chunks = { image = "1860abffaa3d1bfd0d0792b778164ae926300883" }
 
 [view5]
 uid = "uid://1q7psbpj40igx"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -235,7 +235,7 @@ chunks = { image = "e400e4c6543dd781ecfe4e7488e36b86c7bb5782" }
 
 [view6]
 uid = "uid://eja57xj3ucmj"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -255,7 +255,7 @@ chunks = { image = "3181f03cf3b4a6bf225de500e9aa14deeb0e79e1" }
 
 [view7]
 uid = "uid://dchpb97evw8t"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://gp4ivr4i5mrd", path = "res://stages/shelter_neo_ark/rooms/shrine/views/view7_background.node" } },
 ]
@@ -265,7 +265,7 @@ at = [{ stage = 5, folder = 2101, file = 7 }]
 
 [view8]
 uid = "uid://jzz8ukpwx361"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -285,7 +285,7 @@ chunks = { image = "8c4b129a9671e558003189c3b8f06b896f566198" }
 
 [view9]
 uid = "uid://iwf5fsiudrk4"
-kind = "file"
+template = "file"
 
 [[view9.slots]]
 name = "image"
@@ -305,7 +305,7 @@ chunks = { image = "8ad48be404067d4bbad0b4996c9ed38bfbc5b537" }
 
 [view10]
 uid = "uid://19au38pd0pjib"
-kind = "file"
+template = "file"
 
 [[view10.slots]]
 name = "image"
@@ -325,7 +325,7 @@ chunks = { image = "8ca4ad2fe0b75e33d54155c61725456c0979de0c" }
 
 [view11]
 uid = "uid://14spvm32564i6"
-kind = "file"
+template = "file"
 
 [[view11.slots]]
 name = "image"
@@ -345,7 +345,7 @@ chunks = { image = "5fce98728bfa4c25bf81ef56c0717f4331bb7e9e" }
 
 [view12]
 uid = "uid://215vni9slonv"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://thqbzmkkoow4", path = "res://stages/shelter_neo_ark/rooms/shrine/views/view12_background.node" } },
 ]
@@ -355,7 +355,7 @@ at = [{ stage = 5, folder = 2101, file = 12 }]
 
 [view13]
 uid = "uid://pdts74d9u7mf"
-kind = "file"
+template = "file"
 
 [[view13.slots]]
 name = "palette"
@@ -390,7 +390,7 @@ chunks = { palette = "212aeb3d839b1f06f6a4cf129c7c8fb46821f335", image_0 = "3a00
 
 [view14]
 uid = "uid://14fbr7fjrc3oe"
-kind = "file"
+template = "file"
 
 [[view14.slots]]
 name = "palette"
@@ -418,7 +418,7 @@ chunks = { palette = "e7397aa6b5fa2e268fabaf68ce479d40366baf05", image = "a614fd
 
 [view15]
 uid = "uid://1a3qrl8zkp9b3"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://zp4u36mi7cu0", path = "res://stages/shelter_neo_ark/rooms/shrine/views/view15_background.node" } },
 ]
@@ -428,7 +428,7 @@ at = [{ stage = 5, folder = 2101, file = 15 }]
 
 [view16]
 uid = "uid://v7uqjhxk84u7"
-kind = "file"
+template = "file"
 
 [[view16.slots]]
 name = "image"
@@ -448,7 +448,7 @@ chunks = { image = "affbbb526ea2666f113ea5eaf9ca9290255fb22e" }
 
 [view17]
 uid = "uid://1srz1gj71ck92"
-kind = "file"
+template = "file"
 
 [[view17.slots]]
 name = "image"
@@ -468,7 +468,7 @@ chunks = { image = "2efda1fddffb6ebb2429e183cb2fa747b1603f4b" }
 
 [view18]
 uid = "uid://1rp06jtvchrpr"
-kind = "file"
+template = "file"
 
 [[view18.slots]]
 name = "image"

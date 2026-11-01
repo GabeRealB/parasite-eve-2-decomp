@@ -3,7 +3,7 @@
 
 [executable]
 uid = "uid://ke96sngcku4f"
-kind = "executable"
+template = "executable"
 format = "exe"
 
 [executable.from.USA]

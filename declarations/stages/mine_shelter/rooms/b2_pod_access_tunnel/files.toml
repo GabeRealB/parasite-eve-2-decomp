@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1shb9thozschx"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -92,7 +92,7 @@ chunks = { dialogue_0_atlas = "793eeedc67b17b0d94a1afd8de1ec652b21322a1", palett
 
 [view1]
 uid = "uid://3mvajvo2prsw"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://xfa9h9rf5b0u", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/views/view1_background.node" } },
 ]
@@ -102,7 +102,7 @@ at = [{ stage = 4, folder = 3501, file = 1 }]
 
 [view2]
 uid = "uid://jjvasnrklpmu"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1hk0eadjgd3xs", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/views/view2_background.node" } },
 ]
@@ -112,7 +112,7 @@ at = [{ stage = 4, folder = 3501, file = 2 }]
 
 [view3]
 uid = "uid://13xtk4hgblv1m"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -132,7 +132,7 @@ chunks = { image = "19bdb86fa8b5f9a9c10b367b368282a6acfa9fe2" }
 
 [view4]
 uid = "uid://1qdj0lwjxie2v"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1u49zd8ykwk4d", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/views/view4_background.node" } },
 ]
@@ -142,7 +142,7 @@ at = [{ stage = 4, folder = 3501, file = 4 }]
 
 [view5]
 uid = "uid://637dna3g9fyy"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://13bdoq07u6rou", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/views/view5_background.node" } },
 ]
@@ -152,7 +152,7 @@ at = [{ stage = 4, folder = 3501, file = 5 }]
 
 [view6]
 uid = "uid://14drop0nhk9ni"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -172,7 +172,7 @@ chunks = { image = "62a8e9b17671202cba476099226a6db00bd06cd0" }
 
 [view7]
 uid = "uid://1af5ztgcdpeai"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://d73ce1kajavp", path = "res://stages/mine_shelter/rooms/b2_pod_access_tunnel/views/view7_background.node" } },
 ]

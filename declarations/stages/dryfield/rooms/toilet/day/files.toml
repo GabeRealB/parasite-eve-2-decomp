@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://133oom6waecdd"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -84,7 +84,7 @@ chunks = { dialogue_0_atlas = "b0ebcf2225a3b08dc6ce714d3a73af75cdb67467", palett
 
 [view1]
 uid = "uid://1sggur2lg3f4k"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://n67e3ml0ufka", path = "res://stages/dryfield/rooms/toilet/night/views/view1_background.node" } },
 ]
@@ -94,7 +94,7 @@ at = [{ stage = 2, folder = 1601, file = 1 }]
 
 [view2]
 uid = "uid://89f148ab24bm"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -114,7 +114,7 @@ chunks = { image = "d6cb1b9add043031c96d26fd9c82b2fe0830a354" }
 
 [view3]
 uid = "uid://qn5agbiqutpw"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -134,7 +134,7 @@ chunks = { image = "525c6aec6d95572c956f25420b8c0fa1699219bb" }
 
 [view4]
 uid = "uid://1cd3lwpkegivz"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -154,7 +154,7 @@ chunks = { image = "ea0f58dfeadb6dcb8a4158457cce52e539911af1" }
 
 [view5]
 uid = "uid://glwuey05qx3w"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -174,7 +174,7 @@ chunks = { image = "e3572f3d5c0d68e298dc6c432ccb7f197d422c8c" }
 
 [view6]
 uid = "uid://y7b4xwvn23cp"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://tuk8svmqvvjs", path = "res://stages/dryfield/rooms/toilet/day/views/view6_background.node" } },
 ]
@@ -184,7 +184,7 @@ at = [{ stage = 2, folder = 1601, file = 6 }]
 
 [view7]
 uid = "uid://1i5xr0sp0twxf"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1v4gb36ioi2v7", path = "res://stages/dryfield/rooms/toilet/day/views/view7_background.node" } },
 ]
@@ -194,7 +194,7 @@ at = [{ stage = 2, folder = 1601, file = 7 }]
 
 [view8]
 uid = "uid://fjnxj8gxsrwy"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://hz42n4236hcn", path = "res://stages/dryfield/rooms/toilet/day/views/view8_background.node" } },
 ]
@@ -204,7 +204,7 @@ at = [{ stage = 2, folder = 1601, file = 8 }]
 
 [view9]
 uid = "uid://4eilm6qspt0c"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://11lv3qkf9oho0", path = "res://stages/dryfield/rooms/toilet/day/views/view9_background.node" } },
 ]
@@ -214,7 +214,7 @@ at = [{ stage = 2, folder = 1601, file = 9 }]
 
 [view10]
 uid = "uid://1m7aehrhisxs2"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://fvs66w9a2zi5", path = "res://stages/dryfield/rooms/toilet/day/views/view10_background.node" } },
 ]
@@ -224,7 +224,7 @@ at = [{ stage = 2, folder = 1601, file = 10 }]
 
 [view11]
 uid = "uid://yuiddxn450am"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://rfqndxb6mal4", path = "res://stages/dryfield/rooms/toilet/day/views/view11_background.node" } },
 ]

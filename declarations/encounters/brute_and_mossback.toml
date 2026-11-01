@@ -2,7 +2,7 @@
 
 [recolor_texture]
 uid = "uid://1sd7o7kdm85dh"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -22,7 +22,7 @@ palettes = { default = "6c8da5e21a76c2b1417cf06d3de7f29d6406a628", default_2 = "
 
 [texture]
 uid = "uid://3syccco5bm9b"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

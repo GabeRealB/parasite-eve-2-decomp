@@ -4,7 +4,7 @@
 
 [license]                       # the system area's license data
 uid = "uid://vdx31ffeypvs"
-kind = "binary"
+template = "binary"
 format = "bin"
 
 [license.from.USA]
@@ -13,7 +13,7 @@ sha1 = "bc19b9c6a8463cb234ab3255e3ce3885f6efa026"
 
 [system_config_1]               # SYSTEM.CNF: boots the disc's executable
 uid = "uid://8aay9n5xeqyy"
-kind = "text"
+template = "text"
 format = "cnf"
 
 [system_config_1.from.USA]
@@ -22,7 +22,7 @@ sha1 = "b5db59175ff8a14922186b3421ac44b48b850356"
 
 [system_config_2]
 uid = "uid://jqe4f7yh1mge"
-kind = "text"
+template = "text"
 format = "cnf"
 
 [system_config_2.from.USA]
@@ -31,7 +31,7 @@ sha1 = "130ac8c12567aef86a6eec5b537a8d62733ed2e6"
 
 [disc_marker]                   # PE_DISK.01 and .02: the same bytes on both discs, told apart by their names
 uid = "uid://1g0xo6rrbudqm"
-kind = "binary"
+template = "binary"
 format = "bin"
 
 [disc_marker.from.USA]
@@ -40,7 +40,7 @@ sha1 = "62c423004572d669f8c7006db11a0dc33783b1a2"
 
 [init_image]                    # INIT.BS
 uid = "uid://1skpauej8oul1"
-kind = "image"
+template = "background"
 format = "bs"
 
 [init_image.import]
@@ -52,7 +52,7 @@ sha1 = "3d4c30456d18d01307c029e46d25ada7b129f525"
 
 [dummy]                         # DUMMY.DMY
 uid = "uid://kz8sahthlcdt"
-kind = "binary"
+template = "binary"
 format = "bin"
 
 [dummy.from.USA]

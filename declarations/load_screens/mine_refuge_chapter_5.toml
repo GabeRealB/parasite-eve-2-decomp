@@ -2,7 +2,7 @@
 
 [background]
 uid = "uid://1iif5xzzdeph4"
-kind = "image"
+template = "background"
 format = "bs"
 
 [background.import]

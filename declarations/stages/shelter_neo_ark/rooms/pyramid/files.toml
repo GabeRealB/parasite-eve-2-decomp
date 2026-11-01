@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://wqh39gkmgiqa"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -77,7 +77,7 @@ chunks = { dialogue_0_atlas = "5423874caba47bb707b8fce585f23f7259cbde2c" }
 
 [view1]
 uid = "uid://cjwia3xplpo1"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://njg9x14nfho1", path = "res://stages/shelter_neo_ark/rooms/altar/views/view1_background.node" } },
 ]
@@ -87,7 +87,7 @@ at = [{ stage = 5, folder = 3201, file = 1 }]
 
 [view2]
 uid = "uid://lihv67hbq2ff"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1w5wko3fg50ji", path = "res://stages/shelter_neo_ark/rooms/pyramid/views/view2_background.node" } },
 ]
@@ -97,7 +97,7 @@ at = [{ stage = 5, folder = 3201, file = 2 }]
 
 [view3]
 uid = "uid://1mko6alo9lgol"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -117,7 +117,7 @@ chunks = { image = "acb4a01a01731e2ca74c3213996c4a960040e3c2" }
 
 [view4]
 uid = "uid://1jvw0w512jnyw"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -137,7 +137,7 @@ chunks = { image = "2f5e00cf674833f2ff49e4e0895403449b25f75c" }
 
 [view5]
 uid = "uid://1oe44urz54etx"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -157,7 +157,7 @@ chunks = { image = "b9a2b4beb8f1b95fc02eebe9a21210afec39126f" }
 
 [view6]
 uid = "uid://fnggv9yk6h3k"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -177,7 +177,7 @@ chunks = { image = "248bbd58d76fb18b02ba7a607042c55f99113127" }
 
 [view7]
 uid = "uid://14cvlt0d4lsvo"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1jfprx061lke6", path = "res://stages/shelter_neo_ark/rooms/pyramid/views/view7_background.node" } },
 ]
@@ -187,7 +187,7 @@ at = [{ stage = 5, folder = 3201, file = 7 }]
 
 [view8]
 uid = "uid://c7ko7t5nqzcj"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"

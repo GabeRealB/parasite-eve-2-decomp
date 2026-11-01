@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://12i49sm1ezd4k"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1tsars73rxg6s", path = "res://stages/shelter_neo_ark/rooms/b6_corridor/files/base.node" } },
@@ -18,7 +18,7 @@ at = [{ stage = 5, folder = 2401 }]
 
 [dialogue_0_atlas]
 uid = "uid://1a7o6xx1d7vpr"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [254, 32]

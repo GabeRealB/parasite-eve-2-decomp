@@ -2,7 +2,7 @@
 
 [akropolis_map_page_0]
 uid = "uid://of33rfid7m23"
-kind = "file"
+template = "file"
 
 [[akropolis_map_page_0.slots]]
 name = "image"
@@ -40,7 +40,7 @@ chunks = { image = "c4f1bfdd7ce2d335ba350431c5debdf0877d7ee9", palette = "c1ebf0
 
 [akropolis_map_page_2]
 uid = "uid://1hv8nikgw4m9n"
-kind = "file"
+template = "file"
 
 [[akropolis_map_page_2.slots]]
 name = "image"
@@ -78,7 +78,7 @@ chunks = { image = "b084d2d5f2a6a88f4f1a00223bacfbc00f6876d2", palette = "c7e817
 
 [akropolis_map_page_3]
 uid = "uid://1b2vgyj6q6720"
-kind = "file"
+template = "file"
 
 [[akropolis_map_page_3.slots]]
 name = "image"
@@ -111,7 +111,7 @@ chunks = { image = "6bfd9ad154db234d53b19367f20f680ce917bf44", palette = "c546f2
 
 [mappic_s2_00]
 uid = "uid://1ec46dg9yp4xv"
-kind = "file"
+template = "file"
 
 [[mappic_s2_00.slots]]
 name = "palette"
@@ -149,7 +149,7 @@ chunks = { image = "202a85f9d57b0c091f03471eea35fab33300d2dc", palette = "9a4e1a
 
 [mappic_s2_02]
 uid = "uid://1im982y3kv6pg"
-kind = "file"
+template = "file"
 
 [[mappic_s2_02.slots]]
 name = "palette"
@@ -187,7 +187,7 @@ chunks = { image = "907d6d08ec5f9cd7eabb1c1555779683a1fa236d", palette = "648d28
 
 [mappic_s2_03]
 uid = "uid://154ft9wggs5pz"
-kind = "file"
+template = "file"
 
 [[mappic_s2_03.slots]]
 name = "palette"
@@ -225,7 +225,7 @@ chunks = { image = "f5a0b04f1f024568599cb796b0cf8d5307a86f4f", palette = "ac186a
 
 [mappic_s3_00]
 uid = "uid://5fznfzrjn44f"
-kind = "file"
+template = "file"
 
 [[mappic_s3_00.slots]]
 name = "palette"
@@ -263,7 +263,7 @@ chunks = { image = "202a85f9d57b0c091f03471eea35fab33300d2dc", palette = "9a4e1a
 
 [mappic_s3_02]
 uid = "uid://8qnaemzmivvq"
-kind = "file"
+template = "file"
 
 [[mappic_s3_02.slots]]
 name = "palette"
@@ -301,7 +301,7 @@ chunks = { image = "907d6d08ec5f9cd7eabb1c1555779683a1fa236d", palette = "648d28
 
 [mappic_s3_03]
 uid = "uid://d6ioit378r66"
-kind = "file"
+template = "file"
 
 [[mappic_s3_03.slots]]
 name = "palette"
@@ -339,7 +339,7 @@ chunks = { image = "f5a0b04f1f024568599cb796b0cf8d5307a86f4f", palette = "ac186a
 
 [mappic_s4_00]
 uid = "uid://w17mlbvgjv9q"
-kind = "file"
+template = "file"
 
 [[mappic_s4_00.slots]]
 name = "palette"
@@ -377,7 +377,7 @@ chunks = { image = "b4e5f926d1e27bcbdaf91b85fc8c4ef96620afcc", palette = "07ab5b
 
 [mappic_s4_02]
 uid = "uid://1xbw2lt7lbct5"
-kind = "file"
+template = "file"
 
 [[mappic_s4_02.slots]]
 name = "palette"
@@ -415,7 +415,7 @@ chunks = { image = "632ddaf5ad5e76c91061224f3ec08012232544fd", palette = "7d02b0
 
 [mappic_s4_03]
 uid = "uid://1i4xxvkygl5ma"
-kind = "file"
+template = "file"
 
 [[mappic_s4_03.slots]]
 name = "palette"
@@ -453,7 +453,7 @@ chunks = { image = "edc5d5c84f8b941558de28397a444090ad22796b", palette = "1f4f1c
 
 [mappic_s4_04]
 uid = "uid://672b37ca0lt2"
-kind = "file"
+template = "file"
 
 [[mappic_s4_04.slots]]
 name = "palette"
@@ -491,7 +491,7 @@ chunks = { image = "b86967625acfdf6d8cc2230998210e52035487a4", palette = "ba4bd4
 
 [mappic_s4_05]
 uid = "uid://19hav1m75sbd1"
-kind = "file"
+template = "file"
 
 [[mappic_s4_05.slots]]
 name = "palette"
@@ -529,7 +529,7 @@ chunks = { image = "cc2a01ddd5b32e810e03f657703f80a64f38c596", palette = "1ba8ac
 
 [mappic_s4_06]
 uid = "uid://1xxjmf0zvu8nx"
-kind = "file"
+template = "file"
 
 [[mappic_s4_06.slots]]
 name = "palette"
@@ -567,7 +567,7 @@ chunks = { image = "f2bc5ab9145117956b2213df76097ab2b2aa379e", palette = "538f6f
 
 [mappic_s4_07]
 uid = "uid://1mgcgnllc6fgj"
-kind = "file"
+template = "file"
 
 [[mappic_s4_07.slots]]
 name = "palette"
@@ -605,7 +605,7 @@ chunks = { image = "c8350fc67d41d33a9dc244e0ea1e928106c93fdf", palette = "5c1a10
 
 [mappic_s5_00]
 uid = "uid://9ydiesnijbtx"
-kind = "file"
+template = "file"
 
 [[mappic_s5_00.slots]]
 name = "palette"
@@ -643,7 +643,7 @@ chunks = { image = "4c68808eebf2aac28305787bb346600bb1e466ec", palette = "ffc02d
 
 [mappic_s5_02]
 uid = "uid://iqn0m91jf9tm"
-kind = "file"
+template = "file"
 
 [[mappic_s5_02.slots]]
 name = "palette"
@@ -681,7 +681,7 @@ chunks = { image = "15c776c9fc1351aba6a9329b3be5c5e3ab26b97b", palette = "f140ce
 
 [mappic_s5_03]
 uid = "uid://rv1ykrr98dli"
-kind = "file"
+template = "file"
 
 [[mappic_s5_03.slots]]
 name = "palette"
@@ -719,7 +719,7 @@ chunks = { image = "05699b6d136d25d380aab91f8046f14600537405", palette = "287b43
 
 [mappic_s5_04]
 uid = "uid://u58s3w3ug3zo"
-kind = "file"
+template = "file"
 
 [[mappic_s5_04.slots]]
 name = "palette"

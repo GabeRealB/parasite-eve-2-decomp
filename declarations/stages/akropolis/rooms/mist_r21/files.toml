@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1bof8vopbxrnt"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "dialogue_0_atlas"
@@ -28,7 +28,7 @@ chunks = { dialogue_0_atlas = "ea5c88b21e2aff916b0f955295687e5c2270110c" }
 
 [view1]
 uid = "uid://rdyehav8dk68"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1so2afymr9ioq", path = "res://stages/akropolis/rooms/mist_r21/views/view1_background.node" } },
 ]
@@ -38,7 +38,7 @@ at = [{ stage = 1, folder = 2101, file = 1 }]
 
 [view2]
 uid = "uid://1lfefy37v18gb"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://18rheyd49rjt0", path = "res://stages/akropolis/rooms/mist_r21/views/view2_background.node" } },
 ]

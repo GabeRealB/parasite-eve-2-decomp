@@ -2,7 +2,7 @@
 
 [scene_19]
 uid = "uid://1m5brytcbdrcp"
-kind = "scene_audio"
+template = "scene_audio"
 group = 4
 id = 19
 sub_id = 11
@@ -20,7 +20,7 @@ at = [{ stage = 4, folder = 4001, stream = "scene_19" }]
 
 [scene_20]
 uid = "uid://173pq041lmqsf"
-kind = "scene_audio"
+template = "scene_audio"
 group = 4
 id = 20
 sub_id = 11

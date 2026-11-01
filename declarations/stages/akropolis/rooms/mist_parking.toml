@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://148g3z9l1s7yn"
-kind = "folder"
+template = "folder"
 stream_data = false
 streams = [
     { name = "movie_100", type = "movie", asset = { uid = "uid://1wecle4iggfpo", path = "res://stages/akropolis/rooms/mist_parking/streams/movie_100.node" } },
@@ -37,7 +37,7 @@ at = [{ stage = 1, folder = 1901 }]
 
 [dialogue_1_atlas]
 uid = "uid://37pdkluyfuru"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://ikv3llus3jwg", path = "res://engine/vram/credits_logo_palettes.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
@@ -58,7 +58,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 
 [dialogue_0_atlas]
 uid = "uid://1ppc4d83b7cld"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]
@@ -79,7 +79,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 
 [dialogue_2_atlas]
 uid = "uid://17wjj8ob8sakk"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [256, 32]

@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://qlpcwtm5iald"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1bof8vopbxrnt", path = "res://stages/akropolis/rooms/mist_r21/files/base.node" } },
@@ -15,7 +15,7 @@ at = [{ stage = 1, folder = 2101 }]
 
 [dialogue_0_atlas]
 uid = "uid://1wg6a2o7dzzii"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]

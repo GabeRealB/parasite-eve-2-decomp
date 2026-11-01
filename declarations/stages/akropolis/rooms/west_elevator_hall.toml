@@ -2,7 +2,7 @@
 
 [effect_atlas]
 uid = "uid://1oslcacgzc265"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [64, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -57,7 +57,7 @@ palettes = { default = "d1b2af14ed3e1b0cecfbe5c3d6f2621f7fbcb1dc", explosion_0 =
 
 [folder]
 uid = "uid://mvo5lqho5q3c"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1io3bp0wz7rb0", path = "res://stages/akropolis/rooms/west_elevator_hall/files/base.node" } },
@@ -73,7 +73,7 @@ at = [{ stage = 1, folder = 1701 }]
 
 [glow]
 uid = "uid://124ufzod5epf0"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [88, 96]
@@ -89,7 +89,7 @@ sha1 = "b7e21664afc9e7260522fe59f23c1fdef1af416b"
 
 [sparks_page_1]
 uid = "uid://mv7qhlr3zw7z"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -109,7 +109,7 @@ palettes = { spark_1 = "565ef713f97c30b723b8a51c07eb674db3805f43", spark_2 = "e2
 
 [sparks_page_3]
 uid = "uid://1qad21dtmpi7r"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [128, 0] }
 no_palette = true
 mode = "indexed_4bpp"
@@ -125,7 +125,7 @@ sha1 = "f2c65cd0e7df9c424b4815f2b3f2ea9747e1062f"
 
 [dialogue_0_atlas]
 uid = "uid://1at7rxzl0tpxi"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 32]

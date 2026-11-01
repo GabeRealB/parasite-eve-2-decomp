@@ -2,7 +2,7 @@
 
 [pyrokinesis_level_0]
 uid = "uid://l71symd8zngc"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -13,7 +13,7 @@ at = [{ stage = 0, file = 50100 }, { stage = 0, file = 50101 }]
 
 [pyrokinesis_level_2]
 uid = "uid://mu03b3n6b8up"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -24,7 +24,7 @@ at = [{ stage = 0, file = 50102 }]
 
 [pyrokinesis_level_3]
 uid = "uid://lwjhtniflf7b"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -35,7 +35,7 @@ at = [{ stage = 0, file = 50103 }]
 
 [combustion_level_1]
 uid = "uid://1ejnr6wxkcx7n"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -46,7 +46,7 @@ at = [{ stage = 0, file = 50104 }]
 
 [combustion_level_2]
 uid = "uid://8q3n426v7joe"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -57,7 +57,7 @@ at = [{ stage = 0, file = 50105 }]
 
 [combustion_level_3]
 uid = "uid://7hus7o8nqg5y"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -68,7 +68,7 @@ at = [{ stage = 0, file = 50106 }]
 
 [inferno_level_1]
 uid = "uid://u7tcmttsief6"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -79,7 +79,7 @@ at = [{ stage = 0, file = 50107 }]
 
 [inferno_level_2]
 uid = "uid://1nd2mz0taqmg2"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -90,7 +90,7 @@ at = [{ stage = 0, file = 50108 }]
 
 [inferno_level_3]
 uid = "uid://1fhks362e166p"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -101,7 +101,7 @@ at = [{ stage = 0, file = 50109 }]
 
 [necrosis_level_1]
 uid = "uid://fdlegz0qqkgn"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -112,7 +112,7 @@ at = [{ stage = 0, file = 50110 }]
 
 [necrosis_level_2]
 uid = "uid://f20f5cils9pb"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -123,7 +123,7 @@ at = [{ stage = 0, file = 50111 }]
 
 [necrosis_level_3]
 uid = "uid://1ph4tqvar4jdw"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -134,7 +134,7 @@ at = [{ stage = 0, file = 50112 }]
 
 [plasma_level_1]
 uid = "uid://19cbsk0pi1jcu"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -145,7 +145,7 @@ at = [{ stage = 0, file = 50113 }]
 
 [plasma_level_2]
 uid = "uid://zbmsy7lt29if"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -156,7 +156,7 @@ at = [{ stage = 0, file = 50114 }]
 
 [plasma_level_3]
 uid = "uid://rlxboulb8zq9"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -167,7 +167,7 @@ at = [{ stage = 0, file = 50115 }]
 
 [apobiosis_level_1]
 uid = "uid://3bobnp8t3pr9"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -178,7 +178,7 @@ at = [{ stage = 0, file = 50116 }]
 
 [apobiosis_level_2]
 uid = "uid://7fokt8d12ya5"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -189,7 +189,7 @@ at = [{ stage = 0, file = 50117 }]
 
 [apobiosis_level_3]
 uid = "uid://1h24c5hs2csp0"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -200,7 +200,7 @@ at = [{ stage = 0, file = 50118 }]
 
 [metabolism_level_1]
 uid = "uid://nalgsj8te3e8"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -211,7 +211,7 @@ at = [{ stage = 0, file = 50119 }]
 
 [metabolism_level_2]
 uid = "uid://b2vw8mo2hh5i"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -222,7 +222,7 @@ at = [{ stage = 0, file = 50120 }]
 
 [metabolism_level_3]
 uid = "uid://1vwqyvljoll9z"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -233,7 +233,7 @@ at = [{ stage = 0, file = 50121 }]
 
 [healing_level_1]
 uid = "uid://qn3gxgjh7kf6"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -244,7 +244,7 @@ at = [{ stage = 0, file = 50122 }]
 
 [healing_level_2]
 uid = "uid://1ju32qbxjwq5m"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -255,7 +255,7 @@ at = [{ stage = 0, file = 50123 }]
 
 [healing_level_3]
 uid = "uid://1eeyn1t4kv2bp"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -266,7 +266,7 @@ at = [{ stage = 0, file = 50124 }]
 
 [lifedrain_level_1]
 uid = "uid://8f4a0trdykb2"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -277,7 +277,7 @@ at = [{ stage = 0, file = 50125 }]
 
 [lifedrain_level_2]
 uid = "uid://14ir87hurcvrd"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -288,7 +288,7 @@ at = [{ stage = 0, file = 50126 }]
 
 [lifedrain_level_3]
 uid = "uid://thnrw5f2da9d"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -299,7 +299,7 @@ at = [{ stage = 0, file = 50127 }]
 
 [antibody_level_1]
 uid = "uid://10ekh2xl2y0rf"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -310,7 +310,7 @@ at = [{ stage = 0, file = 50128 }]
 
 [antibody_level_2]
 uid = "uid://1rn4fji1mlzg"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -321,7 +321,7 @@ at = [{ stage = 0, file = 50129 }]
 
 [antibody_level_3]
 uid = "uid://vmldqr5chwev"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -332,7 +332,7 @@ at = [{ stage = 0, file = 50130 }]
 
 [energyshot_level_1]
 uid = "uid://1uejq8h38lulk"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -343,7 +343,7 @@ at = [{ stage = 0, file = 50131 }]
 
 [energyshot_level_2]
 uid = "uid://zck6e2x3ht3u"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -354,7 +354,7 @@ at = [{ stage = 0, file = 50132 }]
 
 [energyshot_level_3]
 uid = "uid://zyw1oewe61wx"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -365,7 +365,7 @@ at = [{ stage = 0, file = 50133 }]
 
 [energyball_level_1]
 uid = "uid://17aum36nx9dtf"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -376,7 +376,7 @@ at = [{ stage = 0, file = 50134 }]
 
 [energyball_level_2]
 uid = "uid://17dze8y0eqcir"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -387,7 +387,7 @@ at = [{ stage = 0, file = 50135 }]
 
 [energyball_level_3]
 uid = "uid://1b0h97dp0g6qi"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -398,7 +398,7 @@ at = [{ stage = 0, file = 50136 }]
 
 [flare_effect]
 uid = "uid://ehp7qbj1sr9v"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -409,7 +409,7 @@ at = [{ stage = 0, file = 50146 }]
 
 [pepper_spray_effect]
 uid = "uid://1r3qy9rql37o0"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },
@@ -420,7 +420,7 @@ at = [{ stage = 0, file = 50149 }]
 
 [combat_light_effect]
 uid = "uid://1pmjx4oujek8r"
-kind = "file"
+template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
     { name = "package", type = "package" },

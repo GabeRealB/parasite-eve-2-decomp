@@ -2,7 +2,7 @@
 
 [car]
 uid = "uid://19xxwc48op6hi"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

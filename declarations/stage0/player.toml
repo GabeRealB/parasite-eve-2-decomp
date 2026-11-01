@@ -2,7 +2,7 @@
 
 [aya_10200]
 uid = "uid://18186pikpmwr6"
-kind = "file"
+template = "file"
 
 [[aya_10200.slots]]
 name = "palette"
@@ -30,7 +30,7 @@ chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc
 
 [aya_10300]
 uid = "uid://sjomc8qdhlrz"
-kind = "file"
+template = "file"
 
 [[aya_10300.slots]]
 name = "palette"
@@ -58,7 +58,7 @@ chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3
 
 [p08_snail]
 uid = "uid://qo94o02aiidk"
-kind = "file"
+template = "file"
 
 [[p08_snail.slots]]
 name = "palette"
@@ -88,7 +88,7 @@ chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a73
 
 [m93r]
 uid = "uid://13l72aniqazqw"
-kind = "file"
+template = "file"
 
 [[m93r.slots]]
 name = "palette"
@@ -118,7 +118,7 @@ chunks = { palette = "cbdb817ed582b80cf2ddc81dd4acce7625598ab3", image = "4d34d0
 
 [m950]
 uid = "uid://5mijeayle2e8"
-kind = "file"
+template = "file"
 
 [[m950.slots]]
 name = "palette"
@@ -148,7 +148,7 @@ chunks = { palette = "7af0e4f61272c9120136d8a6dbf7ef9737795554", image = "7ef774
 
 [p08]
 uid = "uid://1ax2nb1f4t4qx"
-kind = "file"
+template = "file"
 
 [[p08.slots]]
 name = "palette"
@@ -178,7 +178,7 @@ chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a73
 
 [p229]
 uid = "uid://l0kfqaio753o"
-kind = "file"
+template = "file"
 
 [[p229.slots]]
 name = "palette"
@@ -209,7 +209,7 @@ chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "cd04b8
 
 [unused_85]
 uid = "uid://12l46ignzxpbr"
-kind = "file"
+template = "file"
 
 [[unused_85.slots]]
 name = "palette"
@@ -236,7 +236,7 @@ chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "9722b1
 
 [unused_86]
 uid = "uid://rcmoo12y9bd8"
-kind = "file"
+template = "file"
 
 [[unused_86.slots]]
 name = "palette"
@@ -262,7 +262,7 @@ chunks = { palette = "da2d8baa91983a79dac70ca357f83df96839a4a4", image = "c56adf
 
 [unused_87]
 uid = "uid://1rzs9jypp1l3r"
-kind = "file"
+template = "file"
 
 [[unused_87.slots]]
 name = "palette"
@@ -288,7 +288,7 @@ chunks = { palette = "b66536429b67b7481f2427b7d0714eac904fc384", image = "a475f8
 
 [mongoose]
 uid = "uid://as1hls566fqr"
-kind = "file"
+template = "file"
 
 [[mongoose.slots]]
 name = "palette"
@@ -318,7 +318,7 @@ chunks = { palette = "349ba8d02d31996f3cb94ad56586f7a65acb742b", image = "b27b2b
 
 [unused_89]
 uid = "uid://1eq2c32g2p215"
-kind = "file"
+template = "file"
 
 [[unused_89.slots]]
 name = "palette"
@@ -344,7 +344,7 @@ chunks = { palette = "94542d61f068d9992653f5736789bbb59f565cda", image = "d715dc
 
 [grenade_pistol]
 uid = "uid://1t7hxpup8zmjn"
-kind = "file"
+template = "file"
 
 [[grenade_pistol.slots]]
 name = "palette"
@@ -370,7 +370,7 @@ chunks = { palette = "436620fc4e182be25cd7249f0674e4b7ea0469ec", image = "ac6c6d
 
 [mm1]
 uid = "uid://ke88m76kgukg"
-kind = "file"
+template = "file"
 
 [[mm1.slots]]
 name = "palette"
@@ -396,7 +396,7 @@ chunks = { palette = "88f4446b3d3c6e68056d4ca07bedd163c168626f", image = "e1c242
 
 [pa3]
 uid = "uid://xytnvrd0rcp0"
-kind = "file"
+template = "file"
 
 [[pa3.slots]]
 name = "palette"
@@ -422,7 +422,7 @@ chunks = { palette = "4472c8b45388ed0feb13847e91c1d00702f644f4", image = "877cd8
 
 [sp12]
 uid = "uid://dlyukd5ee45h"
-kind = "file"
+template = "file"
 
 [[sp12.slots]]
 name = "palette"
@@ -448,7 +448,7 @@ chunks = { palette = "8a22dd0b6e15cd2f6dd89444da42860347f0157e", image = "f07fc4
 
 [as12]
 uid = "uid://j13fyfjn1x9m"
-kind = "file"
+template = "file"
 
 [[as12.slots]]
 name = "palette"
@@ -474,7 +474,7 @@ chunks = { palette = "86d70a4d4b75b8d9e5093fb849e1ca54b960f380", image = "c225e1
 
 [m4a1]
 uid = "uid://b18yotfjvjxh"
-kind = "file"
+template = "file"
 
 [[m4a1.slots]]
 name = "palette"
@@ -505,7 +505,7 @@ chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad
 
 [m249]
 uid = "uid://5xpkwrn34ymk"
-kind = "file"
+template = "file"
 
 [[m249.slots]]
 name = "palette"
@@ -535,7 +535,7 @@ chunks = { palette = "cc3e3d112d0a653fea5af28c7fac85fa0c13f9a4", image = "34049f
 
 [unused_91]
 uid = "uid://naxnuo2ox9x9"
-kind = "file"
+template = "file"
 
 [[unused_91.slots]]
 name = "palette"
@@ -561,7 +561,7 @@ chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a73
 
 [tonfa_baton]
 uid = "uid://4ixhow4emghz"
-kind = "file"
+template = "file"
 
 [[tonfa_baton.slots]]
 name = "palette"
@@ -591,7 +591,7 @@ chunks = { palette = "87358b9d4309237fd64ae8a52f475f2f0f3463ba", image = "4f133d
 
 [m4a1_p1]
 uid = "uid://1e8awrbkiilro"
-kind = "file"
+template = "file"
 
 [[m4a1_p1.slots]]
 name = "palette"
@@ -622,7 +622,7 @@ chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad
 
 [m4a1_p2]
 uid = "uid://m6qtarjsz5a8"
-kind = "file"
+template = "file"
 
 [[m4a1_p2.slots]]
 name = "palette"
@@ -653,7 +653,7 @@ chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad
 
 [hypervelocity]
 uid = "uid://1jxu0k8181mvb"
-kind = "file"
+template = "file"
 
 [[hypervelocity.slots]]
 name = "palette"
@@ -683,7 +683,7 @@ chunks = { palette = "0dc2885eb39aca4f61c421c41c175e2a05fb3312", image = "76025d
 
 [gunblade]
 uid = "uid://1dro29mkga3aw"
-kind = "file"
+template = "file"
 
 [[gunblade.slots]]
 name = "palette"
@@ -709,7 +709,7 @@ chunks = { palette = "3222ddbed8bd982d2a97697358c03aa7126149f9", image = "f788b0
 
 [unused_97]
 uid = "uid://hioxi0kf7lvv"
-kind = "file"
+template = "file"
 
 [[unused_97.slots]]
 name = "palette"
@@ -735,7 +735,7 @@ chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a73
 
 [m4a1_hammer]
 uid = "uid://vsw4uqrx0ue8"
-kind = "file"
+template = "file"
 
 [[m4a1_hammer.slots]]
 name = "palette"
@@ -765,7 +765,7 @@ chunks = { palette = "038b8dccbe9b54b8854cbf4f9c77d06d6c5097ec", image = "6b3ae7
 
 [m4a1_bayonet]
 uid = "uid://1j3a4wmkkw0a0"
-kind = "file"
+template = "file"
 
 [[m4a1_bayonet.slots]]
 name = "palette"
@@ -796,7 +796,7 @@ chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3c3484
 
 [m4a1_grenade]
 uid = "uid://gvwrw649t787"
-kind = "file"
+template = "file"
 
 [[m4a1_grenade.slots]]
 name = "palette"
@@ -822,7 +822,7 @@ chunks = { palette = "49482dc80bc9171707325c233e007cd9f0c8ca77", image = "c35c68
 
 [m4a1_pyke]
 uid = "uid://j89d499rqjfa"
-kind = "file"
+template = "file"
 
 [[m4a1_pyke.slots]]
 name = "palette"
@@ -852,7 +852,7 @@ chunks = { palette = "acf6a4054ccde8e3966ac16536b8f5601bfb627d", image = "d0ba12
 
 [m4a1_javelin]
 uid = "uid://1iyw2dtyf2o2z"
-kind = "file"
+template = "file"
 
 [[m4a1_javelin.slots]]
 name = "palette"
@@ -882,7 +882,7 @@ chunks = { palette = "0e2a3313836605cd6d047f6fb89dfeb61f946e8a", image = "fd15cf
 
 [mp5a5]
 uid = "uid://kogi2su73kev"
-kind = "file"
+template = "file"
 
 [[mp5a5.slots]]
 name = "palette"
@@ -912,7 +912,7 @@ chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522
 
 [mp5a5_p1]
 uid = "uid://1cjjwyrgwd85z"
-kind = "file"
+template = "file"
 
 [[mp5a5_p1.slots]]
 name = "palette"
@@ -942,7 +942,7 @@ chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522
 
 [mp5a5_p2]
 uid = "uid://xsvhp1z0ustu"
-kind = "file"
+template = "file"
 
 [[mp5a5_p2.slots]]
 name = "palette"
@@ -972,7 +972,7 @@ chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522
 
 [aya_10400]
 uid = "uid://1teumqyjo551d"
-kind = "file"
+template = "file"
 
 [[aya_10400.slots]]
 name = "palette"
@@ -999,7 +999,7 @@ chunks = { image = "61f4b513814507d49d32932f2f46ae4f6bb2ba88", palette = "060e8d
 
 [aya_10500]
 uid = "uid://12p2cb5hbm5yz"
-kind = "file"
+template = "file"
 
 [[aya_10500.slots]]
 name = "palette"
@@ -1027,7 +1027,7 @@ chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc
 
 [aya_10600]
 uid = "uid://1pvs9smoxrzj0"
-kind = "file"
+template = "file"
 
 [[aya_10600.slots]]
 name = "palette"
@@ -1055,7 +1055,7 @@ chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc
 
 [grenade_pistol_fragmentation_sounds]
 uid = "uid://2evjom07asuv"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1065,7 +1065,7 @@ at = [{ stage = 0, file = 11000 }, { stage = 0, file = 11001 }]
 
 [grenade_pistol_airburst_sounds]
 uid = "uid://16tzst50vkfrw"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1075,7 +1075,7 @@ at = [{ stage = 0, file = 11002 }]
 
 [grenade_pistol_riot_sounds]
 uid = "uid://625hl4kgofp4"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1085,7 +1085,7 @@ at = [{ stage = 0, file = 11003 }]
 
 [mm1_fragmentation_sounds]
 uid = "uid://d75ewu21mi29"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1095,7 +1095,7 @@ at = [{ stage = 0, file = 11004 }]
 
 [mm1_airburst_sounds]
 uid = "uid://cms69puu8hhe"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1105,7 +1105,7 @@ at = [{ stage = 0, file = 11005 }]
 
 [mm1_riot_sounds]
 uid = "uid://1xjo8tahw9fd4"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1115,7 +1115,7 @@ at = [{ stage = 0, file = 11006 }]
 
 [pa3_buckshot_sounds]
 uid = "uid://9i6ue7hev2pn"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1125,7 +1125,7 @@ at = [{ stage = 0, file = 11007 }]
 
 [pa3_firefly_sounds]
 uid = "uid://13nyvidc44qk6"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1135,7 +1135,7 @@ at = [{ stage = 0, file = 11008 }]
 
 [pa3_rifled_slug_sounds]
 uid = "uid://w0r9o749nvio"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1145,7 +1145,7 @@ at = [{ stage = 0, file = 11009 }]
 
 [sp12_buckshot_sounds]
 uid = "uid://162cxniobwq68"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1155,7 +1155,7 @@ at = [{ stage = 0, file = 11010 }]
 
 [sp12_firefly_sounds]
 uid = "uid://1pxtkso2dglln"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1165,7 +1165,7 @@ at = [{ stage = 0, file = 11011 }]
 
 [sp12_rifled_slug_sounds]
 uid = "uid://2od11f8uc0lf"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1175,7 +1175,7 @@ at = [{ stage = 0, file = 11012 }]
 
 [as12_buckshot_sounds]
 uid = "uid://gm8f3y7ehujc"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1185,7 +1185,7 @@ at = [{ stage = 0, file = 11013 }]
 
 [as12_firefly_sounds]
 uid = "uid://3xsj2dffkcxb"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1195,7 +1195,7 @@ at = [{ stage = 0, file = 11014 }]
 
 [as12_rifled_slug_sounds]
 uid = "uid://1xx5kk13ydeim"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1205,7 +1205,7 @@ at = [{ stage = 0, file = 11015 }]
 
 [m4a1_grenade_fragmentation_sounds]
 uid = "uid://14mmv5vs7973d"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1215,7 +1215,7 @@ at = [{ stage = 0, file = 11016 }]
 
 [m4a1_grenade_airburst_sounds]
 uid = "uid://111zv5uy091jo"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1225,7 +1225,7 @@ at = [{ stage = 0, file = 11017 }]
 
 [m4a1_grenade_riot_sounds]
 uid = "uid://d27z4j5faptg"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1235,7 +1235,7 @@ at = [{ stage = 0, file = 11018 }]
 
 [gunblade_buckshot_sounds]
 uid = "uid://1lrkjomv66i8e"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1245,7 +1245,7 @@ at = [{ stage = 0, file = 11019 }]
 
 [gunblade_firefly_sounds]
 uid = "uid://uj7j24zp5vv5"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]
@@ -1255,7 +1255,7 @@ at = [{ stage = 0, file = 11020 }]
 
 [gunblade_rifled_slug_sounds]
 uid = "uid://y1ddrztci22u"
-kind = "file"
+template = "file"
 slots = [
     { name = "sound_bank", type = "sound_bank" },
 ]

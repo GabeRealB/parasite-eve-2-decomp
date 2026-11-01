@@ -2,7 +2,7 @@
 
 [submachine_gun_texture]
 uid = "uid://hmpu9164hbgp"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
@@ -19,7 +19,7 @@ palettes = { default = "c81918b1fd5bd798a4919f02b65f747e9526b476" }
 
 [texture]
 uid = "uid://1qhzxpnhp576i"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

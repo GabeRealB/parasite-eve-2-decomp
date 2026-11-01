@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1prh0723e1hds"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -101,7 +101,7 @@ chunks = { dryfield_dilapidated_house_dialogue_0_atlas = "beabd45cf5879da99bb6de
 
 [view1]
 uid = "uid://g17sd2jte5ci"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://6habvz47b6x0", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view1_background.node" } },
 ]
@@ -111,7 +111,7 @@ at = [{ stage = 3, folder = 901, file = 1 }]
 
 [view2]
 uid = "uid://or3v3ygsxe9t"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -131,7 +131,7 @@ chunks = { image = "7e8d204ad19a6105731d3b38250b768c11d714b3" }
 
 [view3]
 uid = "uid://12eujazfplhde"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -151,7 +151,7 @@ chunks = { image = "35ca35b50b72d01d4c6d21414cdb57b19fc4e754" }
 
 [view4]
 uid = "uid://wtexb8qssqqn"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -171,7 +171,7 @@ chunks = { image = "6bebc6309cf1ee774d5584a12e28f4e86f7cef0b" }
 
 [view5]
 uid = "uid://515g2ajfh11f"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -191,7 +191,7 @@ chunks = { image = "73b55665242d03bc4bd69daf5e290d7b05e1d522" }
 
 [view6]
 uid = "uid://j2k1oyw770lp"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -211,7 +211,7 @@ chunks = { image = "f8603af1f1c6b5fb6a14af08ed3d7a961141dd2e" }
 
 [view7]
 uid = "uid://1wmvgaukjl0vf"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -231,7 +231,7 @@ chunks = { image = "63bcc0443bbadabc6d23b8a2a60d4b755a65008d" }
 
 [view8]
 uid = "uid://vtm26qqvgu3s"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -251,7 +251,7 @@ chunks = { image = "2b9ac77f46a1ef13272aec6d81a59f5c76178151" }
 
 [view9]
 uid = "uid://1fpsa92rjg5ml"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1ty7b86xlrggu", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view9_background.node" } },
 ]
@@ -261,7 +261,7 @@ at = [{ stage = 3, folder = 901, file = 9 }]
 
 [view10]
 uid = "uid://bwj1a1boadja"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1xsfn09isqil1", path = "res://stages/dryfield/rooms/dilapidated_house/night/views/view10_background.node" } },
 ]
@@ -271,7 +271,7 @@ at = [{ stage = 3, folder = 901, file = 10 }]
 
 [view11]
 uid = "uid://hh45t55hf2rr"
-kind = "file"
+template = "file"
 
 [[view11.slots]]
 name = "image"

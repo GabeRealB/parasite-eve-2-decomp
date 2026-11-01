@@ -2,7 +2,7 @@
 
 [bass_sounds]
 uid = "uid://vyvccivkotk3"
-kind = "file"
+template = "file"
 
 [[bass_sounds.slots]]
 name = "sounds"
@@ -30,7 +30,7 @@ chunks = { image = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e", palette = "852234
 
 [mad_image]
 uid = "uid://1m1005myzn5js"
-kind = "file"
+template = "file"
 
 [[mad_image.slots]]
 name = "image"
@@ -54,7 +54,7 @@ chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a20
 
 [rupert_texture]
 uid = "uid://136a2wrdi8o9q"
-kind = "file"
+template = "file"
 
 [[rupert_texture.slots]]
 name = "palette"
@@ -78,7 +78,7 @@ chunks = { palette = "53b42eed79ee377d528b0ef902efac03eb1b9702", image = "8f26a2
 
 [aya_texture_605300]
 uid = "uid://ujqy28je5gus"
-kind = "file"
+template = "file"
 
 [[aya_texture_605300.slots]]
 name = "palette"
@@ -102,7 +102,7 @@ chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3
 
 [gary_texture]
 uid = "uid://82e6kayr0li1"
-kind = "file"
+template = "file"
 
 [[gary_texture.slots]]
 name = "palette"
@@ -126,7 +126,7 @@ chunks = { palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0
 
 [swat_member_1_texture]
 uid = "uid://zyb68wqej196"
-kind = "file"
+template = "file"
 
 [[swat_member_1_texture.slots]]
 name = "palette"
@@ -150,7 +150,7 @@ chunks = { palette = "2bd9873cebf853700b9ef8dc0ba75264a4a872bb", image = "eb7fef
 
 [swat_member_2_texture_2]
 uid = "uid://yy40of4vhqxv"
-kind = "file"
+template = "file"
 
 [[swat_member_2_texture_2.slots]]
 name = "palette"
@@ -174,7 +174,7 @@ chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8c
 
 [president_texture]
 uid = "uid://19hlqp1el0yoi"
-kind = "file"
+template = "file"
 
 [[president_texture.slots]]
 name = "palette"
@@ -198,7 +198,7 @@ chunks = { palette = "8039a156dff3b552a6d730faee32c3771a529ae7", image = "a688ff
 
 [staff_officer_texture_2]
 uid = "uid://nkdo1hl54vf4"
-kind = "file"
+template = "file"
 
 [[staff_officer_texture_2.slots]]
 name = "palette"
@@ -222,7 +222,7 @@ chunks = { palette = "b0bf2f158dc679670f33b8344d873ad2ca001dfe", image = "1e702e
 
 [flint_texture]
 uid = "uid://144sssalk55op"
-kind = "file"
+template = "file"
 
 [[flint_texture.slots]]
 name = "palette"
@@ -246,7 +246,7 @@ chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd
 
 [eve_masked_texture]
 uid = "uid://1jbjl335fneuy"
-kind = "file"
+template = "file"
 
 [[eve_masked_texture.slots]]
 name = "masked_palette"
@@ -270,7 +270,7 @@ chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_i
 
 [aya_casual_texture]
 uid = "uid://ac1zi5xt9s5v"
-kind = "file"
+template = "file"
 
 [[aya_casual_texture.slots]]
 name = "casual_palette"
@@ -294,7 +294,7 @@ chunks = { casual_palette = "0d1ee4c40459adc1999cc662f1711448762b7603", casual_i
 
 [rupert_bloodied_texture]
 uid = "uid://8ttmw88e922p"
-kind = "file"
+template = "file"
 
 [[rupert_bloodied_texture.slots]]
 name = "bloodied_palette"
@@ -318,7 +318,7 @@ chunks = { bloodied_palette = "f204981b9e88c3f37270d0f3c97480bada0e97a4", bloodi
 
 [swat_member_2_texture]
 uid = "uid://nh8b8dys04rl"
-kind = "file"
+template = "file"
 
 [[swat_member_2_texture.slots]]
 name = "palette"
@@ -342,7 +342,7 @@ chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8c
 
 [flint_texture_night_garage]
 uid = "uid://1h3168ahma5vx"
-kind = "file"
+template = "file"
 
 [[flint_texture_night_garage.slots]]
 name = "palette"
@@ -366,7 +366,7 @@ chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd
 
 [actor_640400]
 uid = "uid://17pjy1wzqvlk8"
-kind = "file"
+template = "file"
 
 [[actor_640400.slots]]
 name = "palette"
@@ -393,7 +393,7 @@ chunks = { image = "c4b9a0832268d5d549734a007616788254db3ec3", palette = "04f0cf
 
 [actor_641700]
 uid = "uid://144qbhs8673w7"
-kind = "file"
+template = "file"
 
 [[actor_641700.slots]]
 name = "palette"
@@ -423,7 +423,7 @@ chunks = { image_0 = "4fecf8d94772cb3e7d93707d558ca8366fa22046", image_1 = "1b25
 
 [mad_image_642200]
 uid = "uid://1xrkoic2ld67x"
-kind = "file"
+template = "file"
 
 [[mad_image_642200.slots]]
 name = "image"
@@ -447,7 +447,7 @@ chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a20
 
 [eve_masked_texture_training_room]
 uid = "uid://qz97pf3eo1bq"
-kind = "file"
+template = "file"
 
 [[eve_masked_texture_training_room.slots]]
 name = "masked_palette"
@@ -471,7 +471,7 @@ chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_i
 
 [no_9_texture_submarine_tunnel]
 uid = "uid://o5fsq2lszvho"
-kind = "file"
+template = "file"
 
 [[no_9_texture_submarine_tunnel.slots]]
 name = "palette_dryfield"
@@ -502,7 +502,7 @@ chunks = { palette_dryfield = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea", palett
 
 [staff_officer_texture]
 uid = "uid://ytha3sdqxpi6"
-kind = "file"
+template = "file"
 
 [[staff_officer_texture.slots]]
 name = "palette"
@@ -526,7 +526,7 @@ chunks = { palette = "b0bf2f158dc679670f33b8344d873ad2ca001dfe", image = "1e702e
 
 [soldier_b_texture]
 uid = "uid://1fpwgi33adch1"
-kind = "file"
+template = "file"
 
 [[soldier_b_texture.slots]]
 name = "palette"
@@ -550,7 +550,7 @@ chunks = { palette = "af9896ed481a9cdb5e82a6b082fde34dd46d1db5", image = "dc3bb5
 
 [soldier_a_texture]
 uid = "uid://8c0noizjbmxn"
-kind = "file"
+template = "file"
 
 [[soldier_a_texture.slots]]
 name = "palette"
@@ -574,7 +574,7 @@ chunks = { palette = "f610e227cdce58ee8d4bed087353614e2ae370b5", image = "74a074
 
 [eve_masked_texture_2]
 uid = "uid://epqi22ny8rob"
-kind = "file"
+template = "file"
 
 [[eve_masked_texture_2.slots]]
 name = "masked_palette"
@@ -598,7 +598,7 @@ chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_i
 
 [kyle_gas_mask_texture]
 uid = "uid://f4cnysgmxz2v"
-kind = "file"
+template = "file"
 
 [[kyle_gas_mask_texture.slots]]
 name = "gas_mask_palette"
@@ -622,7 +622,7 @@ chunks = { gas_mask_palette = "a9a9ac3a39a92929f526f20c8f23b58297424d84", gas_ma
 
 [actor_660803]
 uid = "uid://wah85t9cmtw5"
-kind = "file"
+template = "file"
 
 [[actor_660803.slots]]
 name = "image"
@@ -645,7 +645,7 @@ chunks = { image = "366df2ae38a5cc5ec66a5bcf3207a3517a25d5ee", palette = "0d91bc
 
 [kyle_p229_texture]
 uid = "uid://7w1gz6qexojt"
-kind = "file"
+template = "file"
 
 [[kyle_p229_texture.slots]]
 name = "p229_palette"
@@ -667,7 +667,7 @@ chunks = { p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image
 
 [eve_texture_pod_bottom]
 uid = "uid://1kmi5hvchqzjo"
-kind = "file"
+template = "file"
 
 [[eve_texture_pod_bottom.slots]]
 name = "palette"
@@ -691,7 +691,7 @@ chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "739323
 
 [eve_texture_r31]
 uid = "uid://14jssch7ht3fy"
-kind = "file"
+template = "file"
 
 [[eve_texture_r31.slots]]
 name = "palette"

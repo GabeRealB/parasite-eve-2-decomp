@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://s93psyj2gzlq"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "ff8ff9b910a64561b1cdf0f0aaeecea6bf51b723"
 
 [view2_background]
 uid = "uid://1fe4930yekooq"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "ab8400c1705ff3350a1d207c861fe75b1835d442"
 
 [view3_background]
 uid = "uid://o16g11ekf52h"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -38,7 +38,7 @@ sha1 = "6707e7bc3997b3d885f39e9b33b761f3666a5a83"
 
 [view4_background]
 uid = "uid://or7z4ex9alva"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -50,7 +50,7 @@ sha1 = "e148f49b6ceb08c882010aca5a1390746b8db8b0"
 
 [view5_background]
 uid = "uid://70lm7dcemhcv"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]
@@ -62,7 +62,7 @@ sha1 = "ffde059cc22f22180bf87886597d1b2a6b3feee7"
 
 [view6_background]
 uid = "uid://zec4bmwv54ii"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view6_background.import]
@@ -74,7 +74,7 @@ sha1 = "6c4f70393e9da1d7667d7627310159e61f3a6fd4"
 
 [view4]
 uid = "uid://193qla0vlohk5"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -128,7 +128,7 @@ palettes = { row_0 = "949ed52e673beac3ba2684b155e9b90d3372b0a8", row_1 = "45aa8c
 
 [view5]
 uid = "uid://spx9bpodv623"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -169,7 +169,7 @@ palettes = { row_0 = "3d95ee4c52de13b3c7865695b95f068ea152719b", row_1 = "b10089
 
 [view6]
 uid = "uid://15gnlzop75b6v"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [128, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

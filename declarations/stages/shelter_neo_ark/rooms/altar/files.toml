@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://10pkkia441vwm"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -73,7 +73,7 @@ chunks = { dialogue_0_atlas = "0550c5edc759d6e40944b3adbe56e123efdb3df4" }
 
 [view1]
 uid = "uid://1xc5avhj6r5r9"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://njg9x14nfho1", path = "res://stages/shelter_neo_ark/rooms/altar/views/view1_background.node" } },
 ]
@@ -83,7 +83,7 @@ at = [{ stage = 5, folder = 2001, file = 1 }]
 
 [view2]
 uid = "uid://10s0ly9lixue"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -103,7 +103,7 @@ chunks = { image = "a47e4b161a2ba4b5ee43d38e7a6100887080decf" }
 
 [view3]
 uid = "uid://19nhkcww8j68t"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://ahu2320izvxf", path = "res://stages/shelter_neo_ark/rooms/altar/views/view3_background.node" } },
 ]
@@ -113,7 +113,7 @@ at = [{ stage = 5, folder = 2001, file = 3 }]
 
 [view4]
 uid = "uid://16a76cxf06uib"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -133,7 +133,7 @@ chunks = { image = "1695d157d5fc0acc5b3578460b9318aa039d9f04" }
 
 [view5]
 uid = "uid://hqz4azmqkux3"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -153,7 +153,7 @@ chunks = { image = "ffe78abe990856661886893a5511059228a53ef0" }
 
 [view6]
 uid = "uid://12ohk3gh5427h"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://fn6j4bhznknf", path = "res://stages/shelter_neo_ark/rooms/altar/views/view6_background.node" } },
 ]
@@ -163,7 +163,7 @@ at = [{ stage = 5, folder = 2001, file = 6 }]
 
 [view7]
 uid = "uid://1hdmcyirqini7"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -183,7 +183,7 @@ chunks = { image = "4f86259dd2211c47b0da52238f4fd8238bf50838" }
 
 [view8]
 uid = "uid://bsn2ahbc0isv"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://8org69d4lo8i", path = "res://stages/shelter_neo_ark/rooms/altar/views/view8_background.node" } },
 ]

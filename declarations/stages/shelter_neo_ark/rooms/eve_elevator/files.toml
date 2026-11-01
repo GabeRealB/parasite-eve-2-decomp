@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://wjgrh62bm00w"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -36,7 +36,7 @@ chunks = { dialogue_0_atlas = "c224e093174d24ea54347f79ffaabed632fe64fb" }
 
 [view1]
 uid = "uid://12m0w7bt9hnm1"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1841prjoyaazk", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view1_background.node" } },
 ]
@@ -46,7 +46,7 @@ at = [{ stage = 5, folder = 901, file = 1 }]
 
 [view2]
 uid = "uid://lbwnngi07vej"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1t4iekkh0o4ag", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view2_background.node" } },
 ]
@@ -56,7 +56,7 @@ at = [{ stage = 5, folder = 901, file = 2 }]
 
 [view3]
 uid = "uid://x1k5ddc82qc4"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1xsml88c7heiz", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view3_background.node" } },
 ]
@@ -66,7 +66,7 @@ at = [{ stage = 5, folder = 901, file = 3 }]
 
 [view4]
 uid = "uid://12elk57r5jzvb"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1nzqpp51r4l1s", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/views/view4_background.node" } },
 ]

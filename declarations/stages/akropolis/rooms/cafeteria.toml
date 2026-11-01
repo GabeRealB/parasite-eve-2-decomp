@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://92jvpdwgvn28"
-kind = "folder"
+template = "folder"
 stream_data = true
 streams = [
     { name = "movie_100", type = "movie", asset = { uid = "uid://1qgvmt6gh4c0l", path = "res://stages/akropolis/rooms/cafeteria/streams/movie_100.node" } },
@@ -41,7 +41,7 @@ at = [{ stage = 1, folder = 401 }]
 
 [dialogue_0_atlas]
 uid = "uid://13m06bcygzpte"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 48]

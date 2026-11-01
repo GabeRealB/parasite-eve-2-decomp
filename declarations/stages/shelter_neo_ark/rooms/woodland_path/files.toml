@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://elhn9rewei4h"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -131,7 +131,7 @@ chunks = { dryfield_r04_glyph_page = "13873ef2308a1552312e965839e6fc8390526226",
 
 [view1]
 uid = "uid://14iyx3443ghc8"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1cqmp7prxog87", path = "res://stages/shelter_neo_ark/rooms/woodland_path/views/view1_background.node" } },
 ]
@@ -141,7 +141,7 @@ at = [{ stage = 5, folder = 2901, file = 1 }]
 
 [view2]
 uid = "uid://1inmd2oppjqux"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -161,7 +161,7 @@ chunks = { image = "c21d4cbb6f26ba4ec00cf48d2b3e2f517985cb68" }
 
 [view3]
 uid = "uid://17d5jn6qozuf1"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -181,7 +181,7 @@ chunks = { image = "2396e7cc4003b4309d1a85bf40c67a6dcd459bbd" }
 
 [view4]
 uid = "uid://195xnzbuxkauy"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -201,7 +201,7 @@ chunks = { image = "7b87591d1b3de8f012bce947699e6bd457a2337c" }
 
 [view5]
 uid = "uid://1xi66b8b1n86j"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -221,7 +221,7 @@ chunks = { image = "9f210350ace209051370aff2f45610ef3c102404" }
 
 [view6]
 uid = "uid://1sz2aq9mjtdnd"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -241,7 +241,7 @@ chunks = { image = "d1a001069a1651a627e3309e86760824d19c3758" }
 
 [view7]
 uid = "uid://1a31r0hb0b2hl"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -261,7 +261,7 @@ chunks = { image = "a822653315607e0fea473d8a9e1c6f45de9f5f87" }
 
 [view8]
 uid = "uid://edw4wk977ys7"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -281,7 +281,7 @@ chunks = { image = "669981f5b443d5e92b58b0e2351fd158516bda91" }
 
 [view9]
 uid = "uid://1dqyprnsyv3y"
-kind = "file"
+template = "file"
 
 [[view9.slots]]
 name = "image"
@@ -301,7 +301,7 @@ chunks = { image = "447192a46d9f30c291e2daa0c3b1048c634df301" }
 
 [view10]
 uid = "uid://2qknwka7ccws"
-kind = "file"
+template = "file"
 
 [[view10.slots]]
 name = "image"

@@ -2,7 +2,7 @@
 
 [movie_100]
 uid = "uid://15lliaoygs66e"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/stage0_movie_100" }
 group = 0
 id = 100
@@ -21,7 +21,7 @@ at = [{ stage = 0, stream = "movie_100" }]
 
 [movie_101]
 uid = "uid://146npur5w9cp2"
-kind = "movie_slot"
+template = "movie_slot"
 movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/stage0_movie_100" }
 group = 0
 id = 101
@@ -40,7 +40,7 @@ at = [{ stage = 0, stream = "movie_101" }]
 
 [scene_1]
 uid = "uid://1ommzatfsb32z"
-kind = "scene_audio"
+template = "scene_audio"
 group = 0
 id = 1
 sub_id = 11

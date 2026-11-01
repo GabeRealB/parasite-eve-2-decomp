@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://184rqwagd7iw7"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -86,7 +86,7 @@ chunks = { dialogue_0_atlas = "245ccd9f85e2dee2faa255274ac608f504bd5a1f", palett
 
 [view1]
 uid = "uid://tt5o7x95scn4"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1bles5xpewsph", path = "res://stages/mine_shelter/rooms/b4_lower_sewer/views/view1_background.node" } },
 ]
@@ -96,7 +96,7 @@ at = [{ stage = 4, folder = 4301, file = 1 }]
 
 [view2]
 uid = "uid://1662h3370v4e4"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1glg9sz8t7k9g", path = "res://stages/mine_shelter/rooms/b4_lower_sewer/views/view2_background.node" } },
 ]
@@ -106,7 +106,7 @@ at = [{ stage = 4, folder = 4301, file = 2 }]
 
 [view3]
 uid = "uid://1lr2x93nfdn1a"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1eht7zpj0chnd", path = "res://stages/mine_shelter/rooms/b4_lower_sewer/views/view3_background.node" } },
 ]
@@ -116,7 +116,7 @@ at = [{ stage = 4, folder = 4301, file = 3 }]
 
 [view4]
 uid = "uid://qdnnitrqwiuz"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -136,7 +136,7 @@ chunks = { image = "70d7c2e9a8d4ba63dea4df9ef0e8bbfa81621bf5" }
 
 [view5]
 uid = "uid://6qhdwa3ya01t"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -156,7 +156,7 @@ chunks = { image = "388ca4b3a782526261d1880b9fcb361f824c843c" }
 
 [view6]
 uid = "uid://cep0gvzuq44k"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -176,7 +176,7 @@ chunks = { image = "3a91dfedd887f2115c1775f4eba3002d46b11085" }
 
 [view7]
 uid = "uid://189tkwy5xvrl1"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://18kio93eeja3h", path = "res://stages/mine_shelter/rooms/b4_lower_sewer/views/view7_background.node" } },
 ]
@@ -186,7 +186,7 @@ at = [{ stage = 4, folder = 4301, file = 7 }]
 
 [view8]
 uid = "uid://1anc1kf2s7us5"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://12qlt6wntjjma", path = "res://stages/mine_shelter/rooms/b4_lower_sewer/views/view8_background.node" } },
 ]
@@ -196,7 +196,7 @@ at = [{ stage = 4, folder = 4301, file = 8 }]
 
 [view9]
 uid = "uid://13xrucxe3tgmn"
-kind = "file"
+template = "file"
 
 [[view9.slots]]
 name = "image"

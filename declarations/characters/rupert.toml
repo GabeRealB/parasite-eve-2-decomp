@@ -2,7 +2,7 @@
 
 [bloodied_texture]
 uid = "uid://bra2qtgfsf8a"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -22,7 +22,7 @@ palettes = { default = "f2502486b4a0663fc2e23668c847952a902a5246", default_2 = "
 
 [hurt_texture]
 uid = "uid://vrrfxkda77b5"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -42,7 +42,7 @@ palettes = { default = "e40a9fc4153f91138c89813f7c866d336a774e5a", default_2 = "
 
 [mongoose_texture]
 uid = "uid://1qigsottx2pbg"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://7hpx62tky6nk", path = "res://engine/vram/held_weapon_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 64]
@@ -59,7 +59,7 @@ palettes = { default = "9e58a0a972ba90b1fa7e78f2437c54e3c3d6366a" }
 
 [texture]
 uid = "uid://1r3w5rnx2o5jw"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://w22e86j5tdow", path = "res://engine/vram/actor_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]

@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://1p5yx2slqhz49"
-kind = "folder"
+template = "folder"
 stream_data = true
 streams = [
     { name = "movie_100", type = "movie", asset = { uid = "uid://1r0fwln7zoerx", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/movie_100.node" } },
@@ -46,7 +46,7 @@ at = [{ stage = 1, folder = 1601 }]
 
 [sparks]
 uid = "uid://1uir2qalcp0e8"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -128,7 +128,7 @@ palettes = { sparkle = "04ec55cda3e14c68a22081337f1d4763e953113c", ember = "1645
 
 [dialogue_0_atlas]
 uid = "uid://lbc0b8qvs1al"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 48]

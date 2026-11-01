@@ -4,7 +4,7 @@
 
 [title]
 uid = "uid://pc4ree5f63i7"
-kind = "package"
+template = "package"
 slot = "resident"
 sources = ["src/*.c", "!src/*.inc.c"]
 public = ["include"]
@@ -16,42 +16,37 @@ link_script = "psx/link.ld"
 
 [core]
 uid = "uid://1hq6535kv7l92"
-kind = "package"
+template = "library"
 public = ["include"]
-stack = []
 
 [psyq]
 uid = "uid://6xwnsgn9562h"
-kind = "package"
+template = "library"
 public = ["include"]
-stack = []
 
 [main]
 uid = "uid://1gge5rcau98eq"
-kind = "package"
+template = "library"
 public = ["include"]
-stack = []
 
 [main.target.psx]
 symbols = "psx/symbols.ld"
 
 [gameplay]
 uid = "uid://1xmru45vx7ejy"
-kind = "package"
+template = "library"
 public = ["include"]
-stack = []
 
 [gameplay.target.psx]
 symbols = "psx/symbols.ld"
 
 [aya]
 uid = "uid://upo6m0w1osm2"
-kind = "package"
+template = "library"
 public = ["include"]
-stack = []
 
 # What a language server reads: every package that compiles, for the config in use.
 
 [compile_database]
 uid = "uid://1eip1jztc7zz0"
-kind = "compile-database"
+template = "compile-database"

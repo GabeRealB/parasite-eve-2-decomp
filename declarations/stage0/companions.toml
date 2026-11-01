@@ -2,7 +2,7 @@
 
 [kyle_companion]
 uid = "uid://1x9a08nxhru7d"
-kind = "file"
+template = "file"
 slots = [
     { name = "package", type = "package" },
 ]
@@ -12,7 +12,7 @@ at = [{ stage = 0, file = 800100 }]
 
 [kyle_companion_1]
 uid = "uid://1dy6pq3afesh6"
-kind = "file"
+template = "file"
 
 [[kyle_companion_1.slots]]
 name = "companion_1_sounds"
@@ -58,7 +58,7 @@ chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89
 
 [kyle_companion_2]
 uid = "uid://1flgt3u9wa39"
-kind = "file"
+template = "file"
 
 [[kyle_companion_2.slots]]
 name = "companion_2_sounds"
@@ -104,7 +104,7 @@ chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89
 
 [kyle_companion_3]
 uid = "uid://pxj99lowpc5"
-kind = "file"
+template = "file"
 
 [[kyle_companion_3.slots]]
 name = "companion_3_sounds"
@@ -150,7 +150,7 @@ chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89
 
 [kyle_companion_4]
 uid = "uid://ub5zl1ezyv1h"
-kind = "file"
+template = "file"
 
 [[kyle_companion_4.slots]]
 name = "companion_4_sounds"
@@ -196,7 +196,7 @@ chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89
 
 [kyle_companion_5]
 uid = "uid://fheuys1m1z7o"
-kind = "file"
+template = "file"
 
 [[kyle_companion_5.slots]]
 name = "palette"
@@ -238,7 +238,7 @@ chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89
 
 [flint_companion]
 uid = "uid://g61m93n6dn2f"
-kind = "file"
+template = "file"
 
 [[flint_companion.slots]]
 name = "sounds"
@@ -270,7 +270,7 @@ chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd
 
 [eve_companion]
 uid = "uid://85mg3s9cibx9"
-kind = "file"
+template = "file"
 
 [[eve_companion.slots]]
 name = "palette"
@@ -312,7 +312,7 @@ chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "739323
 
 [akropolis_square]
 uid = "uid://10kn8yyer6an1"
-kind = "file"
+template = "file"
 
 [[akropolis_square.slots]]
 name = "logo_palette"
@@ -355,7 +355,7 @@ chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23
 
 [dryfield_main_street]
 uid = "uid://1n8oqsrr25xl"
-kind = "file"
+template = "file"
 
 [[dryfield_main_street.slots]]
 name = "logo_palette"
@@ -398,7 +398,7 @@ chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23
 
 [dryfield_underpass]
 uid = "uid://awkh1hwk0fk2"
-kind = "file"
+template = "file"
 
 [[dryfield_underpass.slots]]
 name = "logo_palette"

@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://13bo10hfbwt21"
-kind = "folder"
+template = "folder"
 stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://bf5l745awnam", path = "res://stages/dryfield/rooms/trailer_coach/day/files/base.node" } },
@@ -24,7 +24,7 @@ at = [{ stage = 2, folder = 2701 }]
 
 [dialogue_0_atlas]
 uid = "uid://10o404lx0h8bm"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 48]

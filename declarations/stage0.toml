@@ -2,7 +2,7 @@
 
 [system]
 uid = "uid://1ri4tekdefv04"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "gameplay", id = 0, asset = { uid = "uid://3zg81cuz90q", path = "res://stage0/system/gameplay.node" } },
     { name = "title", id = 1, asset = { uid = "uid://swvvgzpql4fk", path = "res://stage0/system/title.node" } },
@@ -56,7 +56,7 @@ at = [{ stage = 0, group = 0 }]
 
 [player]
 uid = "uid://1mhe0176ghala"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "aya_10200", id = 200, asset = { uid = "uid://18186pikpmwr6", path = "res://stage0/player/aya_10200.node" } },
     { name = "aya_10300", id = 300, asset = { uid = "uid://sjomc8qdhlrz", path = "res://stage0/player/aya_10300.node" } },
@@ -124,7 +124,7 @@ at = [{ stage = 0, group = 1 }]
 
 [items]
 uid = "uid://1cjow36nol6rd"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "options", id = 100, asset = { uid = "uid://ppi9n3iftdf8", path = "res://stage0/items/options.node" } },
     { name = "p08_snail_preview", id = 101, asset = { uid = "uid://1ak9itvtgbb9w", path = "res://stage0/items/p08_snail_preview.node" } },
@@ -484,7 +484,7 @@ at = [{ stage = 0, group = 2 }]
 
 [maps]
 uid = "uid://abf2ddfh1mc3"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "akropolis_map_page_0", id = 100, asset = { uid = "uid://of33rfid7m23", path = "res://stage0/maps/akropolis_map_page_0.node" } },
     { name = "akropolis_map_page_1", id = 101, asset = { uid = "uid://of33rfid7m23", path = "res://stage0/maps/akropolis_map_page_0.node" } },
@@ -518,7 +518,7 @@ at = [{ stage = 0, group = 3 }]
 
 [music]
 uid = "uid://mcd15vhnp37u"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "sequence_05", id = 105, asset = { uid = "uid://1g1izp3y0uyiw", path = "res://stage0/music/sequence_05.node" } },
     { name = "sequence_06", id = 106, asset = { uid = "uid://1kiyiq84wujsk", path = "res://stage0/music/sequence_06.node" } },
@@ -596,7 +596,7 @@ at = [{ stage = 0, group = 4 }]
 
 [pe]
 uid = "uid://kfxb2n6bxaks"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "pyrokinesis_level_0", id = 100, asset = { uid = "uid://l71symd8zngc", path = "res://stage0/pe/pyrokinesis_level_0.node" } },
     { name = "pyrokinesis_level_1", id = 101, asset = { uid = "uid://l71symd8zngc", path = "res://stage0/pe/pyrokinesis_level_0.node" } },
@@ -645,7 +645,7 @@ at = [{ stage = 0, group = 5 }]
 
 [actor_slot_1]
 uid = "uid://119l4t0ybc26r"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "brain_stinger_package", id = 300, asset = { uid = "uid://n77vxahupgii", path = "res://stage0/actor_slot_1/brain_stinger_package.node" } },
     { name = "bog_diver_package", id = 400, asset = { uid = "uid://yjn3e5e9clhi", path = "res://stage0/actor_slot_1/bog_diver_package.node" } },
@@ -746,7 +746,7 @@ at = [{ stage = 0, group = 10 }]
 
 [actor_slot_2]
 uid = "uid://gl4bub7jouz3"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "brain_stinger_package", id = 300, asset = { uid = "uid://1cyfzfm63qxgw", path = "res://stage0/actor_slot_2/brain_stinger_package.node" } },
     { name = "bog_diver_package", id = 400, asset = { uid = "uid://irvx9o4svlad", path = "res://stage0/actor_slot_2/bog_diver_package.node" } },
@@ -795,7 +795,7 @@ at = [{ stage = 0, group = 20 }]
 
 [actor_slot_3]
 uid = "uid://153wh4slyz6h1"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "brain_stinger_package", id = 300, asset = { uid = "uid://1jdgh2t1mu74h", path = "res://stage0/actor_slot_3/brain_stinger_package.node" } },
     { name = "bog_diver_package", id = 400, asset = { uid = "uid://wqphk9kjwm1w", path = "res://stage0/actor_slot_3/bog_diver_package.node" } },
@@ -857,7 +857,7 @@ at = [{ stage = 0, group = 30 }]
 
 [actor_slot_4]
 uid = "uid://13ls5u6dm96kd"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "desert_chaser_package", id = 100, asset = { uid = "uid://kpnom5m11s27", path = "res://stage0/actor_slot_4/desert_chaser_package.node" } },
     { name = "gray_stalker_package", id = 500, asset = { uid = "uid://fyw3aix9g9qc", path = "res://stage0/actor_slot_4/gray_stalker_package.node" } },
@@ -900,7 +900,7 @@ at = [{ stage = 0, group = 40 }]
 
 [actor_slot_5]
 uid = "uid://1qgm8j9bcfc4d"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "brahman_package", id = 3500, asset = { uid = "uid://16artf8nc6ghx", path = "res://stage0/actor_slot_5/brahman_package.node" } },
     { name = "no_9_golem_package_akropolis", id = 10900, asset = { uid = "uid://wsunjw1yuekn", path = "res://stage0/actor_slot_5/no_9_golem_package_akropolis.node" } },
@@ -918,7 +918,7 @@ at = [{ stage = 0, group = 50 }]
 
 [actor_slot_6]
 uid = "uid://1fksda8ttu7ot"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "bass_sounds", id = 4100, asset = { uid = "uid://vyvccivkotk3", path = "res://stage0/actor_slot_6/bass_sounds.node" } },
     { name = "mad_image", id = 4400, asset = { uid = "uid://1m1005myzn5js", path = "res://stage0/actor_slot_6/mad_image.node" } },
@@ -957,7 +957,7 @@ at = [{ stage = 0, group = 60 }]
 
 [companions]
 uid = "uid://j9yxdst1ap8z"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "kyle_companion", id = 100, asset = { uid = "uid://1x9a08nxhru7d", path = "res://stage0/companions/kyle_companion.node" } },
     { name = "kyle_companion_1", id = 101, asset = { uid = "uid://1dy6pq3afesh6", path = "res://stage0/companions/kyle_companion_1.node" } },
@@ -977,7 +977,7 @@ at = [{ stage = 0, group = 80 }]
 
 [stages]
 uid = "uid://5azzd3aob9wh"
-kind = "file_group"
+template = "file_group"
 files = [
     { name = "map_stage_0", id = 0, asset = { uid = "uid://cu0c2duk8x7p", path = "res://stage0/stages/map_stage_0.node" } },
     { name = "map_akropolis", id = 1, asset = { uid = "uid://cu0c2duk8x7p", path = "res://stage0/stages/map_stage_0.node" } },

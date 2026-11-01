@@ -2,7 +2,7 @@
 
 [splash]
 uid = "uid://14n91xjmf1x0w"
-kind = "image"
+template = "background"
 format = "bs"
 
 [splash.import]

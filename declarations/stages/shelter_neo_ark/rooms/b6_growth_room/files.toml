@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://149eghksk2ini"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -73,7 +73,7 @@ chunks = { dialogue_0_atlas = "08b73f0f3a8ead4714d6721f1686b45b11ba94cd", palett
 
 [view1]
 uid = "uid://1ubkmov8fwpck"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://16qoji6x3rm5j", path = "res://stages/shelter_neo_ark/rooms/b6_growth_room/views/view1_background.node" } },
 ]
@@ -83,7 +83,7 @@ at = [{ stage = 5, folder = 2301, file = 1 }]
 
 [view2]
 uid = "uid://lp775hf04hm9"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -103,7 +103,7 @@ chunks = { image = "fa5c5685269920b411e05e517f2105fc0d5fc666" }
 
 [view3]
 uid = "uid://ufj84dscssnk"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -123,7 +123,7 @@ chunks = { image = "4189892f9a77c58336e41ba0726f6e8bdbb8f354" }
 
 [view4]
 uid = "uid://l49gmpdmlh6k"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1aa9u6tly95s4", path = "res://stages/shelter_neo_ark/rooms/b6_growth_room/views/view4_background.node" } },
 ]
@@ -133,7 +133,7 @@ at = [{ stage = 5, folder = 2301, file = 4 }]
 
 [view5]
 uid = "uid://1d68dv33jy0g5"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://6qkwn40he8mq", path = "res://stages/shelter_neo_ark/rooms/b6_growth_room/views/view5_background.node" } },
 ]
@@ -143,7 +143,7 @@ at = [{ stage = 5, folder = 2301, file = 5 }]
 
 [view6]
 uid = "uid://lnq4uzpu63z0"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://11poevf6m2wf3", path = "res://stages/shelter_neo_ark/rooms/b6_growth_room/views/view6_background.node" } },
 ]
@@ -153,7 +153,7 @@ at = [{ stage = 5, folder = 2301, file = 6 }]
 
 [view7]
 uid = "uid://1dnoiqq402ikn"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1p9sl6ebvzyq1", path = "res://stages/shelter_neo_ark/rooms/b6_growth_room/views/view7_background.node" } },
 ]
@@ -163,7 +163,7 @@ at = [{ stage = 5, folder = 2301, file = 7 }]
 
 [view8]
 uid = "uid://23j1c62ofto8"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1dck1xf06xuq2", path = "res://stages/shelter_neo_ark/rooms/b6_growth_room/views/view8_background.node" } },
 ]

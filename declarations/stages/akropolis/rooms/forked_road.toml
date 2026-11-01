@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://cll4p5ptupr1"
-kind = "folder"
+template = "folder"
 stream_data = false
 streams = [
     { name = "movie_7", type = "movie", asset = { uid = "uid://g9jpt38upy9u", path = "res://stages/akropolis/rooms/forked_road/streams/movie_7.node" } },
@@ -29,7 +29,7 @@ at = [{ stage = 1, folder = 901 }]
 
 [lamps]
 uid = "uid://1uik5d8ab7onh"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [120, 240]
@@ -53,7 +53,7 @@ palettes = { lamp_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", lamp_1 = "62cb
 
 [dialogue_0_atlas]
 uid = "uid://10uqf999ao8h4"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 32]

@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1aoldt2wp0jiu"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -92,7 +92,7 @@ chunks = { dialogue_0_atlas = "22828376080b3b4ae001d7fdd6c7569c4f538071", palett
 
 [view1]
 uid = "uid://289jtwi72rx9"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1etwump93jo3m", path = "res://stages/dryfield/rooms/junk_yard/day/views/view1_background.node" } },
 ]
@@ -102,7 +102,7 @@ at = [{ stage = 2, folder = 2601, file = 1 }]
 
 [view2]
 uid = "uid://13lgmr9ab76ii"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -122,7 +122,7 @@ chunks = { image = "f28910735e979ed29d78fdcbe21569d43a86bd9e" }
 
 [view3]
 uid = "uid://1odfqil8nrftk"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -142,7 +142,7 @@ chunks = { image = "f2f1894ef6d812c28a90367a4ab8247485f1d5c5" }
 
 [view4]
 uid = "uid://135r85tcbhw9w"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -162,7 +162,7 @@ chunks = { image = "58eb9b2e7c65202325b7af64047cd8906ed3e254" }
 
 [view5]
 uid = "uid://1ia5ipoyqu1v9"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -182,7 +182,7 @@ chunks = { image = "e3ac17898b60c288de785337bd5c3b731f665927" }
 
 [view6]
 uid = "uid://1o2clidy4myem"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://y6kmm7m1qz5g", path = "res://stages/dryfield/rooms/junk_yard/day/views/view6_background.node" } },
 ]
@@ -192,7 +192,7 @@ at = [{ stage = 2, folder = 2601, file = 6 }]
 
 [view7]
 uid = "uid://4ab69cnuhil2"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"

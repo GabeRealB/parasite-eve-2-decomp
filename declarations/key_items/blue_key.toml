@@ -2,7 +2,7 @@
 
 [texture]
 uid = "uid://137vjdf2qtt2r"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [119, 94]

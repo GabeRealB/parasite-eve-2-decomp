@@ -2,93 +2,93 @@
 
 [actor_palettes]
 uid = "uid://m7hcmgasvw3o"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 245, 256, 8]
 
 [actor_sheet]
 uid = "uid://w22e86j5tdow"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [384, 256, 448, 256]
 
 [character_palette]
 uid = "uid://11pipfqna1uxw"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 245, 256, 2]
 
 [character_sheet]
 uid = "uid://tifo5i55y0n5"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [384, 256, 128, 256]
 
 [credits_font]
 uid = "uid://1t7dq37x7a7u4"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [896, 256, 64, 256]
 
 [credits_logo_palettes]
 uid = "uid://ikv3llus3jwg"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [320, 256, 64, 256]
 
 [credits_logos]
 uid = "uid://qnx1brk2em4b"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [896, 0, 64, 256]
 
 [dialogue_glyph_page]
 uid = "uid://2t95olu7p2b1"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [384, 0, 64, 256]
 
 [dialogue_palettes]
 uid = "uid://lmjscox2t1qy"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [256, 243, 64, 6]
 
 [effect_palettes]
 uid = "uid://1gp7leszhiipc"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 261, 320, 11]
 
 [effect_sheet]
 uid = "uid://17nhe5wbc0j3b"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [512, 0, 384, 256]
 
 [energy_picture]
 uid = "uid://zzgq8eon5b0v"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [960, 0, 40, 64]
 within = { uid = "uid://xdefb7sjn2jj", path = "res://engine/vram/preview_picture.node" }
 
 [frame_buffer_0]
 uid = "uid://1ttvas17ru1sp"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 0, 320, 240]
 
 [frame_buffer_1]
 uid = "uid://1f7awwy24dswj"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 272, 320, 240]
 
 [glyph_palette_block]
 uid = "uid://1ewtfp0d17dk6"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [256, 240, 64, 3]
 
 [held_weapon_palette]
 uid = "uid://qemb3djlk7f1"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 244, 16, 1]
 
 [held_weapon_sheet]
 uid = "uid://7hpx62tky6nk"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [448, 64, 64, 64]
 
 [map_palettes]
 uid = "uid://fsmv9ev0ri61"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 255, 256, 6]
 borrows = [
     { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" },
@@ -96,7 +96,7 @@ borrows = [
 
 [map_sheet]
 uid = "uid://qy0eoildj00s"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [896, 0, 128, 256]
 borrows = [
     { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" },
@@ -104,7 +104,7 @@ borrows = [
 
 [preview_palette]
 uid = "uid://1r4i1k0syt8ik"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 255, 256, 1]
 borrows = [
     { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" },
@@ -112,13 +112,13 @@ borrows = [
 
 [preview_picture]
 uid = "uid://xdefb7sjn2jj"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [960, 0, 64, 96]
 within = { uid = "uid://1lrk6kmecvss", path = "res://engine/vram/preview_sheet.node" }
 
 [preview_sheet]
 uid = "uid://1lrk6kmecvss"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [960, 0, 64, 128]
 borrows = [
     { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" },
@@ -126,42 +126,42 @@ borrows = [
 
 [room_model_sheet]
 uid = "uid://mlk4og23ganv"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [320, 256, 64, 256]
 
 [room_sprite_palettes]
 uid = "uid://rjjf0tst9g36"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 255, 256, 6]
 
 [room_sprite_sheet]
 uid = "uid://xi3z21iyfb30"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [768, 0, 256, 256]
 
 [screen_palettes]
 uid = "uid://155w90bcvxfkw"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 255, 256, 6]
 
 [screen_sheet]
 uid = "uid://yjoa5nyt3fs0"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [960, 0, 64, 256]
 
 [shared_palettes]
 uid = "uid://wpn0tw2abf5i"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 253, 256, 2]
 
 [shared_sheets]
 uid = "uid://1ndxe29dxqbxv"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [384, 128, 128, 160]
 
 [tall_preview]
 uid = "uid://11t0an647k29l"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [960, 0, 64, 160]
 borrows = [
     { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" },
@@ -169,30 +169,30 @@ borrows = [
 
 [title_chrome]
 uid = "uid://1wuaueevtzyud"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [768, 256, 128, 256]
 
 [ui_font]
 uid = "uid://1woctxwwnoy2p"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [960, 256, 64, 256]
 
 [ui_palettes]
 uid = "uid://16npji49wkpmr"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 240, 256, 3]
 
 [ui_sheet]
 uid = "uid://zlu7juzpqhk1"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [896, 256, 64, 256]
 
 [weapon_palette]
 uid = "uid://1s46guge2y3r0"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [0, 243, 320, 1]
 
 [weapon_sheet]
 uid = "uid://1gzaw7h5s737g"
-kind = "vram_slot"
+template = "vram_slot"
 rect = [448, 0, 64, 64]

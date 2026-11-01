@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://1qx36po0lzfil"
-kind = "folder"
+template = "folder"
 stream_data = true
 streams = [
     { name = "scene_16", type = "scene_audio", asset = { uid = "uid://y06d6p0698h0", path = "res://stages/dryfield/rooms/water_tower/day/streams/scene_16.node" } },
@@ -37,7 +37,7 @@ at = [{ stage = 2, folder = 2001 }]
 
 [dialogue_0_atlas]
 uid = "uid://15oeln0sbfown"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [248, 32]

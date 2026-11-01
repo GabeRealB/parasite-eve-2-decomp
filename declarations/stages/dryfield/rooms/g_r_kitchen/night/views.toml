@@ -2,7 +2,7 @@
 
 [view2_background]
 uid = "uid://youer6au7gvj"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -14,7 +14,7 @@ sha1 = "cc87d5a5654ba9c6162eeff306dd98d99705b97a"
 
 [view3_background]
 uid = "uid://13thvt118rejg"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -26,7 +26,7 @@ sha1 = "d438a7f36dc886c9027a3f8a7006107a62ab9f6d"
 
 [view2]
 uid = "uid://ul7bthg6hfa4"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [192, 0] }
 mode = "indexed_8bpp"
 size = [128, 216]

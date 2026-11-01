@@ -2,7 +2,7 @@
 
 [water_effects]
 uid = "uid://1c4itcdppc509"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]

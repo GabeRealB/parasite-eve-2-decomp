@@ -2,7 +2,7 @@
 
 [glows]
 uid = "uid://1od4pyxfji25o"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [120, 40]
@@ -30,7 +30,7 @@ palettes = { effect_row_2 = "01bbd9090cc3c7aff25ec4b9610233b8f4443fb6", effect_r
 
 [lattice]
 uid = "uid://hyg42d0nxp5r"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [64, 64]

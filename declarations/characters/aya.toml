@@ -2,7 +2,7 @@
 
 [casual]
 uid = "uid://3be0alid5dnd"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://tifo5i55y0n5", path = "res://engine/vram/character_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [256, 256]
@@ -22,7 +22,7 @@ palettes = { default = "6ea0bf56ef1f39df744abccadb228ce3c560d168", default_2 = "
 
 [skeleton]
 uid = "uid://1f2rkjlfoicx3"
-kind = "skeleton"
+template = "skeleton"
 joints = [
     { name = "root", translation = [0, 0, 0], rotation = [0, 0, 0] },
     { name = "pelvis", parent = "root", translation = [0, -927, 0], rotation = [0, 0, 0] },
@@ -49,7 +49,7 @@ joints = [
 
 [aya]
 uid = "uid://vinvx0m1i1zv"
-kind = "prefab"
+template = "prefab"
 skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
 
 [aya.parts]

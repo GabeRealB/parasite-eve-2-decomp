@@ -2,7 +2,7 @@
 
 [smoke]
 uid = "uid://sx0eusibn3z"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [496, 256]
@@ -19,7 +19,7 @@ palettes = { effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }
 
 [creature]
 uid = "uid://1eqlz9ijjzhzc"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1ndxe29dxqbxv", path = "res://engine/vram/shared_sheets.node" }, at = [64, 0] }
 mode = "indexed_8bpp"
 size = [128, 128]
@@ -39,7 +39,7 @@ palettes = { effect_row_9 = "3827df5302cf771283d24c68f9926f29f4a75a1f", effect_r
 
 [creature_2]
 uid = "uid://1oc2vft7m15pr"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://1ndxe29dxqbxv", path = "res://engine/vram/shared_sheets.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 128]

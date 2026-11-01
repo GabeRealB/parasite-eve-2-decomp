@@ -2,7 +2,7 @@
 
 [view1_background]
 uid = "uid://1eabhqyn7lpe6"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view1_background.import]
@@ -14,7 +14,7 @@ sha1 = "1d31ed6c7f4ff5fcaeb569e5f2727200e5dbdfda"
 
 [view2_background]
 uid = "uid://13puu8r6tlpgg"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view2_background.import]
@@ -26,7 +26,7 @@ sha1 = "d898d1b9f2ff718a80c7a63714614c468bce6bc5"
 
 [view3_background]
 uid = "uid://1nqcpaw47mczw"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view3_background.import]
@@ -38,7 +38,7 @@ sha1 = "5dc967bf364cd0a94ed4e0c64659fde898c6725c"
 
 [view4_background]
 uid = "uid://18laysruyy62i"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view4_background.import]
@@ -50,7 +50,7 @@ sha1 = "a54629420f90e9dbf9f530a1b87a251f534d2d76"
 
 [view5_background]
 uid = "uid://jhcprk4xwibu"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view5_background.import]
@@ -62,7 +62,7 @@ sha1 = "47a0d899ed37ca031b0284603cbd87046add935e"
 
 [view6_background]
 uid = "uid://zdd5ozap9ukw"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view6_background.import]
@@ -74,7 +74,7 @@ sha1 = "584529e6b0199c608174509e26e6d009efe8bb1a"
 
 [view7_background]
 uid = "uid://1dr9k2bjg7nk1"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view7_background.import]
@@ -86,7 +86,7 @@ sha1 = "4ef81e21fba1bdc88ed051e761b63d02a2053df0"
 
 [view8_background]
 uid = "uid://t4ehqkdhm876"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view8_background.import]
@@ -98,7 +98,7 @@ sha1 = "03231ff5c58183ad6c42023265c354692dcad13c"
 
 [view9_background]
 uid = "uid://180igmpwr0t33"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view9_background.import]
@@ -110,7 +110,7 @@ sha1 = "8c8d1b4cb7802a10d6fadc0af2f1b01f2908cbff"
 
 [view10_background]
 uid = "uid://1n8xugvuutuc1"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view10_background.import]
@@ -122,7 +122,7 @@ sha1 = "ca0a3d340773e3f8030350974d86e901e801b671"
 
 [view11_background]
 uid = "uid://1purh1jqnfclq"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view11_background.import]
@@ -134,7 +134,7 @@ sha1 = "7f89d52f0b5a4a26605b7989d0548fbb9e2062eb"
 
 [view12_background]
 uid = "uid://6i88n07wz4kw"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view12_background.import]
@@ -146,7 +146,7 @@ sha1 = "80fc916b47b8ecd198af8d1e486db27bbe4f85e6"
 
 [view13_background]
 uid = "uid://vq2ivwlszvid"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view13_background.import]
@@ -158,7 +158,7 @@ sha1 = "ee780fa109b5c2a671d71f9b046f8d196a239a04"
 
 [view14_background]
 uid = "uid://i2spelqy7v1k"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view14_background.import]
@@ -170,7 +170,7 @@ sha1 = "aa7ff03962857b4bca67c2265213df216328bd14"
 
 [view15_background]
 uid = "uid://1cd4qj5gocv0b"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view15_background.import]
@@ -182,7 +182,7 @@ sha1 = "bc27e9a3bcb3f00b10a99f0e58843688c5157171"
 
 [view16_background]
 uid = "uid://4bjxz4pq3my6"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view16_background.import]
@@ -194,7 +194,7 @@ sha1 = "cf0c42569da8aa7df0bdc78a4582a1d1abbc6209"
 
 [view17_background]
 uid = "uid://177nvwsrm9ops"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view17_background.import]
@@ -206,7 +206,7 @@ sha1 = "2fd41d46258df9b76374d8736f1b0a8b28e496ac"
 
 [view18_background]
 uid = "uid://bovwnreu43k9"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view18_background.import]
@@ -218,7 +218,7 @@ sha1 = "db2150eb911e8679084b224ed744cb189e8489a7"
 
 [view19_background]
 uid = "uid://pl32mk6oafed"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view19_background.import]
@@ -230,7 +230,7 @@ sha1 = "bbf057f8fb6412547290a31abe6ff9c245483b03"
 
 [view20_background]
 uid = "uid://1vitadfp5v4he"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view20_background.import]
@@ -242,7 +242,7 @@ sha1 = "6e2985719b59ac923960895bea88eef37f306be5"
 
 [view21_background]
 uid = "uid://1gd4sv5oavy2k"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view21_background.import]
@@ -254,7 +254,7 @@ sha1 = "ffca62a0a50279b6a299867c539b58b8bd908457"
 
 [view22_background]
 uid = "uid://1bpe0tzdhbgcn"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view22_background.import]
@@ -266,7 +266,7 @@ sha1 = "f6430816ed7126cd848816c4d1fd43ee6ac196eb"
 
 [view23_background]
 uid = "uid://13d7b6jz4p3pm"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view23_background.import]
@@ -278,7 +278,7 @@ sha1 = "d133e338a67de4318b1bcdc930b3f689b1990850"
 
 [view24_background]
 uid = "uid://2pxg0gctzs8k"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view24_background.import]
@@ -290,7 +290,7 @@ sha1 = "acfd761fcd17451285d439a0335f2b77c4d36bc3"
 
 [view25_background]
 uid = "uid://st1z6a0k5u0y"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view25_background.import]
@@ -302,7 +302,7 @@ sha1 = "17fd1a2e046de91ceb3c1340d8be1ca5b6f21991"
 
 [view26_background]
 uid = "uid://16cao7vq5b504"
-kind = "image"
+template = "background"
 format = "bs"
 
 [view26_background.import]

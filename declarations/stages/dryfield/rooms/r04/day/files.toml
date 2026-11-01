@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://1tor1sowmi03b"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "glyph_page"
@@ -28,7 +28,7 @@ chunks = { glyph_page = "13873ef2308a1552312e965839e6fc8390526226" }
 
 [view1]
 uid = "uid://1wswjof8gh4u5"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1so2afymr9ioq", path = "res://stages/akropolis/rooms/mist_r21/views/view1_background.node" } },
 ]
@@ -38,7 +38,7 @@ at = [{ stage = 2, folder = 401, file = 1 }]
 
 [view2]
 uid = "uid://kfq6l6pbg8r9"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1so2afymr9ioq", path = "res://stages/akropolis/rooms/mist_r21/views/view1_background.node" } },
 ]

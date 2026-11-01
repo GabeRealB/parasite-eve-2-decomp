@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://yn4rywcgjm7r"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -200,7 +200,7 @@ chunks = { palette_0 = "11f13d3614ea702762a1173c116f478133fb96e1", image_0 = "d7
 
 [view1]
 uid = "uid://1rgbpkvjo730r"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1hnmpkwczuu7w", path = "res://stages/mine_shelter/rooms/cavern/views/view1_background.node" } },
 ]
@@ -210,7 +210,7 @@ at = [{ stage = 4, folder = 201, file = 1 }]
 
 [view2]
 uid = "uid://o8sjp5bkhnq0"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -230,7 +230,7 @@ chunks = { image = "d76141f604e6e9f6e5e48b1a7aaca6187d28fc8e" }
 
 [view3]
 uid = "uid://1aa2bk8lf3xtx"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"
@@ -250,7 +250,7 @@ chunks = { image = "d1a66440d45e61d4e6761b96b937354cf9f74282" }
 
 [view4]
 uid = "uid://802tp4m3k8o3"
-kind = "file"
+template = "file"
 
 [[view4.slots]]
 name = "image"
@@ -270,7 +270,7 @@ chunks = { image = "6714c70132eeba94f1fbbbf7a568c1b4196efb02" }
 
 [view5]
 uid = "uid://1hmfh8o99ax3y"
-kind = "file"
+template = "file"
 
 [[view5.slots]]
 name = "image"
@@ -290,7 +290,7 @@ chunks = { image = "fbe282f5f0e80549eb7a1b89bb32308e73e90fb0" }
 
 [view6]
 uid = "uid://3ku8483tiwpa"
-kind = "file"
+template = "file"
 
 [[view6.slots]]
 name = "image"
@@ -310,7 +310,7 @@ chunks = { image = "d98512be8fda0ad6f8c10185c1c1b7c9cdbd62c5" }
 
 [view7]
 uid = "uid://shrh8yb03pxy"
-kind = "file"
+template = "file"
 
 [[view7.slots]]
 name = "image"
@@ -330,7 +330,7 @@ chunks = { image = "e728cb77f35cdf19598f6a6dd8c7f92a1fe0bc7b" }
 
 [view8]
 uid = "uid://1f0arnlj0j2aj"
-kind = "file"
+template = "file"
 
 [[view8.slots]]
 name = "image"
@@ -350,7 +350,7 @@ chunks = { image = "36eec3516a975851fc9637a377405f292f349c7f" }
 
 [view9]
 uid = "uid://mvpd701tydn2"
-kind = "file"
+template = "file"
 
 [[view9.slots]]
 name = "image"
@@ -370,7 +370,7 @@ chunks = { image = "972c596229bbead92dbe4c05c9916d3c565aa1a3" }
 
 [view10]
 uid = "uid://mcba4ikbjyfi"
-kind = "file"
+template = "file"
 
 [[view10.slots]]
 name = "image"
@@ -390,7 +390,7 @@ chunks = { image = "cb46a72eb2fd8f31ac933703d33f76345ef31b72" }
 
 [view11]
 uid = "uid://1qxcc591k9oew"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1fip5z8rnhz1a", path = "res://stages/mine_shelter/rooms/cavern/views/view11_background.node" } },
 ]
@@ -400,7 +400,7 @@ at = [{ stage = 4, folder = 201, file = 11 }]
 
 [view12]
 uid = "uid://1nmufvm7ldxiu"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://hsa9wqu8jc96", path = "res://stages/mine_shelter/rooms/cavern/views/view12_background.node" } },
 ]
@@ -410,7 +410,7 @@ at = [{ stage = 4, folder = 201, file = 12 }]
 
 [view13]
 uid = "uid://1gdwatun3g06w"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1ub6gifg8jrto", path = "res://stages/mine_shelter/rooms/cavern/views/view13_background.node" } },
 ]
@@ -420,7 +420,7 @@ at = [{ stage = 4, folder = 201, file = 13 }]
 
 [view14]
 uid = "uid://1hmsxg2sz55o3"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://42j8s6svcet1", path = "res://stages/mine_shelter/rooms/cavern/views/view14_background.node" } },
 ]
@@ -430,7 +430,7 @@ at = [{ stage = 4, folder = 201, file = 14 }]
 
 [view15]
 uid = "uid://os90enjfeqbt"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://fwe9wt1cd1pp", path = "res://stages/mine_shelter/rooms/cavern/views/view15_background.node" } },
 ]
@@ -440,7 +440,7 @@ at = [{ stage = 4, folder = 201, file = 15 }]
 
 [view16]
 uid = "uid://1i8o7n08u0h28"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://u5h20391nzbh", path = "res://stages/mine_shelter/rooms/cavern/views/view16_background.node" } },
 ]
@@ -450,7 +450,7 @@ at = [{ stage = 4, folder = 201, file = 16 }]
 
 [view17]
 uid = "uid://1p71edfleq539"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://u0jnjib0ukyd", path = "res://stages/mine_shelter/rooms/cavern/views/view17_background.node" } },
 ]
@@ -460,7 +460,7 @@ at = [{ stage = 4, folder = 201, file = 17 }]
 
 [view18]
 uid = "uid://69v3l3glb50w"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1uoh8t5vs38tk", path = "res://stages/mine_shelter/rooms/cavern/views/view18_background.node" } },
 ]
@@ -470,7 +470,7 @@ at = [{ stage = 4, folder = 201, file = 18 }]
 
 [view19]
 uid = "uid://n824yo3t677c"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://64mladtxezaf", path = "res://stages/mine_shelter/rooms/cavern/views/view19_background.node" } },
 ]
@@ -480,7 +480,7 @@ at = [{ stage = 4, folder = 201, file = 19 }]
 
 [view20]
 uid = "uid://r458f14jqizj"
-kind = "file"
+template = "file"
 
 [[view20.slots]]
 name = "image"
@@ -500,7 +500,7 @@ chunks = { image = "c679bad17c4d5514fd22f48fb8b15ad965eacac1" }
 
 [view21]
 uid = "uid://1tre54hluo0of"
-kind = "file"
+template = "file"
 
 [[view21.slots]]
 name = "image"
@@ -520,7 +520,7 @@ chunks = { image = "536c377296c2c29cfed082c391ed7519b45941fe" }
 
 [view22]
 uid = "uid://1bcj3z8rrlm23"
-kind = "file"
+template = "file"
 
 [[view22.slots]]
 name = "image"
@@ -540,7 +540,7 @@ chunks = { image = "b182ad2cce75247130438641cc34c1dcb11d1f4b" }
 
 [view23]
 uid = "uid://1nx2r6wrbb2d8"
-kind = "file"
+template = "file"
 
 [[view23.slots]]
 name = "image"
@@ -560,7 +560,7 @@ chunks = { image = "4541c96df5c1454a9994b6e1d2f55361e3bad018" }
 
 [view24]
 uid = "uid://aa1qp1d3js2p"
-kind = "file"
+template = "file"
 
 [[view24.slots]]
 name = "image"
@@ -580,7 +580,7 @@ chunks = { image = "f2e2e902f654422c7d744bfa938c487e015e8601" }
 
 [view25]
 uid = "uid://1v15u8o5yy6yk"
-kind = "file"
+template = "file"
 
 [[view25.slots]]
 name = "image"

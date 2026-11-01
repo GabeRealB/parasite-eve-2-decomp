@@ -3,7 +3,7 @@
 
 [movie_14]
 uid = "uid://1oragwmdztmjm"
-kind = "movie"
+template = "movie"
 format = "str"
 
 [movie_14.from.USA]
@@ -11,7 +11,7 @@ sha1 = "fbd4e50453600addcfda92e971c0eae4344ce3e6"
 
 [movie_16]
 uid = "uid://4y6vnux6wn86"
-kind = "movie"
+template = "movie"
 format = "str"
 
 [movie_16.from.USA]

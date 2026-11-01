@@ -2,7 +2,7 @@
 
 [container]
 uid = "uid://1kh9tjaccx59w"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://mlk4og23ganv", path = "res://engine/vram/room_model_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -26,7 +26,7 @@ palettes = { default = "f463efbf6a4702b2828c74dbe29753d07f8c5801", stim = "446d9
 
 [model]
 uid = "uid://78u9qvsagvui"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [128, 256]
@@ -46,7 +46,7 @@ palettes = { default = "1a18cea47648422f0ad8958da6874d1776efe9ca", loose_prop = 
 
 [puff]
 uid = "uid://5igeqovcfi78"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://17nhe5wbc0j3b", path = "res://engine/vram/effect_sheet.node" }, at = [192, 0] }
 mode = "indexed_4bpp"
 size = [240, 160]

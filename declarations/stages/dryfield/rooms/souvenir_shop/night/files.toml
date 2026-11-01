@@ -2,7 +2,7 @@
 
 [base]
 uid = "uid://qakxhzsqiew1"
-kind = "file"
+template = "file"
 
 [[base.slots]]
 name = "sound_bank_0"
@@ -55,7 +55,7 @@ chunks = { dryfield_souvenir_shop_dialogue_0_atlas = "cb61a680e7df8702d894ef0058
 
 [view1]
 uid = "uid://w0x2f0fc0qzk"
-kind = "file"
+template = "file"
 slots = [
     { name = "background", type = "bs", asset = { uid = "uid://1u2ueyquzuxlv", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view1_background.node" } },
 ]
@@ -65,7 +65,7 @@ at = [{ stage = 3, folder = 601, file = 1 }]
 
 [view2]
 uid = "uid://3uf6xkpwmu57"
-kind = "file"
+template = "file"
 
 [[view2.slots]]
 name = "image"
@@ -85,7 +85,7 @@ chunks = { image = "9cc869ac6d4bf7f44ec23ce9dbde7287e488e4d4" }
 
 [view3]
 uid = "uid://9by1slcru2q"
-kind = "file"
+template = "file"
 
 [[view3.slots]]
 name = "image"

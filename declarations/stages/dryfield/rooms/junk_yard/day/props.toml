@@ -2,7 +2,7 @@
 
 [tire]
 uid = "uid://156zwfjxmk5tq"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://xi3z21iyfb30", path = "res://engine/vram/room_sprite_sheet.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
 size = [64, 176]

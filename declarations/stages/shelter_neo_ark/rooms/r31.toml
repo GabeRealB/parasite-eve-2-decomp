@@ -2,7 +2,7 @@
 
 [folder]
 uid = "uid://14kjc4hmq8czj"
-kind = "folder"
+template = "folder"
 stream_data = true
 streams = [
     { name = "scene_18", type = "scene_audio", asset = { uid = "uid://1dy0rhcf6a93b", path = "res://stages/shelter_neo_ark/rooms/r31/streams/scene_18.node" } },
@@ -19,7 +19,7 @@ at = [{ stage = 5, folder = 3101 }]
 
 [dialogue_0_atlas]
 uid = "uid://r2w9qimkqxel"
-kind = "image"
+template = "texture"
 page = { slot = { uid = "uid://2t95olu7p2b1", path = "res://engine/vram/dialogue_glyph_page.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 32]
