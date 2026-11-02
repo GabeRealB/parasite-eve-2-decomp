@@ -221,6 +221,7 @@ PERMUTER_DIR = Path("permuter")
 # C compiled from here, while their asm stays under the linking family.
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "buildsteps" / "gen_asset_inc.py"
+GEN_PACKAGE_VALUES = TOOLS_DIR / "buildsteps" / "gen_package_values.py"
 GEN_MODEL_INC = TOOLS_DIR / "buildsteps" / "gen_model_inc.py"
 GEN_MODEL_SOURCE = TOOLS_DIR / "buildsteps" / "gen_model_source.py"
 GEN_ANIMATION_SOURCE = TOOLS_DIR / "buildsteps" / "gen_animation_source.py"
@@ -758,27 +759,22 @@ match PLATFORM:
         COMPILE_COMMANDS_FLAGS = (
             f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -Wall"
         )
-        CPP_FLAGS = (
-            f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
-        )
+        CPP_OPTIONS = "-D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
         MASPSX_FLAGS = f"--gnu-as-path {AS} --run-assembler"
 
     case Platform.Linux:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
-        CPP_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
+        CPP_OPTIONS = "-D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
         MASPSX_FLAGS = "--run-assembler"
 
     case Platform.MacOS:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
-        CPP_FLAGS = (
-            f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
-        )
+        CPP_OPTIONS = "-D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
         MASPSX_FLAGS = "--run-assembler"
 
 CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff"
-AS_FLAGS = (
-    f"{ENDIAN} {INCLUDE_FLAGS} {OPT_FLAGS} -march=r3000 -mtune=r3000 -no-pad-sections"
-)
+AS_OPTIONS = f"{OPT_FLAGS} -march=r3000 -mtune=r3000 -no-pad-sections"
+AS_FLAGS = f"{ENDIAN} {INCLUDE_FLAGS} {AS_OPTIONS}"
 
 
 
@@ -1174,6 +1170,116 @@ def write_scoped_checksum(version_dir: str, names: list[str], exe_name: str) -> 
     return str(dest)
 
 
+def ninja_packages(
+    ninja_file,
+    game_version_idx: int,
+    skip_checksum: bool,
+    scoped_names: list[str] | None,
+) -> None:
+    """Every package the declarations say a target links, built by the rules everything is built by.
+
+    A package needs no split: its sources, its slots and its link script are its own. What its slots hold is answered
+    from the disc's bytes (gen_package_values.py), and the image is held to the same line of checksum.sha as the image
+    the split builds, until there is only one of them.
+    """
+    version = GAME_VERSIONS[game_version_idx].version_name
+    version_dir = GAME_VERSIONS[game_version_idx].metadata.version_dir
+    sys.path.insert(0, str(TOOLS_DIR / "buildsteps"))
+    from declarations import Declarations
+
+    declarations = Declarations()
+    packages = [p for p in declarations.packages() if Path(p.path).is_dir() and (scoped_names is None or p.name in scoped_names)]
+    if not packages:
+        return
+    root = BUILD_DIR / version_dir / "packages"
+    bindings = root / "bindings"
+    for name, public in declarations.public().items():
+        if public.is_dir():
+            project_tool().link_directory(bindings / "pkg" / name, public)
+
+    slots = tomllib.loads(Path(CONFIG_DIR, version_dir, "package_slots.toml").read_text(encoding="utf-8"))
+    published = [path.as_posix() for path in declarations.published()]
+    core = Path("packages/core")
+    variables = {"VERSION": f"-DVER_{version}", "SKIPASMFLAG": "", "PACKAGE_DEFINES": ""}
+    built = {}
+    for package in packages:
+        out = root / package.name
+        options, values = (out / "pe2_options.h").as_posix(), (out / "pe2_values.h").as_posix()
+        steps = [str(GEN_PACKAGE_VALUES), *(str(TOOLS_DIR / "buildsteps" / name) for name in ("declarations.py", "package_tokenizers.py", "stage0.py"))]
+        own = {"package": package.path, "release": version}
+        ninja_file.build(outputs=options, rule="package-options", implicit=steps, variables={**own, "config": version_dir.lower()})
+        includes = f"-I{core.as_posix()} -I{bindings.as_posix()} -I{out.as_posix()}"
+        first = []
+        for unit in package.units():
+            first.append((out / "first" / f"{unit.stem}.i").as_posix())
+            ninja_file.build(
+                outputs=first[-1],
+                rule="cpp",
+                inputs=unit.as_posix(),
+                order_only=[options],
+                variables={**variables, "INCLUDES": includes, "PACKAGE_DEFINES": "-DPE2_FIRST_PASS"},
+            )
+        ninja_file.build(outputs=values, rule="package-values", inputs=first, implicit=[*steps, str(GEN_MODEL_SOURCE)], variables=own)
+        objects = []
+        for unit in package.units():
+            stem = (out / unit.stem).as_posix()
+            ninja_file.build(
+                outputs=f"{stem}.i",
+                rule="cpp",
+                inputs=unit.as_posix(),
+                order_only=[options, values],
+                variables={**variables, "INCLUDES": includes},
+            )
+            ninja_file.build(outputs=f"{stem}.s", rule="cc", inputs=f"{stem}.i", implicit=[str(CC)], variables={"DLFLAG": DL_OVL_FLAGS})
+            ninja_file.build(
+                outputs=f"{stem}.o",
+                rule="maspsx",
+                inputs=f"{stem}.s",
+                implicit=MASPSX_SOURCES,
+                variables={
+                    "EXPANDIVFLAG": "--expand-div",
+                    "DLFLAG": DL_OVL_FLAGS,
+                    "MASPSXVER": "2.77",
+                    "AS_INCLUDES": f"-I{(core / 'include').as_posix()}",
+                },
+            )
+            objects.append(f"{stem}.o")
+        image = (out / package.name).as_posix()
+        ninja_file.build(
+            outputs=f"{image}.elf",
+            rule="package-elf",
+            inputs=objects,
+            implicit=[package.link_script.as_posix(), *published],
+            variables={
+                "slot": f"0x{slots[package.slot]:X}",
+                "script": package.link_script.as_posix(),
+                "published": " ".join(f"-T {path}" for path in published),
+            },
+        )
+        ninja_file.build(outputs=image, rule="objcopy", inputs=f"{image}.elf", variables={"sections": "-j .image"})
+        built[package.name] = image
+
+    if skip_checksum:
+        return
+    lines = []
+    for line in Path(CONFIG_DIR, version_dir, "checksum.sha").read_text(encoding="utf-8").splitlines():
+        parts = line.split()
+        if len(parts) == 2 and Path(parts[1]).name in built:
+            lines.append(f"{parts[0]}  {built[Path(parts[1]).name]}")
+    if len(lines) != len(built):
+        print(f"ERROR: {len(built)} packages built, {len(lines)} of them in checksum.sha")
+        sys.exit(1)
+    root.mkdir(parents=True, exist_ok=True)
+    listed = root / "checksum.sha"
+    listed.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    ninja_file.build(
+        outputs=(root / "checksum.ok").as_posix(),
+        rule="sha256sum",
+        inputs=(root if PLATFORM == Platform.Windows else listed).as_posix(),
+        implicit=list(built.values()),
+    )
+
+
 def ninja_build(
     split_entries: list[YamlInfo],
     game_version_idx: int,
@@ -1208,6 +1314,9 @@ def ninja_build(
     # verifier swapped build/ between the matching and objdiff modes, and every
     # switch saw the other mode's commands and rebuilt the whole project.
     ninja_rules_file.variable("builddir", "build")
+    # What a unit is compiled against, unless its edge says: a package's are its bindings.
+    ninja_rules_file.variable("INCLUDES", INCLUDE_FLAGS)
+    ninja_rules_file.variable("AS_INCLUDES", INCLUDE_FLAGS)
     os.makedirs("build", exist_ok=True)
     for log in (".ninja_log", ".ninja_deps"):
         if os.path.exists(log) and not os.path.exists(os.path.join("build", log)):
@@ -1240,13 +1349,13 @@ def ninja_build(
     ninja_rules_file.rule(
         "cpp",
         description="cpp $in",
-        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $PACKAGE_DEFINES -o $out $in",
+        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d $INCLUDES {CPP_OPTIONS} $VERSION $SKIPASMFLAG $PACKAGE_DEFINES -o $out $in",
         depfile="$out.d",
     )
     ninja_rules_file.rule(
         "maspsx",
         description="maspsx $in",
-        command=f"{MASPSX} {MASPSX_FLAGS} --aspsx-version=$MASPSXVER $EXPANDIVFLAG {AS_FLAGS} $DLFLAG --MD $out.d -o $out $in",
+        command=f"{MASPSX} {MASPSX_FLAGS} --aspsx-version=$MASPSXVER $EXPANDIVFLAG {ENDIAN} $AS_INCLUDES {AS_OPTIONS} $DLFLAG --MD $out.d -o $out $in",
         depfile="$out.d",
         deps="gcc",
     )
@@ -1263,7 +1372,28 @@ def ninja_build(
     ninja_rules_file.rule(
         "objcopy",
         description="objcopy $out",
-        command=f"{OBJCOPY} -O binary $pad_to $in $out",
+        command=f"{OBJCOPY} -O binary $pad_to $sections $in $out",
+    )
+    ninja_rules_file.rule(
+        "package-options",
+        description="package-options $package",
+        command=f"{PYTHON} {GEN_PACKAGE_VALUES} options $package $out --release $release --config $config",
+        depfile="$out.d",
+        deps="gcc",
+        restat=True,
+    )
+    ninja_rules_file.rule(
+        "package-values",
+        description="package-values $package",
+        command=f"{PYTHON} {GEN_PACKAGE_VALUES} values $package $out $in --release $release --rom {ROM_DIR}",
+        depfile="$out.d",
+        deps="gcc",
+        restat=True,
+    )
+    ninja_rules_file.rule(
+        "package-elf",
+        description="package-elf $out",
+        command=f"{LD} {ENDIAN} {OPT_FLAGS} -nostdlib --no-check-sections --defsym SLOT=$slot -Map $out.map -T $script $published -o $out $in",
     )
 
     if PLATFORM == Platform.Windows:
@@ -1657,6 +1787,9 @@ def ninja_build(
             ),
         )
         checksum_build_requirements.append(str(output))
+
+    if not objdiff_mode:
+        ninja_packages(ninja_file, game_version_idx, skip_checksum, scoped_names)
 
     if objdiff_mode:
         ninja_diff_file.build(

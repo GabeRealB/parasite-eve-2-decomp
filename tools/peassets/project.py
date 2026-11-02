@@ -155,18 +155,23 @@ def link(release: str, target: Path) -> Path:
     back to in this process and its children. Returns the link's path."""
     if is_project(target):
         target = data_root(target)
-    path = REPOSITORY / link_path(release)
-    target = Path(target).absolute()                # as given: an alias stays an alias
+    link_directory(REPOSITORY / link_path(release), Path(target))
+    os.environ[ENV] = str(link_path(release))
+    return link_path(release)
+
+
+def link_directory(path: Path, target: Path) -> None:
+    """Point `path` at a directory, as a junction on Windows, where a link needs privileges."""
+    target = target.absolute()                      # as given: an alias stays an alias
     if path.is_symlink() or path.exists():
         if path.is_symlink() and Path(os.readlink(path)) == target:
-            os.environ[ENV] = str(link_path(release))
-            return link_path(release)
+            return
         if path.is_symlink() or not path.is_dir():
             path.unlink()
         elif os.path.isjunction(path):
             os.rmdir(path)                  # removes the junction only, never what it points at
         else:
-            raise SystemExit(f"{path} is a directory, not a link to a project: move it away")
+            raise SystemExit(f"{path} is a directory, not a link: move it away")
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
         path.symlink_to(target, target_is_directory=True)
@@ -174,8 +179,6 @@ def link(release: str, target: Path) -> Path:
         if sys.platform != "win32":
             raise
         subprocess.run(["cmd", "/c", "mklink", "/J", str(path), str(target)], check=True, capture_output=True)
-    os.environ[ENV] = str(link_path(release))
-    return link_path(release)
 
 
 def default_root(release: str = "USA") -> Path:
