@@ -3,10 +3,6 @@
 [folder]
 uid = "uid://1n80ta7z4gey5"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "scene_51", type = "scene_audio", asset = { uid = "uid://1i68h609l7ne", path = "res://stages/dryfield/rooms/gas_station/night/streams/scene_51.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://b9dqxgnf3lz3", path = "res://stages/dryfield/rooms/gas_station/night/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://1rk30xf7479w1", path = "res://stages/dryfield/rooms/gas_station/night/files/view1.node" } },

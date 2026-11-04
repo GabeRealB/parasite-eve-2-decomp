@@ -145,6 +145,32 @@ type = "dialogue"
 index = 23
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://9wkxu6w2ap6", path = "res://stages/akropolis/rooms/mist_parking/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 190
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 30
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_101"
+type = "movie"
+asset = { uid = "uid://rxm8ge60gv0u", path = "res://stages/akropolis/rooms/mist_parking/movies/movie_101.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 190
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 31
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 1, folder = 1901, file = 0 }]
 chunks = { palette = "15b61ed756c83b45ea47a7a517df3854cd82ddaa", image = "840c617453f38705c00bad7d66c14ffb0a79cacb", dialogue_1_atlas = "654cf99a95b99f7eadffeb54147309f450c1d036", dialogue_0_atlas = "8ccf3bfd29c457423fbe9d2272f4e76eedd5a59e", dialogue_2_atlas = "a750953b680ad38ff8a51b1438c9f9623660c338" }

@@ -67,6 +67,45 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 8
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://f6rr1dgyrzc1", path = "res://stages/shelter_neo_ark/rooms/altar/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 448
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 37
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_101"
+type = "movie"
+asset = { uid = "uid://183ug80w718f9", path = "res://stages/shelter_neo_ark/rooms/altar/movies/movie_101.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 448
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 38
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_102"
+type = "movie"
+asset = { uid = "uid://1jt00jmpnhvkp", path = "res://stages/shelter_neo_ark/rooms/altar/movies/movie_102.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 230
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 39
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 5, folder = 2001, file = 0 }]
 chunks = { dialogue_0_atlas = "0550c5edc759d6e40944b3adbe56e123efdb3df4" }

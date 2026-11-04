@@ -22,6 +22,22 @@ resources = [
     { index = 0, type = "dialogue" },
 ]
 
+[[base.streams]]
+name = "scene_18"
+type = "scene_audio"
+asset = { uid = "uid://1dy0rhcf6a93b", path = "res://stages/shelter_neo_ark/rooms/r31/streams/scene_18.node" }
+group = 6
+id = 18
+sub_id = 11
+sub_id2 = 0
+volume_index = 0
+timing_buffer_kind = 1
+decode_buffer_bytes = 34816
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 0
+timing_buffer_bytes = 12288
+
 [base.from.USA]
 at = [{ stage = 5, folder = 3101, file = 0 }]
 chunks = { dialogue_0_atlas = "5554fcd2f79e30dc36476cd421ec7b3a00b0fc4a" }

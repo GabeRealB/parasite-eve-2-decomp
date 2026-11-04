@@ -120,6 +120,22 @@ type = "dialogue"
 index = 21
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_9"
+type = "scene_audio"
+asset = { uid = "uid://wq8tiff7x8e6", path = "res://stages/shelter_neo_ark/rooms/b6_nursery/streams/scene_9.node" }
+group = 5
+id = 9
+sub_id = 11
+sub_id2 = 0
+volume_index = 81
+timing_buffer_kind = 1
+decode_buffer_bytes = 22528
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
 [base.from.USA]
 at = [{ stage = 5, folder = 2201, file = 0 }]
 chunks = { dialogue_0_atlas = "f024fee932fa70845cec0c07b32a2884b53ed294", dialogue_2_atlas = "84cc9db6abbc119e9a6303bb7385adc57380931b", image = "d9034623d645380e11a833fa95c570751b4aa41a", palette = "a9a6bb5a465750b7078cdcc654bfa44a253e0152" }

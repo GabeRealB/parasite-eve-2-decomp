@@ -140,6 +140,22 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 19
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_29"
+type = "scene_audio"
+asset = { uid = "uid://6fwga7awfpgc", path = "res://stages/akropolis/rooms/patio/streams/scene_29.node" }
+group = 1
+id = 29
+sub_id = 11
+sub_id2 = 0
+volume_index = 23
+timing_buffer_kind = 0
+decode_buffer_bytes = 0
+sound_bank_mask = 0x20
+vlc_table_mode = 2
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
 [base.from.USA]
 at = [{ stage = 1, folder = 301, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "141e5dcd949de89d0d4ec09d677ac0f0a0699b3c" }

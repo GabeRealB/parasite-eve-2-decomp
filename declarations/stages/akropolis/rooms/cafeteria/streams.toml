@@ -1,38 +1,10 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
 
-[movie_100]
-uid = "uid://1qgvmt6gh4c0l"
-template = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/cafeteria_movie_100" }
-group = 0
-id = 100
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 726
-loop_mode = 0
-view_stream = 0
-display_mode = 1
-volume_table_index = 4
-upload_mode = 0
-
-[movie_100.from.USA]
-at = [{ stage = 1, folder = 401, stream = "movie_100" }]
-
 [scene_6]
 uid = "uid://1jwn6kq9y2le2"
 template = "scene_audio"
-group = 1
-id = 6
-sub_id = 11
-sub_id2 = 0
-volume_index = 17
-timing_buffer_kind = 1
-decode_buffer_bytes = 24576
-sound_bank_mask = 0x20
-vlc_table_mode = 1
-vlc_buffer_kind = 0
-timing_buffer_bytes = 2752
+format = "mts"
 
 [scene_6.from.USA]
-at = [{ stage = 1, folder = 401, stream = "scene_6" }]
+at = [{ stage = 1, folder = 401, stream = 1 }]
+sha1 = "c21bf0672454b1c720b2bb9f33342743820ebc82"

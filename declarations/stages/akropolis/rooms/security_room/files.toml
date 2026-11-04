@@ -129,6 +129,36 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 16
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_14"
+type = "movie"
+asset = { uid = "uid://1oragwmdztmjm", path = "res://stages/akropolis/rooms/security_room/movies/movie_14.node" }
+view = 14
+group = 1
+vram_x = 88
+vram_y = 64
+frame_limit = 60
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 22
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_16"
+type = "movie"
+asset = { uid = "uid://4y6vnux6wn86", path = "res://stages/akropolis/rooms/security_room/movies/movie_16.node" }
+view = 16
+group = 1
+vram_x = 77
+vram_y = 17
+frame_limit = 180
+loop_mode = 0
+view_stream = 1
+display_mode = 0
+volume_table_index = 23
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 1, folder = 601, file = 0 }]
 chunks = { palette = "ae879f1d2b055de10a045a730b6f54c4d2ad6b5d", image = "2751dd04724884f1175fd9fbb2ef6dcff263d715", dialogue_0_atlas = "5360b94da1bb881aa13d21ca02fd7a13a0377e73" }

@@ -103,6 +103,34 @@ palettes = [
 name = "package"
 type = "package"
 
+[[title.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" }
+disc = 1
+vram_x = 0
+vram_y = 0
+frame_limit = 1850
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 1
+upload_mode = 0
+
+[[title.streams]]
+name = "movie_101"
+type = "movie"
+asset = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" }
+disc = 2
+vram_x = 0
+vram_y = 0
+frame_limit = 1850
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 1
+upload_mode = 0
+
 [title.from.USA]
 at = [{ stage = 0, file = 1 }]
 chunks = { font_image = "be2e0e8b8369be9d2a7889b0335a6ee579de630c", dialogue_palette = "b770378551c0f0deda9e65172e056a817539c14f", sheet_image = "6891a8c4f5a876ab13c617bfa06851b3cdbbda4c", sheet_palette = "17188003fce13afabb38fed0a1d85b1e82622596" }

@@ -3,16 +3,6 @@
 [folder]
 uid = "uid://1ve0liumzbj6c"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "movie_2_0", type = "movie", asset = { uid = "uid://t61gouhjlji3", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_0.node" } },
-    { name = "movie_2_1", type = "movie", asset = { uid = "uid://5l3drpbi5xpw", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_1.node" } },
-    { name = "movie_2_2", type = "movie", asset = { uid = "uid://5cnknapc733z", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_2.node" } },
-    { name = "movie_2_3", type = "movie", asset = { uid = "uid://173h3kt6ct6iq", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_3.node" } },
-    { name = "movie_2_4", type = "movie", asset = { uid = "uid://1l2vrc8q5s5lf", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_4.node" } },
-    { name = "movie_2_5", type = "movie", asset = { uid = "uid://i8ybru8lsm6z", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_5.node" } },
-    { name = "movie_100", type = "movie", asset = { uid = "uid://16shbyuxtbq91", path = "res://stages/akropolis/rooms/plaza/streams/movie_100.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1jplau75nov80", path = "res://stages/akropolis/rooms/plaza/files/base.node" } },
 ]

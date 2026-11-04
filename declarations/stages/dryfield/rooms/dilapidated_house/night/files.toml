@@ -95,6 +95,50 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 11
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://k411zszjuk5y", path = "res://stages/dryfield/rooms/dilapidated_house/night/movies/movie_100.node" }
+disc = 1
+vram_x = 0
+vram_y = 24
+frame_limit = 942
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 6
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_101"
+type = "movie"
+asset = { uid = "uid://k411zszjuk5y", path = "res://stages/dryfield/rooms/dilapidated_house/night/movies/movie_100.node" }
+disc = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 942
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 6
+upload_mode = 0
+
+[[base.streams]]
+name = "scene_50"
+type = "scene_audio"
+asset = { uid = "uid://1kvach3yw1wb3", path = "res://stages/dryfield/rooms/dilapidated_house/night/streams/scene_50.node" }
+group = 3
+id = 50
+sub_id = 11
+sub_id2 = 0
+volume_index = 48
+timing_buffer_kind = 1
+decode_buffer_bytes = 36864
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 0
+timing_buffer_bytes = 4096
+
 [base.from.USA]
 at = [{ stage = 3, folder = 901, file = 0 }]
 chunks = { dryfield_dilapidated_house_dialogue_0_atlas = "beabd45cf5879da99bb6de64d8b4e92b8d98aaf5" }

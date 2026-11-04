@@ -103,6 +103,19 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 10
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://18na8aqoqvj4", path = "res://stages/dryfield/rooms/water_tank/day/streams/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 320
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 0
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 2, folder = 2101, file = 0 }]
 chunks = { dialogue_0_atlas = "b49498b644f4da490becf86e8ca6bbcab00c98b1", palette_0 = "f550bc7e46ae6b998c2be9d0ccb08d09edc8ea0f", palette_1 = "3d5eafb6e06075636dd023ef71576aeeaa29d4e2", image = "f4062db67a11edb6f4e79316dc29f612af453963" }

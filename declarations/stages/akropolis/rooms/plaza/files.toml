@@ -46,6 +46,103 @@ resources = [
     { index = 0, type = "dialogue" },
 ]
 
+[[base.streams]]
+name = "movie_2_0"
+type = "movie"
+asset = { uid = "uid://t61gouhjlji3", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_0.node" }
+view = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 400
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_2_1"
+type = "movie"
+asset = { uid = "uid://5l3drpbi5xpw", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_1.node" }
+view = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 400
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_2_2"
+type = "movie"
+asset = { uid = "uid://5cnknapc733z", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_2.node" }
+view = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 120
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_2_3"
+type = "movie"
+asset = { uid = "uid://173h3kt6ct6iq", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_3.node" }
+view = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 150
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_2_4"
+type = "movie"
+asset = { uid = "uid://1l2vrc8q5s5lf", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_4.node" }
+view = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 16
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_2_5"
+type = "movie"
+asset = { uid = "uid://i8ybru8lsm6z", path = "res://stages/akropolis/rooms/plaza/streams/movie_2_5.node" }
+view = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 50
+loop_mode = 0
+view_stream = 0
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://1wylkczfvlb8o", path = "res://stages/akropolis/rooms/plaza/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 655
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 3
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 1, folder = 501, file = 0 }]
 chunks = { palette = "e0fba54081099a907d06dfe2ab043ecee25cecb7", image = "a6db9ab1ac9e357ee4f7fd31e010dc18296fef03", dialogue_0_atlas = "cb93df1e724a86a7aa8c24205f2894cf1470609f" }

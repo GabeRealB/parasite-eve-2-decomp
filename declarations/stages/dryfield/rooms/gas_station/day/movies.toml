@@ -7,4 +7,5 @@ template = "movie"
 format = "str"
 
 [movie_100.from.USA]
+at = [{ disc = "disk1", slot = "INTER0.STR", clip = 15 }]
 sha1 = "b22dbccf3e9aeaa7ac54b57e5165053014df8a34"

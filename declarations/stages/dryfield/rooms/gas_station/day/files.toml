@@ -51,6 +51,34 @@ type = "dialogue"
 index = 15
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://1gu6k4o15q2jq", path = "res://stages/dryfield/rooms/gas_station/day/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 255
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 32
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_12"
+type = "movie"
+asset = { uid = "uid://16q4ol7u5745i", path = "res://stages/dryfield/rooms/gas_station/day/streams/movie_12.node" }
+view = 12
+group = 1
+vram_x = 108
+vram_y = 74
+frame_limit = 45
+loop_mode = 0
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 2, folder = 101, file = 0 }]
 chunks = { dialogue_0_atlas = "7a334be252c02598cc4efb1b69c6e07191a71a88" }

@@ -3,16 +3,6 @@
 [folder]
 uid = "uid://138doxnivf1hn"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "movie_100", type = "movie", asset = { uid = "uid://jy5eamher1iu", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_100.node" } },
-    { name = "movie_101", type = "movie", asset = { uid = "uid://e0vfkcma4cv1", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_101.node" } },
-    { name = "movie_102", type = "movie", asset = { uid = "uid://eyap8y8pfmax", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_102.node" } },
-    { name = "movie_103", type = "movie", asset = { uid = "uid://12orax1tke6ap", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/movie_103.node" } },
-    { name = "scene_58", type = "scene_audio", asset = { uid = "uid://1kowswnqm9z6c", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_58.node" } },
-    { name = "scene_59", type = "scene_audio", asset = { uid = "uid://s6hro3q0j8j2", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_59.node" } },
-    { name = "scene_60", type = "scene_audio", asset = { uid = "uid://1xxa4y116tu15", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_60.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://14zi42k775lb4", path = "res://stages/dryfield/rooms/motel_balcony/night/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://1jrpfjd17s03t", path = "res://stages/dryfield/rooms/motel_balcony/night/files/view1.node" } },

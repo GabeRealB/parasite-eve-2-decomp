@@ -33,10 +33,6 @@ palettes = { clock_digits = "1024c2959616eb438b197131d5ea3c5559f82b9a", bullseye
 [folder]
 uid = "uid://k7u1t7lkh8og"
 template = "folder"
-stream_data = false
-streams = [
-    { name = "movie_100", type = "movie", asset = { uid = "uid://1djv0b7hp11rs", path = "res://stages/akropolis/rooms/mist_shooting_gallery/streams/movie_100.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1bi6zkvafgyun", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://9m25sg2tj5yw", path = "res://stages/akropolis/rooms/mist_shooting_gallery/files/view1.node" } },

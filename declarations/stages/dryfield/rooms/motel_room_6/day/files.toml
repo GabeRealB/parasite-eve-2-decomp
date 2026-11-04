@@ -93,6 +93,19 @@ type = "dialogue"
 index = 13
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://fy7850eno8uc", path = "res://stages/dryfield/rooms/motel_room_6/day/streams/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 238
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 0
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 2, folder = 3001, file = 0 }]
 chunks = { dialogue_0_atlas = "f74cf5ae52c53ad2e52b1ef9fcdebd069a14bd96" }

@@ -112,6 +112,83 @@ type = "dialogue"
 index = 49
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://1xvpnck0fkddy", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 1191
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 13
+upload_mode = 0
+
+[[base.streams]]
+name = "scene_8_11"
+type = "scene_audio"
+asset = { uid = "uid://x4c1fbdzzol1", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_8_11.node" }
+group = 6
+id = 8
+sub_id = 11
+sub_id2 = 0
+volume_index = 96
+timing_buffer_kind = 1
+decode_buffer_bytes = 32768
+sound_bank_mask = 0xf
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 4436
+
+[[base.streams]]
+name = "scene_8_21"
+type = "scene_audio"
+asset = { uid = "uid://6f1am76hb486", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_8_21.node" }
+group = 6
+id = 8
+sub_id = 21
+sub_id2 = 0
+volume_index = 104
+timing_buffer_kind = 0
+decode_buffer_bytes = 30720
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
+[[base.streams]]
+name = "scene_8_31"
+type = "scene_audio"
+asset = { uid = "uid://f3o9mf5w5ttw", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_8_31.node" }
+group = 6
+id = 8
+sub_id = 31
+sub_id2 = 0
+volume_index = 105
+timing_buffer_kind = 0
+decode_buffer_bytes = 34816
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
+[[base.streams]]
+name = "scene_9"
+type = "scene_audio"
+asset = { uid = "uid://dx7uxtzch9oc", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_9.node" }
+group = 6
+id = 9
+sub_id = 11
+sub_id2 = 0
+volume_index = 97
+timing_buffer_kind = 1
+decode_buffer_bytes = 55296
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 9708
+
 [base.from.USA]
 at = [{ stage = 4, folder = 2301, file = 0 }]
 chunks = { dialogue_0_atlas = "427c6099128b3a5c8b9ee6dd2bac46e128f36735", image_0 = "14fbbdd2f69a460f18ecc324be0c8186a325bc17", palette = "daa1ec0814ff4d217cc4532405921466c83a7121", image_1 = "485b7cebed47da73a59fce52e46c7df51e9e5c85", image_2 = "eefa1284fb75e85ae9b42b0ffcc293c6e581f0be" }

@@ -95,6 +95,19 @@ type = "dialogue"
 index = 12
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://3ii50zrd57dy", path = "res://stages/mine_shelter/rooms/r36/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 904
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 17
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 4, folder = 3601, file = 0 }]
 chunks = { dialogue_0_atlas = "7a80a33143c6bc32c1c53eb6c00d26b33fef3dbd", dialogue_1_atlas = "3fcc04ce0c17ba924b84e1b82d2abb0fc993c457", dialogue_2_atlas = "5c2e5b3754d848d290858bc8090c52de392c414d", dialogue_3_atlas = "f4865240a7805d94d903cfe0a818521b68176c3d", image = "494f9b13557b6d86c32be9000fec5c5efacf9f31", palette = "8d323e55c03292a8984928ec9c3543d08604c13e" }

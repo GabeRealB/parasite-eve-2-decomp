@@ -3,11 +3,6 @@
 [folder]
 uid = "uid://pnlp68ygfsbv"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "scene_11", type = "scene_audio", asset = { uid = "uid://n0ai0wr05k2v", path = "res://stages/dryfield/rooms/dilapidated_house/day/streams/scene_11.node" } },
-    { name = "scene_12", type = "scene_audio", asset = { uid = "uid://re5od2hpifl4", path = "res://stages/dryfield/rooms/dilapidated_house/day/streams/scene_12.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://b30ng131nflx", path = "res://stages/dryfield/rooms/dilapidated_house/day/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://dhpgfq3wt1n6", path = "res://stages/dryfield/rooms/dilapidated_house/day/files/view1.node" } },

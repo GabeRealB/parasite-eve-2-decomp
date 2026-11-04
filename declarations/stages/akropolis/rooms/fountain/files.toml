@@ -156,6 +156,81 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 22
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_3"
+type = "movie"
+asset = { uid = "uid://ndjtz3udlxur", path = "res://stages/akropolis/rooms/fountain/streams/movie_3.node" }
+view = 3
+group = 1
+vram_x = 640
+vram_y = 256
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 1
+
+[[base.streams]]
+name = "movie_4"
+type = "movie"
+asset = { uid = "uid://qj24lvtb1ab5", path = "res://stages/akropolis/rooms/fountain/streams/movie_4.node" }
+view = 4
+group = 1
+vram_x = 77
+vram_y = 17
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_5"
+type = "movie"
+asset = { uid = "uid://t3xrzfsmbrlo", path = "res://stages/akropolis/rooms/fountain/streams/movie_5.node" }
+view = 5
+group = 1
+vram_x = 640
+vram_y = 256
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 1
+
+[[base.streams]]
+name = "movie_6"
+type = "movie"
+asset = { uid = "uid://szdewprrhcrr", path = "res://stages/akropolis/rooms/fountain/streams/movie_6.node" }
+view = 6
+group = 1
+vram_x = 0
+vram_y = 0
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_7"
+type = "movie"
+asset = { uid = "uid://15thshgdcrkqh", path = "res://stages/akropolis/rooms/fountain/streams/movie_7.node" }
+view = 7
+group = 1
+vram_x = 0
+vram_y = 8
+frame_limit = 315
+loop_mode = 1
+view_stream = 1
+display_mode = 0
+volume_table_index = 0
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 1, folder = 801, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "056dc86ae89ea7ed36fb24884a724f1a880bc152" }

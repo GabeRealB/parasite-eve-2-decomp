@@ -3,12 +3,6 @@
 [folder]
 uid = "uid://f5339sriqvnp"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "movie_100", type = "movie", asset = { uid = "uid://8wez4lpb9v8l", path = "res://stages/dryfield/rooms/dilapidated_house/night/streams/movie_100.node" } },
-    { name = "movie_101", type = "movie", asset = { uid = "uid://1gsxf71wjmegb", path = "res://stages/dryfield/rooms/dilapidated_house/night/streams/movie_101.node" } },
-    { name = "scene_50", type = "scene_audio", asset = { uid = "uid://1kvach3yw1wb3", path = "res://stages/dryfield/rooms/dilapidated_house/night/streams/scene_50.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1prh0723e1hds", path = "res://stages/dryfield/rooms/dilapidated_house/night/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://g17sd2jte5ci", path = "res://stages/dryfield/rooms/dilapidated_house/night/files/view1.node" } },

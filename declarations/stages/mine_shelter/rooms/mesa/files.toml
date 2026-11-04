@@ -108,6 +108,35 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 11
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://kv66gelg2hsp", path = "res://stages/mine_shelter/rooms/mesa/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 894
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 8
+upload_mode = 0
+
+[[base.streams]]
+name = "scene_1"
+type = "scene_audio"
+asset = { uid = "uid://1g6n2eyurci1z", path = "res://stages/mine_shelter/rooms/mesa/streams/scene_1.node" }
+group = 4
+id = 1
+sub_id = 11
+sub_id2 = 0
+volume_index = 64
+timing_buffer_kind = 0
+decode_buffer_bytes = 0
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
 [base.from.USA]
 at = [{ stage = 4, folder = 101, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "eb6a8e9236af37d710800868a25d0d318f49c7f0" }

@@ -25,7 +25,6 @@ palettes = { default = "52aca0cbe1943c291d140ded80130162d05b614b", default_2 = "
 [folder]
 uid = "uid://1qovokzbhuwmj"
 template = "folder"
-stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1uhhzkss5d02l", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://14wfwytp96we2", path = "res://stages/shelter_neo_ark/rooms/power_plant_2/files/view1.node" } },

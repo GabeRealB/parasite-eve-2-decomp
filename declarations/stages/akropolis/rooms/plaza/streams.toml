@@ -2,127 +2,54 @@
 
 [movie_2_0]
 uid = "uid://t61gouhjlji3"
-template = "movie_slot"
-group = 0
-id = 2
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 400
-loop_mode = 0
-view_stream = 0
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_2_0.from.USA]
-at = [{ stage = 1, folder = 501, stream = "movie_2_0" }]
+at = [{ stage = 1, folder = 501, stream = 0 }]
+sha1 = "6192d1339258fd729ca52f2152b2a73111ed07c0"
 
 [movie_2_1]
 uid = "uid://5l3drpbi5xpw"
-template = "movie_slot"
-group = 0
-id = 2
-sub_id = 1
-vram_x = 0
-vram_y = 24
-frame_limit = 400
-loop_mode = 0
-view_stream = 0
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_2_1.from.USA]
-at = [{ stage = 1, folder = 501, stream = "movie_2_1" }]
+at = [{ stage = 1, folder = 501, stream = 1 }]
+sha1 = "6526995a10dbd9e8f69c18a3f7b4ace1db942aaf"
 
 [movie_2_2]
 uid = "uid://5cnknapc733z"
-template = "movie_slot"
-group = 0
-id = 2
-sub_id = 2
-vram_x = 0
-vram_y = 24
-frame_limit = 120
-loop_mode = 0
-view_stream = 0
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_2_2.from.USA]
-at = [{ stage = 1, folder = 501, stream = "movie_2_2" }]
+at = [{ stage = 1, folder = 501, stream = 2 }]
+sha1 = "f256e5a07dbce18284197e895d922778a52c9d5b"
 
 [movie_2_3]
 uid = "uid://173h3kt6ct6iq"
-template = "movie_slot"
-group = 0
-id = 2
-sub_id = 3
-vram_x = 0
-vram_y = 24
-frame_limit = 150
-loop_mode = 0
-view_stream = 0
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_2_3.from.USA]
-at = [{ stage = 1, folder = 501, stream = "movie_2_3" }]
+at = [{ stage = 1, folder = 501, stream = 3 }]
+sha1 = "362dc807b12e00e9327ff33bdb9f28a84709c90a"
 
 [movie_2_4]
 uid = "uid://1l2vrc8q5s5lf"
-template = "movie_slot"
-group = 0
-id = 2
-sub_id = 4
-vram_x = 0
-vram_y = 24
-frame_limit = 16
-loop_mode = 0
-view_stream = 0
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_2_4.from.USA]
-at = [{ stage = 1, folder = 501, stream = "movie_2_4" }]
+at = [{ stage = 1, folder = 501, stream = 4 }]
+sha1 = "df0a76894262136195e1066b09aa89b903d58824"
 
 [movie_2_5]
 uid = "uid://i8ybru8lsm6z"
-template = "movie_slot"
-group = 0
-id = 2
-sub_id = 5
-vram_x = 0
-vram_y = 24
-frame_limit = 50
-loop_mode = 0
-view_stream = 0
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_2_5.from.USA]
-at = [{ stage = 1, folder = 501, stream = "movie_2_5" }]
-
-[movie_100]
-uid = "uid://16shbyuxtbq91"
-template = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/plaza_movie_100" }
-group = 0
-id = 100
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 655
-loop_mode = 0
-view_stream = 0
-display_mode = 1
-volume_table_index = 3
-upload_mode = 0
-
-[movie_100.from.USA]
-at = [{ stage = 1, folder = 501, stream = "movie_100" }]
+at = [{ stage = 1, folder = 501, stream = 5 }]
+sha1 = "b87cca90fb6aa17c0d9534f012d458fc2016b4c0"

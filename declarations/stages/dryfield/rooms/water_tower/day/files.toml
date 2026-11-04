@@ -150,6 +150,22 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 21
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_16"
+type = "scene_audio"
+asset = { uid = "uid://y06d6p0698h0", path = "res://stages/dryfield/rooms/water_tower/day/streams/scene_16.node" }
+group = 2
+id = 16
+sub_id = 11
+sub_id2 = 0
+volume_index = 33
+timing_buffer_kind = 1
+decode_buffer_bytes = 51200
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
 [base.from.USA]
 at = [{ stage = 2, folder = 2001, file = 0 }]
 chunks = { dialogue_0_atlas = "3e2028841ed7e82766749db0d2a88bc3e889efd8", image = "da88328261c7b67bea3d8f627cd0e71fa7b117f7", palette = "00ecedd6ef1b08e176f0f433383d14238c4917fb" }

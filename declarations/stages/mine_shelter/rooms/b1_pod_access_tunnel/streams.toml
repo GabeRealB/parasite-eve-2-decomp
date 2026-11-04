@@ -3,17 +3,8 @@
 [scene_10]
 uid = "uid://keyb0p5upipg"
 template = "scene_audio"
-group = 4
-id = 10
-sub_id = 11
-sub_id2 = 0
-volume_index = 65
-timing_buffer_kind = 1
-decode_buffer_bytes = 26624
-sound_bank_mask = 0x20
-vlc_table_mode = 1
-vlc_buffer_kind = 0
-timing_buffer_bytes = 2340
+format = "mts"
 
 [scene_10.from.USA]
-at = [{ stage = 4, folder = 1701, stream = "scene_10" }]
+at = [{ stage = 4, folder = 1701, stream = 0 }]
+sha1 = "6aff9d4753dc046209e53d5f99b84314a2d73fa5"

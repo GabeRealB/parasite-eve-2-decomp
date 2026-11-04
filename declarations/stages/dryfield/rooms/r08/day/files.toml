@@ -119,6 +119,22 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 6
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_13"
+type = "scene_audio"
+asset = { uid = "uid://pcwgd58vcagw", path = "res://stages/dryfield/rooms/r08/day/streams/scene_13.node" }
+group = 2
+id = 13
+sub_id = 11
+sub_id2 = 0
+volume_index = 37
+timing_buffer_kind = 3
+decode_buffer_bytes = 0
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 2
+timing_buffer_bytes = 2700
+
 [base.from.USA]
 at = [{ stage = 2, folder = 801, file = 0 }]
 chunks = { dryfield_r04_glyph_page = "13873ef2308a1552312e965839e6fc8390526226", palette_0 = "3b48349dd1a7042fdd254e6aa2aac8c62ff89d29", image_0 = "ad42f33d39131fc6f938f00350c24dcd41196fde", palette_1 = "a02be22cb3f00c891f13f623e39918ad4f5d9b59", image_1 = "9c0854bec8057ab871d35ba0bb6184728588431a" }

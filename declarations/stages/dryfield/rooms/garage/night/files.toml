@@ -122,6 +122,78 @@ type = "dialogue"
 index = 16
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://5mqbg1nqm3o9", path = "res://stages/dryfield/rooms/garage/night/movies/movie_100.node" }
+disc = 1
+vram_x = 0
+vram_y = 24
+frame_limit = 64
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 20
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_101"
+type = "movie"
+asset = { uid = "uid://5mqbg1nqm3o9", path = "res://stages/dryfield/rooms/garage/night/movies/movie_100.node" }
+disc = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 64
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 21
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_102"
+type = "movie"
+asset = { uid = "uid://1kky25yomytgg", path = "res://stages/dryfield/rooms/garage/night/movies/movie_102.node" }
+disc = 1
+vram_x = 0
+vram_y = 24
+frame_limit = 295
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 33
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_103"
+type = "movie"
+asset = { uid = "uid://1kky25yomytgg", path = "res://stages/dryfield/rooms/garage/night/movies/movie_102.node" }
+disc = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 295
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 34
+upload_mode = 0
+
+[[base.streams]]
+name = "scene_55"
+type = "scene_audio"
+asset = { uid = "uid://yvf9v4dvss6b", path = "res://stages/dryfield/rooms/garage/night/streams/scene_55.node" }
+group = 3
+id = 55
+sub_id = 11
+sub_id2 = 0
+volume_index = 50
+timing_buffer_kind = 0
+decode_buffer_bytes = 38912
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 0
+timing_buffer_bytes = 0
+
 [base.from.USA]
 at = [{ stage = 3, folder = 2401, file = 0 }]
 chunks = { dialogue_0_atlas = "5003ed85b77ca3fdeb5ac773b4a268c3d75d6534", image = "e093f61a523af7063cb1f2c22f26961aaaabcb52", palette = "3b104dfaa74aacde7276daa3382439dfcee62b75" }

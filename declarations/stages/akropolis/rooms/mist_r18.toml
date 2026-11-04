@@ -20,10 +20,6 @@ palettes = { default = "e3be4acc023ee949988e9cf9dd29c1a9df817c64" }
 [folder]
 uid = "uid://402azc6jtrj0"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "scene_30", type = "scene_audio", asset = { uid = "uid://ek35awqdr9ac", path = "res://stages/akropolis/rooms/mist_r18/streams/scene_30.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://3pdojlrt6r0a", path = "res://stages/akropolis/rooms/mist_r18/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://nghtr5yrluu5", path = "res://stages/akropolis/rooms/mist_r18/files/view1.node" } },

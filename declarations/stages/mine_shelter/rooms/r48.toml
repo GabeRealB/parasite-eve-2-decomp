@@ -3,12 +3,6 @@
 [folder]
 uid = "uid://1sw2w08irop5n"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "scene_10", type = "scene_audio", asset = { uid = "uid://svhzflciu526", path = "res://stages/mine_shelter/rooms/r48/streams/scene_10.node" } },
-    { name = "scene_11", type = "scene_audio", asset = { uid = "uid://zpqiz9tc8yhc", path = "res://stages/mine_shelter/rooms/r48/streams/scene_11.node" } },
-    { name = "scene_80", type = "scene_audio", asset = { uid = "uid://124r7jciuked0", path = "res://stages/mine_shelter/rooms/r48/streams/scene_80.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://dkoopdutgucp", path = "res://stages/mine_shelter/rooms/r48/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://1sne98j5rytjo", path = "res://stages/mine_shelter/rooms/r48/files/view1.node" } },

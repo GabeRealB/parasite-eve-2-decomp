@@ -167,6 +167,38 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 16
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_11"
+type = "scene_audio"
+asset = { uid = "uid://ku6k1ndkrb9k", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/streams/scene_11.node" }
+group = 6
+id = 11
+sub_id = 21
+sub_id2 = 0
+volume_index = 100
+timing_buffer_kind = 1
+decode_buffer_bytes = 32768
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2568
+
+[[base.streams]]
+name = "scene_12"
+type = "scene_audio"
+asset = { uid = "uid://bdl8tdxbrox1", path = "res://stages/mine_shelter/rooms/b2_pod_bottom/streams/scene_12.node" }
+group = 6
+id = 12
+sub_id = 11
+sub_id2 = 0
+volume_index = 101
+timing_buffer_kind = 1
+decode_buffer_bytes = 22528
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 3672
+
 [base.from.USA]
 at = [{ stage = 4, folder = 2201, file = 0 }]
 chunks = { dialogue_0_atlas = "5a7739521dd4695baff01ffdc5b21270bf020762", palette_0 = "a02be22cb3f00c891f13f623e39918ad4f5d9b59", image_0 = "9c0854bec8057ab871d35ba0bb6184728588431a", image_1 = "ff4d321a9961734ce0f3764f4bebcf95314e6b21", palette_1 = "accfd11136bb3c7445fd6e9d0259d81a00039b9f", image_2 = "45b559427acfbf0e63c1da1629e6ddb1874c6a66", palette_2 = "2150965b2110f2640f5420d4fd2f37b421e50af3" }

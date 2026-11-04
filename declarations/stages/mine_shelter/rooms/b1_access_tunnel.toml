@@ -3,7 +3,6 @@
 [folder]
 uid = "uid://wzlp0x9mebyq"
 template = "folder"
-stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1ko3thf9n1o65", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://1azi6s3z4gwee", path = "res://stages/mine_shelter/rooms/b1_access_tunnel/files/view1.node" } },

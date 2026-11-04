@@ -2,18 +2,9 @@
 
 [movie_100]
 uid = "uid://fy7850eno8uc"
-template = "movie_slot"
-group = 0
-id = 100
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 238
-loop_mode = 0
-view_stream = 0
-display_mode = 1
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_100.from.USA]
-at = [{ stage = 2, folder = 3001, stream = "movie_100" }]
+at = [{ stage = 2, folder = 3001, stream = 0 }]
+sha1 = "7a2518cf41d432293a5bb8e74f1051c4e0650458"

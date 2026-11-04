@@ -35,6 +35,19 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 3
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://1nhazy6sv8a9b", path = "res://stages/mine_shelter/rooms/r49/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 367
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 12
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 4, folder = 4901, file = 0 }]
 chunks = { dialogue_0_atlas = "856b583b758e2eb0599a76feb9ddcad4ff2aaf4f" }

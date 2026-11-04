@@ -155,6 +155,19 @@ type = "dialogue"
 index = 21
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://e1f9qyg5194v", path = "res://stages/akropolis/rooms/mist_shooting_gallery/movies/movie_100.node" }
+vram_x = 0
+vram_y = 24
+frame_limit = 1397
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 7
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 1, folder = 2001, file = 0 }]
 chunks = { dialogue_0_atlas = "eec03d0b7c4a9e7e550b2f0b13e2e14f50c793a2", image = "137c7555b0b464dbc5031ece82ac15935189b717", dialogue_2_atlas = "26278d1b232c40cac33dfdc98f0da3d1000a478b" }

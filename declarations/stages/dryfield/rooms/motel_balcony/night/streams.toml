@@ -1,131 +1,28 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
 
-[movie_100]
-uid = "uid://jy5eamher1iu"
-template = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/motel_balcony_night_movie_100" }
-group = 0
-id = 100
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 857
-loop_mode = 0
-view_stream = 0
-display_mode = 1
-volume_table_index = 16
-upload_mode = 0
-
-[movie_100.from.USA]
-at = [{ stage = 3, folder = 2901, stream = "movie_100" }]
-
-[movie_101]
-uid = "uid://e0vfkcma4cv1"
-template = "movie_slot"
-movie = { uid = "uid://1pucxqjuau6zg", path = "res://movies/inter_0.node", output = "entries/motel_balcony_night_movie_101" }
-group = 0
-id = 101
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 988
-loop_mode = 0
-view_stream = 0
-display_mode = 1
-volume_table_index = 18
-upload_mode = 0
-
-[movie_101.from.USA]
-at = [{ stage = 3, folder = 2901, stream = "movie_101" }]
-
-[movie_102]
-uid = "uid://eyap8y8pfmax"
-template = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/motel_balcony_night_movie_100" }
-group = 0
-id = 102
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 857
-loop_mode = 0
-view_stream = 0
-display_mode = 1
-volume_table_index = 16
-upload_mode = 0
-
-[movie_102.from.USA]
-at = [{ stage = 3, folder = 2901, stream = "movie_102" }]
-
-[movie_103]
-uid = "uid://12orax1tke6ap"
-template = "movie_slot"
-movie = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node", output = "entries/motel_balcony_night_movie_103" }
-group = 0
-id = 103
-sub_id = 0
-vram_x = 0
-vram_y = 24
-frame_limit = 988
-loop_mode = 0
-view_stream = 0
-display_mode = 1
-volume_table_index = 18
-upload_mode = 0
-
-[movie_103.from.USA]
-at = [{ stage = 3, folder = 2901, stream = "movie_103" }]
-
 [scene_58]
 uid = "uid://1kowswnqm9z6c"
 template = "scene_audio"
-group = 3
-id = 58
-sub_id = 11
-sub_id2 = 0
-volume_index = 51
-timing_buffer_kind = 1
-decode_buffer_bytes = 77824
-sound_bank_mask = 0x20
-vlc_table_mode = 1
-vlc_buffer_kind = 0
-timing_buffer_bytes = 2048
+format = "mts"
 
 [scene_58.from.USA]
-at = [{ stage = 3, folder = 2901, stream = "scene_58" }]
+at = [{ stage = 3, folder = 2901, stream = 4 }]
+sha1 = "04849ae072ecd23fc2252b9ae140fc2a4e1f6ec0"
 
 [scene_59]
 uid = "uid://s6hro3q0j8j2"
 template = "scene_audio"
-group = 3
-id = 59
-sub_id = 11
-sub_id2 = 0
-volume_index = 52
-timing_buffer_kind = 1
-decode_buffer_bytes = 57344
-sound_bank_mask = 0x20
-vlc_table_mode = 1
-vlc_buffer_kind = 0
-timing_buffer_bytes = 2048
+format = "mts"
 
 [scene_59.from.USA]
-at = [{ stage = 3, folder = 2901, stream = "scene_59" }]
+at = [{ stage = 3, folder = 2901, stream = 5 }]
+sha1 = "85ea22ef2f7101c75fd5abdca72591756b13ef7d"
 
 [scene_60]
 uid = "uid://1xxa4y116tu15"
 template = "scene_audio"
-group = 3
-id = 60
-sub_id = 11
-sub_id2 = 0
-volume_index = 53
-timing_buffer_kind = 1
-decode_buffer_bytes = 57344
-sound_bank_mask = 0x20
-vlc_table_mode = 1
-vlc_buffer_kind = 0
-timing_buffer_bytes = 2048
+format = "mts"
 
 [scene_60.from.USA]
-at = [{ stage = 3, folder = 2901, stream = "scene_60" }]
+at = [{ stage = 3, folder = 2901, stream = 6 }]
+sha1 = "f6da9c73d87e27735d565d4dcf6fe5387b191f17"

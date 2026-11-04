@@ -52,6 +52,22 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 9
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_57"
+type = "scene_audio"
+asset = { uid = "uid://1kg3tgzz7ne95", path = "res://stages/dryfield/rooms/r08/night/streams/scene_57.node" }
+group = 3
+id = 57
+sub_id = 11
+sub_id2 = 0
+volume_index = 48
+timing_buffer_kind = 0
+decode_buffer_bytes = 0
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 2
+timing_buffer_bytes = 0
+
 [base.from.USA]
 at = [{ stage = 3, folder = 801, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image_1 = "d79499a872c4488b4528176f94b638599d414fb5", image_0 = "4705ffacbbee6b47da067a35c71438e6b4bf5421" }

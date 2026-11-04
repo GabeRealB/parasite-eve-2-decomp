@@ -2,90 +2,45 @@
 
 [movie_3]
 uid = "uid://ndjtz3udlxur"
-template = "movie_slot"
-group = 1
-id = 3
-sub_id = 0
-vram_x = 640
-vram_y = 256
-frame_limit = 315
-loop_mode = 1
-view_stream = 1
-display_mode = 0
-volume_table_index = 0
-upload_mode = 1
+template = "movie"
+format = "str"
 
 [movie_3.from.USA]
-at = [{ stage = 1, folder = 801, stream = "movie_3" }]
+at = [{ stage = 1, folder = 801, stream = 0 }]
+sha1 = "b0ed996621207cd26baf50ef733de51bb0c59eb2"
 
 [movie_4]
 uid = "uid://qj24lvtb1ab5"
-template = "movie_slot"
-group = 1
-id = 4
-sub_id = 0
-vram_x = 77
-vram_y = 17
-frame_limit = 315
-loop_mode = 1
-view_stream = 1
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_4.from.USA]
-at = [{ stage = 1, folder = 801, stream = "movie_4" }]
+at = [{ stage = 1, folder = 801, stream = 1 }]
+sha1 = "eb45cfaa1f26c442789a884c5889c3db6e41edf8"
 
 [movie_5]
 uid = "uid://t3xrzfsmbrlo"
-template = "movie_slot"
-group = 1
-id = 5
-sub_id = 0
-vram_x = 640
-vram_y = 256
-frame_limit = 315
-loop_mode = 1
-view_stream = 1
-display_mode = 0
-volume_table_index = 0
-upload_mode = 1
+template = "movie"
+format = "str"
 
 [movie_5.from.USA]
-at = [{ stage = 1, folder = 801, stream = "movie_5" }]
+at = [{ stage = 1, folder = 801, stream = 2 }]
+sha1 = "ccc6bc46d9c71ad3d8ba57db1516695094bd1bee"
 
 [movie_6]
 uid = "uid://szdewprrhcrr"
-template = "movie_slot"
-group = 1
-id = 6
-sub_id = 0
-vram_x = 0
-vram_y = 0
-frame_limit = 315
-loop_mode = 1
-view_stream = 1
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_6.from.USA]
-at = [{ stage = 1, folder = 801, stream = "movie_6" }]
+at = [{ stage = 1, folder = 801, stream = 3 }]
+sha1 = "861cc0420b450b38dd525ea36f20a330eafc7084"
 
 [movie_7]
 uid = "uid://15thshgdcrkqh"
-template = "movie_slot"
-group = 1
-id = 7
-sub_id = 0
-vram_x = 0
-vram_y = 8
-frame_limit = 315
-loop_mode = 1
-view_stream = 1
-display_mode = 0
-volume_table_index = 0
-upload_mode = 0
+template = "movie"
+format = "str"
 
 [movie_7.from.USA]
-at = [{ stage = 1, folder = 801, stream = "movie_7" }]
+at = [{ stage = 1, folder = 801, stream = 4 }]
+sha1 = "c92c933e7187c793275ee5f095d6419e179b3002"

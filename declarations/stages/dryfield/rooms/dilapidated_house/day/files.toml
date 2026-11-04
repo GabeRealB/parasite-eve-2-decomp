@@ -119,6 +119,38 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 21
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_11"
+type = "scene_audio"
+asset = { uid = "uid://n0ai0wr05k2v", path = "res://stages/dryfield/rooms/dilapidated_house/day/streams/scene_11.node" }
+group = 2
+id = 11
+sub_id = 11
+sub_id2 = 0
+volume_index = 34
+timing_buffer_kind = 1
+decode_buffer_bytes = 38912
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[[base.streams]]
+name = "scene_12"
+type = "scene_audio"
+asset = { uid = "uid://re5od2hpifl4", path = "res://stages/dryfield/rooms/dilapidated_house/day/streams/scene_12.node" }
+group = 2
+id = 12
+sub_id = 11
+sub_id2 = 0
+volume_index = 35
+timing_buffer_kind = 1
+decode_buffer_bytes = 22528
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
 [base.from.USA]
 at = [{ stage = 2, folder = 901, file = 0 }]
 chunks = { dialogue_0_atlas = "beabd45cf5879da99bb6de64d8b4e92b8d98aaf5" }

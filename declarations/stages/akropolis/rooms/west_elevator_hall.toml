@@ -58,7 +58,6 @@ palettes = { default = "d1b2af14ed3e1b0cecfbe5c3d6f2621f7fbcb1dc", explosion_0 =
 [folder]
 uid = "uid://mvo5lqho5q3c"
 template = "folder"
-stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1io3bp0wz7rb0", path = "res://stages/akropolis/rooms/west_elevator_hall/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://avir2cjtjrk3", path = "res://stages/akropolis/rooms/west_elevator_hall/files/view1.node" } },

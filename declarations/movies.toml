@@ -1,32 +1,19 @@
-# Declarations: each disc's movie file, a list of entries - each a movie, its clip, back to back, as the disc dump
-# holds its 2336-byte mode 2 sectors - in order; movies are added, removed and reordered here. A stage's record names
-# an entry (`uid://...#entries/<id>`): its offset is the entry's place. The file has no bytes of its own: extraction
-# holds its movies, joined in order, to its sha1, and the pack assembles it from them.
+# Declarations: each disc's movie file, its movies with sound back to back as the disc dump holds them (2336-byte
+# mode 2 sectors). Which movies and in what order follows from its stages: each stage's files in order - stage 0's by
+# id, a stage's folders in its layout's order and their files by id - and each file's streams in order, the movies
+# that play from this file (a volume, and this disc where the stage is on both). The file has no bytes of its own:
+# extraction holds its movies, joined, to its sha1.
 
 [inter_0]                       # INTER0.STR
 uid = "uid://1pucxqjuau6zg"
 template = "stream"
-entries.stage0_movie_100 = { movie = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" } }
-entries.cafeteria_movie_100 = { movie = { uid = "uid://16bhza8ezllmy", path = "res://stages/akropolis/rooms/cafeteria/movies/movie_100.node" } }
-entries.plaza_movie_100 = { movie = { uid = "uid://1wylkczfvlb8o", path = "res://stages/akropolis/rooms/plaza/movies/movie_100.node" } }
-entries.security_room_movie_14 = { movie = { uid = "uid://1oragwmdztmjm", path = "res://stages/akropolis/rooms/security_room/movies/movie_14.node" } }
-entries.security_room_movie_16 = { movie = { uid = "uid://4y6vnux6wn86", path = "res://stages/akropolis/rooms/security_room/movies/movie_16.node" } }
-entries.forked_road_movie_7 = { movie = { uid = "uid://1kh3qcieur71", path = "res://stages/akropolis/rooms/forked_road/movies/movie_7.node" } }
-entries.forked_road_movie_8 = { movie = { uid = "uid://1rfrkovczep0n", path = "res://stages/akropolis/rooms/forked_road/movies/movie_8.node" } }
-entries.observatory_movie_6 = { movie = { uid = "uid://9xdmo0zsgna8", path = "res://stages/akropolis/rooms/observatory/movies/movie_6.node" } }
-entries.observatory_movie_7 = { movie = { uid = "uid://wvrfs52oufgg", path = "res://stages/akropolis/rooms/observatory/movies/movie_7.node" } }
-entries.promenade_movie_7 = { movie = { uid = "uid://bhuu3a1m7zg7", path = "res://stages/akropolis/rooms/promenade/movies/movie_7.node" } }
-entries.bridge_movie_9 = { movie = { uid = "uid://1w1cop2l6l354", path = "res://stages/akropolis/rooms/bridge/movies/movie_9.node" } }
-entries.helicopter_landing_pad_movie_100 = { movie = { uid = "uid://13zg9hdph02qo", path = "res://stages/akropolis/rooms/helicopter_landing_pad/movies/movie_100.node" } }
-entries.mist_parking_movie_100 = { movie = { uid = "uid://9wkxu6w2ap6", path = "res://stages/akropolis/rooms/mist_parking/movies/movie_100.node" } }
-entries.mist_parking_movie_101 = { movie = { uid = "uid://rxm8ge60gv0u", path = "res://stages/akropolis/rooms/mist_parking/movies/movie_101.node" } }
-entries.mist_shooting_gallery_movie_100 = { movie = { uid = "uid://e1f9qyg5194v", path = "res://stages/akropolis/rooms/mist_shooting_gallery/movies/movie_100.node" } }
-entries.gas_station_day_movie_100 = { movie = { uid = "uid://1gu6k4o15q2jq", path = "res://stages/dryfield/rooms/gas_station/day/movies/movie_100.node" } }
-entries.dilapidated_house_night_movie_100 = { movie = { uid = "uid://k411zszjuk5y", path = "res://stages/dryfield/rooms/dilapidated_house/night/movies/movie_100.node" } }
-entries.garage_night_movie_100 = { movie = { uid = "uid://5mqbg1nqm3o9", path = "res://stages/dryfield/rooms/garage/night/movies/movie_100.node" } }
-entries.garage_night_movie_102 = { movie = { uid = "uid://1kky25yomytgg", path = "res://stages/dryfield/rooms/garage/night/movies/movie_102.node" } }
-entries.motel_balcony_night_movie_100 = { movie = { uid = "uid://1wcpccbctpxbx", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_100.node" } }
-entries.motel_balcony_night_movie_101 = { movie = { uid = "uid://wl7hy1jd4plr", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_101.node" } }
+disc = 1
+stages = [
+    { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.node" },
+    { uid = "uid://1tqt929f2t16d", path = "res://disc/USA/stage1.node" },
+    { uid = "uid://zygbezs8hr4g", path = "res://disc/USA/stage2.node" },
+    { uid = "uid://1wcpm47vl56d1", path = "res://disc/USA/stage3.node" },
+]
 
 [inter_0.from.USA]
 at = [{ disc = "disk1", slot = "INTER0.STR" }]
@@ -35,24 +22,13 @@ sha1 = "34a744a7a9896ff966373b507dd35e95c336b406"
 [inter_1]                       # INTER1.STR
 uid = "uid://e5or642we8nj"
 template = "stream"
-entries.stage0_movie_100 = { movie = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" } }
-entries.dilapidated_house_night_movie_100 = { movie = { uid = "uid://k411zszjuk5y", path = "res://stages/dryfield/rooms/dilapidated_house/night/movies/movie_100.node" } }
-entries.garage_night_movie_100 = { movie = { uid = "uid://5mqbg1nqm3o9", path = "res://stages/dryfield/rooms/garage/night/movies/movie_100.node" } }
-entries.garage_night_movie_102 = { movie = { uid = "uid://1kky25yomytgg", path = "res://stages/dryfield/rooms/garage/night/movies/movie_102.node" } }
-entries.motel_balcony_night_movie_100 = { movie = { uid = "uid://1wcpccbctpxbx", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_100.node" } }
-entries.motel_balcony_night_movie_103 = { movie = { uid = "uid://s557ou9v8enq", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_103.node" } }
-entries.mesa_movie_100 = { movie = { uid = "uid://kv66gelg2hsp", path = "res://stages/mine_shelter/rooms/mesa/movies/movie_100.node" } }
-entries.b1_control_room_movie_100 = { movie = { uid = "uid://xxdvtf2xm6ai", path = "res://stages/mine_shelter/rooms/b1_control_room/movies/movie_100.node" } }
-entries.b1_pod_service_gantry_movie_100 = { movie = { uid = "uid://1xvpnck0fkddy", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/movies/movie_100.node" } }
-entries.r36_movie_100 = { movie = { uid = "uid://3ii50zrd57dy", path = "res://stages/mine_shelter/rooms/r36/movies/movie_100.node" } }
-entries.r49_movie_100 = { movie = { uid = "uid://1nhazy6sv8a9b", path = "res://stages/mine_shelter/rooms/r49/movies/movie_100.node" } }
-entries.1f_bulwark_movie_100 = { movie = { uid = "uid://5ku7xs94aj0u", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/movies/movie_100.node" } }
-entries.1f_guardroom_movie_3 = { movie = { uid = "uid://1uztw01g78f9k", path = "res://stages/shelter_neo_ark/rooms/1f_guardroom/movies/movie_3.node" } }
-entries.eve_elevator_movie_2 = { movie = { uid = "uid://1quzpncgl9joa", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/movies/movie_2.node" } }
-entries.altar_movie_100 = { movie = { uid = "uid://f6rr1dgyrzc1", path = "res://stages/shelter_neo_ark/rooms/altar/movies/movie_100.node" } }
-entries.altar_movie_101 = { movie = { uid = "uid://183ug80w718f9", path = "res://stages/shelter_neo_ark/rooms/altar/movies/movie_101.node" } }
-entries.altar_movie_102 = { movie = { uid = "uid://1jt00jmpnhvkp", path = "res://stages/shelter_neo_ark/rooms/altar/movies/movie_102.node" } }
-entries.b6_training_room_movie_100 = { movie = { uid = "uid://kc6qeh5rl08f", path = "res://stages/shelter_neo_ark/rooms/b6_training_room/movies/movie_100.node" } }
+disc = 2
+stages = [
+    { uid = "uid://6y4ofuju8glz", path = "res://disc/USA/stage0.node" },
+    { uid = "uid://1wcpm47vl56d1", path = "res://disc/USA/stage3.node" },
+    { uid = "uid://1jmuik9hncwsr", path = "res://disc/USA/stage4.node" },
+    { uid = "uid://1oppn2fubwsqg", path = "res://disc/USA/stage5.node" },
+]
 
 [inter_1.from.USA]
 at = [{ disc = "disk2", slot = "INTER1.STR" }]

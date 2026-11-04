@@ -30,6 +30,20 @@ resources = [
     { index = 0, type = "dialogue" },
 ]
 
+[[base.streams]]
+name = "movie_2"
+type = "movie"
+asset = { uid = "uid://1quzpncgl9joa", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/movies/movie_2.node" }
+view = 2
+vram_x = 0
+vram_y = 0
+frame_limit = 310
+loop_mode = 0
+view_stream = 1
+display_mode = 0
+volume_table_index = 36
+upload_mode = 0
+
 [base.from.USA]
 at = [{ stage = 5, folder = 901, file = 0 }]
 chunks = { dialogue_0_atlas = "c224e093174d24ea54347f79ffaabed632fe64fb" }

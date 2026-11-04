@@ -27,7 +27,6 @@ palettes = { default = "9a71722d39347f758625e6ce34567ec40cc39c97", default_2 = "
 [folder]
 uid = "uid://3o2ak6ad7brp"
 template = "folder"
-stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://yn4rywcgjm7r", path = "res://stages/mine_shelter/rooms/cavern/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://1rgbpkvjo730r", path = "res://stages/mine_shelter/rooms/cavern/files/view1.node" } },

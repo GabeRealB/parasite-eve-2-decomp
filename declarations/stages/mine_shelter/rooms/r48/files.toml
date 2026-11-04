@@ -170,6 +170,54 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 18
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_10"
+type = "scene_audio"
+asset = { uid = "uid://svhzflciu526", path = "res://stages/mine_shelter/rooms/r48/streams/scene_10.node" }
+group = 6
+id = 10
+sub_id = 11
+sub_id2 = 0
+volume_index = 98
+timing_buffer_kind = 1
+decode_buffer_bytes = 32768
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[[base.streams]]
+name = "scene_11"
+type = "scene_audio"
+asset = { uid = "uid://zpqiz9tc8yhc", path = "res://stages/mine_shelter/rooms/r48/streams/scene_11.node" }
+group = 6
+id = 11
+sub_id = 11
+sub_id2 = 0
+volume_index = 99
+timing_buffer_kind = 1
+decode_buffer_bytes = 45056
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[[base.streams]]
+name = "scene_80"
+type = "scene_audio"
+asset = { uid = "uid://124r7jciuked0", path = "res://stages/mine_shelter/rooms/r48/streams/scene_80.node" }
+group = 6
+id = 80
+sub_id = 11
+sub_id2 = 0
+volume_index = 0
+timing_buffer_kind = 1
+decode_buffer_bytes = 102400
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
 [base.from.USA]
 at = [{ stage = 4, folder = 4801, file = 0 }]
 chunks = { dialogue_0_atlas = "50ddeb1c1b2acdbcd2bad46688d8143309e3365e", palette = "2807f75a95111ebbf48a31190141e1fa18f145f6", image = "c9247d564cac487a71122bc9e0f68ffe87aac55e" }

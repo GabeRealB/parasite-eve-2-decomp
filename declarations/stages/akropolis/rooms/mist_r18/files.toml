@@ -72,6 +72,22 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 10
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_30"
+type = "scene_audio"
+asset = { uid = "uid://ek35awqdr9ac", path = "res://stages/akropolis/rooms/mist_r18/streams/scene_30.node" }
+group = 1
+id = 30
+sub_id = 11
+sub_id2 = 0
+volume_index = 24
+timing_buffer_kind = 1
+decode_buffer_bytes = 22528
+sound_bank_mask = 0x20
+vlc_table_mode = 0
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
 [base.from.USA]
 at = [{ stage = 1, folder = 1801, file = 0 }]
 chunks = { palette_0 = "37ba03cc4f84cabaabfcf58b833fdc226baff1b2", palette_1 = "5be24498a488b517e5661298838e17a393f5737c", image = "0c377f40f81e995f257a140dc8f470ccee3d8c60", dialogue_0_atlas = "bd30c83aaf299464dfe503b32f9cd8923d34eee4" }

@@ -3,35 +3,17 @@
 [scene_11]
 uid = "uid://ku6k1ndkrb9k"
 template = "scene_audio"
-group = 6
-id = 11
-sub_id = 21
-sub_id2 = 0
-volume_index = 100
-timing_buffer_kind = 1
-decode_buffer_bytes = 32768
-sound_bank_mask = 0x20
-vlc_table_mode = 1
-vlc_buffer_kind = 0
-timing_buffer_bytes = 2568
+format = "mts"
 
 [scene_11.from.USA]
-at = [{ stage = 4, folder = 2201, stream = "scene_11" }]
+at = [{ stage = 4, folder = 2201, stream = 0 }]
+sha1 = "7649b9b92aebd42e56c6edfbeee9efa78bf8b124"
 
 [scene_12]
 uid = "uid://bdl8tdxbrox1"
 template = "scene_audio"
-group = 6
-id = 12
-sub_id = 11
-sub_id2 = 0
-volume_index = 101
-timing_buffer_kind = 1
-decode_buffer_bytes = 22528
-sound_bank_mask = 0x20
-vlc_table_mode = 1
-vlc_buffer_kind = 0
-timing_buffer_bytes = 3672
+format = "mts"
 
 [scene_12.from.USA]
-at = [{ stage = 4, folder = 2201, stream = "scene_12" }]
+at = [{ stage = 4, folder = 2201, stream = 1 }]
+sha1 = "276960707b3ed53c6f92ec9b0494e189ef37ec4a"

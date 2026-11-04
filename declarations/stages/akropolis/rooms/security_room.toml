@@ -3,11 +3,6 @@
 [folder]
 uid = "uid://1mjqmn059cov4"
 template = "folder"
-stream_data = false
-streams = [
-    { name = "movie_14", type = "movie", asset = { uid = "uid://1nnof0hvs1afi", path = "res://stages/akropolis/rooms/security_room/streams/movie_14.node" } },
-    { name = "movie_16", type = "movie", asset = { uid = "uid://nkt2mx05z8q", path = "res://stages/akropolis/rooms/security_room/streams/movie_16.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://it60kyc0zyhd", path = "res://stages/akropolis/rooms/security_room/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://16pmheuasayg8", path = "res://stages/akropolis/rooms/security_room/files/view1.node" } },

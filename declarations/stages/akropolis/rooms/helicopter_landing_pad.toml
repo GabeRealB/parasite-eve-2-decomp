@@ -3,13 +3,6 @@
 [folder]
 uid = "uid://1p5yx2slqhz49"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "movie_100", type = "movie", asset = { uid = "uid://1r0fwln7zoerx", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/movie_100.node" } },
-    { name = "scene_9_11", type = "scene_audio", asset = { uid = "uid://jqcdyknxcx6h", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/scene_9_11.node" } },
-    { name = "scene_9_21", type = "scene_audio", asset = { uid = "uid://m3v9452wbdi7", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/scene_9_21.node" } },
-    { name = "scene_10", type = "scene_audio", asset = { uid = "uid://1ik932jiyhsf1", path = "res://stages/akropolis/rooms/helicopter_landing_pad/streams/scene_10.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://kjomhrzsxzpp", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://x8pd1xtiaxnu", path = "res://stages/akropolis/rooms/helicopter_landing_pad/files/view1.node" } },

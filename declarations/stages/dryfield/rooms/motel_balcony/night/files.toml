@@ -376,6 +376,110 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 39
 type = "dialogue"
 
+[[base.streams]]
+name = "movie_100"
+type = "movie"
+asset = { uid = "uid://1wcpccbctpxbx", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_100.node" }
+disc = 1
+vram_x = 0
+vram_y = 24
+frame_limit = 857
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 16
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_101"
+type = "movie"
+asset = { uid = "uid://wl7hy1jd4plr", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_101.node" }
+disc = 1
+vram_x = 0
+vram_y = 24
+frame_limit = 988
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 18
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_102"
+type = "movie"
+asset = { uid = "uid://1wcpccbctpxbx", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_100.node" }
+disc = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 857
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 16
+upload_mode = 0
+
+[[base.streams]]
+name = "movie_103"
+type = "movie"
+asset = { uid = "uid://s557ou9v8enq", path = "res://stages/dryfield/rooms/motel_balcony/night/movies/movie_103.node" }
+disc = 2
+vram_x = 0
+vram_y = 24
+frame_limit = 988
+loop_mode = 0
+view_stream = 0
+display_mode = 1
+volume_table_index = 18
+upload_mode = 0
+
+[[base.streams]]
+name = "scene_58"
+type = "scene_audio"
+asset = { uid = "uid://1kowswnqm9z6c", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_58.node" }
+group = 3
+id = 58
+sub_id = 11
+sub_id2 = 0
+volume_index = 51
+timing_buffer_kind = 1
+decode_buffer_bytes = 77824
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[[base.streams]]
+name = "scene_59"
+type = "scene_audio"
+asset = { uid = "uid://s6hro3q0j8j2", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_59.node" }
+group = 3
+id = 59
+sub_id = 11
+sub_id2 = 0
+volume_index = 52
+timing_buffer_kind = 1
+decode_buffer_bytes = 57344
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[[base.streams]]
+name = "scene_60"
+type = "scene_audio"
+asset = { uid = "uid://1xxa4y116tu15", path = "res://stages/dryfield/rooms/motel_balcony/night/streams/scene_60.node" }
+group = 3
+id = 60
+sub_id = 11
+sub_id2 = 0
+volume_index = 53
+timing_buffer_kind = 1
+decode_buffer_bytes = 57344
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
 [base.from.USA]
 at = [{ stage = 3, folder = 2901, file = 0 }]
 chunks = { dryfield_motel_balcony_dialogue_0_atlas = "bdb99ae12008f2a981c6f1c7a648b846c5bb58af", palette_0 = "d75dc841a613e427d22801f7144f0679c02908b9", palette_1 = "ae5cafa5713a0d8ba8b4ce97c9ce0852536e5fea", image = "996c18eff4ecc16b1439c52804e651e44e74c1a4" }

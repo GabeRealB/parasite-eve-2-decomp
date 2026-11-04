@@ -64,6 +64,38 @@ resources = [
     { index = 40, type = "dialogue" },
 ]
 
+[[base.streams]]
+name = "scene_19"
+type = "scene_audio"
+asset = { uid = "uid://1m5brytcbdrcp", path = "res://stages/mine_shelter/rooms/b3_garbage_incinerator/streams/scene_19.node" }
+group = 4
+id = 19
+sub_id = 11
+sub_id2 = 0
+volume_index = 68
+timing_buffer_kind = 1
+decode_buffer_bytes = 30720
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
+[[base.streams]]
+name = "scene_20"
+type = "scene_audio"
+asset = { uid = "uid://173pq041lmqsf", path = "res://stages/mine_shelter/rooms/b3_garbage_incinerator/streams/scene_20.node" }
+group = 4
+id = 20
+sub_id = 11
+sub_id2 = 0
+volume_index = 0
+timing_buffer_kind = 1
+decode_buffer_bytes = 22528
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2048
+
 [base.from.USA]
 at = [{ stage = 4, folder = 4001, file = 0 }]
 chunks = { dialogue_0_atlas = "328b32b3d537b10c1517d2fae40e3d8724966639", palette_0 = "fa4063e644ec8c23510bd643b4afae7671937652", palette_1 = "daa1ec0814ff4d217cc4532405921466c83a7121", image_0 = "485b7cebed47da73a59fce52e46c7df51e9e5c85", image_1 = "f1b9ce0f53ac463d714e80a0971b1575216ed800" }

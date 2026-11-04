@@ -173,6 +173,10 @@ class Declarations:
         for file in self.files:
             group = file.relative_to(root).with_suffix("").as_posix()
             if group.startswith("disc/"):
+                # A disc layout is one asset, the whole file.
+                layout = tomllib.loads(file.read_text(encoding="utf-8"))
+                if "uid" in layout:
+                    self._add(Declaration(group, layout))
                 continue
             for key, table in tomllib.loads(file.read_text(encoding="utf-8")).items():
                 if isinstance(table, dict) and "uid" in table:

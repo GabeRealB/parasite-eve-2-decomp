@@ -25,10 +25,6 @@ palettes = { flame_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flame_1 = "62
 [folder]
 uid = "uid://byz9k900fel"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "scene_7", type = "scene_audio", asset = { uid = "uid://coqmkoidngkp", path = "res://stages/akropolis/rooms/sanctuary/streams/scene_7.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://idls9k67c8ek", path = "res://stages/akropolis/rooms/sanctuary/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://xc8e361qf2k7", path = "res://stages/akropolis/rooms/sanctuary/files/view1.node" } },

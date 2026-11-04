@@ -20,10 +20,6 @@ palettes = { default = "584c7c3e7634c53abb05a0e3268f45d78ceb3bb1" }
 [folder]
 uid = "uid://blhqxuoexg3c"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "scene_10", type = "scene_audio", asset = { uid = "uid://keyb0p5upipg", path = "res://stages/mine_shelter/rooms/b1_pod_access_tunnel/streams/scene_10.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://1g14hxyoc8rgu", path = "res://stages/mine_shelter/rooms/b1_pod_access_tunnel/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://195m0ni8djbay", path = "res://stages/mine_shelter/rooms/b1_pod_access_tunnel/files/view1.node" } },

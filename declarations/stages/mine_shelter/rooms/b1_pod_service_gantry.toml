@@ -3,14 +3,6 @@
 [folder]
 uid = "uid://2ar0x4njcome"
 template = "folder"
-stream_data = true
-streams = [
-    { name = "movie_100", type = "movie", asset = { uid = "uid://xb4jutk52wnw", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/movie_100.node" } },
-    { name = "scene_8_11", type = "scene_audio", asset = { uid = "uid://x4c1fbdzzol1", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_8_11.node" } },
-    { name = "scene_8_21", type = "scene_audio", asset = { uid = "uid://6f1am76hb486", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_8_21.node" } },
-    { name = "scene_8_31", type = "scene_audio", asset = { uid = "uid://f3o9mf5w5ttw", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_8_31.node" } },
-    { name = "scene_9", type = "scene_audio", asset = { uid = "uid://dx7uxtzch9oc", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/streams/scene_9.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://ve2fqivlzmcv", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://fahqcq0iyyd1", path = "res://stages/mine_shelter/rooms/b1_pod_service_gantry/files/view1.node" } },

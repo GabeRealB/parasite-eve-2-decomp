@@ -3,7 +3,6 @@
 [folder]
 uid = "uid://7it7spbjtbtr"
 template = "folder"
-stream_data = false
 files = [
     { name = "base", id = 0, asset = { uid = "uid://3tq8shh2pyff", path = "res://stages/akropolis/rooms/hallway/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://xnhgv6vcoz1a", path = "res://stages/akropolis/rooms/hallway/files/view1.node" } },

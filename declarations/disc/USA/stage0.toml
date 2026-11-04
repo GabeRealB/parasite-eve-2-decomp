@@ -6,11 +6,6 @@ at = [
     { disc = "disk1", slots = ["STAGE0.HED", "STAGE0.CDF"] },
     { disc = "disk2", slots = ["STAGE0.HED", "STAGE0.CDF"] },
 ]
-streams = [
-    { name = "movie_100", type = "movie", asset = { uid = "uid://15lliaoygs66e", path = "res://stage0/streams/movie_100.node" } },
-    { name = "movie_101", type = "movie", asset = { uid = "uid://146npur5w9cp2", path = "res://stage0/streams/movie_101.node" } },
-    { name = "scene_1", type = "scene_audio", asset = { uid = "uid://1ommzatfsb32z", path = "res://stage0/streams/scene_1.node" } },
-]
 groups = [
     { name = "system", id = 0, asset = { uid = "uid://1ri4tekdefv04", path = "res://stage0/system.node" } },
     { name = "player", id = 1, asset = { uid = "uid://1mhe0176ghala", path = "res://stage0/player.node" } },

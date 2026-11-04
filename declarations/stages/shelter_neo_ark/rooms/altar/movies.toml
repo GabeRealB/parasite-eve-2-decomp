@@ -7,6 +7,7 @@ template = "movie"
 format = "str"
 
 [movie_100.from.USA]
+at = [{ disc = "disk2", slot = "INTER1.STR", clip = 14 }]
 sha1 = "b703919be756984f43b2a15b6cfa5ae7c4c05cd7"
 
 [movie_101]
@@ -15,6 +16,7 @@ template = "movie"
 format = "str"
 
 [movie_101.from.USA]
+at = [{ disc = "disk2", slot = "INTER1.STR", clip = 15 }]
 sha1 = "7e218f68d151d76f3f166d5e8a8c593770e7d4d0"
 
 [movie_102]
@@ -23,4 +25,5 @@ template = "movie"
 format = "str"
 
 [movie_102.from.USA]
+at = [{ disc = "disk2", slot = "INTER1.STR", clip = 16 }]
 sha1 = "7271849920ccc9dd157c4629029f4923624653ae"

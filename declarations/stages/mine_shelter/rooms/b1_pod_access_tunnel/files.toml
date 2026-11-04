@@ -59,6 +59,22 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 index = 14
 type = "dialogue"
 
+[[base.streams]]
+name = "scene_10"
+type = "scene_audio"
+asset = { uid = "uid://keyb0p5upipg", path = "res://stages/mine_shelter/rooms/b1_pod_access_tunnel/streams/scene_10.node" }
+group = 4
+id = 10
+sub_id = 11
+sub_id2 = 0
+volume_index = 65
+timing_buffer_kind = 1
+decode_buffer_bytes = 26624
+sound_bank_mask = 0x20
+vlc_table_mode = 1
+vlc_buffer_kind = 0
+timing_buffer_bytes = 2340
+
 [base.from.USA]
 at = [{ stage = 4, folder = 1701, file = 0 }]
 chunks = { dialogue_0_atlas = "5262b5e36b5d8f548303142d0f108b79c4a6055c" }

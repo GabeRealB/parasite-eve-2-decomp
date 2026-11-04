@@ -3,10 +3,6 @@
 [folder]
 uid = "uid://1v54v12ox62z"
 template = "folder"
-stream_data = false
-streams = [
-    { name = "movie_2", type = "movie", asset = { uid = "uid://frrxhl2dl5hu", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/streams/movie_2.node" } },
-]
 files = [
     { name = "base", id = 0, asset = { uid = "uid://wjgrh62bm00w", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/files/base.node" } },
     { name = "view1", id = 1, asset = { uid = "uid://12m0w7bt9hnm1", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/files/view1.node" } },
