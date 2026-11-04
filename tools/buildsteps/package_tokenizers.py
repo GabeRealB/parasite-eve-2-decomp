@@ -242,6 +242,21 @@ def group_file_id(reader: Reader, group: Declaration, args: Args) -> str:
     return str(reader.disc.groups[group.uid] * 10000 + file["id"])
 
 
+def file_stream_id(_: Reader, file: Declaration, args: Args) -> str:
+    """A stream of a file's id, as its record has it: a movie in a view's is the view, a cutscene's 100 and its place
+    among the file's cutscenes (its movies in no view), a scene's its own."""
+    name = one(args, "stream")
+    cutscenes = 0
+    for stream in file.table.get("streams", []):
+        movie = stream.get("type") == "movie"
+        stream_id = stream.get("view", 100 + cutscenes) if movie else stream["id"]
+        if stream.get("name") == name:
+            return str(stream_id)
+        if movie and "view" not in stream:
+            cutscenes += 1
+    raise ValueError(f"it has no stream {name}")
+
+
 def of_member(make: Callable[[Reader, Declaration, Args], str]) -> Callable[[Reader, Declaration, Args], str]:
     """A prefab's member is a model, as the prefab holds it."""
     return lambda reader, prefab, args: make(reader, reader.member(prefab, one(args, "member")), args)
@@ -278,6 +293,7 @@ TOKENIZERS = {
     ),
     "list": Tokenizer(derived={"count": Entry(list_count), "step": Entry(list_step)}),
     "file_group": Tokenizer(derived={"id": Entry(group_file_id, ("file",))}),
+    "file": Tokenizer(derived={"id": Entry(file_stream_id, ("stream",))}),
     "material": Tokenizer(derived={"tpage": Entry(material_tpage), "clut": Entry(material_clut)}),
     "image": Tokenizer(
         whole=Entry(image_words),
@@ -333,8 +349,9 @@ def led_on(node: Declaration, output: str | None) -> tuple[Declaration, str | No
 
 def reached(declarations: Declarations, reference: str | dict, path: tuple[str, ...]) -> tuple[Declaration, str | None, Args]:
     """Where a reference and a sub-path come to: a node, what it reads as here, and the args it is read by. The
-    reference's output leads on (`led_on`); then a cell of an image is the image told which (`cell/<name>`), and an item
-    of a list (`items/<index>`) goes on from what the item names."""
+    reference's output leads on (`led_on`); then a cell of an image is the image told which (`cell/<name>`), a stream of
+    a file the file told which (`streams/<name>`), and an item of a list (`items/<index>`) goes on from what the item
+    names."""
     node, reads_as, args = led_on(declarations.named(reference), uid_of(reference)[1])
     if not path:
         return node, reads_as, args
@@ -343,6 +360,10 @@ def reached(declarations: Declarations, reference: str | dict, path: tuple[str, 
         if step[1] not in node.table.get("cells", {}):
             raise ValueError(f"{node.path} has no cell {step[1]}")
         return node, "image", {"cell": [step[1]]}
+    if reads_as is None and len(step) == 2 and type_of(node) == "file" and step[0] == "streams" and not rest:
+        if not any(stream.get("name") == step[1] for stream in node.table.get("streams", [])):
+            raise ValueError(f"{node.path} has no stream {step[1]}")
+        return node, "file", {"stream": [step[1]]}
     if reads_as is None and len(step) == 2 and type_of(node) == "list" and step[0] == "items":
         items = node.table.get("items", [])
         if not step[1].isdigit() or int(step[1]) >= len(items):

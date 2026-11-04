@@ -21,22 +21,26 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from declarations import Declaration, Declarations, Package, uid_of  # noqa: E402
+from declarations import Declaration, Declarations, Package, references, uid_of  # noqa: E402
 from package_tokenizers import Args, Reader, reached, tokens, type_of  # noqa: E402
 from stage0 import Stage0  # noqa: E402
 
 KNOWN = frozenset({
-    "PE2_BIND", "PE2_BIND_ARG", "PE2_EDITOR_LABEL", "PE2_INCLUDE", "PE2_VALUE", "PE2_OPTION_DEF", "PE2_OPTION",
-    "PE2_OPTION_IS", "PE2_CONFIG", "PE2_CONFIG_IS",
+    "PE2_BIND", "PE2_BIND_ARG", "PE2_BIND_SELF", "PE2_EDITOR_LABEL", "PE2_INCLUDE", "PE2_VALUE", "PE2_QUERY",
+    "PE2_OPTION_DEF", "PE2_OPTION", "PE2_OPTION_IS", "PE2_CONFIG", "PE2_CONFIG_IS",
 })
+# The keys a query asks by.
+QUERIES = ("contains",)
 CONFIG_KEYS = ("name", "release", "target")
 OPTION_TYPES = ("int", "bool", "string", "enum")
 UNSET = "pe2_unset_"
 # The most a line of a macro takes, as a preprocessor may limit one, so a long value is a chain of macros.
 LINE = 32_000
 
-# A known name right after `#define` is its definition, not a use of it.
+# A known name right after `#define` is its definition, not a use of it; in the body of a macro taking parameters, a
+# use is of them, which only where it is expanded say anything.
 DEFINED = re.compile(r"#[ \t]*define[ \t]+$")
+TAKING = re.compile(r"[ \t]*#[ \t]*define[ \t]+\w+\(")
 SKIPPED = re.compile(r'"(?:\\.|[^"\\])*"' r"|'(?:\\.|[^'\\])*'" r"|//[^\n]*|/\*.*?\*/" r"|\bPE2_[A-Z_]+\b", re.S)
 BESIDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"', re.M)
 
@@ -82,6 +86,8 @@ def uses(text: str) -> list[Use]:
         word = match.group()
         if word not in KNOWN or DEFINED.search(text, text.rfind("\n", 0, match.start()) + 1, match.start()):
             continue
+        if TAKING.match(text, logical_line(text, match.start())):
+            continue
         opening = at + len(text[at:at + 64]) - len(text[at:at + 64].lstrip())
         if text[opening:opening + 1] != "(":
             continue
@@ -89,6 +95,14 @@ def uses(text: str) -> list[Use]:
         if read is not None:
             found.append(Use(word, read[0], text.count("\n", 0, match.start()) + 1))
             at = read[1]
+
+
+def logical_line(text: str, at: int) -> int:
+    """Where the line holding `at` starts, lines a backslash continues taken as one."""
+    start = text.rfind("\n", 0, at) + 1
+    while start > 1 and text[start - 2] == "\\":
+        start = text.rfind("\n", 0, start - 1) + 1
+    return start
 
 
 def failing(name: str, why: str) -> str:
@@ -276,7 +290,20 @@ def gathered(package: Package, declarations: Declarations) -> tuple[Options, lis
 @dataclass
 class Slot:
     type: str | None = None
+    # What it is beside its type, after it (`_self`: filled by default with the package built; `_hidden`).
+    attributes: set[str] = field(default_factory=set)
     args: dict[tuple[tuple[str, ...], str], list[str]] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, order=True)
+class Query:
+    binding: str
+    key: str
+    args: tuple[str, ...]
+
+    def name(self) -> str:
+        """The macro it reads, as `PE2_QUERY` pastes it."""
+        return f"pe2_query_{self.binding}_{self.key}" + "".join(f"_{arg}" for arg in self.args)
 
 
 @dataclass(frozen=True, order=True)
@@ -299,10 +326,11 @@ class Read_:
         return f"pe2_value_{self.binding}{joined}" + (f"__{self.derived}" if self.derived else "")
 
 
-def slots_of(texts: list[str]) -> tuple[dict[str, Slot], set[Read_]]:
+def slots_of(texts: list[str]) -> tuple[dict[str, Slot], set[Read_], set[Query]]:
     """What a first pass left says of a package's slots."""
     slots: dict[str, Slot] = {}
     reads: set[Read_] = set()
+    queries: set[Query] = set()
     for text in texts:
         for found in uses(text):
             if not found.args or not found.args[0]:
@@ -311,6 +339,10 @@ def slots_of(texts: list[str]) -> tuple[dict[str, Slot], set[Read_]]:
             if found.name == "PE2_BIND":
                 slot = slots.setdefault(name, Slot())
                 slot.type = slot.type or (rest[0] if rest else None)
+                slot.attributes |= {word[1:] for word in rest[1:] if word.startswith("_")}
+            elif found.name == "PE2_QUERY" and rest:
+                slots.setdefault(name, Slot())
+                queries.add(Query(name, rest[0], tuple(rest[1:])))
             elif found.name == "PE2_VALUE":
                 slots.setdefault(name, Slot())
                 read = Read_.of(found.args)
@@ -320,7 +352,7 @@ def slots_of(texts: list[str]) -> tuple[dict[str, Slot], set[Read_]]:
                 at = next((index for index, word in enumerate(rest) if word.startswith("_")), None)
                 if at is not None:
                     slots.setdefault(name, Slot()).args[rest[:at], rest[at][1:]] = list(rest[at + 1:])
-    return slots, reads
+    return slots, reads, queries
 
 
 def slot_problem(declarations: Declarations, bound: dict, name: str, kind: str | None) -> str | None:
@@ -342,11 +374,44 @@ def said(binding: str, why: str) -> str:
     return f"{binding}: {why}"
 
 
-def values(slots: dict[str, Slot], reads: set[Read_], package: Package, reader: Reader) -> str:
+def bound_of(slots: dict[str, Slot], package: Package) -> dict:
+    """What fills a package's slots, by name: what its declaration binds, else for a slot filled by default with the
+    package built, the package."""
+    own = {"uid": package.declaration.uid, "path": f"res://{package.path}.node"}
+    defaults = {name: own for name, slot in slots.items() if "self" in slot.attributes}
+    return {**defaults, **package.bound}
+
+
+def holder(declarations: Declarations, reference: str | dict) -> Declaration:
+    """What a slot's reference comes to as a holder of others: a file of a group is the file's asset."""
+    node, reads_as, args = reached(declarations, reference, ())
+    if type_of(node) == "file_group" and reads_as == "file":
+        entry = next(file for file in node.table.get("files", []) if file.get("name") == args["file"][0])
+        return declarations.named(entry["asset"])
+    return node
+
+
+def answer(declarations: Declarations, slots: dict[str, Slot], bound: dict, query: Query) -> str:
+    """What the build says to a query, 1 or 0: `contains`, whether what a slot holds names, anywhere in it, what
+    another holds."""
+    if query.key not in QUERIES:
+        raise ValueError(f"there is no query {query.key}; there is {', '.join(QUERIES)}")
+    if len(query.args) != 1 or query.args[0] not in slots:
+        raise ValueError(f"{query.key} takes a slot of the package")
+    for name in (query.binding, query.args[0]):
+        if name not in bound:
+            raise ValueError(f"nothing fills {name} on this package")
+    wanted = holder(declarations, bound[query.args[0]]).uid
+    held = holder(declarations, bound[query.binding])
+    return "1" if any(uid_of(reference)[0] == wanted for reference in references(held.table)) else "0"
+
+
+def values(slots: dict[str, Slot], reads: set[Read_], queries: set[Query], package: Package, reader: Reader) -> str:
     """`pe2_values.h`."""
     header = ""
+    bound = bound_of(slots, package)
     for name, slot in sorted(slots.items()):
-        wrong = None if slot.type == "package" else slot_problem(reader.declarations, package.bound, name, slot.type)
+        wrong = None if slot.type == "package" else slot_problem(reader.declarations, bound, name, slot.type)
         header += failing(f"pe2_bind_{name}", wrong) if wrong else f"#define pe2_bind_{name}\n"
     written: dict[str, Read_] = {}
     for read in sorted(reads, key=lambda read: (read.binding, read.path, read.derived or "")):
@@ -359,13 +424,18 @@ def values(slots: dict[str, Slot], reads: set[Read_], package: Package, reader: 
             slot = slots[read.binding]
             if slot.type is None:
                 raise ValueError("it has no PE2_BIND")
-            if read.binding not in package.bound:
+            if read.binding not in bound:
                 raise ValueError("nothing fills it on this package")
-            node, _, led = reached(reader.declarations, package.bound[read.binding], read.path)
+            node, _, led = reached(reader.declarations, bound[read.binding], read.path)
             args: Args = {arg: given for (path, arg), given in slot.args.items() if path == read.path}
             header += defined(name, tokens(reader, node, read.derived, {**args, **led}))
         except (KeyError, ValueError) as why:
             header += failing(name, said(read.binding, str(why)))
+    for query in sorted(queries):
+        try:
+            header += defined(query.name(), answer(reader.declarations, slots, bound, query))
+        except (KeyError, ValueError, StopIteration) as why:
+            header += failing(query.name(), said(query.binding, str(why)))
     return header
 
 
@@ -403,8 +473,8 @@ def main() -> None:
         written(args.out, options.header(package.declaration.table, config), [*read, *declarations.files])
     else:
         disc = Stage0(declarations, args.rom, args.release)
-        slots, reads = slots_of([file.read_text(encoding="latin-1") for file in args.first])
-        header = values(slots, reads, package, Reader(declarations, disc, args.release))
+        slots, reads, queries = slots_of([file.read_text(encoding="latin-1") for file in args.first])
+        header = values(slots, reads, queries, package, Reader(declarations, disc, args.release))
         written(args.out, header, [*declarations.files, *disc.files])
 
 

@@ -102,11 +102,12 @@ palettes = [
 [[title.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://pc4ree5f63i7", path = "res://packages/title.node" }
 
 [[title.streams]]
-name = "movie_100"
+name = "intro_disc_1"
 type = "movie"
-asset = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" }
+asset = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/intro.node" }
 disc = 1
 vram_x = 0
 vram_y = 0
@@ -118,9 +119,9 @@ volume_table_index = 1
 upload_mode = 0
 
 [[title.streams]]
-name = "movie_101"
+name = "intro_disc_2"
 type = "movie"
-asset = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/movie_100.node" }
+asset = { uid = "uid://1mke44i9w4b06", path = "res://stage0/movies/intro.node" }
 disc = 2
 vram_x = 0
 vram_y = 0

@@ -31,6 +31,12 @@ PE2_BIND(chrome, image)
 /// demo's saved state.
 PE2_BIND(demos, list)
 
+/// The stage-zero file holding the screen's background, its palette and the chrome, loaded before the screen shows.
+PE2_BIND(screen, file)
+
+/// The file holding the title, whose streams it plays: the intro, one record for each disc.
+PE2_BIND_SELF(file)
+
 /// Entries of the title menu, in the order of its label and task tables.
 ///
 /// The cursor only ever rests on New Game, Load Game and Configuration: the
@@ -607,7 +613,7 @@ void titleExitTask(Task* task)
     taskCallExit(task);
 }
 
-/// Queues the title background, palette and texture from stage-zero file 2.
+/// Queues the title background, palette and texture: the screen's file.
 ///
 /// Uses normal loading with no image displacement. Requires the stage-zero
 /// file table, available image workspace and space in the CD request ring.
@@ -615,15 +621,15 @@ void titleExitTask(Task* task)
 /// this call; loading finishes asynchronously.
 static inline void _enqueueBackgroundLoad(void)
 {
-    enum { BACKGROUND_FILE_INDEX = 2 };
+    enum { SCREEN_FILE_ID = PE2_VALUE(screen, _id) };
     u8 fileKey[4];
     u8 fileArgs[sizeof(gCdCmdQueue.entries[0].args)];
 
     // Selector byte 1 is ignored; the hundreds component is argument byte 0.
     fileKey[3]  = 0;
-    fileKey[2]  = 0;
-    fileKey[0]  = BACKGROUND_FILE_INDEX;
-    fileArgs[0] = 0;
+    fileKey[2]  = FS_FILE_GROUP(SCREEN_FILE_ID);
+    fileKey[0]  = FS_FILE_INDEX(SCREEN_FILE_ID);
+    fileArgs[0] = FS_FILE_HUNDREDS(SCREEN_FILE_ID);
     fileArgs[1] = CD_COMMAND_LOAD_DEFAULT;
     fileArgs[2] = 0;
     fileArgs[3] = 0;
@@ -647,8 +653,6 @@ static void _introMovieTask(Task* task)
         INTRO_WAIT_BACKGROUND,
         INTRO_UPLOAD_BACKGROUND,
         INTRO_RESTORE_MEMORY,
-        INTRO_DISC_1_MOVIE_ID = 0x64,
-        INTRO_DISC_2_MOVIE_ID = 0x65,
     };
     u8              movieArgs[sizeof(gCdCmdQueue.entries[0].args)];
     GameLocationKey movieLocation;
@@ -664,9 +668,9 @@ static void _introMovieTask(Task* task)
         case INTRO_QUEUE_MOVIE:
             movieLocation = gGameSession->location;
             if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
-                movieLocation.view = INTRO_DISC_2_MOVIE_ID;
+                movieLocation.view = PE2_VALUE(file, streams, intro_disc_2, _id);
             } else {
-                movieLocation.view = INTRO_DISC_1_MOVIE_ID;
+                movieLocation.view = PE2_VALUE(file, streams, intro_disc_1, _id);
             }
             // Playback uses only the slot byte; the queue copies all four bytes.
             movieArgs[0] = streamFindMovieSlot(&movieLocation, 0, 0);

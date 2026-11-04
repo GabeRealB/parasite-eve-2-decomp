@@ -34,10 +34,19 @@
 #include "pe2_options.h"
 #endif
 
+/* PE2_BIND_SELF(file): a slot holding a file, proven to be one that holds this package. The package built fills `self`
+ * (a slot of its own, kept out of the editor), and the build says whether the file names it. */
+#define PE2_BIND_SELF(binding)                \
+    PE2_BIND(self, package, _self, _hidden)   \
+    PE2_BIND(binding, file)                   \
+    STATIC_ASSERT(PE2_QUERY(binding, contains, self), binding##_holds_this_package);
+
 #ifndef PE2_FIRST_PASS
 
-/* PE2_BIND(body, model): a slot, in the code's own word, of the type the code holds. A problem with it fires here. */
-#define PE2_BIND(binding, type) pe2_bind_##binding
+/* PE2_BIND(body, model), PE2_BIND(self, package, _self, _hidden): a slot, in the code's own word, of the type the code
+ * holds; after it, what else it is - `_self` filled, where the package's declaration does not fill it, by the package
+ * built, and `_hidden` kept out of the editor. A problem with it fires here. */
+#define PE2_BIND(binding, ...) pe2_bind_##binding
 
 /* PE2_BIND_ARG(body, _symbol, gBody): how the value at an address is made. */
 #define PE2_BIND_ARG(...)
@@ -52,6 +61,13 @@
 #define PE2_VALUE4(binding, a, b, c) pe2_value_##binding##_##a##_##b##_##c
 #define PE2_VALUE5(binding, a, b, c, d) pe2_value_##binding##_##a##_##b##_##c##_##d
 #define PE2_VALUE6(binding, a, b, c, d, e) pe2_value_##binding##_##a##_##b##_##c##_##d##_##e
+
+/* PE2_QUERY(file, contains, self): what the build answers of what a slot holds, 1 or 0 - `contains`, whether it names,
+ * anywhere in it, what another slot holds. */
+#define PE2_QUERY(...) PE2_PICK(__VA_ARGS__, unused, unused, PE2_QUERY4, PE2_QUERY3, PE2_QUERY2, unused, unused)(__VA_ARGS__)
+#define PE2_QUERY2(binding, key) pe2_query_##binding##_##key
+#define PE2_QUERY3(binding, key, a) pe2_query_##binding##_##key##_##a
+#define PE2_QUERY4(binding, key, a, b) pe2_query_##binding##_##key##_##a##_##b
 
 #ifndef PE2_LANGUAGE_SERVER
 #include "pe2_values.h"

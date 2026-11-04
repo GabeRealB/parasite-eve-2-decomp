@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from declarations import Declaration, Declarations  # noqa: E402
-from gen_package_values import LINE, Options, Read_, Slot, Use, defined, failing, reached, slot_problem, slots_of, uses  # noqa: E402
+from gen_package_values import LINE, Options, Query, Read_, Slot, Use, answer, defined, failing, reached, slot_problem, slots_of, uses  # noqa: E402
 from package_tokenizers import Reader, material_clut, material_tpage, tokens  # noqa: E402
 
 CONFIG = {"name": "usa", "release": "USA", "target": "psx"}
@@ -37,6 +37,10 @@ class Scanning(unittest.TestCase):
 
     def test_a_definition_is_no_use(self) -> None:
         self.assertEqual(uses("#define PE2_OPTION(name) pe2_option_##name\n# define PE2_VALUE(a) b\nPE2_OPTION(x)"), [Use("PE2_OPTION", ("x",), 3)])
+
+    def test_a_macro_taking_parameters_uses_nothing_until_expanded(self) -> None:
+        text = "#define PE2_BIND_SELF(binding) \\\n    PE2_BIND(binding, file)\n#define ONE PE2_VALUE(a)\nPE2_BIND_SELF(file)"
+        self.assertEqual(uses(text), [Use("PE2_VALUE", ("a",), 3), Use("PE2_BIND_SELF", ("file",), 4)])
 
     def test_what_is_no_call_is_nothing(self) -> None:
         self.assertEqual(uses("PE2_VALUE PE2_UNKNOWN(a) XPE2_VALUE(b)"), [])
@@ -107,10 +111,15 @@ class Option(unittest.TestCase):
 
 class Slots(unittest.TestCase):
     def test_args_are_kept_by_their_path(self) -> None:
-        slots, reads = slots_of(["PE2_BIND(a, model) PE2_BIND_ARG(a, _symbol, gA) PE2_BIND_ARG(a, b, _symbol, gB) PE2_VALUE(a) PE2_VALUE(a, _seam)"])
+        slots, reads, _ = slots_of(["PE2_BIND(a, model) PE2_BIND_ARG(a, _symbol, gA) PE2_BIND_ARG(a, b, _symbol, gB) PE2_VALUE(a) PE2_VALUE(a, _seam)"])
         self.assertEqual(slots["a"].type, "model")
         self.assertEqual(slots["a"].args, {((), "symbol"): ["gA"], (("b",), "symbol"): ["gB"]})
         self.assertEqual({read.name() for read in reads}, {"pe2_value_a", "pe2_value_a__seam"})
+
+    def test_a_slot_says_what_it_is_after_its_type_and_a_query_is_named_as_pasted(self) -> None:
+        slots, _, queries = slots_of(["PE2_BIND(self, package, _self, _hidden) PE2_BIND(file, file) PE2_QUERY(file, contains, self)"])
+        self.assertEqual((slots["self"].type, slots["self"].attributes), ("package", {"self", "hidden"}))
+        self.assertEqual([query.name() for query in queries], ["pe2_query_file_contains_self"])
 
 
 def tree(root: Path, text: str) -> Declarations:
@@ -157,6 +166,11 @@ template = "model"
 [prefab]
 uid = "uid://p"
 template = "prefab"
+
+[holder]
+uid = "uid://h"
+template = "file"
+slots = [{ name = "package", type = "package", package = { uid = "uid://b", path = "res://a/body.node" } }]
 
 [prefab.groups.outfit.casual.body]
 model = { slot = { uid = "uid://b", path = "res://a/body.node" } }
@@ -206,6 +220,15 @@ class Tokens(unittest.TestCase):
         self.assertIsNone(slot_problem(self.declared, bound, "eyes", "image"))
         self.assertEqual(slot_problem(self.declared, bound, "eyes", "model"), "eyes is declared model, and what fills it is image")
         self.assertEqual(slot_problem(self.declared, bound, "gone", "model"), "gone: nothing fills it on this package")
+
+
+    def test_a_slot_contains_what_it_names_anywhere(self) -> None:
+        slots = {"file": Slot("file"), "self": Slot("package", {"self"})}
+        query = Query("file", "contains", ("self",))
+        self.assertEqual(answer(self.declared, slots, {"file": "uid://h", "self": "uid://b"}, query), "1")
+        self.assertEqual(answer(self.declared, slots, {"file": "uid://h", "self": "uid://s"}, query), "0")
+        with self.assertRaises(ValueError):
+            answer(self.declared, slots, {"file": "uid://h"}, Query("file", "holds", ("self",)))
 
 
 if __name__ == "__main__":

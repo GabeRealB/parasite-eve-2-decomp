@@ -45,6 +45,15 @@ modules are (`#include "pe2.h"`, `#include "title.h"`). Every package that
 compiles lists `core`. Both builds read the same list: `include_path` in
 `tools/buildsteps/declarations.py` and in the editor's `gather.rs`.
 
+**A slot can say more of itself, and the build answers questions about it.** After
+its type, `_self` fills a slot, where the declaration does not, with the package
+being built, and `_hidden` keeps it out of the editor. `PE2_QUERY(file, contains,
+self)` is 1 or 0: whether what one slot holds names, anywhere in it, what another
+holds. A package cannot know which file holds it, as one package may sit in
+several, so `PE2_BIND_SELF(file)` binds a file and holds it, by a `STATIC_ASSERT`
+on that query, to being one that names the package (`title`, whose intro ids are
+its file's streams).
+
 **What a designer tunes is an option.** A package's tuning constants - timings,
 counts, screen positions - are `PE2_OPTION_DEF`s, read with `PE2_OPTION`, each
 with the original value as its default (`PE2_OPTION_DEF(IDLE_TIMEOUT_TICKS, int,

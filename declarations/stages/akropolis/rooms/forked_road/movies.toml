@@ -1,5 +1,6 @@
-# Declarations: the movies first played here - each a clip of the discs' movie files (INTER0.STR, INTER1.STR), which
-# list it among their entries (movies.toml); a movie on both discs is both files' clip, the same bytes.
+# Declarations: the movies with sound first played here - each a clip of the discs' movie files (INTER0.STR,
+# INTER1.STR), named by the streams of the files whose packages play it; a movie on both discs is a clip of each, the
+# same bytes.
 
 [movie_7]
 uid = "uid://1kh3qcieur71"
