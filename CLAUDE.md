@@ -342,8 +342,8 @@ overlay.
   over the project's extraction (`project/`; it never extracts): asset-table stability, the
   repack of both discs, every declared texture, model, clip, shape, font and
   room encoding back (one task an asset), the build with the room order check,
-  residency, declarations and the asset map with its smoke test - a work graph
-  on one pool of workers, about 2.5 minutes. Re-extract (`tools/pe2project.py
+  residency and declarations - a work graph on one pool of workers, about 2.5
+  minutes. Re-extract (`tools/pe2project.py
   extract`, and `ninja_config.py --iso_build` for the build's data) only after
   changing the asset table's schema or a decoder.
 - `PE2_JOBS=N` caps the parallelism of the build (`ninja_config.py`'s split

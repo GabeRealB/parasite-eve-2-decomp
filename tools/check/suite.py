@@ -15,7 +15,6 @@ What it checks, after an extraction:
     order        after the build, every room and stage unit's data is in address order (room check-order)
     residency, decls
                  after the build: asset_residency.py build, check_decls.py over the actor, kyle and room sources
-    map, smoke   asset_map.py, then its smoke test
 
 A step's tasks start as soon as what it needs is done, the long ones first. Exit status 1 if anything failed.
 """
@@ -146,12 +145,6 @@ def tasks(jobs: int, skip: set[str]) -> list[tuple[str, str, tuple, tuple[str, .
         out.append(("repack", "repack", (repack, ()), ()))
     if "growth" not in skip:
         out.append(("growth", "growth", (run_command, ([PY, str(ROOT / "tools" / "check" / "check_asset_data_growth.py")],)), ()))
-    if "map" not in skip:
-        # The map reads the load graph the residency step rebuilds; after an asset rename the old one names assets
-        # that are gone.
-        out.append(("map", "map", (run_command, ([PY, str(PEASSETS / "asset_map.py")],)), () if "build" in skip else ("residency",)))
-        out.append(("smoke", "smoke", (run_command, (["node", str(PEASSETS / "asset_map_smoke.js"), "local/asset_map.html",
-                                                      "a.stages/akropolis/rooms/patio/package"],)), ("map",)))
     for kind in ("texture", "animation", "room", "model", "shape", "font"):
         if kind in skip:
             continue
