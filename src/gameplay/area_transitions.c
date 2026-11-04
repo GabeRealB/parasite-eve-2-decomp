@@ -744,7 +744,7 @@ static void _directionLeaveWarp(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = (u8)gDirectionWarpRequest.areaId;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = gDirectionWarpRequest.warp;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gDirectionWarpRequest.roomState;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     gDirectionActionActive     = false;
     gDirectionActionParameter1 = 0;
     gDirectionActionParameter0 = 0;

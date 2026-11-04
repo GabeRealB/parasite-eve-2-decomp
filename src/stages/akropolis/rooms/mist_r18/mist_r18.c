@@ -850,7 +850,7 @@ static void _mistR18ReloadParkingWithStarterLoadout(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = MIST_R18_PARKING_ENTRY_ROOM;
     gDisplayState.spriteVariant                                 = PARKING_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
 /// Selects the briefing's scene stream and stages its deferred audio-start request.

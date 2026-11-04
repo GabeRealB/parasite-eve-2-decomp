@@ -1967,7 +1967,6 @@ static void _actor00100BurstDeath(Task* actor)
         ACTOR00100_BURST_UNLINK_TICK        = 30,
         ACTOR00100_BURST_RELEASE_FIRST_TICK = 31,
         ACTOR00100_BURST_PUFF_SIZE          = 512,
-        ACTOR00100_BURST_TASK_TYPE          = (u16)EFFECT_BURST_BODY_PART_BANK10,
         ACTOR00100_BURST_PART_RIGHT_LEG     = 9,
         ACTOR00100_BURST_PART_LEFT_LEG      = 12,
         ACTOR00100_BURST_PART_TORSO         = 1,
@@ -2007,28 +2006,28 @@ static void _actor00100BurstDeath(Task* actor)
     if ((s16)elapsedFrames == ACTOR00100_BURST_LEGS_TICK) {
         model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
         tmdFreePrimitiveBuffer(model);
-        gEffectBurstTaskDescriptors[ACTOR00100_BURST_TASK_TYPE].data.model = &_gChaserDesertBurstLegRight;
-        burstOffset.vz                                                     = 0x64;
-        burstOffset.vy                                                     = 0;
-        burstOffset.vx                                                     = 0;
-        rightLegEffect                                                     = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_RIGHT_LEG], ACTOR00100_BURST_PUFF_SIZE, &burstOffset);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstLegRight;
+        burstOffset.vz                                       = 0x64;
+        burstOffset.vy                                       = 0;
+        burstOffset.vx                                       = 0;
+        rightLegEffect                                       = effectSpawn(EFFECT_BURST_BODY_PART_10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_RIGHT_LEG], ACTOR00100_BURST_PUFF_SIZE, &burstOffset);
         _actor00100ApplyBurstTexturePlacement(actor, rightLegEffect);
         if (work->stateTimer == ACTOR00100_BURST_LEGS_TICK) {
-            gEffectBurstTaskDescriptors[ACTOR00100_BURST_TASK_TYPE].data.model = &_gChaserDesertBurstLegLeft;
-            burstOffset.vy                                                     = 0;
-            burstOffset.vx                                                     = 0;
-            leftLegEffect                                                      = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_LEFT_LEG], ACTOR00100_BURST_PUFF_SIZE, &burstOffset);
+            gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstLegLeft;
+            burstOffset.vy                                       = 0;
+            burstOffset.vx                                       = 0;
+            leftLegEffect                                        = effectSpawn(EFFECT_BURST_BODY_PART_10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_LEFT_LEG], ACTOR00100_BURST_PUFF_SIZE, &burstOffset);
             _actor00100ApplyBurstTexturePlacement(actor, leftLegEffect);
         }
     }
     if (work->stateTimer == ACTOR00100_BURST_TORSO_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR00100_BURST_TASK_TYPE].data.model = &_gChaserDesertBurstTorso;
-        torsoEffect                                                        = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_TORSO], ACTOR00100_BURST_PUFF_SIZE, NULL);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstTorso;
+        torsoEffect                                          = effectSpawn(EFFECT_BURST_BODY_PART_10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_TORSO], ACTOR00100_BURST_PUFF_SIZE, NULL);
         _actor00100ApplyBurstTexturePlacement(actor, torsoEffect);
     }
     if (work->stateTimer == ACTOR00100_BURST_HEAD_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR00100_BURST_TASK_TYPE].data.model = &_gChaserDesertBurstHead;
-        headEffect                                                         = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_HEAD], ACTOR00100_BURST_PUFF_SIZE, NULL);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstHead;
+        headEffect                                           = effectSpawn(EFFECT_BURST_BODY_PART_10, &actor->extra.tmd->coords[ACTOR00100_BURST_PART_HEAD], ACTOR00100_BURST_PUFF_SIZE, NULL);
         _actor00100ApplyBurstTexturePlacement(actor, headEffect);
     }
     // Collision ends before release is allowed to advance the task.

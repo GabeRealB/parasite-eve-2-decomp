@@ -257,7 +257,7 @@ static inline void _shelterB2PodAccessTunnelCommitB1Ride(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = RIDE_ARRIVAL_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = RIDE_ARRIVAL_ROOM;
     gDisplayState.spriteVariant                                 = RIDE_NEXT_SESSION_SPRITE_VARIANT;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
 

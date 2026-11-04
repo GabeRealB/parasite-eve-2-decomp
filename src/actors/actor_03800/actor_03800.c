@@ -1984,22 +1984,22 @@ static void _actor03800SpawnBurstFragment(Task* task, u32 variant)
 
     switch (variant) {
         case 0:
-            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBlackBeetleBurstFragment1;
+            gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gBlackBeetleBurstFragment1;
             break;
         case 1:
-            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBlackBeetleBurstFragment2;
+            gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gBlackBeetleBurstFragment2;
             break;
         case 2:
-            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBlackBeetleBurstFragment3;
+            gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gBlackBeetleBurstFragment3;
             break;
         case 3:
-            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBlackBeetleBurstFragment4;
+            gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gBlackBeetleBurstFragment4;
             break;
         case 4:
-            gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBlackBeetleBurstFragment5;
+            gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gBlackBeetleBurstFragment5;
             break;
     }
-    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, task->extra.tmd->coords + ACTOR_03800_BURST_ANCHOR_PART, ACTOR_03800_BURST_PUFF_SIZE, NULL);
+    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, task->extra.tmd->coords + ACTOR_03800_BURST_ANCHOR_PART, ACTOR_03800_BURST_PUFF_SIZE, NULL);
     if (fragmentEffect == NULL) {
         return;
     }

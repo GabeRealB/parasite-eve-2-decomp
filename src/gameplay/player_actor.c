@@ -569,23 +569,23 @@ void func_mp5a5_p2_8011DDA4(Task* arg0);
 enum {
     EFFECT_PE_LOOKUP_COUNT       = ATTACHMENT_LEVEL_ROW_COUNT - 1,
     EFFECT_PE_NO_EFFECT          = 0,
-    EFFECT_PE_METABOLISM_CAST    = EFFECT_ID(EFFECT_TASK_BANK, 0x012),
-    EFFECT_PE_PLASMA_CAST        = EFFECT_ID(EFFECT_TASK_BANK, 0x014),
-    EFFECT_PE_HEALING_AURA       = EFFECT_ID(EFFECT_TASK_BANK, 0x015),
-    EFFECT_PE_NECROSIS_CAST      = EFFECT_ID(EFFECT_TASK_BANK, 0x018),
-    EFFECT_PE_LIFE_DRAIN_CAST    = EFFECT_ID(EFFECT_TASK_BANK, 0x0AB),
-    EFFECT_PE_INFERNO_CAST       = EFFECT_ID(EFFECT_TASK_BANK, 0x0BE),
-    EFFECT_PE_APOBIOSIS_CAST     = EFFECT_ID(EFFECT_TASK_BANK, 0x0C0),
-    EFFECT_PE_ANTIBODY_CAST      = EFFECT_ID(EFFECT_TASK_BANK, 0x0CB),
-    EFFECT_PE_ENERGY_SHOT_CAST   = EFFECT_ID(EFFECT_TASK_BANK, 0x0CC),
-    EFFECT_PE_ENERGY_BALL_CAST   = EFFECT_ID(EFFECT_TASK_BANK, 0x0CF),
-    EFFECT_PE_PYROKINESIS_VOLLEY = EFFECT_ID(EFFECT_TASK_BANK, 0x0FC),
-    EFFECT_PE_PEPPER_SPRAY       = EFFECT_ID(EFFECT_TASK_BANK, 0x197),
-    EFFECT_PE_OFUDA              = EFFECT_ID(EFFECT_TASK_BANK, 0x198),
-    EFFECT_PE_FLARE              = EFFECT_ID(EFFECT_TASK_BANK, 0x19D),
-    EFFECT_PE_COMBUSTION_CAST    = EFFECT_ID(EFFECT_TASK_BANK, 0x1A0),
-    EFFECT_PE_CONCENTRIC_CHARGE  = EFFECT_ID(EFFECT_TASK_BANK, 0x0AE),
-    EFFECT_PE_ORBITING_CHARGE    = EFFECT_ID(EFFECT_TASK_BANK, 0x0A8),
+    EFFECT_PE_METABOLISM_CAST    = TASK_ID(TASK_BANK_EFFECT, 0x012),
+    EFFECT_PE_PLASMA_CAST        = TASK_ID(TASK_BANK_EFFECT, 0x014),
+    EFFECT_PE_HEALING_AURA       = TASK_ID(TASK_BANK_EFFECT, 0x015),
+    EFFECT_PE_NECROSIS_CAST      = TASK_ID(TASK_BANK_EFFECT, 0x018),
+    EFFECT_PE_LIFE_DRAIN_CAST    = TASK_ID(TASK_BANK_EFFECT, 0x0AB),
+    EFFECT_PE_INFERNO_CAST       = TASK_ID(TASK_BANK_EFFECT, 0x0BE),
+    EFFECT_PE_APOBIOSIS_CAST     = TASK_ID(TASK_BANK_EFFECT, 0x0C0),
+    EFFECT_PE_ANTIBODY_CAST      = TASK_ID(TASK_BANK_EFFECT, 0x0CB),
+    EFFECT_PE_ENERGY_SHOT_CAST   = TASK_ID(TASK_BANK_EFFECT, 0x0CC),
+    EFFECT_PE_ENERGY_BALL_CAST   = TASK_ID(TASK_BANK_EFFECT, 0x0CF),
+    EFFECT_PE_PYROKINESIS_VOLLEY = TASK_ID(TASK_BANK_EFFECT, 0x0FC),
+    EFFECT_PE_PEPPER_SPRAY       = TASK_ID(TASK_BANK_EFFECT, 0x197),
+    EFFECT_PE_OFUDA              = TASK_ID(TASK_BANK_EFFECT, 0x198),
+    EFFECT_PE_FLARE              = TASK_ID(TASK_BANK_EFFECT, 0x19D),
+    EFFECT_PE_COMBUSTION_CAST    = TASK_ID(TASK_BANK_EFFECT, 0x1A0),
+    EFFECT_PE_CONCENTRIC_CHARGE  = TASK_ID(TASK_BANK_EFFECT, 0x0AE),
+    EFFECT_PE_ORBITING_CHARGE    = TASK_ID(TASK_BANK_EFFECT, 0x0A8),
 };
 
 /// CLUT X positions in VRAM pixels for the effect sprite atlas.
@@ -929,8 +929,8 @@ AnimationSet** gPlayerActorWeaponAnimationBanks[34] = { NULL, gP08PlayerAnimatio
 /// are zero, not evidence of additional loaded weapon-model groups.
 static u16 _gPlayerActorWeaponModelDescriptorBases[4] = {
     0,
-    64,
-    155,
+    TASK_MODEL_AYA_WEAPONS,
+    TASK_MODEL_KYLE_WEAPONS,
     0,
 };
 /// Bank-7 descriptor bases for four-model attachment groups.
@@ -940,14 +940,14 @@ static u16 _gPlayerActorWeaponModelDescriptorBases[4] = {
 /// pairVariant*2 + attachmentIndex selects within the group, both in 0..1.
 /// The selected model resources must remain loaded with the child.
 static u8 _gPlayerActorAttachmentDescriptorBases[8] = {
-    9,
-    13,
-    17,
-    21,
-    135,
-    139,
-    143,
-    147,
+    TASK_MODEL_AYA_ATTACHMENTS,
+    TASK_MODEL_AYA_ATTACHMENTS + 4,
+    TASK_MODEL_AYA_ATTACHMENTS + 8,
+    TASK_MODEL_AYA_ATTACHMENTS + 12,
+    TASK_MODEL_KYLE_ATTACHMENTS,
+    TASK_MODEL_KYLE_ATTACHMENTS + 4,
+    TASK_MODEL_KYLE_ATTACHMENTS + 8,
+    TASK_MODEL_KYLE_ATTACHMENTS + 12,
 };
 u8 gPlayerActorAttachmentParentParts[6][2] = {
     { 0, 0 },
@@ -6331,7 +6331,6 @@ static inline void _playerActorBindAttachmentTextures(TmdObject* attachmentModel
 static inline Task* _playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIndex, s32 pairVariant)
 {
     enum {
-        PLAYER_ACTOR_ATTACHMENT_BANK          = 7,
         PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS = 2,
         PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE     = 2,
     };
@@ -6349,7 +6348,7 @@ static inline Task* _playerActorSpawnAttachment(Task* actorTask, s32 attachmentI
     parentCoord     = &actorModel->coords[gPlayerActorAttachmentParentParts[rigIndex][attachmentIndex]];
     descriptorBases = _gPlayerActorAttachmentDescriptorBases;
     resourceOffset  = gPlayerStatus.resourceVariant - PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS;
-    task            = taskSpawn(PLAYER_ACTOR_ATTACHMENT_BANK, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
+    task            = taskSpawn(TASK_BANK_MODEL, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
     if (task == NULL) {
         return NULL;
     }
@@ -6408,9 +6407,6 @@ static Task* _playerActorReplaceAttachments(Task* actorTask, s32 rigIndex, s32 p
 /// Parent, descriptor code and model resources must stay live with the child.
 inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterId, s32 weaponId)
 {
-    enum {
-        PLAYER_ACTOR_WEAPON_MODEL_BANK = 7,
-    };
     GfxCoord*  parentCoord;
     Task*      weaponTask;
     TmdObject* weaponModel;
@@ -6422,7 +6418,7 @@ inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterI
         return NULL;
     }
     descriptorBase = _gPlayerActorWeaponModelDescriptorBases[characterId] - 1;
-    weaponTask     = taskSpawn(PLAYER_ACTOR_WEAPON_MODEL_BANK, descriptorBase + weaponId, 0, 0);
+    weaponTask     = taskSpawn(TASK_BANK_MODEL, descriptorBase + weaponId, 0, 0);
     if (weaponTask == NULL) {
         return NULL;
     }
@@ -6437,9 +6433,9 @@ inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterI
 Task* playerActorRestoreEquipment(void)
 {
     enum {
-        PLAYER_ACTOR_HYPERVELOCITY_PERSISTENT_EFFECT = EFFECT_SPAWN_UNLIMITED | EFFECT_ID(EFFECT_TASK_BANK, 0x24),
-        PLAYER_ACTOR_HAMMER_PERSISTENT_EFFECT        = EFFECT_SPAWN_UNLIMITED | EFFECT_ID(EFFECT_TASK_BANK, 0x29),
-        PLAYER_ACTOR_PYKE_PERSISTENT_EFFECT          = EFFECT_SPAWN_UNLIMITED | EFFECT_ID(EFFECT_TASK_BANK, 0x2A),
+        PLAYER_ACTOR_HYPERVELOCITY_PERSISTENT_EFFECT = EFFECT_SPAWN_UNLIMITED | TASK_ID(TASK_BANK_EFFECT, 0x24),
+        PLAYER_ACTOR_HAMMER_PERSISTENT_EFFECT        = EFFECT_SPAWN_UNLIMITED | TASK_ID(TASK_BANK_EFFECT, 0x29),
+        PLAYER_ACTOR_PYKE_PERSISTENT_EFFECT          = EFFECT_SPAWN_UNLIMITED | TASK_ID(TASK_BANK_EFFECT, 0x2A),
     };
     Task*         playerTask;
     GameActor*    actor;
@@ -6522,14 +6518,13 @@ restorePlayback:
 Task* playerActorSpawn(const ActorSpawnTransform* spawnTransform, u16 unusedCharacterId, s32 spawnArg, ActorSpawnOptions* options)
 {
     enum {
-        PLAYER_ACTOR_SPAWN_BANK            = 7,
-        PLAYER_ACTOR_SPAWN_DESCRIPTOR_BIAS = 3,
+        PLAYER_ACTOR_SPAWN_DESCRIPTOR_BIAS = TASK_MODEL_PLAYER_BODIES - 1,
     };
     Task*      task;
     GameActor* actor;
     GfxCoord*  coord;
 
-    task = taskSpawn(PLAYER_ACTOR_SPAWN_BANK, gPlayerStatus.resourceVariant + PLAYER_ACTOR_SPAWN_DESCRIPTOR_BIAS, spawnArg, options);
+    task = taskSpawn(TASK_BANK_MODEL, gPlayerStatus.resourceVariant + PLAYER_ACTOR_SPAWN_DESCRIPTOR_BIAS, spawnArg, options);
     if (task == NULL) {
         return NULL;
     }
@@ -6934,7 +6929,6 @@ static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex)
 Task* playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIndex, s32 pairVariant)
 {
     enum {
-        PLAYER_ACTOR_ATTACHMENT_BANK          = 7,
         PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS = 2,
         PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE     = 2,
     };
@@ -6952,7 +6946,7 @@ Task* playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIn
     parentCoord     = &actorModel->coords[gPlayerActorAttachmentParentParts[rigIndex][attachmentIndex]];
     descriptorBases = _gPlayerActorAttachmentDescriptorBases;
     resourceOffset  = gPlayerStatus.resourceVariant - PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS;
-    task            = taskSpawn(PLAYER_ACTOR_ATTACHMENT_BANK, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
+    task            = taskSpawn(TASK_BANK_MODEL, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
     if (task == NULL) {
         return NULL;
     }
@@ -6968,7 +6962,6 @@ Task* playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIn
 
 Task* playerActorSpawnWeaponModel(Task* parentTask, s32 characterId, s32 weaponId, s32 spawnArg)
 {
-    enum { PLAYER_ACTOR_WEAPON_MODEL_BANK = 7 };
     Task*      task;
     GfxCoord*  parentCoord;
     TmdObject* weaponModel;
@@ -6980,7 +6973,7 @@ Task* playerActorSpawnWeaponModel(Task* parentTask, s32 characterId, s32 weaponI
         return NULL;
     }
     descriptorBase = _gPlayerActorWeaponModelDescriptorBases[characterId] - 1;
-    task           = taskSpawn(PLAYER_ACTOR_WEAPON_MODEL_BANK, descriptorBase + weaponId, spawnArg, 0);
+    task           = taskSpawn(TASK_BANK_MODEL, descriptorBase + weaponId, spawnArg, 0);
     if (task == NULL) {
         return NULL;
     }
@@ -7029,8 +7022,7 @@ s32 playerActorRemoveEquipment(void)
 Task* playerActorSpawnGrenadeProjectile(Task* actorTask, s32 actorVariant, s32 launcherIndex, s32 spawnArg)
 {
     enum {
-        PLAYER_ACTOR_GRENADE_PROJECTILE_BANK = 7,
-        PLAYER_ACTOR_GRENADE_PROJECTILE_BASE = 0x60,
+        PLAYER_ACTOR_GRENADE_PROJECTILE_BASE = TASK_MODEL_GRENADE_PROJECTILES,
         PLAYER_ACTOR_GRENADE_LAUNCHER_SHIFT  = 2,
     };
     Task*            task;
@@ -7043,7 +7035,7 @@ Task* playerActorSpawnGrenadeProjectile(Task* actorTask, s32 actorVariant, s32 l
     muzzleCoord    = actor->equipmentTasks[1]->extra.tmd->coords;
     launcherOffset = launcherIndex << PLAYER_ACTOR_GRENADE_LAUNCHER_SHIFT;
     actorVariant  += PLAYER_ACTOR_GRENADE_PROJECTILE_BASE;
-    task           = taskSpawn(PLAYER_ACTOR_GRENADE_PROJECTILE_BANK, launcherOffset + actorVariant, spawnArg, 0);
+    task           = taskSpawn(TASK_BANK_MODEL, launcherOffset + actorVariant, spawnArg, 0);
     if (task == NULL) {
         return NULL;
     }

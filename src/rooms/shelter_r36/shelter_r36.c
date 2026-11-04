@@ -1188,7 +1188,7 @@ static void _shelterR36ReloadForMovie(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = SHELTER_R36_MOVIE_ARRIVAL;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = SHELTER_R36_MOVIE_ROOM_VARIANT;
         gDisplayState.spriteVariant                                 = SHELTER_R36_MOVIE_SPRITE_VARIANT;
-        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
     }
 }

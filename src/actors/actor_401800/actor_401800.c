@@ -1247,7 +1247,6 @@ static void _actor401800BurstDeath(Task* task)
         ACTOR_401800_BURST_FIRST_PART     = 9,
         ACTOR_401800_BURST_SECOND_PART    = 12,
         ACTOR_401800_BURST_LAST_PART      = 3,
-        ACTOR_401800_BURST_MODEL_SLOT     = 5,
         ACTOR_401800_BURST_LOCAL_OFFSET   = 100,
         ACTOR_401800_BURST_MODEL_ARGUMENT = 0x200, // Child-puff size 512
         ACTOR_401800_BURST_FIRST_TICK     = 3,
@@ -1299,26 +1298,26 @@ static void _actor401800BurstDeath(Task* task)
     work->stateTimer = elapsedTicks;
     // Publish each model immediately before its independent effect is spawned.
     if ((s16)elapsedTicks == ACTOR_401800_BURST_FIRST_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gStrangerOddBurstArm;
-        burstOffset.vz                                                        = ACTOR_401800_BURST_LOCAL_OFFSET;
-        burstOffset.vy                                                        = 0;
-        burstOffset.vx                                                        = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_FIRST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerOddBurstArm;
+        burstOffset.vz                                       = ACTOR_401800_BURST_LOCAL_OFFSET;
+        burstOffset.vy                                       = 0;
+        burstOffset.vx                                       = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + ACTOR_401800_BURST_FIRST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401800_BURST_SECOND_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gStrangerOddBurstLeg;
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerOddBurstLeg;
         // The binary leaves this invocation's Z offset uninitialized.
         burstOffset.vy = 0;
         burstOffset.vx = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_SECOND_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + ACTOR_401800_BURST_SECOND_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, &burstOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401800_BURST_THIRD_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gStrangerOddBurstArm;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_PARTICLE_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerOddBurstArm;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + ACTOR_401800_BURST_PARTICLE_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer == ACTOR_401800_BURST_LAST_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401800_BURST_MODEL_SLOT].data.model = &_gStrangerOddBurstHead;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + ACTOR_401800_BURST_LAST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerOddBurstHead;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + ACTOR_401800_BURST_LAST_PART, ACTOR_401800_BURST_MODEL_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer >= ACTOR_401800_BURST_HIDE_TICK) {
         work->state = ODD_STRANGER_STATE_HIDDEN;

@@ -1238,7 +1238,7 @@ static inline void _dryfieldNightMotelRoom6FinishRest(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_ROOM;
     gDisplayState.spriteVariant                                 = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SPRITE_VARIANT;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
 

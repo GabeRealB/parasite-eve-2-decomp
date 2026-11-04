@@ -725,7 +725,7 @@ static void _neoArkR26ReturnToShelterTent(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = NEO_ARK_R26_TENT_ARRIVAL;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = NEO_ARK_R26_TENT_ROOM;
         gDisplayState.spriteVariant                                 = NEO_ARK_R26_SPRITE_VARIANT;
-        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
     }
 }

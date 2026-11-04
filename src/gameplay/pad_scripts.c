@@ -19,14 +19,6 @@ enum { PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS = 1 };
 /// offset of `_PadScriptLerpWork::intensity.bytes.whole`.
 #define PAD_SCRIPT_LERP_FRACTION_BITS 8
 
-/// Resident descriptor bank and entries for the script interpreter and its two motor tasks.
-enum {
-    PAD_SCRIPT_TASK_BANK                     = 2,
-    PAD_SCRIPT_BINARY_MOTOR_HOLD_TASK_TYPE   = 0xB,
-    PAD_SCRIPT_VARIABLE_MOTOR_RAMP_TASK_TYPE = 0xC,
-    PAD_SCRIPT_TASK_TYPE                     = 0xD,
-};
-
 /// Interpreter task phases, in dispatch order; the two motor lanes keep separate opcode states.
 enum {
     PAD_SCRIPT_TASK_STATE_START  = 0,
@@ -290,7 +282,7 @@ static void _padScriptStepVariableLane(Task* task)
 static void _padScriptSpawnBinaryMotorHold(s16 durationFrames)
 {
     if (durationFrames != 0) {
-        taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_BINARY_MOTOR_HOLD_TASK_TYPE, (s32)durationFrames, 0);
+        taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_PAD_MOTOR_HOLD, (s32)durationFrames, 0);
     }
 }
 
@@ -304,7 +296,7 @@ void padScriptSpawnVariableMotorRamp(s16 durationFrames, u8 startIntensity, u8 e
     if (durationFrames != 0) {
         work = memCalloc(sizeof(*work), 0);
         if (work != NULL) {
-            task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_VARIABLE_MOTOR_RAMP_TASK_TYPE, 0, 0);
+            task = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_PAD_MOTOR_RAMP, 0, 0);
             if (task == NULL) {
                 memFree(work);
             } else {
@@ -336,7 +328,7 @@ static void _padScriptSpawnDepthScaledVariableMotorRamp(s16 durationFrames, u8 s
     if (durationFrames != 0) {
         work = memCalloc(sizeof(*work), 0);
         if (work != NULL) {
-            task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_VARIABLE_MOTOR_RAMP_TASK_TYPE, 0, 0);
+            task = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_PAD_MOTOR_RAMP, 0, 0);
             if (task == NULL) {
                 memFree(work);
             } else {
@@ -374,7 +366,7 @@ Task* padScriptSpawn(const PadScriptCmd* commands, const PadScriptVibrationSegme
 
     work = memCalloc(sizeof(*work), 0);
     if (work != NULL) {
-        task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_TASK_TYPE, 0, 0);
+        task = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_PAD_SCRIPT, 0, 0);
         if (task != NULL) {
             task->work        = work;
             work->sourceDepth = 0;
@@ -430,7 +422,7 @@ Task* padScriptSpawnDepthScaled(const PadScriptCmd* commands, const PadScriptVib
 
     work = memCalloc(sizeof(*work), 0);
     if (work != NULL) {
-        task = taskSpawn(PAD_SCRIPT_TASK_BANK, PAD_SCRIPT_TASK_TYPE, 0, 0);
+        task = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_PAD_SCRIPT, 0, 0);
         if (task != NULL) {
             task->work        = work;
             work->sourceDepth = sourceDepth;

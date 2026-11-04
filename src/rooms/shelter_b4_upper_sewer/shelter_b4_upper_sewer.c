@@ -1242,8 +1242,6 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
         SHELTER_B4_UPPER_SEWER_EXIT_ACCEPT_KEY           = 10,
         SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS           = 30,
         SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES = 10,
-        SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_BANK     = 1,
-        SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_TYPE     = 0x31,
         SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT    = 1,
     };
 
@@ -1273,7 +1271,7 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
             _gShelterB4UpperSewerExitFade.fade.blend      = SCREEN_FADE_SUBTRACT;
             _gShelterB4UpperSewerExitFade.fade.phase      = SCREEN_FADE_RUNNING;
             _gShelterB4UpperSewerExitFade.fade.rampFrames = SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS;
-            taskSpawn(SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_BANK, SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_TYPE, 0, &_gShelterB4UpperSewerExitFade.fade);
+            taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &_gShelterB4UpperSewerExitFade.fade);
             task->killCountdown = SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS;
             task->state++;
             break;
@@ -1294,7 +1292,7 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShelterB4UpperSewerExitDestination.area;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShelterB4UpperSewerExitDestination.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB4UpperSewerExitDestination.roomState;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
     }

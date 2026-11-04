@@ -105,12 +105,6 @@ void viewQueueCurrentCamera(s32 packetListMode);
 /// The loader owns input unblock, viewDirty clearing and presentation handoff.
 void viewTransitionGateTask(Task* task);
 
-/// Task-bank selectors for play-time/HUD monitoring and the death sequence.
-enum {
-    PLAY_CLOCK_TASK_BANK = 0,
-    PLAY_CLOCK_TASK_TYPE = 0x1D
-};
-
 /// Dispatches play-time/HUD updates and the death-to-session-restart sequence.
 ///
 /// Bank 0 type 0x1D requires `state` 0..5; no bounds check is made. States

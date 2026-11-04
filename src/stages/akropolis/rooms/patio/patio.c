@@ -263,7 +263,7 @@ static inline void _akropolisPatioCommitCafeteriaDeparture(Task* task)
     gDisplayState.spriteVariant                                 = CAFETERIA_SPRITE_VARIANT;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gAkropolisPatioCafeteriaArrivalWarp;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gAkropolisPatioCafeteriaArrivalRoom;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
 

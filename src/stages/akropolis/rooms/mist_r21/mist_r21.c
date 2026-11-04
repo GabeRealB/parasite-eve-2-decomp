@@ -89,7 +89,7 @@ static void _mistR21CheckPlazaReloadShortcut(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = WARP;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = VIEW;
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
-        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
         taskKill(task);
     }
 }

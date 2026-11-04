@@ -18,25 +18,25 @@ enum {
     GAME_FLAG_HIGH_NIBBLE_MASK = GAME_FLAG_NIBBLE_MASK << GAME_FLAG_BITS_PER_NIBBLE
 };
 
-TaskDesc gTaskBank9Descs[19] = {
+TaskDesc gEventTaskDescs[TASK_EVENT_SLOT_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL },
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, taskKill },
-    { { { TASK_BODY_NONE, 0x80 } }, capControlTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsInterpreterTask },
-    { { { TASK_BODY_NONE, 0x80 } }, capHudSlideTask },
+    [TASK_EVENT_CAP_CONTROL]   = { { { TASK_BODY_NONE, 0x80 } }, capControlTask },
+    [TASK_EVENT_INTERPRETER]   = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsInterpreterTask },
+    [TASK_EVENT_CAP_HUD_SLIDE] = { { { TASK_BODY_NONE, 0x80 } }, capHudSlideTask },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, taskKill },
-    { { { TASK_BODY_NONE, 0x80 } }, capActionPromptExitTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsScreenShakeTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsMusicVolumeFadeTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsSoundAttenuationFadeTask },
+    [TASK_EVENT_CAP_ACTION_PROMPT_EXIT] = { { { TASK_BODY_NONE, 0x80 } }, capActionPromptExitTask },
+    [TASK_EVENT_SCREEN_SHAKE]           = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsScreenShakeTask },
+    [TASK_EVENT_MUSIC_VOLUME_FADE]      = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsMusicVolumeFadeTask },
+    [TASK_EVENT_SOUND_ATTENUATION_FADE] = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsSoundAttenuationFadeTask },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, objectTaskRoomTask },
+    [TASK_EVENT_OBJECT_TASK_ROOM] = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, objectTaskRoomTask },
     { { { TASK_DESC_END, 0x20 } }, NULL },
 };
 

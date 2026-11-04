@@ -2497,7 +2497,7 @@ rcossin_tbl                 = 0x800630D0;
 //--------------------------------------------------------------------
 //--- PA: 0x578D0   VA: 0x800670D0   subsegment: data
 //--------------------------------------------------------------------
-gTaskBank1Descs = 0x800670D0; // type:TaskDesc size:0x264 allow_addend:True
+gSceneTaskDescs = 0x800670D0; // type:TaskDesc size:0x264 allow_addend:True
 
 //--------------------------------------------------------------------
 //--- PA: 0x57EA8   VA: 0x800676A8   subsegment: data
@@ -3287,12 +3287,12 @@ _gSndScriptUnduckedVolume = 0x80082749;
 gActorRenderCoordPassCounter = 0x80071210; // type:s32 size:0x4
 gMidiMusicVolume = 0x8007A396; // type:u16 size:0x2
 gPlayClockPendingTicks = 0x8005ed68;
-_gTaskSystemDescs = 0x8005eda0;
+_gSystemTaskDescs = 0x8005eda0;
 gTaskBank5Descs = 0x800626ac;
 gCdCmdViewSeekPending = 0x800626e8;
 gTaskBank3Descs = 0x80062780;
-gTaskBank4Descs = 0x800676a8; // type:TaskDesc size:0x6C allow_addend:True
-gTaskBank9Descs = 0x80067734;
+gCollisionTaskDescs = 0x800676a8; // type:TaskDesc size:0x6C allow_addend:True
+gEventTaskDescs = 0x80067734;
 _gLoadUiDiskSwapCountdown = 0x8007a390;
 _gLoadUiDiskSwapMessageKind = 0x8007a392;
 _gLoadUiDiskSwapRequiredDisc = 0x8007a393;
@@ -3321,8 +3321,8 @@ _gMdecImageBitstream = 0x8007a360;
 _gSndScriptDuckStep = 0x8008274a;
 _gSndScriptReverbLevel = 0x8008274b;
 _gSndScriptDuckRequests = 0x8008274c;
-gTaskBank2Descs = 0x80067828; // type:TaskDesc size:0xCC allow_addend:True
-gTaskBank7Descs = 0x800678F4; // type:TaskDesc size:0x7B0
+gInteractionTaskDescs = 0x80067828; // type:TaskDesc size:0xCC allow_addend:True
+gModelTaskDescs = 0x800678F4; // type:TaskDesc size:0x7B0
 _gSpuPalExtraAudioUpdateArmed = 0x800680A4; // type:u8
 _gSpuCompletedAudioUpdates = 0x800680BC; // type:u32
 _gSpuAudioWorkAvailable = 0x800680C0; // type:u32

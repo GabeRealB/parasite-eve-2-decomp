@@ -1597,10 +1597,9 @@ void companionEnterDamageReaction(Task* task)
 Task* companionSpawnActor(const ActorSpawnTransform* spawnTransform, u16 companionType, s32 scheduleIndex, ActorSpawnOptions* options)
 {
     enum {
-        COMPANION_SPAWN_TASK_BANK             = 7,
         COMPANION_SPAWN_ARMED_FAMILY          = 1,
-        COMPANION_SPAWN_ARMED_DESCRIPTOR_BASE = 0x7F,
-        COMPANION_SPAWN_OTHER_DESCRIPTOR_BASE = 0x82
+        COMPANION_SPAWN_ARMED_DESCRIPTOR_BASE = TASK_MODEL_COMPANION_ARMED_BASE,
+        COMPANION_SPAWN_OTHER_DESCRIPTOR_BASE = TASK_MODEL_COMPANION_OTHER_BASE
     };
     Task*          task;
     GameActor*     actor;
@@ -1613,7 +1612,7 @@ Task* companionSpawnActor(const ActorSpawnTransform* spawnTransform, u16 compani
     } else {
         descriptorIndex = companionType + COMPANION_SPAWN_OTHER_DESCRIPTOR_BASE;
     }
-    task = taskSpawn(COMPANION_SPAWN_TASK_BANK, descriptorIndex, scheduleIndex, options);
+    task = taskSpawn(TASK_BANK_MODEL, descriptorIndex, scheduleIndex, options);
     if (task == NULL) {
         return NULL;
     }

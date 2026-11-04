@@ -179,7 +179,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor421600PatrolRouteRow, 32);
 
 /// The records closing four of the overlay's model streams, which the
-/// death-tick frames point `gEffectBurstTaskDescriptors[5].data.model` at before each `effectSpawn`.
+/// death-tick frames point `gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model` at before each `effectSpawn`.
 static TmdSource _gChaserDesertBurstLegRight;
 static TmdSource _gChaserDesertBurstLegLeft;
 static TmdSource _gChaserDesertBurstHead;
@@ -3081,25 +3081,25 @@ static void _actor421600BurstDeathState(Task* task)
     }
     // Select each detached model before spawning and applying this enemy's texture placement.
     if (work->stateTimer == ACTOR421600_BURST_RIGHT_LEG_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstLegRight;
-        spawnOffset.vz                            = ACTOR421600_BURST_OFFSET_DISTANCE;
-        spawnOffset.vy                            = 0;
-        spawnOffset.vx                            = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ACTOR421600_BURST_PART_ARGUMENT, &spawnOffset), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstLegRight;
+        spawnOffset.vz                                       = ACTOR421600_BURST_OFFSET_DISTANCE;
+        spawnOffset.vy                                       = 0;
+        spawnOffset.vx                                       = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 9, ACTOR421600_BURST_PART_ARGUMENT, &spawnOffset), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_LEFT_LEG_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstLegLeft;
-        spawnOffset.vy                            = 0;
-        spawnOffset.vx                            = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 12, ACTOR421600_BURST_PART_ARGUMENT, &spawnOffset), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstLegLeft;
+        spawnOffset.vy                                       = 0;
+        spawnOffset.vx                                       = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 12, ACTOR421600_BURST_PART_ARGUMENT, &spawnOffset), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_TORSO_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstTorso;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ACTOR421600_BURST_PART_ARGUMENT, NULL), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstTorso;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 1, ACTOR421600_BURST_PART_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_HEAD_TICK) {
-        gEffectBurstTaskDescriptors[5].data.model = &_gChaserDesertBurstHead;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 3, ACTOR421600_BURST_PART_ARGUMENT, NULL), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gChaserDesertBurstHead;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 3, ACTOR421600_BURST_PART_ARGUMENT, NULL), enemy);
     }
     if (work->stateTimer == ACTOR421600_BURST_RESPAWN_TICK) {
         work->state = ACTOR421600_STATE_WAIT_RESPAWN;

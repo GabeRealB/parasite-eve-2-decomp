@@ -15,7 +15,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | Extra lists / OT spawn | `src/main/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
 | Frame tick | `src/main/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
 | Bank tables | `src/main/textdraw.c` (`gTaskDescBanks`); each referenced resident descriptor table defines its own extent |
-| Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`gEffectTaskDescriptors`, `gEffectBurstTaskDescriptors`) |
+| Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`gEffectTaskDescs`, `gTaskBank10Descs`) |
 | Title extras | `packages/title/src/title.c`, `gTitleStartupTaskDescriptors` |
 | Enemies | `src/gameplay/scene_runtime.c` (`_enemySpawn`, `enemySpawnFromTable`) |
 | UI stack descs | `src/main/ui.c` (`uiSpawnObject`) |
@@ -272,17 +272,17 @@ NULL.
 
 | Bank | Symbol | n | What it is |
 |------|--------|--:|------------|
-| 0 | `_gTaskSystemDescs` | 39 | System: boot, title, gameflow, memcard, view, HUD |
-| 1 | `gTaskBank1Descs` | 51 | Enemies / room coords / TMD helpers + `0x807xxxxx` overlay |
-| 2 (=11–13) | `gTaskBank2Descs` | 17 | CAP playback, pad scripts, Acropolis room tasks, model-part effects and a development callback |
+| 0 | `_gSystemTaskDescs` | 39 | System: boot, title, gameflow, memcard, view, HUD |
+| 1 | `gSceneTaskDescs` | 51 | Enemies / room coords / TMD helpers + `0x807xxxxx` overlay |
+| 2 (=11–13) | `gInteractionTaskDescs` | 17 | CAP playback, pad scripts, Acropolis room tasks, model-part effects and a development callback |
 | 3 | `gTaskBank3Descs` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
-| 4 | `gTaskBank4Descs` | 9 | Stubs + TMD / overlay |
+| 4 | `gCollisionTaskDescs` | 9 | Stubs + TMD / overlay |
 | 5 | `gTaskBank5Descs` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
-| 6 | `gEffectTaskDescriptors` | **667** | Resident effects and loaded-overlay task callbacks |
-| 7 | `gTaskBank7Descs` | 164 | Character bodies, hand/weapon attachments, projectiles, companions and Acropolis cafeteria props |
+| 6 | `gEffectTaskDescs` | **667** | Resident effects and loaded-overlay task callbacks |
+| 7 | `gModelTaskDescs` | 164 | Character bodies, hand/weapon attachments, projectiles, companions and Acropolis cafeteria props |
 | 8 | `gTaskBank8Descs` | 6 | Stubs + shared `effectBurstModelPartTask` |
-| 9 | `gTaskBank9Descs` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
-| 10 | `gEffectBurstTaskDescriptors` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |
+| 9 | `gEventTaskDescs` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
+| 10 | `gTaskBank10Descs` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |
 | 14 | `gTaskBank14Descs` | 5 | Bodyless teardown slots 0..3; slot 4 targets development RAM, role unproven |
 
 Callback addresses fall in four windows:
@@ -411,7 +411,7 @@ releases that allocation before default task teardown.
 
 ### Bank 6 — 667 effect and overlay-task descriptors
 
-The gameplay-resident `gEffectTaskDescriptors` bank combines resident effect
+The gameplay-resident `gEffectTaskDescs` bank combines resident effect
 callbacks with room, actor, weapon and PE overlay entry points. Each slot selects
 the task body, priority, callback and optional model source. Named resident
 screen-effect entries include `_effectStatusScreenTintTaskF` (0xF) and

@@ -625,7 +625,7 @@ static void _actor142900ReloadElevatorHall(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACTOR_142900_ELEVATOR_HALL_ARRIVAL_WARP;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_142900_ELEVATOR_HALL_ROOM;
         gDisplayState.spriteVariant                                 = ACTOR_142900_ELEVATOR_HALL_SPRITE_VARIANT;
-        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     }
 }
 

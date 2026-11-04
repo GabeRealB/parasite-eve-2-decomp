@@ -327,7 +327,7 @@ typedef struct {
 } _Actor07000SlouchWork;
 STATIC_ASSERT_SIZEOF(_Actor07000SlouchWork, 0x39C);
 
-/// Models effect 0x80005 spawns, set in `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`, one per
+/// Models effect 0x80005 spawns, set in `gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model`, one per
 /// random variant the roll selects.
 static TmdSource _gSucklercephAndSlouchSlouchBurstLeg;
 
@@ -1338,8 +1338,7 @@ static s32 _actor07000SlouchMeasurePlayer(GfxCoord* reference, u32* rangeOut)
 /// 1 and 4 are requested regardless of detached-model allocation success.
 static void _actor07000SlouchBurst(Task* task)
 {
-    enum { ACTOR_07000_SLOUCH_BODY_PART_EFFECT_SLOT = TASK_BANK8_BURST_MODEL_PART_SLOT,
-           ACTOR_07000_SLOUCH_BURST_PARTICLE_SIZE   = 768 };
+    enum { ACTOR_07000_SLOUCH_BURST_PARTICLE_SIZE = 768 };
 /// Spawns a Slouch part model and copies the source actor's texture placement.
 ///
 /// Requires live model data and a coordinate in the seven-part source rig; current
@@ -1348,13 +1347,13 @@ static void _actor07000SlouchBurst(Task* task)
 /// on success, and the writable EffectWork* effectLocal twice, or three times on
 /// success. Captures the local descriptor-slot constant and package texture copier.
 /// Expands to one compound statement; failed allocation skips the texture copy.
-#define ACTOR_07000_SLOUCH_SPAWN_BURST_PART(modelSource, partIndex, sourceTask, effectLocal)                                                                                      \
-    {                                                                                                                                                                             \
-        gTaskBank8Descs[ACTOR_07000_SLOUCH_BODY_PART_EFFECT_SLOT].data.model = (modelSource);                                                                                     \
-        (effectLocal)                                                        = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (sourceTask)->extra.tmd->coords + (partIndex), 0, NULL); \
-        if ((effectLocal) != NULL) {                                                                                                                                              \
-            _actor07000SlouchCopyTexturePlacement((effectLocal)->task, (sourceTask));                                                                                             \
-        }                                                                                                                                                                         \
+#define ACTOR_07000_SLOUCH_SPAWN_BURST_PART(modelSource, partIndex, sourceTask, effectLocal)                                                                \
+    {                                                                                                                                                       \
+        gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = (modelSource);                                                                                 \
+        (effectLocal)                                      = effectSpawn(EFFECT_BURST_BODY_PART_8, (sourceTask)->extra.tmd->coords + (partIndex), 0, NULL); \
+        if ((effectLocal) != NULL) {                                                                                                                        \
+            _actor07000SlouchCopyTexturePlacement((effectLocal)->task, (sourceTask));                                                                       \
+        }                                                                                                                                                   \
     }
     EffectWork* effect;
     s32         variant;

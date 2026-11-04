@@ -25,7 +25,6 @@
 #include "main/tmd_stream_types.h"
 
 // Bank-0 descriptor that refreshes coordinates and draws the active model list.
-enum { MODEL_OBJECT_STASH_DRAW_TASK = 0x1A };
 
 /// Snapshot of the live model-list sentinel's two endpoints during one list stash.
 ///
@@ -481,7 +480,7 @@ static void _modelObjectStashLists(void)
     _gModelObjectSavedModelList     = gTmdList;
     _gModelObjectSavedCoordBodyList = gModelObjectCoordBodyList;
     _modelObjectResetRenderLists();
-    _gModelObjectTemporaryDrawTask = taskSpawn(0, MODEL_OBJECT_STASH_DRAW_TASK, 0, 0);
+    _gModelObjectTemporaryDrawTask = taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_DRAW_TEMPORARY_MODELS, 0, 0);
 }
 
 /// Stops the temporary draw task and restores the saved lists to their sentinels.

@@ -46,12 +46,6 @@ extern UiObjectDesc gItemMenuTransferPanelDescriptors[ITEM_MENU_TRANSFER_PANEL_C
 /// completion. Sounds use the current stage/area and the composed model origin.
 void itemPickupContainerLidTask(Task* task);
 
-/// Task-bank selectors for the CAP-requested placed-object prompt.
-enum {
-    ITEM_PICKUP_ACTION_TASK_BANK = 1,
-    ITEM_PICKUP_ACTION_TASK_TYPE = 0x2C
-};
-
 /// Runs a CAP-requested placed-object prompt and publishes its completion.
 ///
 /// Bank 1 type 0x2C borrows a `CapActionRequest` through `spawnArg2` until `done` is

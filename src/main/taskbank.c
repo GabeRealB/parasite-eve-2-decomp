@@ -10,14 +10,14 @@ void func_80722624(Task* arg0);
 
 void func_80723944(Task* arg0);
 
-TaskDesc gTaskBank4Descs[9] = {
+TaskDesc gCollisionTaskDescs[TASK_COLLISION_SLOT_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80722624 },
-    { { { TASK_BODY_NONE, 0xF0 } }, worldCollisionUpdateTask },
+    [TASK_COLLISION_WORLD_COLLISION_UPDATE] = { { { TASK_BODY_NONE, 0xF0 } }, worldCollisionUpdateTask },
     { { { TASK_BODY_NONE, 0xF0 } }, func_8071E24C },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectBurstModelPartTask },
+    [TASK_COLLISION_BURST_BODY_PART] = { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectBurstModelPartTask },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80723944 },
 };

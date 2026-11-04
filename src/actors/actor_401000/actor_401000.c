@@ -1353,7 +1353,6 @@ static void _actor401000DeathBurst(Task* task)
         ACTOR_401000_BURST_PARTICLE_ARG = 0x10300,
         ACTOR_401000_BURST_PART_SIZE    = 512,
         ACTOR_401000_BURST_OFFSET       = 100,
-        ACTOR_401000_BURST_MODEL_SLOT   = 5,
         ACTOR_401000_BURST_FIRST_TICK   = 3,
         ACTOR_401000_BURST_SECOND_TICK  = 5,
         ACTOR_401000_BURST_BODY_TICK    = 7,
@@ -1383,25 +1382,25 @@ static void _actor401000DeathBurst(Task* task)
     nextTick         = work->stateTimer + 1;
     work->stateTimer = nextTick;
     if ((s16)nextTick == ACTOR_401000_BURST_FIRST_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gStrangerBurstHand;
-        work->effectOffset.vz                                                 = ACTOR_401000_BURST_OFFSET;
-        work->effectOffset.vy                                                 = 0;
-        work->effectOffset.vx                                                 = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ACTOR_401000_BURST_PART_SIZE, &work->effectOffset), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerBurstHand;
+        work->effectOffset.vz                                = ACTOR_401000_BURST_OFFSET;
+        work->effectOffset.vy                                = 0;
+        work->effectOffset.vx                                = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 9, ACTOR_401000_BURST_PART_SIZE, &work->effectOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401000_BURST_SECOND_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gStrangerOddBBurstLeg;
-        work->effectOffset.vy                                                 = 0;
-        work->effectOffset.vx                                                 = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 12, ACTOR_401000_BURST_PART_SIZE, &work->effectOffset), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerOddBBurstLeg;
+        work->effectOffset.vy                                = 0;
+        work->effectOffset.vx                                = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 12, ACTOR_401000_BURST_PART_SIZE, &work->effectOffset), enemy);
     }
     if (work->stateTimer == ACTOR_401000_BURST_BODY_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gStrangerOddBBurstTorso;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerOddBBurstTorso;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 1, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer == ACTOR_401000_BURST_HEAD_TICK) {
-        gEffectBurstTaskDescriptors[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gStrangerOddBBurstHead;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 3, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
+        gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerOddBBurstHead;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 3, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
     }
     if (work->stateTimer >= ACTOR_401000_BURST_HIDE_TICK) {
         work->state = ODD_STRANGER_STATE_HIDDEN;

@@ -19,13 +19,13 @@
 #include "main/session.h"
 #include "main/task.h"
 
-TaskDesc gEffectBurstTaskDescriptors[6] = {
+TaskDesc gTaskBank10Descs[TASK_10_SLOT_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectBurstModelPartTask, { .model = NULL } },
+    [TASK_10_BURST_BODY_PART] = { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectBurstModelPartTask, { .model = NULL } },
 };
 
 /// Retained bytes after the burst-part task descriptors.

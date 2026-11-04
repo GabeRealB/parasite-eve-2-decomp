@@ -101,8 +101,6 @@ static inline void _capInitializeSequencePlayback(CapSequenceRecord* sequence, s
 s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantKey)
 {
     enum {
-        CAP_PLAYBACK_TASK_BANK         = 2,
-        CAP_PLAYBACK_TASK_TYPE         = 7,
         CAP_CLEAR_UNSTARTED_TASK_INDEX = 0
     };
     CdCmdQueue* cdQueue;
@@ -136,7 +134,7 @@ s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantK
     gCapTextUpdateCallback = NULL;
     // Queued playback borrows the selection before its task begins running.
     if (playbackMode != CAP_PLAYBACK_IN_PLACE) {
-        playbackDescriptor = taskGetDesc(CAP_PLAYBACK_TASK_BANK, CAP_PLAYBACK_TASK_TYPE);
+        playbackDescriptor = taskGetDesc(TASK_BANK_INTERACTION, TASK_INTERACTION_CAP_PLAYBACK);
         gCapPlaybackTask   = displayQueueModeTask(playbackDescriptor, 0, 0, STAGE_ENTRY_RELOAD);
         if (gCapPlaybackMode != CAP_PLAYBACK_CLEAR_IF_UNSTARTED) {
             return 0;
@@ -144,7 +142,7 @@ s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantK
         taskSpawnFromTable(gCapPlaybackTaskDescriptors, CAP_CLEAR_UNSTARTED_TASK_INDEX, 0, 0);
         gCapPlaybackMode = CAP_PLAYBACK_DISPLAY_TRANSITION;
     } else {
-        gCapPlaybackTask = taskSpawn(CAP_PLAYBACK_TASK_BANK, CAP_PLAYBACK_TASK_TYPE, 0, 0);
+        gCapPlaybackTask = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_CAP_PLAYBACK, 0, 0);
     }
     return 0;
 }

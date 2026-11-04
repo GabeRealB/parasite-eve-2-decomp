@@ -108,8 +108,7 @@ enum {
 /// Shared burst-effect arguments: particle radius/mode and detached-model radius.
 enum {
     ACTOR_01900_BURST_PARTICLE_ARGUMENT = (1 << 16) | 0x300,
-    ACTOR_01900_BURST_MODEL_RADIUS      = 0x200,
-    ACTOR_01900_BURST_MODEL_SLOT        = (u16)EFFECT_BURST_BODY_PART_BANK10
+    ACTOR_01900_BURST_MODEL_RADIUS      = 0x200
 };
 
 /// Values of `_Actor01900Work::state`: the index of the handler the per-frame
@@ -3077,20 +3076,20 @@ static void _actor01900StateDeathBurst(Task* task)
     work->stateTimer++;
     switch (work->stateTimer) {
         case 3:
-            gEffectBurstTaskDescriptors[ACTOR_01900_BURST_MODEL_SLOT].data.model = &_gStrangerBurstHand;
-            spawnOffset.vz                                                       = 0x64;
-            spawnOffset.vy                                                       = 0;
-            spawnOffset.vx                                                       = 0;
-            burstEffect                                                          = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ACTOR_01900_BURST_MODEL_RADIUS, &spawnOffset);
+            gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerBurstHand;
+            spawnOffset.vz                                       = 0x64;
+            spawnOffset.vy                                       = 0;
+            spawnOffset.vx                                       = 0;
+            burstEffect                                          = effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 9, ACTOR_01900_BURST_MODEL_RADIUS, &spawnOffset);
             if (burstEffect != NULL) {
                 _actorRenderApplyTaskPlacementTextureOffsets(burstEffect->task, enemy);
             }
             break;
         case 4:
-            gEffectBurstTaskDescriptors[ACTOR_01900_BURST_MODEL_SLOT].data.model = &_gStrangerBurstHand;
-            spawnOffset.vy                                                       = 0;
-            spawnOffset.vx                                                       = 0;
-            burstEffect                                                          = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 12, ACTOR_01900_BURST_MODEL_RADIUS, &spawnOffset);
+            gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerBurstHand;
+            spawnOffset.vy                                       = 0;
+            spawnOffset.vx                                       = 0;
+            burstEffect                                          = effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 12, ACTOR_01900_BURST_MODEL_RADIUS, &spawnOffset);
             if (burstEffect != NULL) {
                 _actorRenderApplyTaskPlacementTextureOffsets(burstEffect->task, enemy);
             }
@@ -3152,16 +3151,16 @@ static void _actor01900StateDeathBurstWalk(Task* task)
             _actorMovementStepForward(task->extra.tmd->coords, ACTOR_01900_DEATH_BURST_WALK_STEP);
             _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
             if (work->stateTimer == 3) {
-                gEffectBurstTaskDescriptors[ACTOR_01900_BURST_MODEL_SLOT].data.model = &_gStrangerBurstHand;
-                spawnOffset.vz                                                       = 0x64;
-                spawnOffset.vy                                                       = 0;
-                spawnOffset.vx                                                       = 0;
-                burstEffect                                                          = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ACTOR_01900_BURST_MODEL_RADIUS, &spawnOffset);
+                gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerBurstHand;
+                spawnOffset.vz                                       = 0x64;
+                spawnOffset.vy                                       = 0;
+                spawnOffset.vx                                       = 0;
+                burstEffect                                          = effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 9, ACTOR_01900_BURST_MODEL_RADIUS, &spawnOffset);
                 _actorRenderApplyEffectPlacementTextureOffsets(burstEffect, enemy);
             }
             if (work->stateTimer == 5) {
-                gEffectBurstTaskDescriptors[ACTOR_01900_BURST_MODEL_SLOT].data.model = &_gStrangerBurstHand;
-                burstEffect                                                          = effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ACTOR_01900_BURST_MODEL_RADIUS, NULL);
+                gTaskBank10Descs[TASK_10_BURST_BODY_PART].data.model = &_gStrangerBurstHand;
+                burstEffect                                          = effectSpawn(EFFECT_BURST_BODY_PART_10, task->extra.tmd->coords + 1, ACTOR_01900_BURST_MODEL_RADIUS, NULL);
                 _actorRenderApplyEffectPlacementTextureOffsets(burstEffect, enemy);
             }
             break;

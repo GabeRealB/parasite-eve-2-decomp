@@ -78,14 +78,14 @@ enum {
     LOAD_UI_DISK_SWAP_RESTORE_PROMPT  = 0x8000,
 };
 
-u8       gCdCmdViewSeekPending = CD_COMMAND_VIEW_SEEK_CLEAR;
-TaskDesc gTaskBank8Descs[6]    = {
+u8       gCdCmdViewSeekPending              = CD_COMMAND_VIEW_SEEK_CLEAR;
+TaskDesc gTaskBank8Descs[TASK_8_SLOT_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
-    { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectBurstModelPartTask },
+    [TASK_8_BURST_BODY_PART] = { { { TASK_BODY_TMD, TASK_PRIORITY_EFFECT } }, effectBurstModelPartTask },
 };
 
 void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProfile)

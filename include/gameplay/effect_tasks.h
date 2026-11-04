@@ -11,6 +11,7 @@
 #include "gameplay/room_effects.h"
 
 #include "main/coord.h"
+#include "main/task_ids.h"
 #include "main/task_types.h"
 
 // Effect task entry points and shared drawing data.
@@ -123,7 +124,7 @@ void effectDrawGroundGlow(const GfxCoord* coord, s32 halfSize, u32 brightness);
 /// Before spawning slot 5, the actor supplies data.model. Spawned TMD objects
 /// borrow that selected source, geometry and stream until released; replacing
 /// the slot changes future spawns. The six-entry bank lives with gameplay.
-extern TaskDesc gEffectBurstTaskDescriptors[6];
+extern TaskDesc gTaskBank10Descs[TASK_10_SLOT_COUNT];
 
 /// Flings a detached model part with spin and gravity, then dims or collapses it.
 ///

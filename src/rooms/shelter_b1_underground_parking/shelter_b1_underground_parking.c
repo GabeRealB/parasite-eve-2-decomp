@@ -2275,8 +2275,6 @@ static void _shelterB1UndergroundParkingGarageDepartureTask(Task* task)
         SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_WAIT_FADE                = 2,
         SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_CHOICE_ACCEPT            = 11,
         SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES              = 30,
-        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_BANK           = 1,
-        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_TYPE           = 49,
         SHELTER_B1_UNDERGROUND_PARKING_COMPANION_SCHEDULE_MINE_SHELTER    = 10,
         SHELTER_B1_UNDERGROUND_PARKING_COMPANION_SCHEDULE_SHELTER_NEO_ARK = 9,
         SHELTER_B1_UNDERGROUND_PARKING_MUSIC_OVERRIDE_SUBMARINE           = 1,
@@ -2298,7 +2296,7 @@ static void _shelterB1UndergroundParkingGarageDepartureTask(Task* task)
                 _gShelterB1UndergroundParkingDepartureFade.blend      = SCREEN_FADE_SUBTRACT;
                 _gShelterB1UndergroundParkingDepartureFade.phase      = SCREEN_FADE_RUNNING;
                 _gShelterB1UndergroundParkingDepartureFade.rampFrames = SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES;
-                taskSpawn(SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_BANK, SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_TYPE, 0, &_gShelterB1UndergroundParkingDepartureFade);
+                taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &_gShelterB1UndergroundParkingDepartureFade);
                 task->killCountdown = SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES;
                 task->state++;
             } else {

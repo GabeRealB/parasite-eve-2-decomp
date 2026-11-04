@@ -697,8 +697,8 @@ void akropolisSquareRoomEffectTask(Task* task)
             task->msgTable = _gAkropolisSquareRoomEffectMessages;
             gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
             _gAkropolisSquareTelephoneLightMode = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_IDLE;
-            taskSpawn(AKROPOLIS_SQUARE_REFLECTION_TASK_BANK, AKROPOLIS_SQUARE_REFLECTION_TASK_SLOT, AKROPOLIS_SQUARE_REFLECTION_FLOOR, 0);
-            taskSpawn(AKROPOLIS_SQUARE_REFLECTION_TASK_BANK, AKROPOLIS_SQUARE_REFLECTION_TASK_SLOT, AKROPOLIS_SQUARE_REFLECTION_PLANE, 0);
+            taskSpawn(TASK_BANK_SCENE, TASK_SCENE_PLAYER_REFLECTION, AKROPOLIS_SQUARE_REFLECTION_FLOOR, 0);
+            taskSpawn(TASK_BANK_SCENE, TASK_SCENE_PLAYER_REFLECTION, AKROPOLIS_SQUARE_REFLECTION_PLANE, 0);
             task->state++;
             return;
         case ACTIVE:

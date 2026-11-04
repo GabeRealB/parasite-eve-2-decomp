@@ -282,8 +282,6 @@ void bootColdStartTask(Task* task)
         BOOT_FADE_FULL_BRIGHTNESS    = 255,
         BOOT_FADE_FINISHED           = 256,
         BOOT_FADE_BRIGHTNESS_STEP    = 8,
-        BOOT_RESIDENT_TASK_BANK      = 0,
-        BOOT_START_TITLE_TASK_SLOT   = 13,
         BOOT_SCAN_WITH_STARTUP_IMAGE = 1,
     };
     u8            driveMode[8]; // Only byte 0 is sent; the retained scratch extent preserves stack placement.
@@ -353,7 +351,7 @@ void bootColdStartTask(Task* task)
             break;
 
         case BOOT_COLD_START_START_TITLE:
-            taskSpawn(BOOT_RESIDENT_TASK_BANK, BOOT_START_TITLE_TASK_SLOT, 0, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_BOOT_START_TITLE, 0, 0);
             taskKill(task);
             SetDispMask(1);
             gDisplayState.debugMode = 0;

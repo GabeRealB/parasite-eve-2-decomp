@@ -1060,8 +1060,6 @@ static void _actor342000UpdateSceneStaging(Task* eventTask)
         ACTOR_342000_DOORS_MEETING_X               = 0x36B0,
         ACTOR_342000_BLEND_VIEW                    = 8,
         ACTOR_342000_DOORS_HIDDEN_VIEW             = 15,
-        ACTOR_342000_FRAMEBUFFER_BLEND_BANK        = 1,
-        ACTOR_342000_FRAMEBUFFER_BLEND_SLOT        = 0x2D,
         ACTOR_342000_FRAMEBUFFER_BLEND_DOUBLE_PASS = 16,
     };
     _Actor342000EventWork*        work;
@@ -1141,7 +1139,7 @@ static void _actor342000UpdateSceneStaging(Task* eventTask)
             break;
         case ACTOR_342000_STAGING_BLEND_ON:
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_342000_BLEND_VIEW;
-            work->framebufferBlend                                 = taskSpawn(ACTOR_342000_FRAMEBUFFER_BLEND_BANK, ACTOR_342000_FRAMEBUFFER_BLEND_SLOT, ACTOR_342000_FRAMEBUFFER_BLEND_DOUBLE_PASS, 0);
+            work->framebufferBlend                                 = taskSpawn(TASK_BANK_SCENE, TASK_SCENE_BLEND_PREVIOUS_FRAME, ACTOR_342000_FRAMEBUFFER_BLEND_DOUBLE_PASS, 0);
             break;
         case ACTOR_342000_STAGING_BLEND_OFF:
             if (work->framebufferBlend != NULL) {

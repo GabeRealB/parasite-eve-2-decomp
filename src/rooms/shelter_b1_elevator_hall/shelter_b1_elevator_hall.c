@@ -114,8 +114,6 @@ void shelterB1ElevatorHallMineTransitTask(Task* task)
            CAP_VARIANT_MINE_PASSAGE_CONFIRMED = 0xA,
            ACTOR_SETTLE_FRAMES                = 3,
            FADE_RAMP_FRAMES                   = 30,
-           FADE_TASK_BANK                     = 1,
-           FADE_TASK_SLOT                     = 0x31,
            SPRITE_RESOURCE_VARIANT            = 1 };
     s16 remainingFrames;
 
@@ -156,7 +154,7 @@ void shelterB1ElevatorHallMineTransitTask(Task* task)
             gShelterB1ElevatorHallMineTransitFade.fade.blend      = SCREEN_FADE_SUBTRACT;
             gShelterB1ElevatorHallMineTransitFade.fade.phase      = SCREEN_FADE_RUNNING;
             gShelterB1ElevatorHallMineTransitFade.fade.rampFrames = FADE_RAMP_FRAMES;
-            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &gShelterB1ElevatorHallMineTransitFade.fade);
+            taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &gShelterB1ElevatorHallMineTransitFade.fade);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
             task->state++;
             break;
@@ -172,7 +170,7 @@ void shelterB1ElevatorHallMineTransitTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShelterB1ElevatorHallMineDestination.area;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShelterB1ElevatorHallMineDestination.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB1ElevatorHallMineDestination.roomState;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
     }

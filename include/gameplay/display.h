@@ -20,10 +20,6 @@
 /// `fadeDrawOverlay` uses.
 void fadeResumeSessionTask(Task* task);
 
-/// Descriptor slot used to spawn `fadeDisplayTransitionTask`.
-enum { FADE_DISPLAY_TASK_BANK = 1,
-       FADE_DISPLAY_TASK_TYPE = 0x27 };
-
 /// Special `fadeDisplayTransitionTask` modes, passed in `Task::spawnArg1.value`.
 ///
 /// Other values darken the frame and finish by selecting task-only presentation.

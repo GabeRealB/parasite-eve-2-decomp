@@ -1651,34 +1651,34 @@ static void _actor00400SpawnBodyChunks(Task* task)
     EffectWork* randomLimbEffect;
     EffectWork* coreEffect;
 
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gDiverBurstHead;
-    headEffect                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[4], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gDiverBurstHead;
+    headEffect                                                         = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[4], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     if (headEffect != NULL) {
         _actor00400BindChunkTexture(task, headEffect);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gDiverBurstArmRight;
-    rightArmEffect                                               = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[11], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gDiverBurstArmRight;
+    rightArmEffect                                                     = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[11], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     if (rightArmEffect != NULL) {
         _actor00400BindChunkTexture(task, rightArmEffect);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gDiverBurstArmLeft1;
-    leftArmEffect                                                = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[14], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gDiverBurstArmLeft1;
+    leftArmEffect                                                      = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[14], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     if (leftArmEffect != NULL) {
         _actor00400BindChunkTexture(task, leftArmEffect);
     }
     RANDOM_LCG_ADVANCE();
     if (RANDOM_LCG_DRAW() & 1) {
-        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gDiverBurstLegRight;
-        randomLimbEffect                                             = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+        gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gDiverBurstLegRight;
+        randomLimbEffect                                                   = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[8], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     } else {
-        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gDiverBurstArmLeft2;
-        randomLimbEffect                                             = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+        gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gDiverBurstArmLeft2;
+        randomLimbEffect                                                   = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[8], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     }
     if (randomLimbEffect != NULL) {
         _actor00400BindChunkTexture(task, randomLimbEffect);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gDiverEnergyBall;
-    coreEffect                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gDiverEnergyBall;
+    coreEffect                                                         = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[1], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     if (coreEffect != NULL) {
         _actor00400BindChunkTexture(task, coreEffect);
     }

@@ -15,6 +15,7 @@
 #include "gameplay/companion_load.h"
 #include "companion_load.h"
 #include "gameplay/direction.h"
+#include "gameplay/effect_ids.h"
 #include "gameplay/hud_sprites.h"
 #include "hud_sprites.h"
 #include "item_placement.h"
@@ -176,26 +177,6 @@ void areaStartRoomRuntime(s32 skipViewGate)
         AREA_ROOM_GARAGE_ROOM                 = 2,
         AREA_ROOM_GARAGE_WARP                 = 2,
         PLAYER_ACTOR_ROOM_TEXTURE_PAGE_OFFSET = 6,
-        MODEL_OBJECT_DRAW_TEMPORARY_TASK_BANK = 0,
-        MODEL_OBJECT_DRAW_TEMPORARY_TASK_TYPE = 0x1A,
-        WORLD_COLLISION_TICK_TASK_BANK        = 4,
-        WORLD_COLLISION_TICK_TASK_TYPE        = 5,
-        DIRECTION_TASK_BANK                   = 0,
-        DIRECTION_TASK_TYPE                   = 0x14,
-        VIEW_TRANSITION_GATE_TASK_BANK        = 0,
-        VIEW_TRANSITION_GATE_TASK_TYPE        = 0x16,
-        LOADING_ROOM_RESOURCES_TASK_BANK      = 0,
-        LOADING_ROOM_RESOURCES_TASK_TYPE      = 0x10,
-        SCENE_MANAGER_TASK_BANK               = 1,
-        SCENE_MANAGER_TASK_TYPE               = 0x23,
-        ROOM_EFFECT_TASK_BANK                 = 6,
-        ROOM_EFFECT_TASK_TYPE                 = 4,
-        OBJECT_TASK_ROOM_TASK_BANK            = 9,
-        OBJECT_TASK_ROOM_TASK_TYPE            = 0x11,
-        WORLD_COORD_ROOM_LIGHTS_TASK_BANK     = 1,
-        WORLD_COORD_ROOM_LIGHTS_TASK_TYPE     = 0xF,
-        WORLD_COORD_PLAYER_LIGHTING_TASK_BANK = 1,
-        WORLD_COORD_PLAYER_LIGHTING_TASK_TYPE = 0x10,
     };
     DirectionWarpEntry warpEntry;
     ActorSpawnOptions  spawnOptions;
@@ -223,14 +204,14 @@ void areaStartRoomRuntime(s32 skipViewGate)
     padInputResetSuppression();
     displaySetShakeY(0);
     // Install the controllers before room placement setup can spawn its actors.
-    taskSpawn(PLAY_CLOCK_TASK_BANK, PLAY_CLOCK_TASK_TYPE, 0, 0);
-    taskSpawn(MODEL_OBJECT_DRAW_TEMPORARY_TASK_BANK, MODEL_OBJECT_DRAW_TEMPORARY_TASK_TYPE, 0, 0);
-    gameSetTaskSlot(taskSpawn(WORLD_COLLISION_TICK_TASK_BANK, WORLD_COLLISION_TICK_TASK_TYPE, 0, 0), 9);
-    taskSpawn(DIRECTION_TASK_BANK, DIRECTION_TASK_TYPE, 0, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_PLAY_CLOCK, 0, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_DRAW_TEMPORARY_MODELS, 0, 0);
+    gameSetTaskSlot(taskSpawn(TASK_BANK_COLLISION, TASK_COLLISION_WORLD_COLLISION_UPDATE, 0, 0), 9);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_DIRECTION, 0, 0);
     if ((skipViewGate & 0xFFFF) != AREA_ROOM_START_SKIP_VIEW_GATE) {
-        gameSetTaskSlot(taskSpawn(VIEW_TRANSITION_GATE_TASK_BANK, VIEW_TRANSITION_GATE_TASK_TYPE, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
+        gameSetTaskSlot(taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_VIEW_TRANSITION_GATE, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
     }
-    gameSetTaskSlot(taskSpawn(LOADING_ROOM_RESOURCES_TASK_BANK, LOADING_ROOM_RESOURCES_TASK_TYPE, 0, 0), 2);
+    gameSetTaskSlot(taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_LOAD_ROOM_RESOURCES, 0, 0), 2);
     // The destination endpoint supplies actor placements and the default view.
     stage     = location->stage;
     warpId    = location->warp;
@@ -268,18 +249,18 @@ void areaStartRoomRuntime(s32 skipViewGate)
     tmdBuildBufferHalf(playerModel);
     tmdBuildBufferHalf(playerModel);
     viewApplyCurrentCamera();
-    gameSetTaskSlot(taskSpawn(SCENE_MANAGER_TASK_BANK, SCENE_MANAGER_TASK_TYPE, 0, 0), GAME_TASK_SLOT_SCENE);
-    gameSetTaskSlot(taskSpawn(ROOM_EFFECT_TASK_BANK, ROOM_EFFECT_TASK_TYPE, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
-    taskSpawn(CAP_CONTROL_TASK_BANK, CAP_CONTROL_TASK_TYPE, 0, 0);
-    taskSpawn(OBJECT_TASK_ROOM_TASK_BANK, OBJECT_TASK_ROOM_TASK_TYPE, 0, 0);
+    gameSetTaskSlot(taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCENE_MANAGER, 0, 0), GAME_TASK_SLOT_SCENE);
+    gameSetTaskSlot(taskSpawn(TASK_BANK_EFFECT, TASK_SLOT(EFFECT_ROOM_CONTROLLER), 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
+    taskSpawn(TASK_BANK_EVENT, TASK_EVENT_CAP_CONTROL, 0, 0);
+    taskSpawn(TASK_BANK_EVENT, TASK_EVENT_OBJECT_TASK_ROOM, 0, 0);
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != DISPLAY_DEMO_NONE) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != AREA_ROOM_DEMO_NO_START_TASK)) {
         taskSpawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, AREA_ROOM_DEMO_START_TASK_TYPE, 0, 0);
     }
     areaSpawnRoomObjects(location);
     areaSpawnPlacements(location);
     sceneResetCombatState();
-    taskSpawn(WORLD_COORD_ROOM_LIGHTS_TASK_BANK, WORLD_COORD_ROOM_LIGHTS_TASK_TYPE, 0, 0);
-    taskSpawn(WORLD_COORD_PLAYER_LIGHTING_TASK_BANK, WORLD_COORD_PLAYER_LIGHTING_TASK_TYPE, 0, 0);
+    taskSpawn(TASK_BANK_SCENE, TASK_SCENE_ROOM_LIGHTS, 0, 0);
+    taskSpawn(TASK_BANK_SCENE, TASK_SCENE_PLAYER_LIGHTING, 0, 0);
     // Read arrival effects after the room's setup has run.
     stage     = location->stage;
     warpId    = location->warp;
@@ -339,7 +320,7 @@ void gameFlowRebuildSessionTask(Task* task)
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
     // This spawn can reuse the discarded task's storage; consume its option first.
-    taskSpawn(LOADING_SESSION_TASK_BANK, LOADING_SESSION_TASK_SLOT, task->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_LOAD_SESSION, task->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK, 0);
     displayState->skipDraw              = false;
     cdQueue->blockGamePause             = true;
     cdQueue->releasePauseBlockAfterFade = true;

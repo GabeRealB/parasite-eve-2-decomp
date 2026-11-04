@@ -658,8 +658,6 @@ static void _actor461800FinishScene(void)
         ACTOR_461800_SCENE_DEMO                   = 9,
         ACTOR_461800_STERILIZATION_WITH_COMPANION = 2,
         ACTOR_461800_ENDING_FADE_FRAMES           = 15,
-        ACTOR_461800_TRANSITION_TASK_BANK         = GAME_FLOW_RELOAD_TASK_BANK,
-        ACTOR_461800_TRANSITION_TASK_INDEX        = GAME_FLOW_RELOAD_TASK_SLOT,
     };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_461800_SCENE_DEMO) {
         // Award the rescue bonuses before selecting the ending path.
@@ -680,7 +678,7 @@ static void _actor461800FinishScene(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = 1;
         gDisplayState.spriteVariant                                 = 1;
-        taskSpawn(ACTOR_461800_TRANSITION_TASK_BANK, ACTOR_461800_TRANSITION_TASK_INDEX, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
         streamFinishScene();
     }

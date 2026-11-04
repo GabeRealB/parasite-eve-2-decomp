@@ -2027,8 +2027,6 @@ static void _actor450800EnterGrowthRoom(void)
         ACTOR_450800_GROWTH_ROOM_ARRIVAL   = 1,
         ACTOR_450800_GROWTH_ROOM           = 1,
         ACTOR_450800_GROWTH_SPRITE_VARIANT = 1,
-        ACTOR_450800_SESSION_TASK_BANK     = GAME_FLOW_RELOAD_TASK_BANK,
-        ACTOR_450800_SESSION_RESTART_TASK  = GAME_FLOW_RELOAD_TASK_SLOT,
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_450800_NURSERY_DEMO_SCENE) {
@@ -2037,7 +2035,7 @@ static void _actor450800EnterGrowthRoom(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACTOR_450800_GROWTH_ROOM_ARRIVAL;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_450800_GROWTH_ROOM;
         gDisplayState.spriteVariant                                 = ACTOR_450800_GROWTH_SPRITE_VARIANT;
-        taskSpawn(ACTOR_450800_SESSION_TASK_BANK, ACTOR_450800_SESSION_RESTART_TASK, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     }
 }
 

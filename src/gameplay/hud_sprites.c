@@ -217,22 +217,14 @@ static ScreenFade _gPlayClockDeathFade;
 /// request. Allocation failure leaves the record initialized but starts no fade.
 static inline void _playClockQueueDeathFade(const GameSession* session)
 {
-    enum { PLAY_CLOCK_DEATH_FADE_TASK_BANK = 1,
-           PLAY_CLOCK_DEATH_FADE_TASK_TYPE = 0x31 };
     ScreenFade* fade;
 
     fade             = &_gPlayClockDeathFade;
     fade->blend      = SCREEN_FADE_SUBTRACT;
     fade->phase      = SCREEN_FADE_RUNNING;
     fade->rampFrames = session->deathFadeFrames;
-    taskSpawn(PLAY_CLOCK_DEATH_FADE_TASK_BANK, PLAY_CLOCK_DEATH_FADE_TASK_TYPE, 0, fade);
+    taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, fade);
 }
-
-enum {
-    VIEW_CAMERA_TASK_BANK         = 0,
-    VIEW_CAMERA_TASK_TYPE         = 0xF,
-    VIEW_CACHED_PACKETS_TASK_TYPE = 0x17
-};
 
 /// Queues the camera preceding a mapped cursor and optional cached sprite packets.
 ///
@@ -244,12 +236,12 @@ enum {
 /// independently; the camera request always precedes the optional packet request.
 static inline void _viewQueueCameraCursorAndPackets(const ViewCamera* cursor, s32 packetListMode)
 {
-    taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CAMERA_TASK_TYPE, 0, cursor - 1);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_VIEW_APPLY_CAMERA, 0, cursor - 1);
     if (packetListMode == VIEW_PACKET_LIST_SELECTED) {
-        taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CACHED_PACKETS_TASK_TYPE, 0, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_VIEW_CACHED_PACKETS, 0, 0);
     }
     if (packetListMode == VIEW_PACKET_LIST_DEFAULT) {
-        taskSpawnOnDefaultList(VIEW_CAMERA_TASK_BANK, VIEW_CACHED_PACKETS_TASK_TYPE, 0, 0);
+        taskSpawnOnDefaultList(TASK_BANK_SYSTEM, TASK_SYSTEM_VIEW_CACHED_PACKETS, 0, 0);
     }
 }
 
@@ -1531,8 +1523,6 @@ static s32 _viewQueueCoord(GfxCoord* cameraCoord, const VECTOR* offset)
         (viewPose)->t[1] = -(cameraPose)->t[1];                  \
         (viewPose)->t[2] = -(cameraPose)->t[2];                  \
     }
-    enum { VIEW_COORD_TASK_BANK = 0,
-           VIEW_COORD_TASK_TYPE = 0xE };
     GfxCoord* inverseCamera;
     Task*     task;
     VECTOR*   ownedOffset;
@@ -1540,7 +1530,7 @@ static s32 _viewQueueCoord(GfxCoord* cameraCoord, const VECTOR* offset)
     GfxCoord* cameraParent;
     GfxCoord  relative;
 
-    task = taskSpawn(VIEW_COORD_TASK_BANK, VIEW_COORD_TASK_TYPE, 0, 0);
+    task = taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_VIEW_APPLY_COORD, 0, 0);
     if (task == NULL) {
         return 0;
     }
@@ -1649,7 +1639,7 @@ void gfxMakeRelativeTransform(const MATRIX* reference, const MATRIX* target, MAT
 
 s32 viewQueueCamera(const ViewCamera* camera)
 {
-    return taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CAMERA_TASK_TYPE, 0, camera) != NULL;
+    return taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_VIEW_APPLY_CAMERA, 0, camera) != NULL;
 }
 
 void viewApplyCamera(const ViewCamera* camera)
@@ -1759,13 +1749,11 @@ void viewQueueCurrentCamera(s32 packetListMode)
 void viewTransitionGateTask(Task* task)
 {
     enum {
-        VIEW_TRANSITION_INITIAL          = 0,
-        VIEW_TRANSITION_ACQUIRE_HOLD     = 1,
-        VIEW_TRANSITION_WAIT_SETTLE      = 2,
-        VIEW_TRANSITION_MONITOR          = 3,
-        VIEW_TRANSITION_SETTLE_UPDATES   = 2,
-        VIEW_TRANSITION_LOADER_TASK_BANK = 0,
-        VIEW_TRANSITION_LOADER_TASK_TYPE = 0x1E
+        VIEW_TRANSITION_INITIAL        = 0,
+        VIEW_TRANSITION_ACQUIRE_HOLD   = 1,
+        VIEW_TRANSITION_WAIT_SETTLE    = 2,
+        VIEW_TRANSITION_MONITOR        = 3,
+        VIEW_TRANSITION_SETTLE_UPDATES = 2
     };
     GameSession* session;
     McSaveData*  liveSave;
@@ -1788,7 +1776,7 @@ void viewTransitionGateTask(Task* task)
             session->location.view = liveSave->state.location.view;
             padStartInputBlock(0);
             viewQueueCurrentCameraAndPackets();
-            if (displaySpawnTask(VIEW_TRANSITION_LOADER_TASK_BANK, VIEW_TRANSITION_LOADER_TASK_TYPE, 0, 0) != NULL) {
+            if (displaySpawnTask(TASK_BANK_SYSTEM, TASK_SYSTEM_LOAD_VIEW, 0, 0) != NULL) {
                 admittedView          = gGameSession->location.view;
                 task->killCountdown   = VIEW_TRANSITION_SETTLE_UPDATES;
                 task->spawnArg1.value = admittedView;

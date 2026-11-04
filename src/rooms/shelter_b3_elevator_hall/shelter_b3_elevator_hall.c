@@ -288,7 +288,7 @@ static void _shelterB3ElevatorHallElevatorTransitTask(Task* task)
         case SHELTER_B3_ELEVATOR_HALL_TRANSIT_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant = SHELTER_B3_ELEVATOR_HALL_DEFAULT_SPRITE_VARIANT;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
     }

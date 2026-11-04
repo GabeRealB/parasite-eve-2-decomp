@@ -128,7 +128,6 @@ enum { PANEL_REARM_UPDATES = 10 };
 enum {
     PANEL_OPENER_STATE_START = 0,
     PANEL_OPENER_STATE_WAIT  = 1,
-    PANEL_TASK_BANK          = 2,
 };
 
 /// Panel states selected after a lock prompt or a successful key use.
@@ -638,13 +637,12 @@ static const TaskFuncTable3 _gAkropolisSecurityRoomMessageStates = { {
 /// Holds and hides the player while the security-monitor panel is open.
 static void _akropolisSecurityRoomOpenMonitorTask(Task* task)
 {
-    enum { MONITOR_TASK = 9 };
     s32 panelResult;
 
     switch (task->state) {
         case PANEL_OPENER_STATE_START:
             printf("monitor\n");
-            _gAkropolisSecurityRoomMonitorPanelTask = taskSpawn(PANEL_TASK_BANK, MONITOR_TASK, 0, 0);
+            _gAkropolisSecurityRoomMonitorPanelTask = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_SECURITY_ROOM_MONITOR, 0, 0);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             task->state = task->state + 1;
@@ -671,13 +669,12 @@ static const struct {
 /// Holds the player and releases its model buffers while the power-supply panel is open.
 static void _akropolisSecurityRoomOpenPowerSupplyTask(Task* task)
 {
-    enum { POWER_SUPPLY_TASK = 10 };
     s32 panelResult;
 
     switch (task->state) {
         case PANEL_OPENER_STATE_START:
             printf(_gAkropolisSecurityRoomPowerSupplyDebugText.text);
-            _gAkropolisSecurityRoomPowerSupplyTask = taskSpawn(PANEL_TASK_BANK, POWER_SUPPLY_TASK, 0, 0);
+            _gAkropolisSecurityRoomPowerSupplyTask = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_SECURITY_ROOM_POWER, 0, 0);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE);
             task->state = task->state + 1;

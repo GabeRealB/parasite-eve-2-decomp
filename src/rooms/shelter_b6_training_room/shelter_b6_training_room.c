@@ -723,7 +723,7 @@ void shelterB6TrainingRoomReloadNursery(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_SHELTER_B6_NURSERY;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = SHELTER_B6_TRAINING_ROOM_NURSERY_ARRIVAL;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = SHELTER_B6_TRAINING_ROOM_NURSERY_VARIANT;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
 void shelterB6TrainingRoomStopBattlePresentation(void)

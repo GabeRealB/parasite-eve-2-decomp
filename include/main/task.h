@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include "main/task_ids.h"
 #include "main/task_types.h"
 
 /// Resident head of the scheduler's default priority-ordered execution list.
@@ -31,57 +32,39 @@ extern TaskNode gTaskDefaultList;
 /// clears it before returning. Callers must clear it after a temporary override.
 extern bool gTaskDeferModelBufferAllocation;
 
-/// Mutable model-source slots selected immediately before the corresponding burst effect spawn.
-enum {
-    TASK_BANK4_BURST_MODEL_PART_SLOT = 7,
-    TASK_BANK8_BURST_MODEL_PART_SLOT = 5,
-};
-
-/// Complete extent of the shared bank-2 table and its caller-selected model slot.
-enum {
-    TASK_BANK2_DESCRIPTOR_COUNT      = 17,
-    TASK_BANK2_BURST_MODEL_PART_SLOT = 16
-};
-
 /// Resident table shared by banks 2 and 11..13 for CAP, pad, room and model-part tasks.
 ///
 /// Slots 0..16 have program lifetime; there is no terminator. Before spawning
-/// `EFFECT_BODY_CHUNK`, publish the borrowed TmdSource in slot
-/// `TASK_BANK2_BURST_MODEL_PART_SLOT`'s `data.model`. The spawn reads it
+/// `EFFECT_BURST_BODY_PART_INTERACTION`, publish the borrowed TmdSource in slot
+/// `TASK_INTERACTION_BURST_BODY_PART`'s `data.model`. The spawn reads it
 /// synchronously; the source and its overlay must outlive the new model.
 /// Other slots require their selected callback code to remain loaded.
-extern TaskDesc gTaskBank2Descs[TASK_BANK2_DESCRIPTOR_COUNT];
+extern TaskDesc gInteractionTaskDescs[TASK_INTERACTION_SLOT_COUNT];
 
 /// Resident bank 8: five teardown stubs and one caller-selected flying model part.
 ///
-/// Slots 0..5 have program lifetime. Before spawning EFFECT_BURST_BODY_PART_BANK8,
-/// store a borrowed TmdSource in slot 5's `data.model`. Spawning reads it
+/// Slots 0..5 have program lifetime. Before spawning EFFECT_BURST_BODY_PART_8,
+/// store a borrowed TmdSource in `TASK_8_BURST_BODY_PART`'s `data.model`. Spawning reads it
 /// synchronously; the model source and its overlay must outlive the effect.
-extern TaskDesc gTaskBank8Descs[6];
+extern TaskDesc gTaskBank8Descs[TASK_8_SLOT_COUNT];
 
 /// Resident bank 4 for collision updates, development tasks and flying model parts.
 ///
-/// Slots 0..8 have program lifetime. Before spawning EFFECT_BURST_BODY_PART_BANK4,
-/// store a borrowed TmdSource in slot 7's `data.model`. Spawning reads it
+/// Slots 0..8 have program lifetime. Before spawning EFFECT_BURST_BODY_PART_COLLISION,
+/// store a borrowed TmdSource in `TASK_COLLISION_BURST_BODY_PART`'s `data.model`. Spawning reads it
 /// synchronously; the model source and its overlay must outlive the effect.
 /// Development-image callbacks require their backing code to be loaded.
-extern TaskDesc gTaskBank4Descs[9];
-
-/// Complete bank-1 extent and its caller-selected flying-model descriptor slot.
-enum {
-    TASK_BANK1_DESCRIPTOR_COUNT      = 51,
-    TASK_BANK1_BURST_MODEL_PART_SLOT = 50,
-};
+extern TaskDesc gCollisionTaskDescs[TASK_COLLISION_SLOT_COUNT];
 
 /// Resident bank 1 for scene tasks, lighting, pickups, fades and model effects.
 ///
 /// Slots 0..50 have program lifetime; NULL callbacks mark unspawnable slots,
 /// not a table terminator. Callback code and borrowed model sources must be
 /// loaded for the selected task. Development-image slots require that image.
-/// Before spawning `EFFECT_FLYING_BODY_PART`, publish the borrowed TmdSource in
-/// slot `TASK_BANK1_BURST_MODEL_PART_SLOT`'s `data.model`. The spawn reads it
+/// Before spawning `EFFECT_BURST_BODY_PART_SCENE`, publish the borrowed TmdSource in
+/// slot `TASK_SCENE_BURST_BODY_PART`'s `data.model`. The spawn reads it
 /// synchronously; its model source and overlay must outlive the effect.
-extern TaskDesc gTaskBank1Descs[TASK_BANK1_DESCRIPTOR_COUNT];
+extern TaskDesc gSceneTaskDescs[TASK_SCENE_SLOT_COUNT];
 
 /// Spawns an indexed descriptor onto the currently selected execution list.
 ///

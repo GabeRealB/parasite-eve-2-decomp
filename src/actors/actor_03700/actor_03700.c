@@ -1663,11 +1663,11 @@ static inline void _actor03700SpawnRemains(Task* task)
 
     RANDOM_LCG_ADVANCE();
     if (RANDOM_LCG_DRAW() & 1) {
-        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBatBurstWingRight;
+        gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gBatBurstWingRight;
     } else {
-        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gBatBurstWingLeft;
+        gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gBatBurstWingLeft;
     }
-    remains = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[4], ACTOR_03700_REMAINS_PUFF_SIZE, NULL);
+    remains = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, &task->extra.tmd->coords[4], ACTOR_03700_REMAINS_PUFF_SIZE, NULL);
     if (remains == NULL) {
         return;
     }

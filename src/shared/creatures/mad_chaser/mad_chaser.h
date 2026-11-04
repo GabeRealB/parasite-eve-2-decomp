@@ -39,7 +39,7 @@
 ///
 /// Must expand to a stable, side-effect-free writable `TmdSource` lvalue.
 /// The burst fragment takes its address once for a synchronous
-/// `EFFECT_BODY_CHUNK` spawn at body part 6. Model creation rewrites the source's
+/// `EFFECT_BURST_BODY_PART_INTERACTION` spawn at body part 6. Model creation rewrites the source's
 /// handler state and stream; the source, geometry and stream must remain loaded
 /// until every borrowing model is freed.
 ///
@@ -67,7 +67,7 @@ enum {
 ///
 /// Must expand to a stable, side-effect-free writable `TmdSource` lvalue.
 /// The burst fragment takes its address once when choosing the arm rather than
-/// the tail, for a synchronous `EFFECT_BODY_CHUNK` spawn at body part 8.
+/// the tail, for a synchronous `EFFECT_BURST_BODY_PART_INTERACTION` spawn at body part 8.
 /// Model creation may rewrite its stream and handler state; the source,
 /// geometry and stream must remain loaded until every borrowing model is freed.
 ///
@@ -86,7 +86,7 @@ enum { MAD_CHASER_BURST_ARM_BODY_PART = 8 };
 ///
 /// Must expand to a stable, side-effect-free writable `TmdSource` lvalue.
 /// The burst fragment takes its address once when choosing the tail rather than
-/// the arm, for a synchronous `EFFECT_BODY_CHUNK` spawn at body part 2.
+/// the arm, for a synchronous `EFFECT_BURST_BODY_PART_INTERACTION` spawn at body part 2.
 /// Model creation may rewrite its stream and handler state; the source,
 /// geometry and stream must remain loaded until every borrowing model is freed.
 ///

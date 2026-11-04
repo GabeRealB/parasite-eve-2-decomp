@@ -138,7 +138,7 @@ static SPRT _gTextImmediateGlyphSprite;
 /// page at VRAM (960,256); calls sharing this packet must not overlap.
 static DR_TPAGE _gTextImmediateTexturePage;
 
-static TaskDesc _gTaskSystemDescs[39];
+static TaskDesc _gSystemTaskDescs[TASK_SYSTEM_SLOT_COUNT];
 
 static _FontGlyph _gFontGlyphsMedium[FONT_GLYPH_MEDIUM_COUNT];
 
@@ -183,64 +183,64 @@ static void _bootStartTitleTask(Task* task);
 /// Slots 0..38 are selected by task-bank index. NULL callback slots must not
 /// be spawned; overlay callbacks require their owning code to remain loaded.
 /// This table is private even though other overlays spawn its numbered entries.
-static TaskDesc _gTaskSystemDescs[39] = {
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskNoopCallback },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskCountdownCallback },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, titleScreenTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, gameFlowLaunchSessionTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, gameFlowLoadDialogTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _uiVibrationOptionsTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, titleExitTask },
+static TaskDesc _gSystemTaskDescs[TASK_SYSTEM_SLOT_COUNT] = {
+    [TASK_SYSTEM_NOOP]              = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskNoopCallback },
+    [TASK_SYSTEM_COUNTDOWN]         = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskCountdownCallback },
+    [TASK_SYSTEM_TITLE_SCREEN]      = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, titleScreenTask },
+    [TASK_SYSTEM_LAUNCH_SESSION]    = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, gameFlowLaunchSessionTask },
+    [TASK_SYSTEM_LOAD_DIALOG]       = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, gameFlowLoadDialogTask },
+    [TASK_SYSTEM_VIBRATION_OPTIONS] = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, _uiVibrationOptionsTask },
+    [TASK_SYSTEM_TITLE_EXIT]        = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, titleExitTask },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
-    { { { TASK_BODY_NONE, 0x18 } }, gameFlowStartSessionTask },
-    { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
-    { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
+    [TASK_SYSTEM_START_SESSION]    = { { { TASK_BODY_NONE, 0x18 } }, gameFlowStartSessionTask },
+    [TASK_SYSTEM_CARD_SAVE_DIALOG] = { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
+    [TASK_SYSTEM_CARD_LOAD_DIALOG] = { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskNoopBank0Slot12 },
-    { { { TASK_BODY_NONE, 0x10 } }, _bootStartTitleTask },
-    { { { TASK_BODY_COORD, 0x2F } }, viewApplyCoordTask },
-    { { { TASK_BODY_NONE, 0x2F } }, viewApplyCameraTask },
-    { { { TASK_BODY_NONE, 0x40 } }, loadingRoomResourcesTask },
-    { { { TASK_BODY_NONE, 0x28 } }, gameFlowReloadSessionTask },
-    { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
-    { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
-    { { { TASK_BODY_NONE, 0x1F } }, directionTask },
+    [TASK_SYSTEM_BOOT_START_TITLE]    = { { { TASK_BODY_NONE, 0x10 } }, _bootStartTitleTask },
+    [TASK_SYSTEM_VIEW_APPLY_COORD]    = { { { TASK_BODY_COORD, 0x2F } }, viewApplyCoordTask },
+    [TASK_SYSTEM_VIEW_APPLY_CAMERA]   = { { { TASK_BODY_NONE, 0x2F } }, viewApplyCameraTask },
+    [TASK_SYSTEM_LOAD_ROOM_RESOURCES] = { { { TASK_BODY_NONE, 0x40 } }, loadingRoomResourcesTask },
+    [TASK_SYSTEM_RELOAD_SESSION]      = { { { TASK_BODY_NONE, 0x28 } }, gameFlowReloadSessionTask },
+    [TASK_SYSTEM_CARD_SAVE_DIALOG_2]  = { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
+    [TASK_SYSTEM_CARD_LOAD_DIALOG_2]  = { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
+    [TASK_SYSTEM_DIRECTION]           = { { { TASK_BODY_NONE, 0x1F } }, directionTask },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
-    { { { TASK_BODY_NONE, 0x30 } }, viewTransitionGateTask },
-    { { { TASK_BODY_NONE, 0x2F } }, spriteAllocateViewCachedPacketsTask },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskExitCallback },
+    [TASK_SYSTEM_VIEW_TRANSITION_GATE] = { { { TASK_BODY_NONE, 0x30 } }, viewTransitionGateTask },
+    [TASK_SYSTEM_VIEW_CACHED_PACKETS]  = { { { TASK_BODY_NONE, 0x2F } }, spriteAllocateViewCachedPacketsTask },
+    [TASK_SYSTEM_EXIT_CALLBACK]        = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskExitCallback },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_807011D8 },
-    { { { TASK_BODY_NONE, 0xE0 } }, modelObjectDrawTemporaryListsTask },
-    { { { TASK_BODY_NONE, 0xD0 } }, spriteViewTask },
-    { { { TASK_BODY_NONE, 0x2F } }, loadingSessionLoadTask },
-    { { { TASK_BODY_NONE, 0x18 } }, playClockTask },
-    { { { TASK_BODY_NONE, 0xF8 } }, loadingViewLoadTask },
-    { { { TASK_BODY_NONE, 0x10 } }, bootColdStartTask },
-    { { { TASK_BODY_NONE, 0x10 } }, bootReloadTitleTask },
-    { { { TASK_BODY_NONE, 0x2F } }, fadeResumeSessionTask },
+    [TASK_SYSTEM_DRAW_TEMPORARY_MODELS] = { { { TASK_BODY_NONE, 0xE0 } }, modelObjectDrawTemporaryListsTask },
+    [TASK_SYSTEM_SPRITE_VIEW]           = { { { TASK_BODY_NONE, 0xD0 } }, spriteViewTask },
+    [TASK_SYSTEM_LOAD_SESSION]          = { { { TASK_BODY_NONE, 0x2F } }, loadingSessionLoadTask },
+    [TASK_SYSTEM_PLAY_CLOCK]            = { { { TASK_BODY_NONE, 0x18 } }, playClockTask },
+    [TASK_SYSTEM_LOAD_VIEW]             = { { { TASK_BODY_NONE, 0xF8 } }, loadingViewLoadTask },
+    [TASK_SYSTEM_COLD_START]            = { { { TASK_BODY_NONE, 0x10 } }, bootColdStartTask },
+    [TASK_SYSTEM_RELOAD_TITLE]          = { { { TASK_BODY_NONE, 0x10 } }, bootReloadTitleTask },
+    [TASK_SYSTEM_RESUME_SESSION_FADE]   = { { { TASK_BODY_NONE, 0x2F } }, fadeResumeSessionTask },
     { { { TASK_BODY_NONE, 0xF8 } }, NULL },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80701400 },
     { { { TASK_BODY_NONE, 0x2F } }, NULL },
-    { { { TASK_BODY_NONE, 0xF8 } }, viewCommitIndexTask },
-    { { { TASK_BODY_NONE, 0xF8 } }, loadingRestoreViewGraphicsTask },
+    [TASK_SYSTEM_VIEW_COMMIT_INDEX]     = { { { TASK_BODY_NONE, 0xF8 } }, viewCommitIndexTask },
+    [TASK_SYSTEM_RESTORE_VIEW_GRAPHICS] = { { { TASK_BODY_NONE, 0xF8 } }, loadingRestoreViewGraphicsTask },
 };
 
-TaskDesc* gTaskDescBanks[TASK_DESCRIPTOR_BANK_COUNT] = {
-    _gTaskSystemDescs,
-    gTaskBank1Descs,
-    gTaskBank2Descs,
-    gTaskBank3Descs,
-    gTaskBank4Descs,
-    gTaskBank5Descs,
-    gEffectTaskDescriptors,
-    gTaskBank7Descs,
-    gTaskBank8Descs,
-    gTaskBank9Descs,
-    gEffectBurstTaskDescriptors,
-    gTaskBank2Descs,
-    gTaskBank2Descs,
-    gTaskBank2Descs,
-    gTaskBank14Descs,
+TaskDesc* gTaskDescBanks[TASK_BANK_COUNT] = {
+    [TASK_BANK_SYSTEM]      = _gSystemTaskDescs,
+    [TASK_BANK_SCENE]       = gSceneTaskDescs,
+    [TASK_BANK_INTERACTION] = gInteractionTaskDescs,
+    [TASK_BANK_3]           = gTaskBank3Descs,
+    [TASK_BANK_COLLISION]   = gCollisionTaskDescs,
+    [TASK_BANK_5]           = gTaskBank5Descs,
+    [TASK_BANK_EFFECT]      = gEffectTaskDescs,
+    [TASK_BANK_MODEL]       = gModelTaskDescs,
+    [TASK_BANK_8]           = gTaskBank8Descs,
+    [TASK_BANK_EVENT]       = gEventTaskDescs,
+    [TASK_BANK_10]          = gTaskBank10Descs,
+    [TASK_BANK_11]          = gInteractionTaskDescs,
+    [TASK_BANK_12]          = gInteractionTaskDescs,
+    [TASK_BANK_13]          = gInteractionTaskDescs,
+    [TASK_BANK_14]          = gTaskBank14Descs,
 };
 
 /// Medium UI-font glyph metrics, one record per character byte from ' ' through 0xFF.
@@ -1535,8 +1535,6 @@ static void _uiVibrationOptionsTask(Task* task)
         USER_INTERFACE_VIBRATION_OPEN_TICKS  = 2,
         USER_INTERFACE_VIBRATION_CLOSE_TICKS = 10,
         USER_INTERFACE_TITLE_DELAY_FRAMES    = 12,
-        USER_INTERFACE_RESIDENT_TASK_BANK    = 0,
-        USER_INTERFACE_TITLE_SCREEN_SLOT     = 2,
     };
     UiObject* panel;
     s16       closingTicksLeft;
@@ -1561,7 +1559,7 @@ static void _uiVibrationOptionsTask(Task* task)
         closingTicksLeft    = task->killCountdown - gDisplayState.frameTicks;
         task->killCountdown = closingTicksLeft;
         if (closingTicksLeft <= 0) {
-            taskSpawn(USER_INTERFACE_RESIDENT_TASK_BANK, USER_INTERFACE_TITLE_SCREEN_SLOT, USER_INTERFACE_TITLE_DELAY_FRAMES, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_TITLE_SCREEN, USER_INTERFACE_TITLE_DELAY_FRAMES, 0);
             taskCallExit(task);
         }
     }

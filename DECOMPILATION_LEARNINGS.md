@@ -45715,13 +45715,13 @@ Declaring the global through its containing aggregate also works, because an
 aggregate stops the heuristic firing:
 
 ```c
-extern TaskDesc gTaskBank2Descs[TASK_BANK2_DESCRIPTOR_COUNT];
-/* The selected pointer is gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model. */
+extern TaskDesc gInteractionTaskDescs[TASK_INTERACTION_SLOT_COUNT];
+/* The selected pointer is gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model. */
 ```
 
 Measured on `actor_400600`, on two globals in the same file: the byte store to
 `D_80115417` matches with the barrier and needs no array, while the pointer
-store to `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model` checksums wrong with the barrier and matches only as an
+store to `gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model` checksums wrong with the barrier and matches only as an
 aggregate. `SCHED_BARRIER()` behaves like `SOFT_BARRIER()` wherever the barrier
 works at all; `volatile` works for neither and lands two instructions off.
 
@@ -45881,8 +45881,8 @@ lw   a1,8(v0)
 
 *after* the `sw` to the bare scalar `D_80062730`, and reaches that scalar
 through `%lo(D_80062730)` - so the aggregate and owning-struct forms are both
-excluded by the bytes (`D_80062730` is `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`, and the sibling
-`_actor01600SpawnBurstParts` in the same build compiles `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = x` to
+excluded by the bytes (`D_80062730` is `gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model`, and the sibling
+`_actor01600SpawnBurstParts` in the same build compiles `gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = x` to
 `lui $v0,%hi(gTaskBank8Descs); addiu $s1,$v0,%lo(gTaskBank8Descs); … sw $v0,0x44($s1)`).
 Writing the field as a typed member - `index->field_2C->field_8 + 3` - scores
 93.291%, with those loads floated above the `sw`; `SOFT_BARRIER()` after the
@@ -91067,7 +91067,7 @@ Writing `0x100 < diff` does not work, because fold canonicalizes it back to
 then spawns an effect. Written the obvious way - the `if/else` stores the
 pointer, the `effectSpawn` call follows the join - the object was 97%: the
 target loads the call's first argument (`li $a0, 0x20010`) *inside each arm*,
-before the `sw` to `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`, while the natural form emits it once after the
+before the `sw` to `gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model`, while the natural form emits it once after the
 join.
 
 **Symptom.** `branch`/`insert`/`delete` penalties on a block boundary that
@@ -91078,7 +91078,7 @@ argument setup exists twice.
 **Cause.** The original duplicated the whole call in both arms; `jump2`
 cross-jumped the identical tails, merging them back from the `sw` onwards.
 Within each arm sched had already sunk the store past the argument load - the
-same aliasing effect that moves these `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model` stores everywhere - so the
+same aliasing effect that moves these `gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model` stores everywhere - so the
 merge point lands after the load, leaving one copy per arm. GCC never
 duplicates a call on its own, so a register setup that appears in both arms and
 converges later is evidence the *source* had it twice.
@@ -91087,16 +91087,16 @@ converges later is evidence the *source* had it twice.
 
 ```c
 if ((gRandomLcgState >> 16) & 1) {
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor00400DiverBurstLegRight;
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gActor00400DiverBurstLegRight;
     eff = effectSpawn(0x20010, &coord[8], 0x200, NULL);
 } else {
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor00400DiverBurstArmLeft2;
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gActor00400DiverBurstArmLeft2;
     eff = effectSpawn(0x20010, &coord[8], 0x200, NULL);
 }
 ```
 
-A ternary (`gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = cond ? A : B;`) is the other natural guess and is
-wrong in the same place - it hoists the address of `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model` above the
+A ternary (`gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = cond ? A : B;`) is the other natural guess and is
+wrong in the same place - it hoists the address of `gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model` above the
 branch instead.
 
 ## A bare `li` feeding `slt` is an inlined constant parameter, not `if (K < x)`
@@ -139073,7 +139073,7 @@ the scratch `sw` is re-zero-extended (`andi`); keep the widened value in an
 
 ## A store into a struct global stays ahead of a later field load (`func_actor_104900_80137498`)
 
-A scalar store to the word at `0x80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. That word is the model slot of a resident task descriptor, and storing it as what it is - `gTaskBank1Descs[0x32].data.model` - makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. So a target that keeps such a store ahead of the loads says the destination is a member of an aggregate: look for the table the address falls in before wrapping the word in a struct of its own. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
+A scalar store to the word at `0x80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. That word is the model slot of a resident task descriptor, and storing it as what it is - `gSceneTaskDescs[0x32].data.model` - makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. So a target that keeps such a store ahead of the loads says the destination is a member of an aggregate: look for the table the address falls in before wrapping the word in a struct of its own. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
 
 The address order around that store is a LUID tie. Both the slot `lui` and the TMD `addiu` have priority 1, and `rank_for_schedule` keeps the higher LUID next to the `sw`. Expanding the destination first puts the slot `lui` earlier. Assigning the symbol to a fresh `u8 *` and then storing that pointer emits `lui`/`addiu` in `$v0` and the slot `lui` in `$v1`, which is the target order. The same temporary as `void *` splits the `lo_sum` into `$v1` and reuses `$v0` for the slot. One temporary per store; reusing a `void *` across the three calls did not.
 

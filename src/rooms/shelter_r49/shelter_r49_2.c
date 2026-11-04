@@ -385,7 +385,7 @@ static inline void _shelterR49RequestObservatoryReload(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = SHELTER_R49_OBSERVATORY_ARRIVAL_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = SHELTER_R49_OBSERVATORY_ROOM;
     gDisplayState.spriteVariant                                 = SHELTER_R49_OBSERVATORY_SPRITE_VARIANT;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
 /// Plays the room movie, then reloads the live save into Neo Ark's observatory.

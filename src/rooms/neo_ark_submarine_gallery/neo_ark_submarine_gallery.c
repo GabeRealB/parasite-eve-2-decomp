@@ -113,7 +113,7 @@ static inline void _neoArkSubmarineGalleryCommitIslandDeparture(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gNeoArkSubmarineGalleryIslandDestination.area;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gNeoArkSubmarineGalleryIslandDestination.warp;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gNeoArkSubmarineGalleryIslandDestination.roomState;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
     taskKill(task);
 }
 
@@ -128,9 +128,8 @@ void neoArkSubmarineGalleryDepartToIslandTask(Task* task)
            CAP_CONFIRM_DEPARTURE = 9,
            CAP_CHOICE_DEPART     = 10,
            CAP_KEEP_ACTORS_HELD  = 1,
-           FADE_DURATION_FRAMES  = 30,
-           FADE_TASK_BANK        = 1,
-           FADE_TASK_SLOT        = 0x31 };
+           FADE_DURATION_FRAMES  = 30
+    };
 
     switch (task->state) {
         case DEPARTURE_ASK:
@@ -161,7 +160,7 @@ void neoArkSubmarineGalleryDepartToIslandTask(Task* task)
             _gNeoArkSubmarineGalleryIslandDepartureFade.fade.blend      = SCREEN_FADE_SUBTRACT;
             _gNeoArkSubmarineGalleryIslandDepartureFade.fade.phase      = SCREEN_FADE_RUNNING;
             _gNeoArkSubmarineGalleryIslandDepartureFade.fade.rampFrames = FADE_DURATION_FRAMES;
-            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &_gNeoArkSubmarineGalleryIslandDepartureFade.fade);
+            taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &_gNeoArkSubmarineGalleryIslandDepartureFade.fade);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_TO_ISLAND, 0, 0);
             task->state++;
             break;

@@ -109,12 +109,6 @@ void capSpawnEventIfIdle(s32 commandIndex, s32 eventFlags);
 /// `CAP_PLAYBACK_DISPLAY_TRANSITION`; it does not wait for playback or report success.
 void capRunCommandWithTransition(s32 commandIndex);
 
-/// Task-bank selectors for the persistent CAP controller.
-enum {
-    CAP_CONTROL_TASK_BANK = 9,
-    CAP_CONTROL_TASK_TYPE = 6
-};
-
 /// Dispatches the persistent CAP controller's initialization, update and exit.
 ///
 /// Bank 9 type 6 requires `state` 0..2; no bounds check is made. Initialization
@@ -132,12 +126,6 @@ void capControlTask(Task* task);
 /// Navigation combines all directions, then rejects a final index outside
 /// the active choice count.
 extern u8 gCapChoiceRowStride;
-
-/// Bank/type selecting the CAP action prompt's stage-transition wrapper.
-enum {
-    CAP_ACTION_PROMPT_EXIT_TASK_BANK = 9,
-    CAP_ACTION_PROMPT_EXIT_TASK_TYPE = 0xB
-};
 
 /// Runs a CAP action prompt and exits the stage mode task when the request completes.
 ///

@@ -3,9 +3,8 @@
 
 #include "types.h"
 
+#include "main/task_ids.h"
 #include "main/task_types.h"
-
-enum { TASK_DESCRIPTOR_BANK_COUNT = 15 };
 
 /// Resident directory of task descriptor tables selected by bank number.
 ///
@@ -14,7 +13,7 @@ enum { TASK_DESCRIPTOR_BANK_COUNT = 15 };
 /// descriptors; spawning reads one synchronously. Selected callback code and
 /// any model source can belong to an overlay and must remain loaded while used.
 /// Descriptor tables are mutable, including caller-filled model-source slots.
-extern TaskDesc* gTaskDescBanks[TASK_DESCRIPTOR_BANK_COUNT];
+extern TaskDesc* gTaskDescBanks[TASK_BANK_COUNT];
 
 /// Resident bank 3: four teardown stubs followed by four development-image tasks.
 ///
@@ -26,23 +25,20 @@ extern TaskDesc gTaskBank3Descs[8];
 ///
 /// Slots 0..4 have program lifetime; slot 1 launches the debug descriptor.
 /// Slot 4 requires its development-image callback to be loaded.
-extern TaskDesc gTaskBank5Descs[5];
+extern TaskDesc gTaskBank5Descs[TASK_5_SLOT_COUNT];
 
 /// Resident bank 9 for CAP, EVS and room-control tasks.
 ///
 /// Slots 0..17 include teardown stubs and unspawnable NULL callbacks; slot 18
 /// is TASK_DESC_END. Callback code must remain loaded for each spawned task.
-extern TaskDesc gTaskBank9Descs[19];
-
-/// Complete extent of resident character/model task bank 7.
-enum { TASK_BANK7_DESCRIPTOR_COUNT = 164 };
+extern TaskDesc gEventTaskDescs[TASK_EVENT_SLOT_COUNT];
 
 /// Resident bank 7 for character bodies, model attachments, projectiles and room props.
 ///
 /// Slots 0..163 have program lifetime; there is no terminator. Each selected
 /// callback and borrowed model source must remain loaded while the spawned task
 /// uses them. Bodyless teardown slots are valid entries, not end markers.
-extern TaskDesc gTaskBank7Descs[TASK_BANK7_DESCRIPTOR_COUNT];
+extern TaskDesc gModelTaskDescs[TASK_MODEL_SLOT_COUNT];
 
 /// Bank-14 spawn descriptors: four bodyless teardown slots and one development-RAM callback.
 ///

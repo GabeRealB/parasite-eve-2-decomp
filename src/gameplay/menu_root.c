@@ -929,7 +929,7 @@ void menuRootTask(Task* task)
             } else {
                 stageRequestViewTransitionAndModeExit(gGameSession->location.view);
             }
-            taskSpawnOnDefaultList(FADE_DISPLAY_TASK_BANK, FADE_DISPLAY_TASK_TYPE, FADE_DISPLAY_REVEAL_WORLD, 0);
+            taskSpawnOnDefaultList(TASK_BANK_SCENE, TASK_SCENE_DISPLAY_TRANSITION_FADE, FADE_DISPLAY_REVEAL_WORLD, 0);
             if (taskSpawnFromTableOnDefaultList(&_gMenuPendingItemUseTaskDesc, 0, 0, 0) != NULL) {
                 displayAcquireMenuHold();
             }

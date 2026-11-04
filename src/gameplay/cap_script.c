@@ -40,7 +40,7 @@ void capActionPromptExitTask(Task* task)
     request = task->spawnArg2.pointer;
     switch (task->state) {
         case CAP_ACTION_PROMPT_START:
-            taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, request);
+            taskSpawn(TASK_BANK_SCENE, TASK_SCENE_ITEM_PICKUP_PROMPT, 0, request);
             task->state++;
             break;
         case CAP_ACTION_PROMPT_WAIT:

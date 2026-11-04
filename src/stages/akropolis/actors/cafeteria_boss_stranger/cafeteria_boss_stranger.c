@@ -2036,15 +2036,15 @@ static void _cafeteriaBossStrangerDeathBurstState(Task* task)
         bodyModel->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
         // Detach five parts; each successful spawn resolves the current placement anew.
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[JAW_PART], SMALL_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, &task->extra.tmd->coords[JAW_PART], SMALL_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[RIGHT_FOREARM_PART], SMALL_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, &task->extra.tmd->coords[RIGHT_FOREARM_PART], SMALL_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[LEFT_FOREARM_PART], SMALL_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, &task->extra.tmd->coords[LEFT_FOREARM_PART], SMALL_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[RIGHT_THIGH_PART], LARGE_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, &task->extra.tmd->coords[RIGHT_THIGH_PART], LARGE_PUFF_SIZE, NULL), enemy);
 
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, &task->extra.tmd->coords[LEFT_THIGH_PART], LARGE_PUFF_SIZE, NULL), enemy);
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_10, &task->extra.tmd->coords[LEFT_THIGH_PART], LARGE_PUFF_SIZE, NULL), enemy);
     }
 }
 

@@ -107,7 +107,7 @@ static inline void _shelterB3GarbageIncineratorCommitControlRoomExit(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = gShelterB3GarbageIncineratorControlRoomExitDestination.areaId;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = gShelterB3GarbageIncineratorControlRoomExitDestination.warp;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gShelterB3GarbageIncineratorControlRoomExitDestination.roomState;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
 

@@ -1545,8 +1545,6 @@ void itemPickupContainerLidTask(Task* task)
         ITEM_PICKUP_LID_OPEN_TICKS               = 20,
         ITEM_PICKUP_LID_CLOSE_STEP               = 4,
         ITEM_PICKUP_LID_ANGLE_SHIFT              = 5,
-        ITEM_PICKUP_LID_PICKUP_TASK_BANK         = 1,
-        ITEM_PICKUP_LID_PICKUP_TASK_TYPE         = 0x26,
         ITEM_PICKUP_LID_COORD_INDEX              = 2,
         ITEM_PICKUP_LID_STERILIZATION_VIEW_FIRST = 8,
         ITEM_PICKUP_LID_STERILIZATION_VIEW_COUNT = 2,
@@ -1654,9 +1652,9 @@ void itemPickupContainerLidTask(Task* task)
         if (task->killCountdown >= ITEM_PICKUP_LID_OPEN_TICKS) {
             // Both place-kind classes queue the same pickup dispatcher.
             if (placeKind < INVENTORY_CONSUMABLE_ITEM_FIRST) {
-                displayQueueModeTask(taskGetDesc(ITEM_PICKUP_LID_PICKUP_TASK_BANK, ITEM_PICKUP_LID_PICKUP_TASK_TYPE), 0, task->spawnArg2.value, STAGE_ENTRY_RELOAD);
+                displayQueueModeTask(taskGetDesc(TASK_BANK_SCENE, TASK_SCENE_ITEM_PICKUP), 0, task->spawnArg2.value, STAGE_ENTRY_RELOAD);
             } else {
-                displayQueueModeTask(taskGetDesc(ITEM_PICKUP_LID_PICKUP_TASK_BANK, ITEM_PICKUP_LID_PICKUP_TASK_TYPE), 0, task->spawnArg2.value, STAGE_ENTRY_RELOAD);
+                displayQueueModeTask(taskGetDesc(TASK_BANK_SCENE, TASK_SCENE_ITEM_PICKUP), 0, task->spawnArg2.value, STAGE_ENTRY_RELOAD);
             }
             task->state++;
         }

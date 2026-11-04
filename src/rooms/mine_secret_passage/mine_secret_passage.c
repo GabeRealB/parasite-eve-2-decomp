@@ -63,14 +63,12 @@ static inline void _mineSecretPassageStartDepartureFade(void)
 {
     enum {
         MINE_SECRET_PASSAGE_DEPARTURE_FADE_FRAMES = 30,
-        MINE_SECRET_PASSAGE_FADE_TASK_BANK        = 1,
-        MINE_SECRET_PASSAGE_FADE_TASK_SLOT        = 0x31
     };
 
     gMineSecretPassageDepartureFade.fade.blend      = SCREEN_FADE_SUBTRACT;
     gMineSecretPassageDepartureFade.fade.phase      = SCREEN_FADE_RUNNING;
     gMineSecretPassageDepartureFade.fade.rampFrames = MINE_SECRET_PASSAGE_DEPARTURE_FADE_FRAMES;
-    taskSpawn(MINE_SECRET_PASSAGE_FADE_TASK_BANK, MINE_SECRET_PASSAGE_FADE_TASK_SLOT, 0, &gMineSecretPassageDepartureFade.fade);
+    taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &gMineSecretPassageDepartureFade.fade);
     sndEvtRequestScriptStart(SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT, 0, 0);
 }
 
@@ -140,7 +138,7 @@ void mineSecretPassageDepartureTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gMineSecretPassageStagedDestination.area;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gMineSecretPassageStagedDestination.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gMineSecretPassageStagedDestination.roomState;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
     }

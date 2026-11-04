@@ -63,13 +63,13 @@
 /// repeatedly. Rebinds the bank-8 descriptor synchronously before spawning.
 /// The selected TmdSource and overlay must outlive the effect. On failure the
 /// result is NULL and texture binding is skipped; the descriptor is not restored.
-#define ACTOR_01600_SPAWN_BURST_PART(actor, modelSource, coordIndex, effectResult)                                                                                    \
-    {                                                                                                                                                                 \
-        gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = (modelSource);                                                                                 \
-        (effectResult)                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (actor)->extra.tmd->coords + (coordIndex), 0, NULL); \
-        if ((effectResult) != NULL) {                                                                                                                                 \
-            _actor01600CopyBurstTextures((effectResult)->task, (actor));                                                                                              \
-        }                                                                                                                                                             \
+#define ACTOR_01600_SPAWN_BURST_PART(actor, modelSource, coordIndex, effectResult)                                                                      \
+    {                                                                                                                                                   \
+        gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = (modelSource);                                                                             \
+        (effectResult)                                     = effectSpawn(EFFECT_BURST_BODY_PART_8, (actor)->extra.tmd->coords + (coordIndex), 0, NULL); \
+        if ((effectResult) != NULL) {                                                                                                                   \
+            _actor01600CopyBurstTextures((effectResult)->task, (actor));                                                                                \
+        }                                                                                                                                               \
     }
 
 /// Navigation sweep steps, in yaw units, degrees and world-coordinate reach.
@@ -500,7 +500,7 @@ static s32 _actor01600SelectNearestPlayer(Task* actor);
 /// vector pad halfwords stay zero and are not part of the placement contract.
 static ActorTransform _gActor01600GrabTargetPlacement;
 
-/// Models effect 0x80005 spawns, set in `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`.
+/// Models effect 0x80005 spawns, set in `gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model`.
 static TmdSource _gScavengerBurstHead;
 static TmdSource _gScavengerBurstLeg;
 static TmdSource _gScavengerBurstEar;

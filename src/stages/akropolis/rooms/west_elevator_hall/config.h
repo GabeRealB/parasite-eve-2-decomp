@@ -66,10 +66,8 @@ enum { AKROPOLIS_WEST_ELEVATOR_HALL_BAY_CLUT_Y = 270 };
 
 /// Player reflections: their task and its two modes.
 enum {
-    AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_TASK_BANK = 1,
-    AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_TASK_SLOT = 37,
-    AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_FLOOR     = 0,
-    AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PLANE     = 1,
+    AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_FLOOR = 0,
+    AKROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PLANE = 1,
 };
 
 /// The view the three red beacons show in, where the two small ones sit (the large one.s position is a marker), and

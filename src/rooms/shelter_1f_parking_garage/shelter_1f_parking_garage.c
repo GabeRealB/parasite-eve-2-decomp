@@ -529,8 +529,6 @@ static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task)
         DEPARTURE_WAIT_FADE,
         DEPARTURE_CONFIRMED_CHOICE          = 11,
         DEPARTURE_FADE_FRAMES               = 30,
-        DEPARTURE_FADE_TASK_BANK            = 1,
-        DEPARTURE_FADE_TASK_TYPE            = 0x31,
         DEPARTURE_COMPANION_SCHEDULE_BEFORE = 9,
         DEPARTURE_COMPANION_SCHEDULE_AFTER  = 10,
         DEPARTURE_DEFAULT_ROOM              = 1,
@@ -552,7 +550,7 @@ static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task)
                 _gShelter1fParkingGarageUndergroundDepartureFade.blend      = SCREEN_FADE_SUBTRACT;
                 _gShelter1fParkingGarageUndergroundDepartureFade.phase      = SCREEN_FADE_RUNNING;
                 _gShelter1fParkingGarageUndergroundDepartureFade.rampFrames = DEPARTURE_FADE_FRAMES;
-                taskSpawn(DEPARTURE_FADE_TASK_BANK, DEPARTURE_FADE_TASK_TYPE, 0, &_gShelter1fParkingGarageUndergroundDepartureFade);
+                taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &_gShelter1fParkingGarageUndergroundDepartureFade);
                 task->killCountdown = DEPARTURE_FADE_FRAMES;
                 task->state++;
             } else {

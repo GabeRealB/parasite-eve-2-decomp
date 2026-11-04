@@ -532,7 +532,7 @@ static void _gpuSetPrimitiveBlendModeFixedDepth(void* primitive, s32 blendMode, 
 /// its owner, behavior and spawn-argument contract are unproven.
 extern void func_8011D1E0(Task* task);
 
-TaskDesc gEffectTaskDescriptors[667] = {
+TaskDesc gEffectTaskDescs[667] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { NULL } },                                                               // 0x000
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { NULL } },                                                               // 0x001
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { NULL } },                                                               // 0x002
@@ -1507,9 +1507,9 @@ static void _roomEffectInitController(Task* task)
     }
 
     if (roomEffectType != ROOM_EFFECT_AMBIENT_TASK_NONE) {
-        effectSpawn(EFFECT_ID(EFFECT_TASK_BANK, roomEffectType), NULL, 0, NULL);
+        effectSpawn(TASK_ID(TASK_BANK_EFFECT, roomEffectType), NULL, 0, NULL);
     }
-    taskSpawn(EFFECT_TASK_BANK, ROOM_EFFECT_PE_DISPATCH_SELECTOR, 0, 0);
+    taskSpawn(TASK_BANK_EFFECT, ROOM_EFFECT_PE_DISPATCH_SELECTOR, 0, 0);
 }
 
 /// Clears Parasite Energy buffs when the room controller cancels PE.

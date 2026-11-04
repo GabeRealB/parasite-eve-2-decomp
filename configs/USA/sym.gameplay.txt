@@ -2111,7 +2111,7 @@ gItemMenuPreviousWeaponSelection = 0x80114DE8; // size:0x4 defined:True
 gRoomEffectSparkEmitterId = 0x80115720; // size:0x4 defined:True
 gEnergyBallInFlightCount = 0x80115724; // size:0x4 defined:True
 
-gEffectTaskDescriptors = 0x8010FC2C; // size:0x1F44 defined:True
+gEffectTaskDescs = 0x8010FC2C; // size:0x1F44 defined:True
 
 _gItemMenuTransferExitRowCallbacks = 0x8010D6B0; // size:0x4 defined:True
 gItemMenuTransferScreenDescriptor = 0x8010D6D8; // size:0x1C defined:True
@@ -2296,7 +2296,7 @@ gPadScriptTransitionCommands = 0x80114A24; // size:0x10 defined:True
 gPadScriptTransitionSegments = 0x80114A34; // size:0xC defined:True
 
 D_80114B32 = 0x80114B32; // size:0x2 defined:True
-gEffectBurstTaskDescriptors = 0x80114B34; // size:0x48 defined:True
+gTaskBank10Descs = 0x80114B34; // size:0x48 defined:True
 D_80114B7C = 0x80114B7C; // size:0x4 defined:True
 
 _gModelLightingEnvironmentLayerMaterial = 0x80114BA4; // size:0x4 defined:True

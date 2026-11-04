@@ -810,16 +810,10 @@ static void _gameMainInitGraphics(void)
 /// arguments and leaves ownership of the returned task with the task system.
 static void _gameMainSpawnStartupTask(void)
 {
-    enum {
-        GAME_MAIN_STARTUP_TASK_BANK         = 0,
-        GAME_MAIN_STARTUP_TASK_FIRST_BOOT   = 0x1F,
-        GAME_MAIN_STARTUP_TASK_RELOAD_TITLE = 0x20,
-    };
-
     if (_gGameMainInitializationCount == GAME_MAIN_FIRST_INITIALIZATION) {
-        taskSpawn(GAME_MAIN_STARTUP_TASK_BANK, GAME_MAIN_STARTUP_TASK_FIRST_BOOT, 0, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_COLD_START, 0, 0);
     } else {
-        taskSpawn(GAME_MAIN_STARTUP_TASK_BANK, GAME_MAIN_STARTUP_TASK_RELOAD_TITLE, 0, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_TITLE, 0, 0);
     }
 }
 

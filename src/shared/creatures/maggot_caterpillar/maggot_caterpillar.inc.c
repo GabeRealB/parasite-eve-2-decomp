@@ -552,8 +552,8 @@ static void _maggotCaterpillarSpawnHusk(Task* actor)
     s32              placementIndex;
     u32              placeKey;
 
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gCrawlerHusk;
-    huskEffect                                                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 4, MAGGOT_CATERPILLAR_HUSK_SIZE_ARGUMENT, NULL);
+    gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gCrawlerHusk;
+    huskEffect                                                     = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, actor->extra.tmd->coords + 4, MAGGOT_CATERPILLAR_HUSK_SIZE_ARGUMENT, NULL);
     if (huskEffect == NULL) {
         return;
     }

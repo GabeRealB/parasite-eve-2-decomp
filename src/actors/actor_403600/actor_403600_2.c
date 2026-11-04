@@ -1130,23 +1130,23 @@ static void _actor403600UpdateMode(Task* task)
                 shedHitOffset.vy = 0x64;
                 effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[1], 3, &shedHitOffset);
                 _actor403600SetWeakTextures(1);
-                gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = &gShelterB2PodBottomModel0A2A0;
-                firstShedEffect                                              = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &task->extra.tmd->coords[1], 0, NULL);
+                gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = &gShelterB2PodBottomModel0A2A0;
+                firstShedEffect                                    = effectSpawn(EFFECT_BURST_BODY_PART_8, &task->extra.tmd->coords[1], 0, NULL);
                 if (firstShedEffect != NULL) {
                     _actor403600BindShedPartTextures(firstShedEffect->task);
                 }
-                gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = &gShelterB2PodBottomModel0A68C;
-                secondShedEffect                                             = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &task->extra.tmd->coords[1], 0, NULL);
+                gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = &gShelterB2PodBottomModel0A68C;
+                secondShedEffect                                   = effectSpawn(EFFECT_BURST_BODY_PART_8, &task->extra.tmd->coords[1], 0, NULL);
                 if (secondShedEffect != NULL) {
                     _actor403600BindShedPartTextures(secondShedEffect->task);
                 }
-                gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = &gShelterB2PodBottomModel0AA08;
-                thirdShedEffect                                              = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &task->extra.tmd->coords[1], 0, NULL);
+                gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = &gShelterB2PodBottomModel0AA08;
+                thirdShedEffect                                    = effectSpawn(EFFECT_BURST_BODY_PART_8, &task->extra.tmd->coords[1], 0, NULL);
                 if (thirdShedEffect != NULL) {
                     _actor403600BindShedPartTextures(thirdShedEffect->task);
                 }
-                gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = &gShelterB2PodBottomModel0AE48;
-                fourthShedEffect                                             = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &task->extra.tmd->coords[1], 0, NULL);
+                gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = &gShelterB2PodBottomModel0AE48;
+                fourthShedEffect                                   = effectSpawn(EFFECT_BURST_BODY_PART_8, &task->extra.tmd->coords[1], 0, NULL);
                 if (fourthShedEffect != NULL) {
                     _actor403600BindShedPartTextures(fourthShedEffect->task);
                 }

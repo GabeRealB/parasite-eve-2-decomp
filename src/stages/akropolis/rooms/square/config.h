@@ -102,10 +102,8 @@ enum {
 
 /// Player reflections: their task and its two modes.
 enum {
-    AKROPOLIS_SQUARE_REFLECTION_TASK_BANK = 1,
-    AKROPOLIS_SQUARE_REFLECTION_TASK_SLOT = 37,
-    AKROPOLIS_SQUARE_REFLECTION_FLOOR     = 0,
-    AKROPOLIS_SQUARE_REFLECTION_PLANE     = 1,
+    AKROPOLIS_SQUARE_REFLECTION_FLOOR = 0,
+    AKROPOLIS_SQUARE_REFLECTION_PLANE = 1,
 };
 
 /// Messages the square's tasks receive.

@@ -539,8 +539,6 @@ void gameFlowReloadSessionTask(Task* task)
 void loadingFinishSessionLoadTask(Task* task)
 {
     enum {
-        FADE_SESSION_RESUME_TASK_BANK      = 0,
-        FADE_SESSION_RESUME_TASK_SLOT      = 0x21,
         AKROPOLIS_PLAZA_OPENING_TASK_INDEX = AKROPOLIS_PLAZA_TASK_SEQUENCE,
     };
     if (gCdCmdQueue.bootLoadActive == 0) {
@@ -557,7 +555,7 @@ void loadingFinishSessionLoadTask(Task* task)
         gDisplayState.holdCount  = 0;
         gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;
         displayAcquireMenuHold();
-        taskSpawn(FADE_SESSION_RESUME_TASK_BANK, FADE_SESSION_RESUME_TASK_SLOT, 0, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RESUME_SESSION_FADE, 0, 0);
         if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0, 0)) {
             taskSpawnFromTable(gAkropolisPlazaSequenceTaskDescriptors, AKROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
             cdCmdReservePlaybackBuffers();
@@ -711,10 +709,6 @@ static inline void _loadingBindInitialRoomCollisionResources(const GameLocationK
 
 void loadingInitRoomResourcesTask(Task* task)
 {
-    enum {
-        LOADING_VIEW_SPRITE_TASK_BANK = 0,
-        LOADING_VIEW_SPRITE_TASK_TYPE = 0x1B
-    };
     const GameLocationKey*             location;
     const WorldCollisionRoomResources* roomResources;
     Task*                              viewSpriteTask;
@@ -723,7 +717,7 @@ void loadingInitRoomResourcesTask(Task* task)
     roomResources = gWorldCollisionStageResources[location->stage - 1]->areaRooms[location->area - 1];
     _loadingBindInitialRoomCollisionResources(location, roomResources);
     // The room task owns the sprite task in its teardown tree.
-    viewSpriteTask = taskSpawn(LOADING_VIEW_SPRITE_TASK_BANK, LOADING_VIEW_SPRITE_TASK_TYPE, 0, 0);
+    viewSpriteTask = taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_SPRITE_VIEW, 0, 0);
     if (viewSpriteTask != NULL) {
         taskReparent(task, viewSpriteTask);
     }

@@ -947,16 +947,14 @@ static const TaskFuncTable3 _gShelterB4WaterSupplyRoomStates = {
 /// Spawn failure still leaves actors paused and the countdown initialized.
 static inline void _shelterB4WaterSupplyStartUpperSewerFade(Task* departureTask)
 {
-    enum { FADE_FRAMES    = 30,
-           FADE_TASK_BANK = 1,
-           FADE_TASK_SLOT = 0x31,
-           FADE_OT_AUTO   = 0 };
+    enum { FADE_FRAMES  = 30,
+           FADE_OT_AUTO = 0 };
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     sceneQueueBattleEscapeResult();
     _gShelterB4WaterSupplyUpperSewerFade.fade.blend      = SCREEN_FADE_SUBTRACT;
     _gShelterB4WaterSupplyUpperSewerFade.fade.phase      = SCREEN_FADE_RUNNING;
     _gShelterB4WaterSupplyUpperSewerFade.fade.rampFrames = FADE_FRAMES;
-    taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, FADE_OT_AUTO, &_gShelterB4WaterSupplyUpperSewerFade.fade);
+    taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, FADE_OT_AUTO, &_gShelterB4WaterSupplyUpperSewerFade.fade);
     departureTask->killCountdown = FADE_FRAMES;
 }
 
@@ -1021,7 +1019,7 @@ static void _shelterB4WaterSupplyUpperSewerDepartureTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShelterB4WaterSupplyUpperSewerDestination.area;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShelterB4WaterSupplyUpperSewerDestination.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB4WaterSupplyUpperSewerDestination.roomState;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
     }

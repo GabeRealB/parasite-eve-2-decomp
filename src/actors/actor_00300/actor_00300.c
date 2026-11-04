@@ -2456,24 +2456,24 @@ static void _actor00300SpawnBurstFragments(Task* task)
     EffectWork*     fragmentEffect;
 
     // The descriptor model must be selected immediately before each spawn.
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gStingerBrainBurstHead;
-    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gStingerBrainBurstHead;
+    fragmentEffect                                                 = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gStingerBrainBurstPart1;
-    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gStingerBrainBurstPart1;
+    fragmentEffect                                                 = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gStingerBrainBurstPart2;
-    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gStingerBrainBurstPart2;
+    fragmentEffect                                                 = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gStingerBrainBurstPart3;
-    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gStingerBrainBurstPart3;
+    fragmentEffect                                                 = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 
-    gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gStingerBrainBurstPart4;
-    fragmentEffect                                               = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
+    gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = &_gStingerBrainBurstPart4;
+    fragmentEffect                                                 = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, &task->extra.tmd->coords[ACTOR_00300_BURST_ANCHOR_PART], ACTOR_00300_BURST_EFFECT_ARG, NULL);
     ACTOR_00300_BIND_BURST_TEXTURE(fragmentEffect);
 }
 #undef ACTOR_00300_BIND_BURST_TEXTURE

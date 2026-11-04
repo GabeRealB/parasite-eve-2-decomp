@@ -312,11 +312,11 @@ than an invented visual description:
 
 | Family | Pattern | Dispatched by |
 |---|---|---|
-| Gameplay effect tasks | `effect<Kind>Task<ID>` (`effectSpriteTask34`) | `taskSpawn(6, ID, …)` via the bank-6 `TaskDesc` table `gEffectTaskDescriptors`; `effectSpawn(0x6xxxx, …)` passes the same ID. `Kind` describes the primitive or role: `Sprite`, `Line`, `Tile`, `Poly`, `Model`, `Attach`, or `Control`. |
+| Gameplay effect tasks | `effect<Kind>Task<ID>` (`effectSpriteTask34`) | the effect bank's table `gEffectTaskDescs`, spawned by effect id (`effectSpawn(EFFECT_…, …)`, an id being `TASK_ID(TASK_BANK_EFFECT, ID)`) or `taskSpawn(TASK_BANK_EFFECT, TASK_SLOT(EFFECT_…), …)`. `Kind` describes the primitive or role: `Sprite`, `Line`, `Tile`, `Poly`, `Model`, `Attach`, or `Control`. |
 | Player actor states | `playerActor<Mode>State<N>` (`playerActorNormalState5`) | `GameActor.state` indexes `_gPlayerActorNormalStateHandlers` in mode 0 (`_playerActorTickNormal`) and `_gPlayerActorScriptedStateHandlers` in mode 2; `mode` picks the mode through `_gPlayerActorModeHandlers`, which also has a mode 1 (`_playerActorTickDamage`). `_gPlayerActorWorkStateHandlers` is a separate four-entry `Task::state` dispatcher, not a mode. |
 
 A handler shared by several slots takes a behavioural name instead
-(`effectThrownModelTask` covers bank-6 0x36/0x66/0x67/0x68/0x91).
+(`effectThrownModelTask` covers the effect bank's 0x36/0x66/0x67/0x68/0x91).
 
 Names in the dispatch evidence above identify the current code, not target
 prefixes. Apply the TU-private `_` marker to the target pattern where appropriate.
@@ -361,7 +361,7 @@ in a row identify different responsibilities in the same source group.
 | `gfx` | Graphics coordinates, matrices, lights and image slots | `gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/main/gfx.h`, `include/main/gfx_types.h`, `include/main/coord.h`, `src/main/gfx.h` |
 | `gpuExt` | GPU status helpers | `gpuext.c` | `src/main/gpuext.h` |
 | `mem` | Main and auxiliary heaps and memory operations | `mem.c` | `include/main/mem.h`, `src/main/mem.h` |
-| `task` | Task allocation, lists, dispatch and banks | `task.c`, `taskbank.c`, `taskutil.c` | `include/main/task.h`, `include/main/task_types.h`, `src/main/task.h` |
+| `task` | Task allocation, lists, dispatch and banks; the banks and their slots by name (`TASK_BANK_*`, `TASK_<BANK>_*`, `TASK_ID`) | `task.c`, `taskbank.c`, `taskutil.c` | `include/main/task.h`, `include/main/task_ids.h`, `include/main/task_types.h`, `src/main/task.h` |
 | `pad` | Controller state and polling | `pad.c`, `padutil.c` | `include/main/pad.h`, `include/main/pad_types.h`, `src/main/pad.h` |
 | `mc`, `mcMenu` | Save data, memory-card operations and prompts | `mc.c`, `mcmenu.c` | `include/main/mc.h`, `include/main/mc_types.h`, `src/main/mc.h` |
 | `ui` | Generic windows, panels and list controls | `ui.c`, `mcmenu.c` | `include/main/ui.h`, `include/main/ui_types.h`, `src/main/ui.h` |

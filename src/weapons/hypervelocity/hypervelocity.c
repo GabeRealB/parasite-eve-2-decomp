@@ -933,11 +933,11 @@ static void _hypervelocityInitWeaponModel(Task* task)
     weaponModel->flags        = 0;
     // Each child has its own transform under the root and shares its lighting.
     if (!(task->spawnArg1.value & HYPERVELOCITY_MODEL_COMPONENT_MASK)) {
-        componentTask = taskSpawn(HYPERVELOCITY_MODEL_TASK_BANK, HYPERVELOCITY_MODEL_SLIDE_DESCRIPTOR, HYPERVELOCITY_MODEL_SLIDE, 0);
+        componentTask = taskSpawn(TASK_BANK_MODEL, TASK_MODEL_HYPERVELOCITY_SLIDE, HYPERVELOCITY_MODEL_SLIDE, 0);
         if (componentTask != NULL) {
             _hypervelocityAttachModelComponent(task, componentTask, weaponCoord, weaponModel);
         }
-        componentTask = taskSpawn(HYPERVELOCITY_MODEL_TASK_BANK, HYPERVELOCITY_MODEL_HINGE_DESCRIPTOR, HYPERVELOCITY_MODEL_HINGE, 0);
+        componentTask = taskSpawn(TASK_BANK_MODEL, TASK_MODEL_HYPERVELOCITY_HINGE, HYPERVELOCITY_MODEL_HINGE, 0);
         if (componentTask != NULL) {
             _hypervelocityAttachModelComponent(task, componentTask, weaponCoord, weaponModel);
             weaponCoord->coord.t[0] = -6;

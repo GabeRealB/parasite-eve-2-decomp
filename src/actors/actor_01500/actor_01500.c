@@ -1310,35 +1310,35 @@ static void _actor01500SpawnBurstParts(Task* actor)
 /// actor and writable GameLocationKey locationKey occur repeatedly and must be
 /// side-effect-free; source is evaluated once. Captures the live session and the
 /// local ACTOR_01500_BURST_PUFF_SIZE. Invoke within a braced statement body.
-#define ACTOR_01500_SPAWN_BURST_PART(actor, source, locationKey)                                                                                                                     \
-    {                                                                                                                                                                                \
-        u8               viewIndex;                                                                                                                                                  \
-        u32              placeKey, placementIndex;                                                                                                                                   \
-        EffectWork*      effect;                                                                                                                                                     \
-        TmdObject*       model;                                                                                                                                                      \
-        AreaPlacement*   placement;                                                                                                                                                  \
-        GameLocationKey* sessionLocation;                                                                                                                                            \
-        gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = (source);                                                                                                     \
-        effect                                                       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &(actor)->extra.tmd->coords[1], ACTOR_01500_BURST_PUFF_SIZE, NULL); \
-        if (effect != NULL) {                                                                                                                                                        \
-            sessionLocation         = &gGameSession->location;                                                                                                                       \
-            placeKey                = ((Enemy*)(actor)->spawnArg2.pointer)->placeKey;                                                                                                \
-            model                   = effect->task->extra.tmd;                                                                                                                       \
-            (locationKey).stage     = sessionLocation->stage;                                                                                                                        \
-            (locationKey).area      = sessionLocation->area;                                                                                                                         \
-            (locationKey).roomState = sessionLocation->roomState;                                                                                                                    \
-            viewIndex               = gGameSession->location.view;                                                                                                                   \
-            placementIndex          = placeKey >> ENEMY_PLACE_INDEX_SHIFT;                                                                                                           \
-            (locationKey).view      = viewIndex;                                                                                                                                     \
-            areaSyncLocationVariant(&(locationKey));                                                                                                                                 \
-            placement                = AREA_PLACEMENT_AT(areaGetVariant(&(locationKey))->placements, placementIndex);                                                                \
-            model->texturePageOffset = placement->texturePageOffset;                                                                                                                 \
-            model->clutRowOffset     = placement->clutRowOffset;                                                                                                                     \
-            if (model->buffer != NULL) {                                                                                                                                             \
-                tmdBuildBufferHalf(model);                                                                                                                                           \
-                tmdBuildBufferHalf(model);                                                                                                                                           \
-            }                                                                                                                                                                        \
-        }                                                                                                                                                                            \
+#define ACTOR_01500_SPAWN_BURST_PART(actor, source, locationKey)                                                                                                                           \
+    {                                                                                                                                                                                      \
+        u8               viewIndex;                                                                                                                                                        \
+        u32              placeKey, placementIndex;                                                                                                                                         \
+        EffectWork*      effect;                                                                                                                                                           \
+        TmdObject*       model;                                                                                                                                                            \
+        AreaPlacement*   placement;                                                                                                                                                        \
+        GameLocationKey* sessionLocation;                                                                                                                                                  \
+        gCollisionTaskDescs[TASK_COLLISION_BURST_BODY_PART].data.model = (source);                                                                                                         \
+        effect                                                         = effectSpawn(EFFECT_BURST_BODY_PART_COLLISION, &(actor)->extra.tmd->coords[1], ACTOR_01500_BURST_PUFF_SIZE, NULL); \
+        if (effect != NULL) {                                                                                                                                                              \
+            sessionLocation         = &gGameSession->location;                                                                                                                             \
+            placeKey                = ((Enemy*)(actor)->spawnArg2.pointer)->placeKey;                                                                                                      \
+            model                   = effect->task->extra.tmd;                                                                                                                             \
+            (locationKey).stage     = sessionLocation->stage;                                                                                                                              \
+            (locationKey).area      = sessionLocation->area;                                                                                                                               \
+            (locationKey).roomState = sessionLocation->roomState;                                                                                                                          \
+            viewIndex               = gGameSession->location.view;                                                                                                                         \
+            placementIndex          = placeKey >> ENEMY_PLACE_INDEX_SHIFT;                                                                                                                 \
+            (locationKey).view      = viewIndex;                                                                                                                                           \
+            areaSyncLocationVariant(&(locationKey));                                                                                                                                       \
+            placement                = AREA_PLACEMENT_AT(areaGetVariant(&(locationKey))->placements, placementIndex);                                                                      \
+            model->texturePageOffset = placement->texturePageOffset;                                                                                                                       \
+            model->clutRowOffset     = placement->clutRowOffset;                                                                                                                           \
+            if (model->buffer != NULL) {                                                                                                                                                   \
+                tmdBuildBufferHalf(model);                                                                                                                                                 \
+                tmdBuildBufferHalf(model);                                                                                                                                                 \
+            }                                                                                                                                                                              \
+        }                                                                                                                                                                                  \
     }
     ACTOR_01500_SPAWN_BURST_PART(actor, &_gSucklerMindBurstHead, location);
     ACTOR_01500_SPAWN_BURST_PART(actor, &_gSucklerMindBurstWing, location);

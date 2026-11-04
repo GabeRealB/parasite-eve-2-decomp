@@ -1990,7 +1990,7 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = EXIT_WARP;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = EXIT_ROOM;
             gDisplayState.spriteVariant                                 = SPRITE_RESOURCE_VARIANT;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             // Also advance the step when the transition request falls through here.
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_PAUSE:
             work->step++;

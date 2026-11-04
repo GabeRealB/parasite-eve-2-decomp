@@ -74,7 +74,7 @@ extern s32 gRoomEffectFlashId;
 /// The callback and any borrowed model source must belong to the loaded image
 /// and remain live through task teardown. This mutable bank is shared with
 /// resident task spawning; unused slots and their original payloads are retained.
-extern TaskDesc gEffectTaskDescriptors[667];
+extern TaskDesc gEffectTaskDescs[667];
 
 /// Projects a composed coordinate's view-space position onto room geometry along world +Y.
 ///

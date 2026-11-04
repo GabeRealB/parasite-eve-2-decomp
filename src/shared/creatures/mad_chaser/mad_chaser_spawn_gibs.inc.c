@@ -40,18 +40,18 @@ static void _madChaserSpawnGibs(Task* task)
     EffectWork* headEffect;
     EffectWork* secondaryEffect;
 
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &MAD_CHASER_BURST_HEAD_SOURCE;
-    headEffect                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[MAD_CHASER_BURST_HEAD_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &MAD_CHASER_BURST_HEAD_SOURCE;
+    headEffect                                                         = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[MAD_CHASER_BURST_HEAD_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     if (headEffect != NULL) {
         _madChaserBindGibTexture(task, headEffect);
     }
     RANDOM_LCG_ADVANCE();
     if (RANDOM_LCG_DRAW() & 1) {
-        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &MAD_CHASER_BURST_ARM_SOURCE;
-        secondaryEffect                                              = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[MAD_CHASER_BURST_ARM_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+        gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &MAD_CHASER_BURST_ARM_SOURCE;
+        secondaryEffect                                                    = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[MAD_CHASER_BURST_ARM_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     } else {
-        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &MAD_CHASER_BURST_TAIL_SOURCE;
-        secondaryEffect                                              = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[MAD_CHASER_BURST_TAIL_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+        gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &MAD_CHASER_BURST_TAIL_SOURCE;
+        secondaryEffect                                                    = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[MAD_CHASER_BURST_TAIL_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     }
     if (secondaryEffect != NULL) {
         _madChaserBindGibTexture(task, secondaryEffect);

@@ -147,10 +147,8 @@ void directionAwaitStairClimb(void)
 void directionCommitStairWarp(void)
 {
     enum {
-        DIRECTION_WARP_ARRIVAL_MASK     = 0x0F,
-        DIRECTION_WARP_DEFAULT_ROOM     = 1,
-        DIRECTION_AREA_CHANGE_TASK_BANK = 0,
-        DIRECTION_AREA_CHANGE_TASK_ID   = 0x11
+        DIRECTION_WARP_ARRIVAL_MASK = 0x0F,
+        DIRECTION_WARP_DEFAULT_ROOM = 1,
     };
     Task*         roomTask;
     RoomEventMsg* destination;
@@ -172,7 +170,7 @@ void directionCommitStairWarp(void)
     liveSave->state.location.area      = (u8)gDirectionWarpRequest.areaId;
     liveSave->state.location.warp      = destination->warp;
     liveSave->state.location.roomState = destination->roomState;
-    taskSpawn(DIRECTION_AREA_CHANGE_TASK_BANK, DIRECTION_AREA_CHANGE_TASK_ID, 0, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, 0, 0);
 
     gDirectionSecondaryActionParameter1 = 0;
     gDirectionSecondaryActionParameter0 = 0;

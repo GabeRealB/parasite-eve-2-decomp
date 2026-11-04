@@ -1534,8 +1534,6 @@ static void _shelterB4ReservoirExitTask(Task* task)
         SHELTER_B4_RESERVOIR_EXIT_RELOAD         = 5,
         SHELTER_B4_RESERVOIR_EXIT_ACCEPT_KEY     = 10,
         SHELTER_B4_RESERVOIR_EXIT_FADE_UPDATES   = 30,
-        SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_BANK = 1,
-        SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_TYPE = 0x31,
         SHELTER_B4_RESERVOIR_EXIT_SPRITE_VARIANT = 1,
     };
 
@@ -1564,7 +1562,7 @@ static void _shelterB4ReservoirExitTask(Task* task)
             _gShelterB4ReservoirExitFade.blend      = SCREEN_FADE_SUBTRACT;
             _gShelterB4ReservoirExitFade.phase      = SCREEN_FADE_RUNNING;
             _gShelterB4ReservoirExitFade.rampFrames = SHELTER_B4_RESERVOIR_EXIT_FADE_UPDATES;
-            taskSpawn(SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_BANK, SHELTER_B4_RESERVOIR_EXIT_FADE_TASK_TYPE, 0, &_gShelterB4ReservoirExitFade);
+            taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &_gShelterB4ReservoirExitFade);
             task->killCountdown = SHELTER_B4_RESERVOIR_EXIT_FADE_UPDATES;
             task->state++;
             break;
@@ -1585,7 +1583,7 @@ static void _shelterB4ReservoirExitTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShelterB4ReservoirPendingExitLocation.area;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShelterB4ReservoirPendingExitLocation.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB4ReservoirPendingExitLocation.roomState;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
     }

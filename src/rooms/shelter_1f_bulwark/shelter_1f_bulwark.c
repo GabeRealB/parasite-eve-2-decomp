@@ -533,15 +533,13 @@ static const TaskFuncTable3 _gShelter1fBulwarkRoomStateHandlers = {
 static inline void _shelter1fBulwarkStartHeliportFade(Task* task)
 {
     enum {
-        SHELTER_1F_BULWARK_FADE_FRAMES    = 30,
-        SHELTER_1F_BULWARK_FADE_TASK_BANK = 1,
-        SHELTER_1F_BULWARK_FADE_TASK_SLOT = 0x31,
+        SHELTER_1F_BULWARK_FADE_FRAMES = 30,
     };
 
     _gShelter1fBulwarkHeliportFade.blend      = SCREEN_FADE_SUBTRACT;
     _gShelter1fBulwarkHeliportFade.phase      = SCREEN_FADE_RUNNING;
     _gShelter1fBulwarkHeliportFade.rampFrames = SHELTER_1F_BULWARK_FADE_FRAMES;
-    taskSpawn(SHELTER_1F_BULWARK_FADE_TASK_BANK, SHELTER_1F_BULWARK_FADE_TASK_SLOT, 0, &_gShelter1fBulwarkHeliportFade);
+    taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &_gShelter1fBulwarkHeliportFade);
     task->killCountdown = 0;
     sndEvtRequestScriptStart(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
 }
@@ -762,7 +760,7 @@ static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = DEPARTURE_ARRIVAL_ROOM;
             gDisplayState.spriteVariant                                 = DEPARTURE_SPRITE_VARIANT;
             gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
     }

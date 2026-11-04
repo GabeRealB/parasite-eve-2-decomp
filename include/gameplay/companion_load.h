@@ -13,12 +13,6 @@ void func_800ABFF8(void);
 /// Its intended role is unproven.
 void func_800AC000(void);
 
-/// Resident task-bank entry for the gameplay session-reload dispatcher.
-enum {
-    GAME_FLOW_RELOAD_TASK_BANK = 0,
-    GAME_FLOW_RELOAD_TASK_SLOT = 17,
-};
-
 /// First spawn-argument options for `gameFlowReloadSessionTask`.
 ///
 /// The low nibble is forwarded to the loading task: 0 captures the current
@@ -33,7 +27,7 @@ enum {
 
 /// Reloads the session from the live save through combat exit, display hold and resource rebuild.
 ///
-/// Spawn via `GAME_FLOW_RELOAD_TASK_BANK` / `GAME_FLOW_RELOAD_TASK_SLOT` while
+/// Spawn via `TASK_BANK_SYSTEM` / `TASK_SYSTEM_RELOAD_SESSION` while
 /// gameplay is loaded. The first argument combines a display-mode nibble with
 /// `GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE`; the second argument is unused.
 /// Requires valid live save/session state and dispatch state 0..2. Every tick

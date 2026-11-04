@@ -1621,7 +1621,7 @@ static inline void _shelterB1PodAccessTunnelCommitB2Ride(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gantryReturnProgress;
     }
     gDisplayState.spriteVariant = RIDE_NEXT_SESSION_SPRITE_VARIANT;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
 
@@ -1707,7 +1707,7 @@ static inline void _shelterB1PodAccessTunnelCommitGantryTransit(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = GANTRY_ARRIVAL_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = GANTRY_ARRIVAL_ROOM;
     gDisplayState.spriteVariant                                 = RELOAD_CAPTURE_SPRITE_VARIANT;
-    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
 

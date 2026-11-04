@@ -229,10 +229,10 @@ static TaskDesc _gStageModeControllerTaskDesc = {
     .header   = { .fields = { TASK_BODY_NONE, 0 } },
     .callback = _stageModeControllerTask,
 };
-GameDebugState* gGameDebugState    = &_gGameDebugStateStorage;
-TaskDesc        gTaskBank5Descs[5] = {
+GameDebugState* gGameDebugState                    = &_gGameDebugStateStorage;
+TaskDesc        gTaskBank5Descs[TASK_5_SLOT_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
-    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskDebugLaunchCallback },
+    [TASK_5_DEBUG_LAUNCH] = { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskDebugLaunchCallback },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, func_80701470 },
@@ -527,8 +527,6 @@ static inline void _stageBeginViewResourceLoad(void)
 {
     enum {
         STAGE_VIEW_RESET_GPU_QUEUE       = 1,
-        STAGE_VIEW_LOAD_TASK_BANK        = 0,
-        STAGE_VIEW_LOAD_TASK_ID          = 0x1E,
         STAGE_VIEW_LOAD_KEEP_STAGE_FLIPS = 2,
         STAGE_VIEW_INPUT_PORT            = 0,
         STAGE_VIEW_NOT_READY             = 0,
@@ -543,7 +541,7 @@ static inline void _stageBeginViewResourceLoad(void)
     padStartInputBlock(STAGE_VIEW_INPUT_PORT);
     viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
     gGameSession->viewReady = STAGE_VIEW_NOT_READY;
-    taskSpawn(STAGE_VIEW_LOAD_TASK_BANK, STAGE_VIEW_LOAD_TASK_ID, STAGE_VIEW_LOAD_KEEP_STAGE_FLIPS, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_LOAD_VIEW, STAGE_VIEW_LOAD_KEEP_STAGE_FLIPS, 0);
 }
 
 /// Processes pending view/file transitions, mode exit or framebuffer capture.

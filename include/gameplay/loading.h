@@ -12,15 +12,9 @@
 
 // Room-resource loading, view setup and sprite-list construction.
 
-/// Resident task-bank entry for the eight-phase session resource load.
-enum {
-    LOADING_SESSION_TASK_BANK = 0,
-    LOADING_SESSION_TASK_SLOT = 0x1C,
-};
-
 /// Dispatches character, stage and area loading through room startup.
 ///
-/// Spawn through `LOADING_SESSION_TASK_BANK` / `LOADING_SESSION_TASK_SLOT`
+/// Spawn through `TASK_BANK_SYSTEM` / `TASK_SYSTEM_LOAD_SESSION`
 /// with gameplay loaded and valid live save/session resource directories.
 /// States 0..7 prepare character resources, queue stage resources, initialize
 /// area memory/audio, queue area/companion resources, prepare saved area state,

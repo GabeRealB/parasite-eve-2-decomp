@@ -2774,8 +2774,6 @@ static void _actor444000EventUpdateDescentRoom(s32 updateMode)
         ACTOR_444000_DESCENT_WAITING_ROOM    = 4,
         ACTOR_444000_DESCENT_MOVING_ROOM     = 5,
         ACTOR_444000_DESCENT_LANDED_ROOM     = 6,
-        ACTOR_444000_EVENT_BLEND_BANK        = 1,
-        ACTOR_444000_EVENT_BLEND_DESCRIPTOR  = 0x2D,
         ACTOR_444000_EVENT_BLEND_DOUBLE_PASS = 16,
     };
     _Actor444000EventWork* work;
@@ -2810,7 +2808,7 @@ static void _actor444000EventUpdateDescentRoom(s32 updateMode)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
             areaApplySavedUpdates(gShelterB3GarbageIncineratorDescentAreaUpdates);
             if (updateMode == ACTOR_444000_DESCENT_UPDATE_WITH_BLEND) {
-                work->framebufferBlend = taskSpawn(ACTOR_444000_EVENT_BLEND_BANK, ACTOR_444000_EVENT_BLEND_DESCRIPTOR, ACTOR_444000_EVENT_BLEND_DOUBLE_PASS, 0);
+                work->framebufferBlend = taskSpawn(TASK_BANK_SCENE, TASK_SCENE_BLEND_PREVIOUS_FRAME, ACTOR_444000_EVENT_BLEND_DOUBLE_PASS, 0);
             }
             gGameSession->viewDirty = 1;
             break;

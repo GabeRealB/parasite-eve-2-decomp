@@ -529,8 +529,6 @@ static void _actor143000CheckKeypadCode(Task* task)
         ACTOR_143000_KEYPAD_STATUS_WIDTH_SECOND_DOT         = 138,
         ACTOR_143000_KEYPAD_STATUS_WIDTH_FULL               = 0,
         ACTOR_143000_KEYPAD_FADE_FRAMES                     = 15,
-        ACTOR_143000_KEYPAD_FADE_BANK                       = 1,
-        ACTOR_143000_KEYPAD_FADE_SLOT                       = 49,
     };
 
     _Actor143000KeypadWork* work;
@@ -581,7 +579,7 @@ static void _actor143000CheckKeypadCode(Task* task)
                 gActor143000CodeAcceptedFade.phase      = SCREEN_FADE_RUNNING;
                 gActor143000CodeAcceptedFade.rampFrames = ACTOR_143000_KEYPAD_FADE_FRAMES;
                 task->killCountdown                     = ACTOR_143000_KEYPAD_FADE_FRAMES;
-                taskSpawn(ACTOR_143000_KEYPAD_FADE_BANK, ACTOR_143000_KEYPAD_FADE_SLOT, 0, &gActor143000CodeAcceptedFade);
+                taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &gActor143000CodeAcceptedFade);
                 break;
         }
     } else {

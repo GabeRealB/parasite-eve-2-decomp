@@ -11,14 +11,12 @@ static inline void _roomEventStartStagedBlackout(ScreenFade* fade)
 {
     enum {
         ROOM_EVENT_STAGED_FADE_FRAMES         = 30,
-        ROOM_EVENT_STAGED_FADE_BANK           = 1,
-        ROOM_EVENT_STAGED_FADE_SLOT           = 0x31,
         ROOM_EVENT_STAGED_FADE_DEFAULT_OT_TAG = 0,
     };
     fade->blend      = SCREEN_FADE_SUBTRACT;
     fade->phase      = SCREEN_FADE_RUNNING;
     fade->rampFrames = ROOM_EVENT_STAGED_FADE_FRAMES;
-    taskSpawn(ROOM_EVENT_STAGED_FADE_BANK, ROOM_EVENT_STAGED_FADE_SLOT, ROOM_EVENT_STAGED_FADE_DEFAULT_OT_TAG, fade);
+    taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, ROOM_EVENT_STAGED_FADE_DEFAULT_OT_TAG, fade);
 }
 
 void roomEventStagedTask(Task* task)
@@ -67,7 +65,7 @@ void roomEventStagedTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = ROOM_EVENT_STAGED_DESTINATION.areaId;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ROOM_EVENT_STAGED_DESTINATION.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ROOM_EVENT_STAGED_DESTINATION.roomState;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
     }

@@ -93,13 +93,8 @@ enum {
     SCREEN_STATE_MENU   = 3,
 };
 
-/// Resident task-bank slots used by the title startup and idle transition.
-enum {
-    RESIDENT_TASK_BANK      = 0,
-    SCREEN_TASK_SLOT        = 2,
-    START_SESSION_TASK_SLOT = 3,
-    START_SESSION_DEMO_ARG  = 2,
-};
+/// What the session launch is given to start an attract demo.
+enum { START_SESSION_DEMO_ARG = 2 };
 
 /// Counter span of the title screen's subtractive black fades, in update ticks.
 ///
@@ -195,23 +190,17 @@ static char* _gMenuTextLabels[MENU_DEBUG_OPTION + 1] = {
     [MENU_DEBUG_OPTION]  = _gMenuDebugOptionLabel,
 };
 
-enum {
-    MENU_LOAD_GAME_TASK_SLOT     = 4,
-    MENU_CONFIGURATION_TASK_SLOT = 5,
-    MENU_EXIT_TASK_SLOT          = 6,
-};
-
-/// Resident bank-0 task slots indexed by MENU_ entry, without a terminator.
+/// `TASK_BANK_SYSTEM`'s slots each MENU_ entry spawns, without a terminator.
 ///
 /// Confirmation passes zero for both spawn payloads. Only New Game, Load Game
 /// and Configuration are reachable; the other entries dispatch the exit task.
 static s32 _gMenuTaskSlots[MENU_DEBUG_OPTION + 1] = {
-    [MENU_SURVIVAL]      = MENU_EXIT_TASK_SLOT,
-    [MENU_EXTRA_GAME]    = MENU_EXIT_TASK_SLOT,
-    [MENU_NEW_GAME]      = START_SESSION_TASK_SLOT,
-    [MENU_LOAD_GAME]     = MENU_LOAD_GAME_TASK_SLOT,
-    [MENU_CONFIGURATION] = MENU_CONFIGURATION_TASK_SLOT,
-    [MENU_DEBUG_OPTION]  = MENU_EXIT_TASK_SLOT,
+    [MENU_SURVIVAL]      = TASK_SYSTEM_TITLE_EXIT,
+    [MENU_EXTRA_GAME]    = TASK_SYSTEM_TITLE_EXIT,
+    [MENU_NEW_GAME]      = TASK_SYSTEM_LAUNCH_SESSION,
+    [MENU_LOAD_GAME]     = TASK_SYSTEM_LOAD_DIALOG,
+    [MENU_CONFIGURATION] = TASK_SYSTEM_VIBRATION_OPTIONS,
+    [MENU_DEBUG_OPTION]  = TASK_SYSTEM_TITLE_EXIT,
 };
 
 TaskDesc gTitleStartupTaskDescriptors[2] = {
@@ -442,7 +431,7 @@ static void _updateScreenTask(Task* task)
                 gDisplayState.demoScene = gameMainGetInitializationCount() + 2;
                 gDisplayState.demoScene = gDisplayState.demoScene % PE2_VALUE(demos, _count) + 1;
                 printf(_gAttractDemoStartMessage);
-                taskSpawn(RESIDENT_TASK_BANK, START_SESSION_TASK_SLOT, START_SESSION_DEMO_ARG, 0);
+                taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_LAUNCH_SESSION, START_SESSION_DEMO_ARG, 0);
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             } else {
                 gDisplayState.gameMode = DISPLAY_GAME_RESTART;
@@ -519,7 +508,7 @@ static void _updateScreenTask(Task* task)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            taskSpawn(RESIDENT_TASK_BANK, _gMenuTaskSlots[work->selection], 0, 0);
+            taskSpawn(TASK_BANK_SYSTEM, _gMenuTaskSlots[work->selection], 0, 0);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
             taskCallExit(task);
         }
@@ -771,9 +760,9 @@ static void _startupTask(Task* startupTask)
             return;
         case STARTUP_SPAWN_SCREEN:
             if (_gScreenSkipFade != 0) {
-                taskSpawn(RESIDENT_TASK_BANK, SCREEN_TASK_SLOT, SCREEN_SKIP_BLACK_FADE, 0);
+                taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_TITLE_SCREEN, SCREEN_SKIP_BLACK_FADE, 0);
             } else {
-                taskSpawn(RESIDENT_TASK_BANK, SCREEN_TASK_SLOT, 0, 0);
+                taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_TITLE_SCREEN, 0, 0);
             }
             /* fallthrough */
         case STARTUP_WAIT_SCREEN_FRAME:

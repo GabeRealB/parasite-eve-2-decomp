@@ -327,17 +327,14 @@ static void _akropolisHelicopterLandingPadCommitExitTask(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = (u8)gAkropolisHelicopterLandingPadExitRequest.areaId;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = gAkropolisHelicopterLandingPadExitRequest.warp;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gAkropolisHelicopterLandingPadExitRequest.roomState;
-        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         taskKill(task);
     }
 }
 
 void akropolisHelicopterLandingPadStartExit(s32 unusedArgument, s32 unusedActionId)
 {
-    enum { BANK = 2,
-           SLOT = 15 };
-
-    taskSpawn(BANK, SLOT, 0, 0);
+    taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_LANDING_PAD_EXIT, 0, 0);
 }
 
 void akropolisHelicopterLandingPadExitTask(Task* task)

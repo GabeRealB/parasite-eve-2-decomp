@@ -686,7 +686,7 @@ static void _akropolisSanctuaryCutsceneTask(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = EXIT_WARP;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = EXIT_ROOM;
                 gDisplayState.spriteVariant                                 = 1;
-                taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+                taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(task);
                 break;
             }

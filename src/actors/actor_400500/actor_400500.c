@@ -374,7 +374,7 @@ static void _actor400500FinishGrabRecovery(Task* task);
 static s32  _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worldRotation);
 
 /* The records closing three of the overlay's model streams, selected through
-   `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`. */
+   `gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model`. */
 static TmdSource _gStalkerGrayBurstHead;
 static TmdSource _gStalkerGrayBurstLegRight;
 static TmdSource _gStalkerGrayBurstLegLeft;
@@ -2099,18 +2099,18 @@ static void _actor400500SpawnDeathFragments(Task* task)
     EffectWork* rightLegEffect;
     EffectWork* leftLegEffect;
 
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gStalkerGrayBurstHead;
-    headEffect                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_400500_PART_BODY], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gStalkerGrayBurstHead;
+    headEffect                                                         = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[ACTOR_400500_PART_BODY], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
     if (headEffect != NULL) {
         _actor400500ApplyFragmentTexturePlacement(task, headEffect);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gStalkerGrayBurstLegRight;
-    rightLegEffect                                               = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gStalkerGrayBurstLegRight;
+    rightLegEffect                                                     = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
     if (rightLegEffect != NULL) {
         _actor400500ApplyFragmentTexturePlacement(task, rightLegEffect);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gStalkerGrayBurstLegLeft;
-    leftLegEffect                                                = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gStalkerGrayBurstLegLeft;
+    leftLegEffect                                                      = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
     if (leftLegEffect != NULL) {
         _actor400500ApplyFragmentTexturePlacement(task, leftLegEffect);
     }

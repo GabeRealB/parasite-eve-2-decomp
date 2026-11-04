@@ -347,7 +347,7 @@ static inline void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState
 #include "../../shared/creatures/mad_chaser/mad_chaser_limb_shadow.inc.c"
 
 /* The records closing three of the overlay's model streams, selected through
-   `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`. */
+   `gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model`. */
 
 #include "../../shared/creatures/mad_chaser/mad_chaser_spawn_gibs.inc.c"
 

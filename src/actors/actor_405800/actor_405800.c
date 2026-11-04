@@ -223,7 +223,7 @@ STATIC_ASSERT_SIZEOF(_Actor405800IvoryStalkerWork, 0x89C);
 typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
 
 /* The records closing four of the overlay's model streams, selected through
-   `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`. */
+   `gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model`. */
 static TmdSource _gStalkerIvoryBurstHead;
 static TmdSource _gStalkerBurstTorso;
 static TmdSource _gStalkerBurstChunk;
@@ -2402,23 +2402,23 @@ static void _actor405800SpawnCorpseChunks(Task* task)
     EffectWork* leftHandChunk;
 
     // Each source selection must precede the spawn that consumes it.
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gStalkerIvoryBurstHead;
-    headChunk                                                    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_HEAD_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gStalkerIvoryBurstHead;
+    headChunk                                                          = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[ACTOR_405800_BURST_HEAD_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (headChunk != NULL) {
         _actor405800CopyArmTexture(task, headChunk->task);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gStalkerBurstTorso;
-    torsoChunk                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_TORSO_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gStalkerBurstTorso;
+    torsoChunk                                                         = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[ACTOR_405800_BURST_TORSO_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (torsoChunk != NULL) {
         _actor405800CopyArmTexture(task, torsoChunk->task);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gStalkerBurstChunk;
-    part16Chunk                                                  = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_PART_16], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gStalkerBurstChunk;
+    part16Chunk                                                        = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[ACTOR_405800_BURST_PART_16], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (part16Chunk != NULL) {
         _actor405800CopyArmTexture(task, part16Chunk->task);
     }
-    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gStalkerBurstHandLeft;
-    leftHandChunk                                                = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_PART_LEFT_ARM], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gInteractionTaskDescs[TASK_INTERACTION_BURST_BODY_PART].data.model = &_gStalkerBurstHandLeft;
+    leftHandChunk                                                      = effectSpawn(EFFECT_BURST_BODY_PART_INTERACTION, &task->extra.tmd->coords[ACTOR_405800_PART_LEFT_ARM], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (leftHandChunk != NULL) {
         _actor405800CopyArmTexture(task, leftHandChunk->task);
     }

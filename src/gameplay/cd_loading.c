@@ -363,9 +363,6 @@ enum {
     LOADING_VIEW_FINISH_CD_IDLE          = -2,
     LOADING_VIEW_MOVIE_READY_TICKS       = 3,
     LOADING_VIEW_INPUT_PORT              = 0,
-    LOADING_VIEW_TASK_BANK               = 0,
-    LOADING_VIEW_TASK_TYPE               = 0x1E,
-    LOADING_VIEW_SPRITE_TASK_TYPE        = 0x17,
     LOADING_VIEW_RESUME_GAME_LOOP        = 0,
     LOADING_VIEW_RESUME_TASK_FLIPS       = 1,
     LOADING_VIEW_NOT_READY               = 0,
@@ -913,7 +910,7 @@ void loadingFinishViewLoad(Task* viewLoadTask)
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
         }
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
-        taskSpawn(LOADING_VIEW_TASK_BANK, LOADING_VIEW_SPRITE_TASK_TYPE, 0, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_VIEW_CACHED_PACKETS, 0, 0);
         gGameSession->viewReady = LOADING_VIEW_READY;
         taskKill(viewLoadTask);
     }
@@ -968,7 +965,7 @@ static void _loadingReloadSavedView(void)
     padStartInputBlock(LOADING_VIEW_INPUT_PORT);
     viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
     gGameSession->viewReady = LOADING_VIEW_NOT_READY;
-    taskSpawn(LOADING_VIEW_TASK_BANK, LOADING_VIEW_TASK_TYPE, LOADING_VIEW_RESUME_TASK_FLIPS, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_LOAD_VIEW, LOADING_VIEW_RESUME_TASK_FLIPS, 0);
 }
 
 /// Starts reloading a logical view and returns presentation to the game loop on completion.
@@ -990,7 +987,7 @@ static void _loadingReloadView(s32 logicalViewIndex)
     padStartInputBlock(LOADING_VIEW_INPUT_PORT);
     viewQueueCurrentCamera(VIEW_PACKET_LIST_DEFAULT);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-    taskSpawn(LOADING_VIEW_TASK_BANK, LOADING_VIEW_TASK_TYPE, LOADING_VIEW_RESUME_GAME_LOOP, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_LOAD_VIEW, LOADING_VIEW_RESUME_GAME_LOOP, 0);
 }
 
 void viewCommitIndexTask(Task* task)
@@ -1005,11 +1002,7 @@ void viewCommitIndexTask(Task* task)
 
 void loadingRequestViewGraphicsRestore(void)
 {
-    enum {
-        LOADING_VIEW_GRAPHICS_RESTORE_TASK_BANK = 0,
-        LOADING_VIEW_GRAPHICS_RESTORE_TASK_SLOT = 0x26,
-    };
-    displaySpawnTask(LOADING_VIEW_GRAPHICS_RESTORE_TASK_BANK, LOADING_VIEW_GRAPHICS_RESTORE_TASK_SLOT, 0, 0);
+    displaySpawnTask(TASK_BANK_SYSTEM, TASK_SYSTEM_RESTORE_VIEW_GRAPHICS, 0, 0);
 }
 
 void loadingRestoreViewGraphicsTask(Task* task)

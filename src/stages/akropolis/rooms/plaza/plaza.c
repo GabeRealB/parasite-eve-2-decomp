@@ -1781,7 +1781,7 @@ static void _akropolisPlazaSequenceTask(Task* task)
             _akropolisPlazaCommitElevatorDestination();
             loadingEnqueueEquippedWeaponResources();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             queue->blockGamePause = 0;
             taskKill(task);
             return;

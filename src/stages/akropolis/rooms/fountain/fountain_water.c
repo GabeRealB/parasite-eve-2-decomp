@@ -155,10 +155,7 @@ void akropolisFountainEnableClimbTrigger(void)
 
 void akropolisFountainStartClimb(s32 unusedActionId, s32 unusedControl)
 {
-    enum { BANK = 2,
-           SLOT = 14 };
-
-    taskSpawn(BANK, SLOT, 0, 0);
+    taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_AKROPOLIS_FOUNTAIN_CLIMB, 0, 0);
 }
 
 /// Takes scripted control and turns the player to face the ascent at yaw 2048.

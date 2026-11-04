@@ -4061,8 +4061,6 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHAKE_END_TICK           = 91,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_TIP_DELAY_TICKS          = 6,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_DELAY_TICKS        = 11,
-        SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_BANK         = 1,
-        SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_TASK_INDEX   = 0x2D,
         SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_DOUBLE_PASS  = 16,
     };
     _ShelterB3DumpingHoleCollapseEventWork* work;
@@ -4284,7 +4282,7 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
                     return;
                 case SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLICKER_WAIT_BLEND:
                     if (++work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_DELAY_TICKS) {
-                        work->framebufferBlend = taskSpawn(SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_BANK, SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_DOUBLE_PASS, 0);
+                        work->framebufferBlend = taskSpawn(TASK_BANK_SCENE, TASK_SCENE_BLEND_PREVIOUS_FRAME, SHELTER_B3_DUMPING_HOLE_PREVIOUS_FRAME_BLEND_DOUBLE_PASS, 0);
                         work->timer            = 0;
                         work->step++;
                     }

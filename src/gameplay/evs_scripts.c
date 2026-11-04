@@ -327,21 +327,13 @@ static void _evsExecuteInterpreterTask(Task* task)
     s32                  equipmentTargets;
 
     enum {
-        EVENT_SCRIPT_STATUS_DEMO_SCENE           = 9,
-        EVENT_SCRIPT_SKIP_SOUND_STOP_CONTROL     = 16,
-        EVENT_SCRIPT_DEFAULT_FADE_FRAMES         = 7,
-        EVENT_SCRIPT_DISPLAY_TASK_BANK           = 1,
-        EVENT_SCRIPT_FLASH_TASK_SLOT             = 0x19,
-        EVENT_SCRIPT_FRAMEBUFFER_BLEND_TASK_SLOT = 0x2D,
-        EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT       = 0x31,
-        EVENT_SCRIPT_TASK_BANK                   = 9,
-        EVENT_SCRIPT_SCREEN_SHAKE_TASK_SLOT      = 0xC,
-        EVENT_SCRIPT_MUSIC_FADE_TASK_SLOT        = 0xD,
-        EVENT_SCRIPT_SOUND_FADE_TASK_SLOT        = 0xE,
-        EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT       = 8,
-        EVENT_SCRIPT_WEAPONS_PLAYER              = 0,
-        EVENT_SCRIPT_WEAPONS_COMPANION           = 1,
-        EVENT_SCRIPT_WEAPONS_BOTH                = 2,
+        EVENT_SCRIPT_STATUS_DEMO_SCENE       = 9,
+        EVENT_SCRIPT_SKIP_SOUND_STOP_CONTROL = 16,
+        EVENT_SCRIPT_DEFAULT_FADE_FRAMES     = 7,
+        EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT   = 8,
+        EVENT_SCRIPT_WEAPONS_PLAYER          = 0,
+        EVENT_SCRIPT_WEAPONS_COMPANION       = 1,
+        EVENT_SCRIPT_WEAPONS_BOTH            = 2,
     };
 
     work = task->work;
@@ -432,7 +424,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 return;
 
             case EVENT_SCRIPT_OPCODE_START_FLASH:
-                work->primaryEffectTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_FLASH_TASK_SLOT, work->command->operand0.value, work->command->operand1.value);
+                work->primaryEffectTask = taskSpawn(TASK_BANK_SCENE, TASK_SCENE_FADE_PULSE, work->command->operand0.value, work->command->operand1.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW:
@@ -528,7 +520,7 @@ static void _evsExecuteInterpreterTask(Task* task)
 
             case EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND:
                 if (work->command->operand0.value != 0) {
-                    _gEvsFramebufferBlendTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_FRAMEBUFFER_BLEND_TASK_SLOT, 0, 0);
+                    _gEvsFramebufferBlendTask = taskSpawn(TASK_BANK_SCENE, TASK_SCENE_BLEND_PREVIOUS_FRAME, 0, 0);
                 } else if (_gEvsFramebufferBlendTask != NULL) {
                     taskCallExit(_gEvsFramebufferBlendTask);
                     _gEvsFramebufferBlendTask = NULL;
@@ -565,7 +557,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SHAKE_SCREEN:
-                taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_SCREEN_SHAKE_TASK_SLOT, 0, (work->command->operand0.value << EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT) | work->command->operand1.value);
+                taskSpawn(TASK_BANK_EVENT, TASK_EVENT_SCREEN_SHAKE, 0, (work->command->operand0.value << EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT) | work->command->operand1.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_CLEANUP_SCENE:
@@ -594,7 +586,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 } else {
                     _gEvsPrimaryFade.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->primaryEffectTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, 0, &_gEvsPrimaryFade);
+                work->primaryEffectTask = taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, 0, &_gEvsPrimaryFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE:
@@ -607,7 +599,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 }
                 _gEvsMusicVolumeFade.targetVolume   = work->command->operand0.value;
                 _gEvsMusicVolumeFade.durationFrames = work->command->operand1.value;
-                _gEvsMusicVolumeFadeTask            = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_MUSIC_FADE_TASK_SLOT, 0, &_gEvsMusicVolumeFade);
+                _gEvsMusicVolumeFadeTask            = taskSpawn(TASK_BANK_EVENT, TASK_EVENT_MUSIC_VOLUME_FADE, 0, &_gEvsMusicVolumeFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_FADE_SOUND_ATTENUATION:
@@ -617,7 +609,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 _gEvsSoundAttenuationFade.soundId           = work->command->operand0.value;
                 _gEvsSoundAttenuationFade.targetAttenuation = work->command->operand1.value;
                 _gEvsSoundAttenuationFade.durationFrames    = work->command->operand2.value;
-                _gEvsSoundAttenuationFadeTask               = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_SOUND_FADE_TASK_SLOT, 0, &_gEvsSoundAttenuationFade);
+                _gEvsSoundAttenuationFadeTask               = taskSpawn(TASK_BANK_EVENT, TASK_EVENT_SOUND_ATTENUATION_FADE, 0, &_gEvsSoundAttenuationFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_REBUILD_TMD_BUFFERS:
@@ -670,7 +662,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 } else {
                     _gEvsSecondaryFade.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->secondaryFadeTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, work->command->operand2.value, &_gEvsSecondaryFade);
+                work->secondaryFadeTask = taskSpawn(TASK_BANK_SCENE, TASK_SCENE_SCREEN_FADE, work->command->operand2.value, &_gEvsSecondaryFade);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE:
@@ -845,8 +837,6 @@ void evsStartScriptWithSkip(EvsCommand* script, s32 hudMode, EvsCommand* skipScr
     enum {
         EVENT_SCRIPT_INITIAL_EVENT_STATE = 1,
         EVENT_SCRIPT_SKIP_DELAY_UPDATES  = 5,
-        EVENT_SCRIPT_INTERPRETER_BANK    = 9,
-        EVENT_SCRIPT_INTERPRETER_TYPE    = 7
     };
 
     // Reset the shared event controls before queuing the interpreter.
@@ -863,7 +853,7 @@ void evsStartScriptWithSkip(EvsCommand* script, s32 hudMode, EvsCommand* skipScr
     _gEvsSavedView                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
     _gEvsSavedPlayerWeapon                = gPlayerStatus.weapon;
     sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    taskSpawn(EVENT_SCRIPT_INTERPRETER_BANK, EVENT_SCRIPT_INTERPRETER_TYPE, hudMode, script);
+    taskSpawn(TASK_BANK_EVENT, TASK_EVENT_INTERPRETER, hudMode, script);
 }
 
 Task* sceneFindPlacedActor(s32 placementIndex)

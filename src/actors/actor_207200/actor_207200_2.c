@@ -182,7 +182,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor207200ContactScratch, 0x48);
 
 /// The records closing three of the overlay's model streams, handed to the
-/// spawned effect as its model through `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`.
+/// spawned effect as its model through `gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model`.
 static TmdSource _gSkullStalkerAndCreepingStrangerCreepingStrangerBurstLeg;
 static TmdSource _gSkullStalkerAndCreepingStrangerCreepingStrangerBurstArm;
 static TmdSource _gSkullStalkerAndCreepingStrangerCreepingStrangerBurstHead;
@@ -1299,8 +1299,8 @@ static void _actor207200CreepingStrangerBurstHead(Task* task)
 
     effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords, 0, NULL);
     worldTargetAddReadoutAmount(&enemy->node, enemy->hp - 1, 0);
-    gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = &_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstHead;
-    burstEffect                                                  = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, 0, NULL);
+    gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = &_gSkullStalkerAndCreepingStrangerCreepingStrangerBurstHead;
+    burstEffect                                        = effectSpawn(EFFECT_BURST_BODY_PART_8, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, 0, NULL);
     if (burstEffect != NULL) {
         _actor207200CreepingStrangerCopyBurstTextures(burstEffect->task, task);
     }
@@ -1335,13 +1335,13 @@ static void _actor207200CreepingStrangerBurstRandomPart(Task* task)
 /// on success, and writable EffectWork* effectLocal twice, or three times on success.
 /// Arguments must have no side effects. Captures only the package texture copier,
 /// forms one compound statement, and skips texture copying on allocation failure.
-#define ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(modelSource, partIndex, sourceTask, effectLocal)                                                                  \
-    {                                                                                                                                                                     \
-        gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = (modelSource);                                                                                     \
-        (effectLocal)                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (sourceTask)->extra.tmd->coords + (partIndex), 0, NULL); \
-        if ((effectLocal) != NULL) {                                                                                                                                      \
-            _actor207200CreepingStrangerCopyBurstTextures((effectLocal)->task, (sourceTask));                                                                             \
-        }                                                                                                                                                                 \
+#define ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(modelSource, partIndex, sourceTask, effectLocal)                                                    \
+    {                                                                                                                                                       \
+        gTaskBank8Descs[TASK_8_BURST_BODY_PART].data.model = (modelSource);                                                                                 \
+        (effectLocal)                                      = effectSpawn(EFFECT_BURST_BODY_PART_8, (sourceTask)->extra.tmd->coords + (partIndex), 0, NULL); \
+        if ((effectLocal) != NULL) {                                                                                                                        \
+            _actor207200CreepingStrangerCopyBurstTextures((effectLocal)->task, (sourceTask));                                                               \
+        }                                                                                                                                                   \
     }
 
     enum {

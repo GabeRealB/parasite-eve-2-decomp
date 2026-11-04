@@ -198,16 +198,11 @@ static s32 _capQueryPlaybackBusy(Task* unusedTask, s32 unusedMessageId, s32 unus
 /// ID and both payloads are ignored. Always returns 0, including spawn failure.
 static s32 _capHideEventHud(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    enum {
-        CAP_CONTROL_HUD_SLIDE_TASK_BANK  = 9,
-        CAP_CONTROL_HUD_SLIDE_TASK_INDEX = 8
-    };
-
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == CAP_CONTROL_HUD_SLIDE_DEMO_SCENE) {
         if (_gCapHudSlideTask != NULL) {
             return 0;
         }
-        _gCapHudSlideTask = taskSpawn(CAP_CONTROL_HUD_SLIDE_TASK_BANK, CAP_CONTROL_HUD_SLIDE_TASK_INDEX, 0, 0);
+        _gCapHudSlideTask = taskSpawn(TASK_BANK_EVENT, TASK_EVENT_CAP_HUD_SLIDE, 0, 0);
     } else {
         gGameSession->hideHud = true;
     }

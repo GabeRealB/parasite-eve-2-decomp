@@ -119,12 +119,6 @@ enum {
     PAD_LEGACY_VIBRATION_PREFIX = 0x40,
 };
 
-/// Resident task-bank selectors used by the session-start and load-dialog handlers.
-enum {
-    GAME_FLOW_RESIDENT_TASK_BANK      = 0,
-    GAME_FLOW_START_SESSION_TASK_SLOT = 9,
-};
-
 GameSession* gGameSession           = &_gGameSessionState;
 s32          gPlayClockPendingTicks = 0;
 /// Retained initialized word with no accesses; its type and role are unproven.
@@ -202,7 +196,7 @@ static inline void _gameFlowHandOffSessionStartup(Task* launchTask)
     gDisplayState.stopTaskWalk = true;
     taskKill(launchTask);
     _gameFlowResetSessionResources();
-    taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_START_SESSION_TASK_SLOT, 0, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_START_SESSION, 0, 0);
 }
 
 void gameFlowLaunchSessionTask(Task* task)
@@ -339,7 +333,7 @@ void gameClearSession(void)
 static void _gameFlowResetForSessionStart(void)
 {
     _gameFlowResetSessionResources();
-    taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_START_SESSION_TASK_SLOT, 0, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_START_SESSION, 0, 0);
 }
 
 /// Resets live session/save progress for the load-dialog path, preserving vibration.
@@ -440,12 +434,11 @@ static void _gameFlowWaitAfterLoadDialog(Task* task)
 static void _gameFlowFinishLoadDialog(Task* loadFlowTask)
 {
     enum {
-        GAME_FLOW_TITLE_SCREEN_TASK_SLOT = 2,
-        GAME_FLOW_STOP_TASK_WALK         = 1,
+        GAME_FLOW_STOP_TASK_WALK = 1,
     };
 
     if (gDisplayState.control.flags.pendingPlayerPos == 0) {
-        taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_TITLE_SCREEN_TASK_SLOT, 0, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_TITLE_SCREEN, 0, 0);
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR);
         taskKill(loadFlowTask);
         return;
@@ -454,7 +447,7 @@ static void _gameFlowFinishLoadDialog(Task* loadFlowTask)
     gDisplayState.stopTaskWalk = GAME_FLOW_STOP_TASK_WALK;
     taskKill(loadFlowTask);
     _gameFlowResetSessionResources();
-    taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_START_SESSION_TASK_SLOT, 0, 0);
+    taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_START_SESSION, 0, 0);
 }
 
 void gameFlowLoadDialogTask(Task* task)
@@ -524,7 +517,7 @@ void playClockResetMinuteTicks(void)
 static void _gameFlowHandOffSessionLoad(Task* sessionStartTask)
 {
     if (cdCmdIsIdle() != 0) {
-        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
+        taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
         taskKill(sessionStartTask);
     }
 }

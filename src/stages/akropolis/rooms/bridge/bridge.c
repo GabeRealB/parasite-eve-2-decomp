@@ -1023,11 +1023,10 @@ static void _akropolisBridgeWaitForKeypadCaption(Task* task)
 /// Spawns the keypad and publishes its handle for the following result poll.
 static void _akropolisBridgeStartKeypad(Task* task)
 {
-    enum { BANK  = 2,
-           INDEX = 8 };
+    enum { INDEX = 8 };
     Task* keypadTask;
 
-    keypadTask                  = taskSpawn(BANK, INDEX, 0, 0);
+    keypadTask                  = taskSpawn(TASK_BANK_INTERACTION, TASK_INTERACTION_AKROPOLIS_BRIDGE_KEYPAD, 0, 0);
     task->state                 = task->state + 1;
     _gAkropolisBridgeKeypadTask = keypadTask;
 }

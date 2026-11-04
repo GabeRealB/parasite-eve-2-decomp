@@ -714,7 +714,7 @@ void neoArkIslandGalleryDepartureTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gNeoArkIslandGalleryDestination.area;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gNeoArkIslandGalleryDestination.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gNeoArkIslandGalleryDestination.roomState;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+            taskSpawn(TASK_BANK_SYSTEM, TASK_SYSTEM_RELOAD_SESSION, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
     }

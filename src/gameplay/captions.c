@@ -253,7 +253,7 @@ void capUpdatePlaybackTask(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gCapRestoreView;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_PLAYBACK_ROOM_EFFECT_MESSAGE, 0, 0);
         stageRequestFrameCapture();
-        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
+        taskSpawn(TASK_BANK_SCENE, TASK_SCENE_ITEM_PICKUP_PROMPT, 0, &gCapActionRequest);
     }
     recordIndex        = capFindVariantRecord((s16)gCapRecordIndex);
     gCapRecordIndex    = (u16)recordIndex;
@@ -403,11 +403,11 @@ void capUpdatePlaybackTask(Task* task)
                     if (gCapPlaybackMode == CAP_PLAYBACK_DISPLAY_TRANSITION) {
                         gCapActionReturnView                                   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gCapRestoreView;
-                        taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
+                        taskSpawn(TASK_BANK_SCENE, TASK_SCENE_ITEM_PICKUP_PROMPT, 0, &gCapActionRequest);
                     } else if (gCapPlaybackMode == CAP_PLAYBACK_ACTION_CAPTURE) {
                         gCapActionCaptureFramesRemaining = CAP_ACTION_CAPTURE_DELAY_FRAMES;
                     } else {
-                        displayQueueModeTask(taskGetDesc(CAP_ACTION_PROMPT_EXIT_TASK_BANK, CAP_ACTION_PROMPT_EXIT_TASK_TYPE), 0, &gCapActionRequest, STAGE_ENTRY_RELOAD);
+                        displayQueueModeTask(taskGetDesc(TASK_BANK_EVENT, TASK_EVENT_CAP_ACTION_PROMPT_EXIT), 0, &gCapActionRequest, STAGE_ENTRY_RELOAD);
                     }
                 }
                 gCapRecordPhase = CAP_RECORD_WAIT;
