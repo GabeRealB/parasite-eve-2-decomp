@@ -102,7 +102,7 @@ Word 0 is an id, not a pointer count:
 |--------|--------|
 | Title | `5` (then 5 phase-table pointers — coincidence with the count) |
 | Gameplay | `4` |
-| Aya costume | bone count (`46`, `44`, `41`, `7`) |
+| Aya costume | `46` (Mist), `44` (Akropolis), `41` (Range), `7` (Dryfield) - ids, not bone counts |
 | Weapon `10301`–`10332` | `8` … `0x27` |
 | Actor `100300` | `0x58` (relocated copy `200300` uses `0xB1`) |
 | Room `stage1/101` … `2101` | `0x11D` … `0x131` (monotonic per room) |
@@ -297,16 +297,16 @@ Same address; swapped.
 
 ### 5.2 Aya costumes — `10200`–`10600` @ `0x80115770`
 
-Four unique bodies (10500/10600 share one). **Data-only**: bone count +
-identity `MATRIX` (`0x1000` = PS1 `ONE` on the diagonal) + TMD-like streams
-(~60% of the package) + sibling face/body TIM.
+Four unique bodies (10500/10600 share one), each a skeleton of 19 bones.
+**Data-only**: the package id + identity `MATRIX` (`0x1000` = PS1 `ONE` on the
+diagonal) + TMD-like streams (~60% of the package) + sibling face/body TIM.
 
-| File | Bones | Notes |
-|------|------:|-------|
-| `10200` | 46 | Default black field outfit (`pe2img_4`) |
-| `10300` | 7 | Reduced set (hands / first-person / similar) |
-| `10400` | 44 | White-shirt costume (`pe2img_31`) |
-| `10500` | 41 | Another full costume |
+| File | Id | Package | Notes |
+|------|---:|---------|-------|
+| `10200` | 46 | `aya_mist` | Default black field outfit (`pe2img_4`) |
+| `10300` | 7 | `aya_dryfield` | |
+| `10400` | 44 | `aya_akropolis` | White-shirt costume (`pe2img_31`) |
+| `10500` | 41 | `aya_range` | Also loaded as `10600` |
 
 Shared walk / aim / hit clips live in **gameplay `.data`**
 (`gPlayerActorWeaponAnimationBankBases`, `gCompanionAnimationBankBases`, `gPlayerActorWeaponAnimationBanks[animationBankIndex]`, …). The costume

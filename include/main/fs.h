@@ -337,10 +337,13 @@ enum {
     CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW = 4, // Consume a pending seek back to the mapped room view
 };
 
+/// The stage-zero file group `cdCmdEnqueueDisplayResource` loads from.
+enum { CD_COMMAND_DISPLAY_FILE_GROUP = 2 };
+
 /// Queues a stage-zero display resource or a conditional seek to the current view.
 ///
 /// Uses the low bytes of both ID components: the packed file ID is
-/// `20000 + fileIdHundreds * 100 + fileIndex`. The low byte of `loadProfile`
+/// `CD_COMMAND_DISPLAY_FILE_GROUP * 10000 + fileIdHundreds * 100 + fileIndex`. The low byte of `loadProfile`
 /// must select one of `CD_COMMAND_DISPLAY_LOAD_*`; other values leave load
 /// options uninitialized. Image X offsets count 64-word VRAM pages. Header Y
 /// adjustments count rows and apply to headers at rows 245..255, in addition

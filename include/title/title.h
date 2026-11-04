@@ -30,9 +30,10 @@ void titleRestoreAttractDemoState(void);
 
 /// Queues the save/replay resources for a numbered attract demo.
 ///
-/// `demoIndex` is zero-based: the retail title selects 0..2, loading stage-zero
-/// files 801000, 801100 and 801200. Their save/replay payload replaces actor
-/// buffer 2. The hundreds component is narrowed to a byte. Requires the title
+/// `demoIndex` is zero-based, below the count of the title's demos: the file
+/// is the first demo's, as many hundreds on (the demos are one group's files,
+/// a hundred apart). Its save/replay payload replaces actor buffer 2. The
+/// hundreds component is narrowed to a byte. Requires the title
 /// overlay, initialized scratch stack and space in the CD request ring.
 /// Returns before loading completes; both request buffers are copied during
 /// this call and are not retained.

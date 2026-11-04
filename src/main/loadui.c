@@ -91,7 +91,6 @@ TaskDesc gTaskBank8Descs[6]    = {
 void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProfile)
 {
     enum {
-        CD_COMMAND_DISPLAY_FILE_GROUP           = 2,
         CD_COMMAND_DISPLAY_FILE_KEY_STACK_BYTES = 8,
         CD_COMMAND_DISPLAY_MENU_X_PAGE_OFFSET   = -8,
         CD_COMMAND_DISPLAY_MENU_Y_OFFSET        = -3,

@@ -34,6 +34,10 @@ PE2_BIND(demos, list)
 /// The stage-zero file holding the screen's background, its palette and the chrome, loaded before the screen shows.
 PE2_BIND(screen, file)
 
+/// The stage-zero display resource the menus the title opens draw with, loaded as the screen starts: one of the group
+/// main loads display resources from.
+PE2_BIND(menu, file)
+
 /// The file holding the title, whose streams it plays: the intro, one record for each disc.
 PE2_BIND_SELF(file)
 
@@ -133,8 +137,8 @@ enum {
 STATIC_ASSERT(CHROME_ROW_FITS(prompt) && CHROME_ROW_FITS(copyright) && CHROME_ROW_FITS(cursor), chrome_rows_fit);
 STATIC_ASSERT(CHROME_ROW_FITS(new_game) && CHROME_ROW_FITS(continue) && CHROME_ROW_FITS(option), chrome_menu_rows_fit);
 
-/// Menu rows the chrome draws, one for each reachable entry.
-enum { CHROME_MENU_ROW_COUNT = 3 };
+/// Menu rows the chrome draws, one for each reachable entry: New Game up to Debug Option.
+enum { CHROME_MENU_ROW_COUNT = MENU_DEBUG_OPTION - MENU_NEW_GAME };
 
 /// The menu's rows are found by their index, so its labels lie one under another.
 STATIC_ASSERT(CHROME_ATLAS_V_CONTINUE == CHROME_ATLAS_V_NEW_GAME + CHROME_ROW_HEIGHT &&
@@ -264,10 +268,8 @@ static void _drawChromeRow(s32 screenY, s32 atlasV, s32 brightness);
 /// cleared screen work and runs the first prompt update immediately.
 static void _initializeScreenTask(Task* task)
 {
-    enum {
-        SCREEN_MENU_RESOURCE_HUNDREDS = 1,
-        SCREEN_MENU_RESOURCE_INDEX    = 0,
-    };
+    enum { MENU_FILE_ID = PE2_VALUE(menu, _id) };
+    STATIC_ASSERT(FS_FILE_GROUP(MENU_FILE_ID) == CD_COMMAND_DISPLAY_FILE_GROUP, menu_file_is_a_display_resource);
     /// Low-31-bit mask for the spawn payload's initialization-tick countdown.
     ///
     /// A delay in 0..0x7FFFFFFF defers allocation for that many attempts. Clearing
@@ -307,7 +309,7 @@ static void _initializeScreenTask(Task* task)
         if (display->debugMode != 0) {
             func_807246B4();
         }
-        cdCmdEnqueueDisplayResource(SCREEN_MENU_RESOURCE_HUNDREDS, SCREEN_MENU_RESOURCE_INDEX, CD_COMMAND_DISPLAY_LOAD_MENU);
+        cdCmdEnqueueDisplayResource(FS_FILE_HUNDREDS(MENU_FILE_ID), FS_FILE_INDEX(MENU_FILE_ID), CD_COMMAND_DISPLAY_LOAD_MENU);
         task->state += SCREEN_STATE_PROMPT;
         _updateScreenTask(task);
     }

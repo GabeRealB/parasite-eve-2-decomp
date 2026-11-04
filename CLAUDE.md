@@ -339,9 +339,12 @@ follows from it (a weapon's item is always its index + 0x7F, `WEAPON_ITEM_ID` in
 declared one when the original did not follow the pattern.
 
 **Every overlay starts with its own id: a `u16` at offset 0, in a `u32` slot.**
-All 448 packages carry a distinct value there, and the families sit in
-contiguous blocks - weapons 8-39, options 40, aya 43-45, pe 48-62, actors
-81-278, mapui 280-284, rooms 285-452. The high half is always zero.
+Every package but `nmc_names`, whose word 0 is its first datum, carries a
+distinct value there, a running count by family: gameplay 4, title 5, weapons
+8-39, the other stage-0 packages 40-46 (options 40, game over 43, ending 45, and
+Aya's costumes 7, 41, 44 and 46 among them), pe 48-62, map pages 63-79, actors
+80-279, the stage overlays 280-284, rooms 285-452; 1-3, 6 and 47 are unused.
+The high half is always zero.
 
 Do not read it as text. pe's block is 48-62, which is `0x30`-`0x3E`, so splat
 renders those bytes as `.asciz "0"` … `";"` and the id looks like a character
@@ -359,8 +362,14 @@ the id cannot share the first code object. The linker script writes it:
 `tools/splat_ext/pkgid.py` turns the manifest's `packageId` entry - or a
 hand-written config's `pkgid` subsegment - into `LONG(<id>)` at offset 0. Do not
 fold it into the next file's data, and do not give it any data or code of its
-own. Nothing in any package reads or names the id; writing it at link time
-follows the working guess that the packaging tool added it after the build.
+own. No code reads it - the loader inflates a chunk to its header's address and
+checks nothing, and no code or data forms the address of any slot's word 0 -
+and none indexes by it: where a family's ids follow how its packages are
+chosen (a weapon's is its `WEAPON_INDEX` + 7, a stage overlay's its stage +
+279, a room's 285 and its place in stage and folder order), that is only the
+order they were counted in, which breaks elsewhere (actors within a load
+bucket, the map pages, stage 0). So it is the packaging tool's, and a
+package's link script writes it for the one target that has one.
 
 **A room's index is its folder's disc id divided by 100.** Room folders have
 ids `index * 100 + 1` (`asset_data.TREE`), and the game's per-stage tables -

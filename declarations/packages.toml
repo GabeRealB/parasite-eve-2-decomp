@@ -12,6 +12,7 @@ dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node"
 bind.chrome = { uid = "uid://ise7wq932mjc", path = "res://title/chrome.node" }
 bind.demos = { uid = "uid://6p4qnxbnkvf7", path = "res://attract_demos/demos.node" }
 bind.screen = { uid = "uid://1ri4tekdefv04", path = "res://stage0/system.node", output = "files/title_screen" }
+bind.menu = { uid = "uid://1cjow36nol6rd", path = "res://stage0/items.node", output = "files/options" }
 bind.file = { uid = "uid://swvvgzpql4fk", path = "res://stage0/system/title.node" }
 
 [title.target.psx]
