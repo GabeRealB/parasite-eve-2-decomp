@@ -63,3 +63,6 @@ configs/USA/generated/
 /packages/gameplay/
 /packages/main/
 /packages/psyq/
+
+# Assembled from lib/libsn/snmain.s by the build.
+/lib/libsn/snmain.o

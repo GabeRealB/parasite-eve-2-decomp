@@ -79,10 +79,10 @@ segments:
       # Mix of real .rodata and executable hasm ordered as .rodata
       # (linker_section_order: .rodata). See src/main/hasm/README.md.
       # After Ops hasm: boot.c .rodata (build stamp + jtbl), then PsyQ .rdata.
-      - [0x800, rodata, psyq/libsn/snmain] # Seems to only be referenced by snmain.
-      # fsDecompressStream unit: resume jtbl (.rodata) + code (hasm) share one
-      # source file src/main/hasm/fsDecompressStream.s (sibling out_path).
-      - [0x808, .rodata, hasm/fsDecompressStream]
+      # fsDecompressStream unit: two words, the resume jtbl (.rodata) and code (hasm) share
+      # one source file src/main/hasm/fsDecompressStream.s (sibling out_path). The image opens
+      # with it: libsn/snmain's .rdata, .ctors and .dtors are empty.
+      - [0x800, .rodata, hasm/fsDecompressStream]
       - { start: 0x824, type: hasm, name: hasm/fsDecompressStream, linker_section_order: .rodata }
       - { start: 0xB98, type: hasm, name: hasm/fsDecompressImagePayload, linker_section_order: .rodata }
       # TMD stream handlers (function pointers from _tmdResolveSourceDrawHandlers), not rodata.
@@ -154,7 +154,7 @@ segments:
       - [0x4b00, c, main] # Main function.
       - [0x4b38, c, gpuext] # gpuExtIsDisplayEnabled
       - [0x4b54, pad] # libsn/snmain is aligned to an 8 byte boundary
-      - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
+      - [0x4b58, o, libsn/snmain] # entry point: reconstructed from SNMAIN.obj (lib/libsn/snmain.s)
       - [0x4cd8, o, libapi/c57] # InitHeap
       - [0x4ce8, o, libapi/a39] # SetSp
       - [0x4cf8, c, boot] # cold-boot / title path, bootColdStartTask
@@ -412,7 +412,7 @@ segments:
       - [0x4c9f0, o, libmath/mulsf3] # __mulsf3
 
       # .data section
-      - [0x4cb30, data, psyq/libsn/snmain]
+      - [0x4cb30, o, libsn/snmain, .data]
       - [0x4cb54, o, libsn/sndef, .data]
       - [0x4cb5c, .data, main] # _gBootStackAddress, gMemPrimaryHeapBase
       - [0x4cb64, .data, boot]
@@ -494,9 +494,8 @@ segments:
       - [0x59280, .data, cdaudio]
       - [0x59354, .data, cdstream]
 
-      # .sbss section (8 bytes at $gp). splat 0.50 leaves vram unset unless
-      # given explicitly, then skips writing the empty noload .s.
-      - { start: 0x59778, type: sbss, name: psyq/libsn/snmain, vram: 0x80068F78 }
+      # .sbss section (8 bytes at $gp)
+      - [0x59778, o, libsn/snmain, .sbss] # one word; the next is alignment before .bss
 
       # .bss section
       # splat 0.50 needs explicit vram + bss_size on noload splits (vram is

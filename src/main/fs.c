@@ -303,7 +303,7 @@ s8 gFsImageXPageOffset;
 
 s8 gFsImageHeaderYShiftRows;
 
-/// BSS storage of unproven role, retained by an unused startup-table entry.
+/// BSS storage of unproven role, named only by the unread table at the image's start (`D_80010000`, fsDecompressStream.s).
 u8 D_8006C238[0x100];
 
 FsResourceSlot gFsResourceSlots[50];
@@ -330,7 +330,7 @@ StreamSlot gStreamSlots[15];
 
 u16 gFsLzssDecodeStatus;
 
-/// BSS storage of unproven role, retained by an unused startup-table entry.
+/// BSS storage of unproven role, named only by the unread table at the image's start (`D_80010000`, fsDecompressStream.s).
 u8 D_8006D750[0x100];
 
 void* gFsLzssResumeAddress;

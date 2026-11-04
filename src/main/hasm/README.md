@@ -11,7 +11,7 @@ That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 
 | File | Symbol(s) | VRAM | Role |
 |------|-----------|------|------|
-| `fsDecompressStream.s` | `jtbl_Fs_DecompressChunk` + `fsDecompressStream` | `0x80010008` / `0x80010024` | Resume jump table + resumable LZSS into RAM for package payloads and image strips |
+| `fsDecompressStream.s` | `D_80010000`, `jtbl_Fs_DecompressChunk` + `fsDecompressStream` | `0x80010000` / `0x80010008` / `0x80010024` | Two unread buffer addresses, the resume jump table + resumable LZSS into RAM for package payloads and image strips; the image opens with it |
 | `fsDecompressImagePayload.s` | `fsDecompressImagePayload` | `0x80010398` | Non-resumable LZSS for a complete image/CLUT payload into RAM |
 | `tmdSkipStreamRecord.s` | `tmdSkipStreamRecord` | `0x800105AC` | Fallback record handler: steps over elements the current pass does not consume |
 | `Tmd_StreamHandler_Prim32.s` | `Prim32` + alabel `tmdDrawStreamPrimG3PreXform` | `0x800105CC` / `0x800105F4` | Pre-transformed untextured gouraud triangles, one entry per prim code (0x32 blended / 0x30 opaque) |
@@ -23,7 +23,7 @@ That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 ## `fsDecompressStream` (jtbl + code in one file)
 
 ```yaml
-- [0x808, .rodata, hasm/fsDecompressStream]   # sibling → same .s
+- [0x800, .rodata, hasm/fsDecompressStream]   # sibling → same .s
 - { start: 0x824, type: hasm, name: hasm/fsDecompressStream,
     linker_section_order: .rodata }
 ```

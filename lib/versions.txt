@@ -22,3 +22,11 @@ by its symbol-table hash instead, (length + sum of the name's bytes) mod 512,
 ascending, a later-seen name first on a tie: linking the original CDROM.obj,
 WAITRC2.obj and FREE3.obj with PSYLINK 4.4, 4.5 and 4.6 gives exactly the
 edited order. tools/patches/README.md has the details.
+
+One object is not a conversion:
+- libsn/snmain.o is assembled by the build from libsn/snmain.s, a reconstruction of
+  libsn's SNMAIN.obj. The original holds psylink expressions - a section's start, end,
+  size, a count - that ELF relocations cannot, so the converter cannot make it. Its
+  instructions, data and symbols are the original's, its text and data byte for byte
+  and every relocation where the original has a patch; each expression is a symbol the
+  image's link script defines (__SN_*, listed in the source).

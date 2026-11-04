@@ -51,6 +51,16 @@
 
 .section .rodata, "a"
 
+/*
+ * Two words of unproven role before the resume table (ROM 0x800 / VRAM 0x80010000): the
+ * addresses of two 256-byte buffers in fs's BSS - an LZSS window's size - which nothing
+ * reads; the decoders keep their window in the scratchpad.
+ */
+dlabel D_80010000
+    /* 800 80010000 */ .word D_8006C238
+    /* 804 80010004 */ .word D_8006D750
+enddlabel D_80010000
+
 /* Resume jump table (ROM 0x808 / VRAM 0x80010008) */
 
 dlabel jtbl_Fs_DecompressChunk

@@ -996,6 +996,36 @@ def align_main_bss() -> None:
         dest.write_text(text.replace(wrong, ".main_bss (NOLOAD) : SUBALIGN(8)", 1), encoding="utf-8")
 
 
+# What psylink computes for libsn's start-up (lib/libsn/snmain.s) and an ELF relocation cannot hold, from what
+# splat's script for main defines: each a section's start, end, size or count, as SNMAIN.obj's expressions have it.
+# Its .ctors and .dtors are empty, at the image's start.
+MAIN_START_SYMBOLS = """
+__SN_SBSS_START = main_SBSS_START;
+__SN_BSS_END = main_BSS_END;
+__SN_SDATA_START = _gp;
+__SN_CTORS_START = main_RODATA_START;
+__SN_CTORS_COUNT = 0;
+__SN_DTORS_START = main_RODATA_START;
+__SN_DTORS_COUNT = 0;
+__SN_TEXT_START = main_TEXT_START;
+__SN_TEXT_SIZE = main_TEXT_END - main_TEXT_START;
+__SN_DATA_START = main_DATA_START;
+__SN_DATA_SIZE = main_DATA_END - main_DATA_START;
+__SN_BSS_START = main_BSS_START;
+__SN_BSS_SIZE = main_BSS_END - main_BSS_START;
+"""
+
+
+def define_main_start_symbols() -> None:
+    """Give libsn's start-up the section bounds psylink would have: appended to main's script once."""
+    dest = Path("linkers/USA/main.ld")
+    if not dest.is_file():
+        return
+    text = dest.read_text(encoding="utf-8")
+    if "__SN_SBSS_START" not in text:
+        dest.write_text(text + MAIN_START_SYMBOLS, encoding="utf-8")
+
+
 def append_main_overlay_imports() -> None:
     """Main TUs call overlay APIs; splat 0.50 omits some as undef funcs.
 
@@ -1727,6 +1757,15 @@ def ninja_build(
                                 inputs=source_path,
                                 variables={"DLFLAG": DL_OVL_FLAGS},
                             )
+                    case "o" if Path(target_path).with_suffix(".s").is_file():
+                        # An SDK object the converter cannot make, reconstructed as its source beside
+                        # where the converted ones sit (lib/libsn/snmain.s).
+                        ninja_file.build(
+                            outputs=target_path,
+                            rule="as",
+                            inputs=str(Path(target_path).with_suffix(".s")),
+                            variables={"DLFLAG": DL_EXE_FLAGS},
+                        )
                     case "c":
                         cc_entries.append(
                             compile_commands_entry(
@@ -2048,6 +2087,7 @@ def split_one(job: tuple) -> YamlInfo:
     })
     if yaml == "main.yaml":
         align_main_bss()
+        define_main_start_symbols()
     elif yaml == "gameplay.yaml":
         append_overlay_absolute_imports("gameplay")
         fix_overlay_include_asm_paths(own_c_sources)
