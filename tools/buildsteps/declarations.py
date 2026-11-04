@@ -119,6 +119,22 @@ class Package:
                 kept |= set(folder.glob(pattern))
         return sorted(kept)
 
+    def include_path(self, declarations: Declarations) -> list[Path]:
+        """Where a unit's plain includes are found: its own public folders and `src`, then the public folders of its
+        `dependencies` and of theirs, in that order. A slot (`PE2_INCLUDE`) is not found by it."""
+        folders = [Path(self.path) / folder for folder in self.declaration.table.get("public", [])]
+        folders.append(Path(self.path) / "src")
+        seen = {self.path}
+        pending = list(self.declaration.table.get("dependencies", []))
+        while pending:
+            dependency = declarations.named(pending.pop(0))
+            if dependency.path in seen:
+                continue
+            seen.add(dependency.path)
+            folders += [Path(dependency.path) / folder for folder in dependency.table.get("public", [])]
+            pending += dependency.table.get("dependencies", [])
+        return folders
+
     def read_by_preprocessor(self) -> list[Path]:
         """Every file of its own a unit can include, the units among them."""
         return sorted(path for path in Path(self.path).rglob("*") if path.suffix in (".c", ".h"))

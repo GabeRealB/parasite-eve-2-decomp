@@ -8,19 +8,88 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 
 ## Project Structure
 
-- `src/<overlay>` decompiled C (`src/main`, `src/gameplay`, `src/title`) and
+- `src/<overlay>` decompiled C (`src/main`, `src/gameplay`) and
   `src/<family>/<overlay>` for the generated overlay families (`src/weapons/m93r`, …)
+- `packages/` overlays migrated out of splat: `packages/title` and the four
+  `packages/aya/aya_*` are source, written by hand (see "Packages" below)
 - `include/<overlay>` headers for that unit (`include/main`, `include/gameplay`, …)
 - `asm/<ver>/<overlay>/nonmatchings` unmatched functions (one `.s` per function). Overlays may be nested (e.g. `asm/USA/stage1/101/nonmatchings`).
 - `asm/<ver>/<overlay>/matchings` already-matched functions
 - `lib` library code such as Psy-Q objects we link against
 - `assets` binary asset blobs extracted from the rom
 
+### Packages
+
+A fully decompiled overlay leaves splat and becomes a package: `packages/title`
+and `packages/aya/aya_{mist,dryfield,akropolis,range}` so far. Its folder is its
+source - `src/`, public `include/`, `psx/link.ld` - and its declaration
+(`declarations/packages/`, the path being the folder) says what fills its slots.
+The same files are compiled by two builds that know nothing of each other: this
+repository's ninja build, which needs no Rust, and the editor's.
+
+| File | Role |
+|---|---|
+| `packages/<...>/src`, `include`, `psx/link.ld` | source, written by hand |
+| `packages/core/include/pe2.h` | core's one public file: the macros a source declares slots with, and through its private `src/` the types and helpers every package uses; written by hand |
+| `packages/{main,gameplay,psyq}` | made from `include/` at every `ninja_config.py` run (`gen_package_library.py`), gitignored |
+| `packages/{main,gameplay}/psx/symbols.ld` | made from their ELFs by ninja, gitignored |
+| `configs/USA/package_slots.toml` | where each `slot` loads |
+| `configs/USA/resident.toml` | the models a package carries, which `dump_asset_db.py` catalogs |
+
+**A package reaches another two ways.** A slot, `PE2_BIND(main, package)` with
+`#include PE2_INCLUDE(main, fs.h)`, is a dependency the build may fill with
+another package. Its declaration's `dependencies` are fixed: each one's public
+folders go on its include path, after its own `include/` and `src/`, and theirs
+after them, so those headers are included by their plain names, as Unreal's
+modules are (`#include "pe2.h"`, `#include "title.h"`). Every package that
+compiles lists `core`. Both builds read the same list: `include_path` in
+`tools/buildsteps/declarations.py` and in the editor's `gather.rs`.
+
+**What a designer tunes is an option.** A package's tuning constants - timings,
+counts, screen positions - are `PE2_OPTION_DEF`s, read with `PE2_OPTION`, each
+with the original value as its default (`PE2_OPTION_DEF(IDLE_TIMEOUT_TICKS, int,
+900)`); its declaration's `option` table holds only what a project changes. A
+parameter with no meaningful default, such as a variant's index, has none, and
+has to be set. Constants coupled to each other become one option the others
+follow from (`title`'s black fade: its length and brightness step both come from
+`BLACK_FADE_STEP_SHIFT`). What stays in C is hardware and asset facts and wiring
+such as task slots. A limit an option's uses put on it is a `STATIC_ASSERT` beside
+them (`title`'s fade step divides full brightness), so a bad value fails by name.
+
+`ninja_packages` in `ninja_config.py` finds what to build in the declarations - a
+package is what names a `link_script` - through the rules everything else uses,
+and writes `build/USA/out/<name>`, held to `checksum.sha` like any image. A
+package needs no splat config, no symbol map and no manifest entry, so `diff.py`
+and objdiff do not cover it: a break is a checksum failure on that package.
+
+What a package compiles from is made in the editor's steps around a first pass
+(`gen_package_values.py`): `options` scans text and writes `pe2_options.h`, `cpp`
+runs with `PE2_FIRST_PASS`, and `values` reads what that left and writes
+`pe2_values.h`. The tokenizers mirror the editor's (`package_tokenizers.py`) but
+never decode: a slot is the bytes the disc stores, found through the declarations
+(`declarations.py`, `stage0.py`), with no `asset_data.py`. So this build proves
+code and layout; that assets rebuild those bytes is the editor's to prove. Where
+both make a token it must be the same text.
+
+**A header a resident image needs stays in `include/` as well.** `main` and
+`gameplay` compile against `include/aya/aya.h` and `include/title/title.h`, and
+take the addresses from their imports files. Those are plain copies of the
+packages' public headers, so a rename there is a change in both.
+
+**Disc records stay.** `dump_asset_db.py` rebuilds `asset_data.py` from the disc,
+so a package keeps its record and its models in `resident.toml`, which is also
+what lets `pack.py` still rebuild the disc. Moving an overlay drops only its
+`required` and its embedded records' `include`, not its presence in the table.
+
+`clang-format` runs over the hand-written packages; `PE2_INCLUDE` is listed in
+`.clang-format` as whitespace-sensitive, as it would otherwise turn `sys/types.h`
+into `sys / types.h`.
+
 ### Generated overlay configs
 
-`main` / `gameplay` / `title` have hand-written splat configs; each has quirks a
+`main` / `gameplay` have hand-written splat configs; each has quirks a
 template cannot express. Every other overlay is a flat `.pe2pkg` with the same
-shape, and there are 446 of them, so their configs are **generated**:
+shape, and there are 442 of them, so their configs are **generated**:
 
 | File | Role |
 |---|---|
@@ -49,7 +118,7 @@ what makes it one thing here. The generator errors if two entries resolve to the
 same package.
 
 Packages the decomp builds are marked `"required": True` in `asset_data.py`, so
-`python3 ninja_config.py --iso_build` materialises exactly that set — 237 overlays —
+`python3 ninja_config.py --iso_build` materialises exactly that set — 443 overlays —
 with the rest of what the build reads (the stored chunks, the executables, the
 instances of the data compiled into overlays, the folders' streaming lists) into
 `assets/USA`: the CI/matching extract, and nothing a repack alone needs. The full

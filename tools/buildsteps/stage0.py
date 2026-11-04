@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "peassets"))
 from format import FILE_CHUNK_HEADER_SIZE, FileChunkEndFlag, SECTOR_SIZE, parse_file_chunk_header, unpack_chunk_payload  # noqa: E402
 from lzss import decode_lzss, trim_lzss  # noqa: E402
 
-from declarations import DECLARATIONS, Declarations  # noqa: E402
+from declarations import DECLARATIONS, Declarations, uid_of  # noqa: E402
 
 HED_STREAMS = 3 * 0x28
 HED_ENTRY = 8
@@ -27,6 +27,8 @@ class Stage0:
         layout = tomllib.loads((DECLARATIONS / "disc" / release / "stage0.toml").read_text(encoding="utf-8"))
         self.folder = rom / release / layout["at"][0]["disc"]
         self.files = [self.folder / name for name in layout["at"][0]["slots"]]
+        # Each file group's number, as many ten thousands of its files' ids, by the group's uid.
+        self.groups: dict[str, int] = {uid_of(group["asset"])[0]: group["id"] for group in layout.get("groups", [])}
         self.sectors: dict[int, int] = {}
         hed = self.files[0].read_bytes()
         for at in range(HED_STREAMS, len(hed), HED_ENTRY):

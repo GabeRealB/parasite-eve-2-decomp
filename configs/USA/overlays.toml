@@ -405,7 +405,7 @@ objects = [
 ]
 
 
-# ======== aya (6 entries) ========
+# ======== aya (2 entries) ========
 
 [aya]
 description = "The player's character slot: Aya's costume models, and the game-over and ending screens that load into it when she is not loaded"
@@ -413,76 +413,6 @@ imports = "configs/USA/sym/aya.imports.txt"
 load_addr = 0x80115770
 global_vram_start = 0x80010000
 global_vram_end = 0x80115770
-
-[aya.overlays.aya_mist]
-label = "46 bones"
-id = 46
-objects = [
-  { kind = "packageId" },
-  { kind = "model", at = "0x4", in_c = true },
-  { kind = "modelSource", at = "0x420", in_c = true },
-  { kind = "model", at = "0x444", in_c = true },
-  { kind = "modelSource", at = "0x860", in_c = true },
-  { kind = "model", at = "0x884", in_c = true },
-  { kind = "modelSource", at = "0xD50", in_c = true },
-  { kind = "model", at = "0xD74", in_c = true },
-  { kind = "modelSource", at = "0x1190", in_c = true },
-  { kind = "model", at = "0x11B4", in_c = true },
-  { kind = "modelSource", at = "0x6AA0", in_c = true },
-  { unit = "aya_mist/aya_mist", data = "0x4" },
-]
-
-[aya.overlays.aya_dryfield]
-label = "7 bones - too few for a full costume"
-id = 7
-objects = [
-  { kind = "packageId" },
-  { kind = "model", at = "0x4", in_c = true },
-  { kind = "modelSource", at = "0x5578", in_c = true },
-  { kind = "model", at = "0x559C", in_c = true },
-  { kind = "modelSource", at = "0x59B8", in_c = true },
-  { kind = "model", at = "0x59DC", in_c = true },
-  { kind = "modelSource", at = "0x5DF8", in_c = true },
-  { kind = "model", at = "0x5E1C", in_c = true },
-  { kind = "modelSource", at = "0x62E8", in_c = true },
-  { kind = "model", at = "0x630C", in_c = true },
-  { kind = "modelSource", at = "0x6728", in_c = true },
-  { unit = "aya_dryfield/aya_dryfield", data = "0x4" },
-]
-
-[aya.overlays.aya_akropolis]
-label = "44 bones"
-id = 44
-objects = [
-  { kind = "packageId" },
-  { kind = "model", at = "0x4", in_c = true },
-  { kind = "modelSource", at = "0x5908", in_c = true },
-  { kind = "model", at = "0x592C", in_c = true },
-  { kind = "modelSource", at = "0x5D5C", in_c = true },
-  { kind = "model", at = "0x5D80", in_c = true },
-  { kind = "modelSource", at = "0x624C", in_c = true },
-  { kind = "model", at = "0x6270", in_c = true },
-  { kind = "modelSource", at = "0x66A0", in_c = true },
-  { unit = "aya_akropolis/aya_akropolis", data = "0x4" },
-]
-
-[aya.overlays.aya_range]
-label = "41 bones"
-id = 41
-objects = [
-  { kind = "packageId" },
-  { kind = "model", at = "0x4", in_c = true },
-  { kind = "modelSource", at = "0x420", in_c = true },
-  { kind = "model", at = "0x444", in_c = true },
-  { kind = "modelSource", at = "0x860", in_c = true },
-  { kind = "model", at = "0x884", in_c = true },
-  { kind = "modelSource", at = "0xD50", in_c = true },
-  { kind = "model", at = "0xD74", in_c = true },
-  { kind = "modelSource", at = "0x1190", in_c = true },
-  { kind = "model", at = "0x11B4", in_c = true },
-  { kind = "modelSource", at = "0x6B74", in_c = true },
-  { unit = "aya_range/aya_range", data = "0x4" },
-]
 
 [aya.overlays.game_over]
 label = "1.6 KB, 3 functions; role unknown"

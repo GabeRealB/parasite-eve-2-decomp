@@ -16,7 +16,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | Frame tick | `src/main/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
 | Bank tables | `src/main/textdraw.c` (`gTaskDescBanks`); each referenced resident descriptor table defines its own extent |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`gEffectTaskDescriptors`, `gEffectBurstTaskDescriptors`) |
-| Title extras | `src/title/title.c`, `gTitleStartupTaskDescriptors` |
+| Title extras | `packages/title/src/title.c`, `gTitleStartupTaskDescriptors` |
 | Enemies | `src/gameplay/scene_runtime.c` (`_enemySpawn`, `enemySpawnFromTable`) |
 | UI stack descs | `src/main/ui.c` (`uiSpawnObject`) |
 
@@ -312,10 +312,10 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `00` | `C0` | `taskNoopCallback` | Inert handler; also suppresses updates and repeated teardown |
 | `01` | `C0` | `taskCountdownCallback` | Decrement signed `killCountdown`; at zero, release the body and mark for collection |
 | `02` | `C0` | `titleScreenTask` | Title phase machine. `_uiVibrationOptionsTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
-| `03` | `C0` | `gameFlowLaunchSessionTask` | Launch preparation: `spawnArg1` 0 resets new-save progress while keeping vibration, 2 restores an attract demo after its load, other values keep the live save. Resets session resources and queues slot 9. Also a `_gTitleMenuTaskSlots` entry |
-| `04` | `C0` | `gameFlowLoadDialogTask` | Memory-card load flow: reset, create/wait/close the dialog, then return to the title or start the loaded session. Also a `_gTitleMenuTaskSlots` entry |
-| `05` | `C0` | `_uiVibrationOptionsTask` | Opens the vibration-only options panel, waits for confirm/cancel and ten closing ticks, then spawns the title prompt with a twelve-callback delay. Also a `_gTitleMenuTaskSlots` entry |
-| `06` | `C0` | `titleExitTask` | Dispatches this task's installed exit handler (initially `taskKill`). Also a `_gTitleMenuTaskSlots` entry; requires the title overlay |
+| `03` | `C0` | `gameFlowLaunchSessionTask` | Launch preparation: `spawnArg1` 0 resets new-save progress while keeping vibration, 2 restores an attract demo after its load, other values keep the live save. Resets session resources and queues slot 9. Also a `_gMenuTaskSlots` entry |
+| `04` | `C0` | `gameFlowLoadDialogTask` | Memory-card load flow: reset, create/wait/close the dialog, then return to the title or start the loaded session. Also a `_gMenuTaskSlots` entry |
+| `05` | `C0` | `_uiVibrationOptionsTask` | Opens the vibration-only options panel, waits for confirm/cancel and ten closing ticks, then spawns the title prompt with a twelve-callback delay. Also a `_gMenuTaskSlots` entry |
+| `06` | `C0` | `titleExitTask` | Dispatches this task's installed exit handler (initially `taskKill`). Also a `_gMenuTaskSlots` entry; requires the title overlay |
 | `07` | `C0` | `taskKill` | Unused slot |
 | `08` | `00` | NULL | Unused |
 | `09` | `18` | `gameFlowStartSessionTask` | Session startup: restore the live-save location, wait for the required disc, queue the initial load, then hand off when the CD queue drains. |
@@ -349,8 +349,8 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `25` | `F8` | `viewCommitIndexTask` | Commit the low-byte view index to session and live save; kill self |
 | `26` | `F8` | `loadingRestoreViewGraphicsTask` | Restore model/sprite packets, kill self and resume game-loop presentation |
 
-`_gTitleMenuTaskSlots` (6 words) is `{6, 6, 3, 4, 5, 6}` — bank 0 types spawned
-from `_titleUpdateScreenTask` on confirm.
+`_gMenuTaskSlots` (6 words) is `{6, 6, 3, 4, 5, 6}` — bank 0 types spawned
+from `_updateScreenTask` on confirm.
 
 Several `func_*` rows are already matched C and only lack a role name.
 
@@ -445,8 +445,8 @@ These are real actors too; they just skip `gTaskDescBanks`.
 
 | Table | Callback / role |
 |-------|-----------------|
-| `gTitleStartupTaskDescriptors[0]` | `_titleStartupTask` |
-| `gTitleStartupTaskDescriptors[1]` | `_titleIntroMovieTask` (`displaySpawnTaskFromTable`) |
+| `gTitleStartupTaskDescriptors[0]` | `_startupTask` |
+| `gTitleStartupTaskDescriptors[1]` | `_introMovieTask` (`displaySpawnTaskFromTable`) |
 | `_gStageModeControllerTaskDesc` | `_stageModeControllerTask` — 6-phase queued mode entry, transition requests, resource reload and movie resumption; grey fade follows every dispatch |
 | `gStageMusicTaskDesc` | `_stageMusicTask` — resident four-state music loader, with ordinary/area-entry/countdown/load-only request modes |
 | `_gDisplayMenuTaskDesc` | `menuRootTask` — gameplay menu root queued by resident display-mode requests |

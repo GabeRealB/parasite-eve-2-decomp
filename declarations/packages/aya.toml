@@ -15,6 +15,8 @@ bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/
 bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/mist/eyes_closed.node" }
 bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist/mouth_rest.node" }
 
+dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+
 [aya_mist.target.psx]
 link_script = "psx/link.ld"
 
@@ -34,6 +36,8 @@ bind.eyes_closed = { uid = "uid://klal2y9l8ael", path = "res://characters/aya/dr
 bind.mouth_rest = { uid = "uid://q0c347avmygk", path = "res://characters/aya/dryfield/mouth_rest.node" }
 bind.mouth_alternate = { uid = "uid://1pf66u5vaq3ux", path = "res://characters/aya/dryfield/mouth_alternate.node" }
 
+dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+
 [aya_dryfield.target.psx]
 link_script = "psx/link.ld"
 
@@ -52,6 +56,8 @@ bind.eyes_closed = { uid = "uid://rr9dfll5tpb9", path = "res://characters/aya/ak
 bind.mouth_rest = { uid = "uid://1kd4b3khkr641", path = "res://characters/aya/akropolis/mouth_rest.node" }
 bind.mouth_alternate = { uid = "uid://o7dfmsql58ar", path = "res://characters/aya/akropolis/mouth_alternate.node" }
 
+dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+
 [aya_akropolis.target.psx]
 link_script = "psx/link.ld"
 
@@ -69,6 +75,8 @@ bind.eyes_open = { uid = "uid://wdmdjpvyovur", path = "res://characters/aya/mist
 bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/aya/mist/eyes_half_closed.node" }
 bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/mist/eyes_closed.node" }
 bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist/mouth_rest.node" }
+
+dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
 
 [aya_range.target.psx]
 link_script = "psx/link.ld"

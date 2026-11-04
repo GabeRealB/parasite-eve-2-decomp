@@ -19706,7 +19706,7 @@ as volatile (including earlier ones like `field_14` / `field_4`) lets the
 scheduler place `lui` after the last store that still uses `$v0` for a
 constant, while the later zero/flag stores fill the gap before `lb`. Leaving
 any of those stores non-volatile lets it slip into a delay slot and reorders
-the rest. `_titleInitializeScreenTask` (title init) is the pure example.
+the rest. `_initializeScreenTask` (title init) is the pure example.
 
 ## RECT field store order changes LoadImage arg scheduling
 
@@ -23427,7 +23427,7 @@ Treat title as a normal global segment in `title.yaml` and keep main-exe
 imports `absolute:True` (plus `global_vram_*` ending at the load address
 `0x80093800`).
 
-The trailing `0xE122` bytes in `_gTitleAttractDemoRestoreFormat` must follow its
+The trailing `0xE122` bytes in `_gAttractDemoRestoreFormat` must follow its
 format-string NUL (retail is not zero-pad after the string NUL).
 
 ## Overlay rodata file splits from jumptable 8-align remainder
@@ -23467,7 +23467,7 @@ advance:
 L7: /* kill path; no advance */;
 ```
 
-`_titleIntroMovieTask` is the title-overlay example.
+`_introMovieTask` is the title-overlay example.
 
 ## Force arg regs with `asm("aN")` + empty asm so stores fill jal/branch delays
 
@@ -23483,7 +23483,7 @@ delay slots:
 register s32 mask asm("a0");
 mask = 0;
 asm("" : "+r"(mask));
-_gTitleScreenSkipFade = 0;       /* sh fills jal delay */
+_gScreenSkipFade = 0;       /* sh fills jal delay */
 SetDispMask(mask);    /* beqz delay already has move a0, zero */
 
 /* After streamFindMovieSlot: */
@@ -23499,7 +23499,7 @@ cdCmdEnqueue(cmd, zero, p);
 Keep the slot temp as `s16` (FindSlot's return type) so the barrier does not
 insert `sll`/`sra` sign-extend. Same pattern for case-4 `cdCmdEnqueue(0x21, …)`
 arg setup before `D_800691DE = 1` (absolute alias of `gCdCmdQueue.preserveDisplayAfterDecode`).
-`_titleIntroMovieTask` is the pure example.
+`_introMovieTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
 `slot = streamFindMovieSlot(&key, 0, 0); slotParam[0] = slot;
@@ -23566,7 +23566,7 @@ memcpy(mineShelterBankBytes + ((bankTimesEight - bank) * 8 + bank) * 4,
 Same size, same ops, but the address load is scheduled one insn into the
 multiply. `titleRestoreAttractDemoState` is the pure example.
 
-## Split `0xE1000000 | tpage` so mask loads before tpage OR (`_titleUpdateScreenTask`)
+## Split `0xE1000000 | tpage` so mask loads before tpage OR (`_updateScreenTask`)
 
 When a TILE+`DR_TPAGE` block needs target order:
 
@@ -23580,7 +23580,7 @@ that should hold the mask — or it hoists color math and breaks a later
 
 **Fix:** write the GPU command as two operands so CSE/const folding emits
 `lui 0xE100` + `ori tpage` *after* the mask materialization, matching
-`_titleDrawChromeRow`-style schedules:
+`_drawChromeRow`-style schedules:
 
 ```c
 setlen(dr, 1);
@@ -23624,7 +23624,7 @@ do {
     s1 += 0x10;
     s0 += 0xE;
     asm("" : "+r"(a0), "+r"(a1), "+r"(a2), "+r"(s0), "+r"(s1));
-    _titleDrawChromeRow(a0, a1, a2);
+    _drawChromeRow(a0, a1, a2);
     s2 += 1;
 } while (s2 < 3);
 ```
@@ -32705,7 +32705,7 @@ blendCommand->code[0] = 0xE1000000 | 0x240;
 addPrim(gGpuCurrentOt - 0x10, blendCommand);
 ```
 
-That is the same split as `_titleUpdateScreenTask`; here it is required even
+That is the same split as `_updateScreenTask`; here it is required even
 though the function is a leaf and both `addPrim`s already match.
 
 When the overlay is the first thing in the function and the only queue
@@ -41959,7 +41959,7 @@ A new name that is taken *while its old name is still live* aborts the pass.
 When no old name survives and every new one is present, the pass already ran
 and exits 0, which keeps re-running it harmless.
 
-Cross-overlay reuse is not a clash: `0x80093830` is `_gTitleAttractDemoRestoreFormat`
+Cross-overlay reuse is not a clash: `0x80093830` is `_gAttractDemoRestoreFormat`
 in `sym.title.txt` and `gPlayClockStates` in `sym.gameplay.txt`, because
 each overlay carries its own map.
 
@@ -142265,7 +142265,7 @@ element pointer directly. The counter swaps (`i` in `$s1` where the target has
 the loop's pointer there) were a loop in its own inline helper, whose counter
 is a separate, lower-priority pseudo.
 
-## A value in `$a1` before `printf` is not an argument unless the format string asks for one (_titleUpdateScreenTask)
+## A value in `$a1` before `printf` is not an argument unless the format string asks for one (_updateScreenTask)
 
 The target computed `demoScene % 3 + 1` into `$a1` and stored it in the delay
 slot of `jal printf`, so the seed passed it as printf's second argument - and
@@ -154019,3 +154019,14 @@ unclaimed `{ kind = "data" }` run that keeps each disc's bytes.
 
 The opposite reading needs the same check. The Gunblade's `s_unused_8012E24C`, eight bytes between `.data`
 variables, is zero on all three discs and referenced by none of their code, so it is a real but unused `static`.
+
+## A sized `extern` decides the length of a definition sized by its initializer (aya packages, 2026-11-04)
+
+GCC 2.8.1 takes a declaration's array size over the definition's initializer. With `extern int* gSeq[2];` in
+scope, `int* gSeq[] = { &a, &b, &c };` compiles with exit status 0 to a two-element array: the third element is
+dropped, and the only sign is `warning: excess elements in array initializer`, which this build's `-w` hides. An
+initializer shorter than the declared size is padded with zeros instead, which moves everything after it. So a
+size in a header is not documentation there: it overrides the source. Aya's face sequences are NULL-terminated
+and nothing measures them, so `aya.h` declares them unsized (`extern GpuImageUpload* gAyaMistEyesRestSequence[];`),
+and a sequence edited longer keeps its terminator. Where a header must state a size, write the definition with the
+same size rather than `[]`, so that the two are compared by eye at least; the compiler compares nothing.

@@ -4,7 +4,7 @@
     check_symbols.py [--root DIR] [--image NAME ...] [--verbose] [--strict]
                      [--assign-owners] [--renames FILE]
 
-Each config (`configs/USA/{main,gameplay,title}.yaml` and every generated
+Each config (`configs/USA/{main,gameplay}.yaml` and every generated
 overlay config) lists symbol files; together they declare names at addresses.
 An image's address range is read from its linked ELF, so the build must have
 run. A declaration belongs to the image whose range holds its address: the

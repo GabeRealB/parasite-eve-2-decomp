@@ -2,7 +2,7 @@
 #
 # Bootstrap a per-function matching scratch environment.
 # Overlay-agnostic: resolves the .s file from any asm/<ver>/<overlay>/... tree
-# (main, gameplay, title, and nested future overlays).
+# (main, gameplay, and nested future overlays).
 #
 # Usage:
 #   ./tools/match/claude [--bootstrap|--bootstrap-only] [--cli claude|grok] [--id ID] <function>

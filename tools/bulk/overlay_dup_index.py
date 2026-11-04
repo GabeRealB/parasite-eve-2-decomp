@@ -51,7 +51,7 @@ MANIFEST = Path("configs/USA/overlays.toml")
 # two separate functions - the segment links once, so neither can be served by
 # the other. Treating the whole family as one overlay is what keeps `solved`
 # and `siblings` from offering to share them.
-SINGLE_LINK = frozenset({"main", "gameplay", "title"})
+SINGLE_LINK = frozenset({"main", "gameplay"})
 WORD = re.compile(r"^\s*/\* [0-9A-F]+ ([0-9A-F]{8}) ([0-9A-F]{8}) \*/", re.M)
 REF = re.compile(r"%(?:hi|lo)\(([A-Za-z_]\w*)\)|\b(?:jal|j)\s+([A-Za-z_]\w*)")
 
@@ -496,7 +496,7 @@ def cmd_promote(data: dict, name: str, unit: str | None, run: bool = False) -> i
 
     Carriers come from every family the manifest generates, since one library
     object links into any of them; each is edited in its own family's entry and
-    symbol map, at its own load address. main, gameplay and title link once and
+    symbol map, at its own load address. main and gameplay link once and
     are never carriers. Code that is identical across families is not thereby
     the same routine, so a promotion that spans families says so and leaves the
     judgement to the caller.

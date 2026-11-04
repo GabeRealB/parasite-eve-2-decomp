@@ -47,6 +47,11 @@ typedef struct {
 } CdCmdFileKey;
 STATIC_ASSERT_SIZEOF(CdCmdFileKey, 4);
 
+/// A stage-zero file id's parts, as a key and its load args name them.
+#define FS_FILE_GROUP(id)    ((id) / 10000)
+#define FS_FILE_HUNDREDS(id) ((id) / 100 % 100)
+#define FS_FILE_INDEX(id)    ((id) % 100)
+
 /// File-ID suffix and image-load options copied with one CD file request.
 ///
 /// All four bytes are copied synchronously by enqueue and retained in

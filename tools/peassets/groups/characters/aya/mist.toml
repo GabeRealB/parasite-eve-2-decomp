@@ -63,5 +63,4 @@ embedded = [
     "aya_mist_image_07484",
 ]
 package_name = "aya_mist"
-required = true
 sha1 = "e2845b5951488ca2980ecdf0a778e00ac03c9121"

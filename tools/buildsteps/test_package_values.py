@@ -35,6 +35,9 @@ class Scanning(unittest.TestCase):
         found = uses("PE2_VALUE(\n  a,\n  b)\nPE2_VALUE(c)")
         self.assertEqual([(use.args, use.line) for use in found], [(("a", "b"), 1), (("c",), 4)])
 
+    def test_a_definition_is_no_use(self) -> None:
+        self.assertEqual(uses("#define PE2_OPTION(name) pe2_option_##name\n# define PE2_VALUE(a) b\nPE2_OPTION(x)"), [Use("PE2_OPTION", ("x",), 3)])
+
     def test_what_is_no_call_is_nothing(self) -> None:
         self.assertEqual(uses("PE2_VALUE PE2_UNKNOWN(a) XPE2_VALUE(b)"), [])
 
@@ -64,6 +67,16 @@ class Option(unittest.TestCase):
         for line in ("pe2_option_COUNT 31", "pe2_option_FLAG 1", 'pe2_option_NAME "a"', "pe2_option_FINISH 1",
                      "pe2_option_FINISH_is_matte 0", "pe2_option_FINISH_is_gloss 1"):
             self.assertIn(f"#define {line}\n", header)
+
+    def test_a_default_is_what_a_package_does_not_set(self) -> None:
+        text = 'PE2_OPTION_DEF(T, int, 900)\nPE2_OPTION_DEF(Y, int, 0x38)\nPE2_OPTION_DEF(N, int, -1)\nPE2_OPTION_DEF(B, bool, true)\nPE2_OPTION_DEF(S, string, "a")\n'
+        header = options_of(text).header({"option": {"T": 600}}, CONFIG)
+        for line in ("pe2_option_T 600", "pe2_option_Y 56", "pe2_option_N -1", "pe2_option_B 1", 'pe2_option_S "a"'):
+            self.assertIn(f"#define {line}\n", header)
+        self.assertNotIn("pe2_unset_", header)
+        self.assertEqual(self.wrong("PE2_OPTION_DEF(T, int, fast)"), "a.c:1: T is int, and its default is fast")
+        self.assertEqual(self.wrong("PE2_OPTION_DEF(T, int, 1, 2)"), "a.c:1: T: an option has one default")
+        self.assertEqual(self.wrong("PE2_OPTION_DEF(T, int, 1)\nPE2_OPTION_IS(T, 1)"), "a.c:2: T is int, and only an enum has members")
 
     def test_one_with_no_value_divides_by_zero_and_says_so_past_the_first_pass(self) -> None:
         header = options_of("PE2_OPTION_DEF(COUNT, int)\n").header({}, CONFIG)

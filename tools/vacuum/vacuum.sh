@@ -1315,11 +1315,10 @@ print(" ".join(d.get("claims") or []))' 2>/dev/null || true)
   git -C "$ROOT" worktree prune >/dev/null 2>&1 || true
 }
 
-# splat target binaries (configs/USA/{main,title,gameplay}.yaml). ninja_config.py
+# splat target binaries (configs/USA/{main,gameplay}.yaml). ninja_config.py
 # wipes asm/ and re-splits from these; a worktree without them cannot configure.
 SPLAT_ASSET_TARGETS=(
   assets/USA/main.exe
-  assets/USA/pe2pkg/title.pe2pkg
   assets/USA/pe2pkg/gameplay.pe2pkg
 )
 

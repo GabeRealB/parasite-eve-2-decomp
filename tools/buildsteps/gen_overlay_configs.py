@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Generate splat configs for the overlay families listed in overlays.toml.
 
-main / gameplay / title stay hand-written: each has quirks a template cannot
+main / gameplay stay hand-written: each has quirks a template cannot
 express. Every other overlay is a flat `.pe2pkg` with the same shape, and there
-are 446 of them, so they are generated instead - from one template plus a
+are 442 of them, so they are generated instead - from one template plus a
 manifest that holds only the decisions a person actually made (the overlay's
 name, and what it is).
 
@@ -63,7 +63,7 @@ def trailing_segment(name: str, data: bytes) -> list[str]:
     Package sizes are byte counts, not word counts, so a file can end part-way
     through a word. Without this the linker stops at the last whole word and the
     build comes out a couple of bytes short with every other byte identical -
-    which is what `title.yaml` spells out by hand for its own 0x14AA size.
+    which `title` needed for its own 0x14AA size.
 
     Which segment depends on what those bytes are. `pad` emits zeros, so it is
     only correct when the tail *is* zeros. A tail with content needs `databin`,

@@ -22,7 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from declarations import Declaration, Declarations, Package, uid_of  # noqa: E402
-from package_tokenizers import Args, Reader, tokens, type_of  # noqa: E402
+from package_tokenizers import Args, Reader, reached, tokens, type_of  # noqa: E402
 from stage0 import Stage0  # noqa: E402
 
 KNOWN = frozenset({
@@ -32,9 +32,11 @@ KNOWN = frozenset({
 CONFIG_KEYS = ("name", "release", "target")
 OPTION_TYPES = ("int", "bool", "string", "enum")
 UNSET = "pe2_unset_"
-# The most a line of a macro takes: `mcpp` stops near 65,000 bytes, so a long value is a chain of macros.
+# The most a line of a macro takes, as a preprocessor may limit one, so a long value is a chain of macros.
 LINE = 32_000
 
+# A known name right after `#define` is its definition, not a use of it.
+DEFINED = re.compile(r"#[ \t]*define[ \t]+$")
 SKIPPED = re.compile(r'"(?:\\.|[^"\\])*"' r"|'(?:\\.|[^'\\])*'" r"|//[^\n]*|/\*.*?\*/" r"|\bPE2_[A-Z_]+\b", re.S)
 BESIDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"', re.M)
 
@@ -78,7 +80,7 @@ def uses(text: str) -> list[Use]:
             return found
         at = match.end()
         word = match.group()
-        if word not in KNOWN:
+        if word not in KNOWN or DEFINED.search(text, text.rfind("\n", 0, match.start()) + 1, match.start()):
             continue
         opening = at + len(text[at:at + 64]) - len(text[at:at + 64].lstrip())
         if text[opening:opening + 1] != "(":
@@ -117,7 +119,7 @@ def defined(name: str, text: str) -> str:
 @dataclass
 class Option:
     type: str
-    members: tuple[str, ...]
+    members: tuple[str, ...]   # an enum's members; for the other types, the default written after the type, if any
     at: str
 
 
@@ -133,6 +135,8 @@ class Options:
         if name == "PE2_OPTION_DEF" and len(args) >= 2:
             if args[1] not in OPTION_TYPES:
                 self.wrong.append(f"{at}: {args[0]}: there is no option type {args[1]}")
+            if args[1] != "enum" and len(args) > 3:
+                self.wrong.append(f"{at}: {args[0]}: an option has one default")
             if args[0] in self.defined:
                 self.wrong.append(f"{at}: {args[0]} is defined already, at {self.defined[args[0]].at}")
             else:
@@ -144,10 +148,33 @@ class Options:
         elif name in ("PE2_CONFIG", "PE2_CONFIG_IS") and args:
             self.config.append((args[0], at))
 
-    def value_of(self, name: str, fields: dict) -> str | None:
-        """An option's value for a package, as C reads it; none where it has none."""
-        if name not in fields.get("option", {}):
+    def default_of(self, name: str) -> str | None:
+        """The default a source gives an option after its type, as C reads it."""
+        option = self.defined[name]
+        if option.type == "enum" or not option.members:
             return None
+        written = option.members[0]
+        wrong = SystemExit(f"{option.at}: {name} is {option.type}, and its default is {written}")
+        if option.type == "int":
+            negative, digits = (True, written[1:]) if written.startswith("-") else (False, written)
+            try:
+                number = int(digits, 16) if digits[:2].lower() == "0x" else int(digits, 10)
+            except ValueError:
+                raise wrong from None
+            return str(-number if negative else number)
+        if option.type == "bool":
+            if written not in ("true", "false", "1", "0"):
+                raise wrong
+            return "1" if written in ("true", "1") else "0"
+        if not (len(written) >= 2 and written[0] == written[-1] == '"'):
+            raise wrong
+        return written
+
+    def value_of(self, name: str, fields: dict) -> str | None:
+        """An option's value for a package, as C reads it: what its package sets, else the default its source gives; none
+        where it has neither."""
+        if name not in fields.get("option", {}):
+            return self.default_of(name)
         value, option = fields["option"][name], self.defined[name]
         wrong = SystemExit(f"{option.at}: {name} is {{}}, and this package gives it {value}")
         if option.type == "bool":
@@ -173,6 +200,8 @@ class Options:
         for name, member, at in self.read:
             if name not in self.defined:
                 raise SystemExit(f"{at}: {name} has no PE2_OPTION_DEF")
+            if member is not None and self.defined[name].type != "enum":
+                raise SystemExit(f"{at}: {name} is {self.defined[name].type}, and only an enum has members")
             if member is not None and member not in self.defined[name].members:
                 raise SystemExit(f"{at}: {name} has no member {member}; it has {', '.join(self.defined[name].members)}")
         for key, at in self.config:
@@ -205,7 +234,10 @@ class Options:
 def gathered(package: Package, declarations: Declarations) -> tuple[Options, list[Path]]:
     """What a package's units and what they include say of options, every file read once."""
     public = declarations.public()
+    own = package.include_path(declarations)
     options, seen = Options(), []
+    bound: set[str] = set()
+    asked: list[tuple[str, str]] = []
 
     def read(file: Path) -> None:
         if file in seen:
@@ -214,17 +246,27 @@ def gathered(package: Package, declarations: Declarations) -> tuple[Options, lis
         text = file.read_text(encoding="latin-1")
         for found in uses(text):
             options.take(found, f"{file.as_posix()}:{found.line}")
+            if found.name == "PE2_BIND" and found.args[1:] == ("package",):
+                bound.add(found.args[0])
+            elif found.name == "PE2_INCLUDE" and found.args:
+                asked.append((found.args[0], f"{file.as_posix()}:{found.line}"))
             if found.name == "PE2_INCLUDE" and len(found.args) == 2 and found.args[0] in public:
                 inside = public[found.args[0]] / found.args[1]
                 if inside.is_file():
                     read(inside)
         for name in BESIDE.findall(text):
-            beside = file.parent / name
-            if beside.is_file():
-                read(beside)
+            # Beside it, then on the include path, as cpp finds it.
+            for folder in (file.parent, *own):
+                if (folder / name).is_file():
+                    read(folder / name)
+                    break
 
     for unit in package.units():
         read(unit)
+    # As the editor's gather: what is included through a binding needs that binding declared somewhere it reads.
+    for binding, at in asked:
+        if binding not in bound:
+            raise SystemExit(f"{at}: {binding} has no PE2_BIND({binding}, package)")
     return options, seen
 
 
@@ -279,21 +321,6 @@ def slots_of(texts: list[str]) -> tuple[dict[str, Slot], set[Read_]]:
                 if at is not None:
                     slots.setdefault(name, Slot()).args[rest[:at], rest[at][1:]] = list(rest[at + 1:])
     return slots, reads
-
-
-def reached(declarations: Declarations, reference: str | dict, path: tuple[str, ...]) -> tuple[Declaration, str | None, Args]:
-    """Where a reference and a sub-path come to: a node, what it reads as here, and the args it is read by. The one output
-    leading on is a member of a prefab's group, a model read from the prefab."""
-    node = declarations.named(reference)
-    _, output = uid_of(reference)
-    if path:
-        raise ValueError(f"nothing goes on from {node.path}")
-    if output is None:
-        return node, None, {}
-    fill = node.table.get("groups") if type_of(node) == "prefab" else None
-    if fill is None:
-        raise ValueError(f"{node.path} has no output {output}")
-    return node, "model", {"member": [output]}
 
 
 def slot_problem(declarations: Declarations, bound: dict, name: str, kind: str | None) -> str | None:

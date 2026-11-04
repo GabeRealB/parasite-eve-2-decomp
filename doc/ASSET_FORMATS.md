@@ -475,7 +475,7 @@ the highest-scoring row recovers the real map.
 HED file order (`stages.json` TREE names): **gameplay** (file 0), **title**
 (file 1), **title_screen** (file 2, still + chrome), and **ui** (file 20162,
 the two UI textures alone). Boot brings in the title overlay from file 1;
-`_titleInitializeScreenTask` then queues the category-2 display resource 20100
+`_initializeScreenTask` then queues the category-2 display resource 20100
 with `cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU)` and
 calls `textUploadPalettes`.
 
@@ -500,7 +500,7 @@ with either. See §7.6.
 Chrome clut `(0, 255)` `h=6` sits on the last draw-band line and the 32-line
 CLUT gutter (`y=240…271`). Do not `isbg` a 256-high env at `y=240`.
 
-**Chrome is a sprite atlas**, not C-string labels. `_titleDrawChromeRow`:
+**Chrome is a sprite atlas**, not C-string labels. `_drawChromeRow`:
 
 | | |
 |---|---|

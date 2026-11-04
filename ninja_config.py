@@ -106,9 +106,9 @@ class YamlInfo:
 
 
 # Each entry is a splat config under configs/<version>/. main first; overlays after.
-# These three are hand-maintained: each has quirks (a PS-X EXE header, rodata
-# ordering fixes, hasm segments) that the overlay template cannot express.
-YAML_EXECUTABLE = ["main.yaml", "title.yaml", "gameplay.yaml"]
+# These are hand-maintained: each has quirks (a PS-X EXE header, rodata ordering
+# fixes, hasm segments) that the overlay template cannot express.
+YAML_EXECUTABLE = ["main.yaml", "gameplay.yaml"]
 
 # The rest of the overlays are flat .pe2pkg files with the same shape, so their
 # configs are generated from configs/<version>/overlays.toml rather than written
@@ -117,7 +117,7 @@ OVERLAY_MANIFEST = Path("configs/USA/overlays.toml")
 GENERATED_CONFIG_SUBDIR = "generated"
 
 
-# Family name for the three hand-written configs, so a scope selector can name
+# Family name for the hand-written configs, so a scope selector can name
 # them the same way it names a generated family.
 CORE_FAMILY = "core"
 
@@ -222,6 +222,7 @@ PERMUTER_DIR = Path("permuter")
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "buildsteps" / "gen_asset_inc.py"
 GEN_PACKAGE_VALUES = TOOLS_DIR / "buildsteps" / "gen_package_values.py"
+GEN_PACKAGE_LIBRARY = TOOLS_DIR / "buildsteps" / "gen_package_library.py"
 GEN_MODEL_INC = TOOLS_DIR / "buildsteps" / "gen_model_inc.py"
 GEN_MODEL_SOURCE = TOOLS_DIR / "buildsteps" / "gen_model_source.py"
 GEN_ANIMATION_SOURCE = TOOLS_DIR / "buildsteps" / "gen_animation_source.py"
@@ -721,7 +722,8 @@ match PLATFORM:
         AS = BINUTILS_DIR / f"{CROSS_TARGET}-as.exe"
         LD = BINUTILS_DIR / f"{CROSS_TARGET}-ld.exe"
         OBJCOPY = BINUTILS_DIR / f"{CROSS_TARGET}-objcopy.exe"
-        CPP = OS_DIR / "mcpp" / "mcpp.exe"
+        NM = BINUTILS_DIR / f"{CROSS_TARGET}-nm.exe"
+        CPP = OS_DIR / "cpp" / "libexec" / "gcc" / "host" / "14.2.0" / "cc1.exe"
         CC = OS_DIR / "gcc-psx" / "cc1psx.exe"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso.exe"
 
@@ -730,7 +732,8 @@ match PLATFORM:
         AS = f"{CROSS_TARGET}-as"
         LD = f"{CROSS_TARGET}-ld"
         OBJCOPY = f"{CROSS_TARGET}-objcopy"
-        CPP = f"{CROSS_TARGET}-cpp"
+        NM = f"{CROSS_TARGET}-nm"
+        CPP = OS_DIR / "cpp" / "libexec" / "gcc" / "host" / "14.2.0" / "cc1"
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
 
@@ -739,7 +742,8 @@ match PLATFORM:
         AS = f"{CROSS_TARGET}-as"
         LD = f"{CROSS_TARGET}-ld"
         OBJCOPY = f"{CROSS_TARGET}-objcopy"
-        CPP = "mcpp"
+        NM = f"{CROSS_TARGET}-nm"
+        CPP = OS_DIR / "cpp" / "libexec" / "gcc" / "host" / "14.2.0" / "cc1"
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
 
@@ -759,18 +763,19 @@ match PLATFORM:
         COMPILE_COMMANDS_FLAGS = (
             f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -Wall"
         )
-        CPP_OPTIONS = "-D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
         MASPSX_FLAGS = f"--gnu-as-path {AS} --run-assembler"
 
     case Platform.Linux:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
-        CPP_OPTIONS = "-D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
         MASPSX_FLAGS = "--run-assembler"
 
     case Platform.MacOS:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
-        CPP_OPTIONS = "-D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
         MASPSX_FLAGS = "--run-assembler"
+
+# The preprocessor is GCC 14.2.0's cc1, bundled for each platform (tools/<os>/cpp/README.md) and run without a driver:
+# the same tokens everywhere, whatever the host, as nothing is predefined (-undef) or searched (-nostdinc).
+CPP_OPTIONS = "-D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -nostdinc"
 
 CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff"
 AS_OPTIONS = f"{OPT_FLAGS} -march=r3000 -mtune=r3000 -no-pad-sections"
@@ -1170,45 +1175,73 @@ def write_scoped_checksum(version_dir: str, names: list[str], exe_name: str) -> 
     return str(dest)
 
 
+def declared_packages() -> list:
+    """The packages the declarations say a target links."""
+    sys.path.insert(0, str(TOOLS_DIR / "buildsteps"))
+    from declarations import Declarations
+
+    return Declarations().packages()
+
+
 def ninja_packages(
     ninja_file,
     game_version_idx: int,
-    skip_checksum: bool,
     scoped_names: list[str] | None,
-) -> None:
+) -> tuple[list[dict], list[str]]:
     """Every package the declarations say a target links, built by the rules everything is built by.
 
     A package needs no split: its sources, its slots and its link script are its own. What its slots hold is answered
     from the disc's bytes (gen_package_values.py), and the image is held to the same line of checksum.sha as the image
-    the split builds, until there is only one of them.
+    Returns what the compile database lists of them, and their images, which `checksum.sha` holds to the disc's.
     """
     version = GAME_VERSIONS[game_version_idx].version_name
     version_dir = GAME_VERSIONS[game_version_idx].metadata.version_dir
     sys.path.insert(0, str(TOOLS_DIR / "buildsteps"))
     from declarations import Declarations
+    from gen_package_library import GENERATED, make
 
     declarations = Declarations()
-    packages = [p for p in declarations.packages() if Path(p.path).is_dir() and (scoped_names is None or p.name in scoped_names)]
+    all_packages = declarations.packages()
+    packages = [p for p in all_packages if scoped_names is None or p.name in scoped_names]
+    missing = [p.path for p in packages if not Path(p.path).is_dir()]
+    if missing:
+        print(f"ERROR: declared and not there: {', '.join(missing)}")
+        sys.exit(1)
     if not packages:
-        return
+        return [], []
+    make([Path("packages", name) for name in sorted({Path(p.path).parts[1] for p in all_packages})])
     root = BUILD_DIR / version_dir / "packages"
+    images = BUILD_DIR / version_dir / "out"
     bindings = root / "bindings"
+    package_flags = COMPILE_COMMANDS_FLAGS.replace(INCLUDE_FLAGS, "").strip()
     for name, public in declarations.public().items():
         if public.is_dir():
             project_tool().link_directory(bindings / "pkg" / name, public)
 
     slots = tomllib.loads(Path(CONFIG_DIR, version_dir, "package_slots.toml").read_text(encoding="utf-8"))
     published = [path.as_posix() for path in declarations.published()]
-    core = Path("packages/core")
-    variables = {"VERSION": f"-DVER_{version}", "SKIPASMFLAG": "", "PACKAGE_DEFINES": ""}
+    for path in declarations.published():
+        library = path.parts[1]
+        # A scoped build has no edge for an image it left out: the last whole build's symbols stand.
+        if scoped_names is None or library in scoped_names:
+            elf = GAME_VERSIONS[game_version_idx].metadata.exe_disk1 if library == "main" else library
+            ninja_file.build(
+                outputs=path.as_posix(),
+                rule="package-symbols",
+                inputs=f"{BUILD_DIR.as_posix()}/{version_dir}/out/{elf}.elf",
+                implicit=[str(GEN_PACKAGE_LIBRARY)],
+            )
+    variables = {"VERSION": f"-DVER_{version}", "SKIPASMFLAG": "", "PACKAGE_DEFINES": "-Werror"}
     built = {}
+    entries = []
     for package in packages:
         out = root / package.name
         options, values = (out / "pe2_options.h").as_posix(), (out / "pe2_values.h").as_posix()
         steps = [str(GEN_PACKAGE_VALUES), *(str(TOOLS_DIR / "buildsteps" / name) for name in ("declarations.py", "package_tokenizers.py", "stage0.py"))]
         own = {"package": package.path, "release": version}
         ninja_file.build(outputs=options, rule="package-options", implicit=steps, variables={**own, "config": version_dir.lower()})
-        includes = f"-I{core.as_posix()} -I{bindings.as_posix()} -I{out.as_posix()}"
+        path = " ".join(f"-I{folder.as_posix()}" for folder in package.include_path(declarations))
+        includes = f"{path} -I{bindings.as_posix()} -I{out.as_posix()}"
         first = []
         for unit in package.units():
             first.append((out / "first" / f"{unit.stem}.i").as_posix())
@@ -1217,12 +1250,18 @@ def ninja_packages(
                 rule="cpp",
                 inputs=unit.as_posix(),
                 order_only=[options],
-                variables={**variables, "INCLUDES": includes, "PACKAGE_DEFINES": "-DPE2_FIRST_PASS"},
+                variables={**variables, "INCLUDES": includes, "PACKAGE_DEFINES": "-DPE2_FIRST_PASS -Werror"},
             )
         ninja_file.build(outputs=values, rule="package-values", inputs=first, implicit=[*steps, str(GEN_MODEL_SOURCE)], variables=own)
         objects = []
         for unit in package.units():
             stem = (out / unit.stem).as_posix()
+            entries.append({
+                "directory": os.getcwd(),
+                "command": f"clang {package_flags} -DVER_{version} {includes} -c {unit.as_posix()}",
+                "file": unit.as_posix(),
+                "output": f"{stem}.o",
+            })
             ninja_file.build(
                 outputs=f"{stem}.i",
                 rule="cpp",
@@ -1240,11 +1279,11 @@ def ninja_packages(
                     "EXPANDIVFLAG": "--expand-div",
                     "DLFLAG": DL_OVL_FLAGS,
                     "MASPSXVER": "2.77",
-                    "AS_INCLUDES": f"-I{(core / 'include').as_posix()}",
+                    "AS_INCLUDES": "",
                 },
             )
             objects.append(f"{stem}.o")
-        image = (out / package.name).as_posix()
+        image = (images / package.name).as_posix()
         ninja_file.build(
             outputs=f"{image}.elf",
             rule="package-elf",
@@ -1259,25 +1298,7 @@ def ninja_packages(
         ninja_file.build(outputs=image, rule="objcopy", inputs=f"{image}.elf", variables={"sections": "-j .image"})
         built[package.name] = image
 
-    if skip_checksum:
-        return
-    lines = []
-    for line in Path(CONFIG_DIR, version_dir, "checksum.sha").read_text(encoding="utf-8").splitlines():
-        parts = line.split()
-        if len(parts) == 2 and Path(parts[1]).name in built:
-            lines.append(f"{parts[0]}  {built[Path(parts[1]).name]}")
-    if len(lines) != len(built):
-        print(f"ERROR: {len(built)} packages built, {len(lines)} of them in checksum.sha")
-        sys.exit(1)
-    root.mkdir(parents=True, exist_ok=True)
-    listed = root / "checksum.sha"
-    listed.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    ninja_file.build(
-        outputs=(root / "checksum.ok").as_posix(),
-        rule="sha256sum",
-        inputs=(root if PLATFORM == Platform.Windows else listed).as_posix(),
-        implicit=list(built.values()),
-    )
+    return entries, list(built.values())
 
 
 def ninja_build(
@@ -1349,7 +1370,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "cpp",
         description="cpp $in",
-        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d $INCLUDES {CPP_OPTIONS} $VERSION $SKIPASMFLAG $PACKAGE_DEFINES -o $out $in",
+        command=f"{CPP} -E -quiet -P -MMD $out.d -MF $out.d -MP -MT $out $INCLUDES {CPP_OPTIONS} $VERSION $SKIPASMFLAG $PACKAGE_DEFINES -o $out $in",
         depfile="$out.d",
     )
     ninja_rules_file.rule(
@@ -1388,6 +1409,12 @@ def ninja_build(
         command=f"{PYTHON} {GEN_PACKAGE_VALUES} values $package $out $in --release $release --rom {ROM_DIR}",
         depfile="$out.d",
         deps="gcc",
+        restat=True,
+    )
+    ninja_rules_file.rule(
+        "package-symbols",
+        description="package-symbols $out",
+        command=f"{PYTHON} {GEN_PACKAGE_LIBRARY} symbols $in $out --nm {NM}",
         restat=True,
     )
     ninja_rules_file.rule(
@@ -1789,7 +1816,9 @@ def ninja_build(
         checksum_build_requirements.append(str(output))
 
     if not objdiff_mode:
-        ninja_packages(ninja_file, game_version_idx, skip_checksum, scoped_names)
+        package_entries, package_images = ninja_packages(ninja_file, game_version_idx, scoped_names)
+        cc_entries += package_entries
+        checksum_build_requirements += package_images
 
     if objdiff_mode:
         ninja_diff_file.build(
@@ -2019,8 +2048,6 @@ def split_one(job: tuple) -> YamlInfo:
     })
     if yaml == "main.yaml":
         align_main_bss()
-    elif yaml == "title.yaml":
-        append_overlay_absolute_imports("title")
     elif yaml == "gameplay.yaml":
         append_overlay_absolute_imports("gameplay")
         fix_overlay_include_asm_paths(own_c_sources)
@@ -2241,8 +2268,11 @@ def main():
     subprocess.check_call([PYTHON, str(TOOLS_DIR / "buildsteps" / "gen_overlay_configs.py")])
     family_imports = overlay_family_imports()
     ordered = all_overlays()
-    selected = resolve_scope(args.only or [], ordered)
+    packages = [(None, package.name, Path(package.path).parts[1]) for package in declared_packages()]
+    selected = resolve_scope(args.only or [], ordered + packages)
     scoped = bool(args.only)
+    scoped_packages = [name for yaml, name, _f in selected if yaml is None]
+    selected = [unit for unit in selected if unit[0] is not None]
     overlay_family = {yaml: family for yaml, _name, family in selected}
     # package -> the manifest entry covering it. Several packages share an entry
     # where a family loads one image into several slots, and they then write the
@@ -2255,7 +2285,7 @@ def main():
                 for slot in entry.get("slots") or [{"package": entry_name}]:
                     overlay_entry[str(slot["package"])] = entry_name
     overlay_basename = {yaml: name for yaml, name, _family in selected}
-    scoped_names = [name for _y, name, _f in selected] if scoped else None
+    scoped_names = [name for _y, name, _f in selected] + scoped_packages if scoped else None
 
     if scoped:
         print(

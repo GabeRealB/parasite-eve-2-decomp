@@ -120,8 +120,8 @@ asset = { uid = "uid://f1e963jhv4i4", path = "res://title/background.node" }
 name = "chrome_palette"
 type = "palette"
 palettes = [
-    { palette = { uid = "uid://ise7wq932mjc", path = "res://title/chrome_left.node", output = "palettes/default" } },
-    { palette = { uid = "uid://1mur93yy6mhb7", path = "res://title/chrome_right.node", output = "palettes/default" } },
+    { palette = { uid = "uid://ise7wq932mjc", path = "res://title/chrome.node", output = "palettes/default" } },
+    { palette = { uid = "uid://ise7wq932mjc", path = "res://title/chrome.node", output = "palettes/default_2" } },
 ]
 upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
 
@@ -129,8 +129,7 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 name = "chrome_image"
 type = "image"
 pages = [
-    { image = { uid = "uid://ise7wq932mjc", path = "res://title/chrome_left.node" } },
-    { image = { uid = "uid://1mur93yy6mhb7", path = "res://title/chrome_right.node" } },
+    { image = { uid = "uid://ise7wq932mjc", path = "res://title/chrome.node" } },
 ]
 
 [title_screen.from.USA]

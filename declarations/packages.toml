@@ -8,6 +8,9 @@ template = "package"
 slot = "resident"
 sources = ["src/*.c", "!src/*.inc.c"]
 public = ["include"]
+dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+bind.chrome = { uid = "uid://ise7wq932mjc", path = "res://title/chrome.node" }
+bind.demos = { uid = "uid://6p4qnxbnkvf7", path = "res://attract_demos/demos.node" }
 
 [title.target.psx]
 link_script = "psx/link.ld"

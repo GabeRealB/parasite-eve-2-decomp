@@ -92,9 +92,10 @@ if [[ -z "$CLANG_FORMAT" ]]; then
     exit 1
 fi
 
-# Format src/ plus every overlay include dir (main, gameplay, title, future
-# nested units). Skip include/psyq, include/decomp, and headers at include/.
-FORMAT_ROOTS=(src)
+# Format src/, the packages written by hand, and every overlay include dir (main,
+# gameplay, future nested units). Skip include/psyq, include/decomp, and headers
+# at include/. What the build makes under packages/ is ignored by git and left.
+FORMAT_ROOTS=(src packages/aya packages/title)
 while IFS= read -r dir; do
     FORMAT_ROOTS+=("$dir")
 done < <(

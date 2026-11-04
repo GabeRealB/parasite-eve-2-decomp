@@ -1,6 +1,6 @@
 // Overlay APIs referenced by the main executable (not in main.exe).
 // They lie outside main's segment, so splat names them only when absolute.
-// Keep in sync with configs/USA/sym.gameplay.txt / sym.title.txt.
+// Keep in sync with configs/USA/sym.gameplay.txt and packages/title.
 
 titleRestoreAttractDemoState = 0x8009407C; // type:func absolute:True owner=title
 titleEnqueueAttractDemoFile = 0x80094B90; // type:func absolute:True owner=title

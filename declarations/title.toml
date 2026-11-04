@@ -12,36 +12,28 @@ source = "native.bs"
 at = [{ stage = 0, file = 2, slot = "background" }]
 sha1 = "51e3bfec6e0392baacaf9e9e9d3cf8054db030db"
 
-[chrome_left]
+# The title screen's chrome: one texture page of the prompt, the copyright line, the cursor and the menu's labels, a
+# row each. The file stores it as two images and their two palettes, alike, both uploaded to one place.
+[chrome]
 uid = "uid://ise7wq932mjc"
 template = "texture"
 page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.node" }, at = [0, 0] }
 mode = "indexed_8bpp"
-size = [128, 128]
+size = [256, 128]
 palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.node" }, at = [0, 0] }
+palettes.default_2 = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.node" }, at = [0, 0] }
+cells.prompt = { rect = [0, 0, 256, 16], palette = "default" }
+cells.copyright = { rect = [0, 16, 256, 16], palette = "default" }
+cells.cursor = { rect = [0, 32, 256, 16], palette = "default" }
+cells.new_game = { rect = [0, 48, 256, 16], palette = "default" }
+cells.continue = { rect = [0, 64, 256, 16], palette = "default" }
+cells.option = { rect = [0, 80, 256, 16], palette = "default" }
 
-[chrome_left.import]
+[chrome.import]
 importer = "pe2.images@ora"
 source = "source.ora"
 
-[chrome_left.from.USA]
+[chrome.from.USA]
 at = [{ stage = 0, file = 2, slot = "chrome_image", page = 0 }]
-sha1 = "c91cbbc487568b40e970d287a15e45ef8af88226"
-palettes = { default = "79361b435bccf7417a11e350b7dffe72b048efb5" }
-
-[chrome_right]
-uid = "uid://1mur93yy6mhb7"
-template = "texture"
-page = { slot = { uid = "uid://1wuaueevtzyud", path = "res://engine/vram/title_chrome.node" }, at = [64, 0] }
-mode = "indexed_8bpp"
-size = [128, 128]
-palettes.default = { slot = { uid = "uid://155w90bcvxfkw", path = "res://engine/vram/screen_palettes.node" }, at = [0, 0] }
-
-[chrome_right.import]
-importer = "pe2.images@ora"
-source = "source.ora"
-
-[chrome_right.from.USA]
-at = [{ stage = 0, file = 2, slot = "chrome_image", page = 1 }]
-sha1 = "105fad7ddf4a9d75869371ee3ba4aa221d21a1e6"
-palettes = { default = "79361b435bccf7417a11e350b7dffe72b048efb5" }
+sha1 = "c95c089179987477311990993b6ddc3e121b2ffa"
+palettes = { default = "79361b435bccf7417a11e350b7dffe72b048efb5", default_2 = "79361b435bccf7417a11e350b7dffe72b048efb5" }

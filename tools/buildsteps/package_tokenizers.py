@@ -132,7 +132,7 @@ def image_words(reader: Reader, image: Declaration, _: Args) -> str:
     if len(stored) % 4:
         raise ValueError(f"{len(stored)} bytes are no words")
     words = struct.unpack(f"<{len(stored) // 4}I", stored)
-    return ", ".join(hexadecimal(word) if word > 0x7FFFFFFF else str(word) for word in words)
+    return "{ " + ", ".join(hexadecimal(word) if word > 0x7FFFFFFF else str(word) for word in words) + " }"
 
 
 def image_size(image: Declaration) -> list[int]:
@@ -147,6 +147,99 @@ def image_width_words(_: Reader, image: Declaration, __: Args) -> str:
 
 def image_height(_: Reader, image: Declaration, __: Args) -> str:
     return str(image_size(image)[1])
+
+
+def image_placed(reader: Reader, image: Declaration) -> tuple[int, int]:
+    """Where an image is in VRAM, in halfwords: its `page` placement."""
+    if "page" not in image.table:
+        raise ValueError("it is placed nowhere")
+    return reader.placed(image.table["page"])
+
+
+def image_page(reader: Reader, image: Declaration) -> tuple[int, int]:
+    """The texture page an image is in: its VRAM origin, in halfwords."""
+    x, y = image_placed(reader, image)
+    return x // 64 * 64, y // 256 * 256
+
+
+def image_page_x(reader: Reader, image: Declaration, _: Args) -> str:
+    return str(image_page(reader, image)[0])
+
+
+def image_page_y(reader: Reader, image: Declaration, _: Args) -> str:
+    return str(image_page(reader, image)[1])
+
+
+def image_depth(_: Reader, image: Declaration, __: Args) -> str:
+    """A texture page's depth as the GPU is told it: 0 for 4 bits, 1 for 8, 2 for 16."""
+    return {4: "0", 8: "1"}.get(BITS.get(image.table.get("mode"), 16), "2")
+
+
+def image_palette(reader: Reader, image: Declaration) -> tuple[int, int]:
+    """Where an image's `default` palette is in VRAM, else its first's."""
+    palettes = image.table.get("palettes", {})
+    if not palettes:
+        raise ValueError("it has no palettes")
+    return reader.placed(palettes.get("default", next(iter(palettes.values()))))
+
+
+def image_palette_x(reader: Reader, image: Declaration, _: Args) -> str:
+    return str(image_palette(reader, image)[0])
+
+
+def image_palette_y(reader: Reader, image: Declaration, _: Args) -> str:
+    return str(image_palette(reader, image)[1])
+
+
+def image_cell(reader: Reader, image: Declaration, args: Args) -> tuple[int, int, int, int]:
+    """A cell's rectangle in its page's texels: where the image sits in the page, and the cell in the image."""
+    name = one(args, "cell")
+    cell = image.table.get("cells", {}).get(name)
+    if cell is None:
+        raise ValueError(f"it has no cell {name}")
+    x, y, w, h = cell["rect"]
+    (placed_x, placed_y), (page_x, page_y) = image_placed(reader, image), image_page(reader, image)
+    return (placed_x - page_x) * (16 // BITS.get(image.table.get("mode"), 16)) + x, (placed_y - page_y) + y, w, h
+
+
+def of_cell(at: int) -> Callable[[Reader, Declaration, Args], str]:
+    return lambda reader, image, args: str(image_cell(reader, image, args)[at])
+
+
+def list_count(_: Reader, listed: Declaration, __: Args) -> str:
+    """A list's items."""
+    return str(len(listed.table.get("items", [])))
+
+
+def list_step(reader: Reader, listed: Declaration, _: Args) -> str:
+    """What each item's id is more than the one before it, the same for each: what code finding an item by its index
+    from the first's adds. A list of fewer than two has none, and is 0."""
+    ids = []
+    for at, reference in enumerate(listed.table.get("items", [])):
+        node, _, args = reached(reader.declarations, reference, ())
+        text = tokens(reader, node, "id", args)
+        if not text.strip().lstrip("-").isdigit():
+            raise ValueError(f"item {at}'s id is {text}, no number")
+        ids.append(int(text))
+    if len(ids) < 2:
+        return "0"
+    step = ids[1] - ids[0]
+    for before, after in zip(ids, ids[1:]):
+        if after - before != step:
+            raise ValueError(f"its items' ids are not evenly apart: {before} to {after} is not {step}")
+    return str(step)
+
+
+def group_file_id(reader: Reader, group: Declaration, args: Args) -> str:
+    """A file of a group's id: the group's number in its stage's layout, as many ten thousands, and the file's in the
+    group."""
+    name = one(args, "file")
+    file = next((file for file in group.table.get("files", []) if file.get("name") == name), None)
+    if file is None:
+        raise ValueError(f"it has no file {name}")
+    if group.uid not in reader.disc.groups:
+        raise ValueError(f"stage 0 of {reader.release} lists no {group.path}")
+    return str(reader.disc.groups[group.uid] * 10000 + file["id"])
 
 
 def of_member(make: Callable[[Reader, Declaration, Args], str]) -> Callable[[Reader, Declaration, Args], str]:
@@ -183,10 +276,21 @@ TOKENIZERS = {
         whole=Entry(of_member(model_definition), ("symbol", "member")),
         derived={"buffer": Entry(of_member(model_buffer), ("member",)), "seam": Entry(of_member(model_seam), ("member",))},
     ),
+    "list": Tokenizer(derived={"count": Entry(list_count), "step": Entry(list_step)}),
+    "file_group": Tokenizer(derived={"id": Entry(group_file_id, ("file",))}),
     "material": Tokenizer(derived={"tpage": Entry(material_tpage), "clut": Entry(material_clut)}),
     "image": Tokenizer(
         whole=Entry(image_words),
-        derived={"width_words": Entry(image_width_words), "height": Entry(image_height)},
+        derived={
+            "width_words": Entry(image_width_words),
+            "height": Entry(image_height),
+            "page_x": Entry(image_page_x),
+            "page_y": Entry(image_page_y),
+            "depth": Entry(image_depth),
+            "palette_x": Entry(image_palette_x),
+            "palette_y": Entry(image_palette_y),
+            **{name: Entry(of_cell(at), ("cell",)) for at, name in enumerate(("u", "v", "w", "h"))},
+        },
     ),
 }
 
@@ -210,3 +314,38 @@ def tokens(reader: Reader, node: Declaration, derived: str | None, args: Args) -
     if missing:
         raise ValueError(f"it needs {missing}")
     return entry.make(reader, node, args)
+
+
+def led_on(node: Declaration, output: str | None) -> tuple[Declaration, str | None, Args]:
+    """What an output of a node leads to: a member of a prefab's group is a model read from the prefab, a file of a
+    group (`files/<name>`) the group read as that file."""
+    if output is None:
+        return node, None, {}
+    if type_of(node) == "prefab" and node.table.get("groups") is not None:
+        return node, "model", {"member": [output]}
+    if type_of(node) == "file_group" and output.startswith("files/"):
+        name = output.removeprefix("files/")
+        if not any(file.get("name") == name for file in node.table.get("files", [])):
+            raise ValueError(f"{node.path} has no file {name}")
+        return node, "file", {"file": [name]}
+    raise ValueError(f"{node.path} has no output {output}")
+
+
+def reached(declarations: Declarations, reference: str | dict, path: tuple[str, ...]) -> tuple[Declaration, str | None, Args]:
+    """Where a reference and a sub-path come to: a node, what it reads as here, and the args it is read by. The
+    reference's output leads on (`led_on`); then a cell of an image is the image told which (`cell/<name>`), and an item
+    of a list (`items/<index>`) goes on from what the item names."""
+    node, reads_as, args = led_on(declarations.named(reference), uid_of(reference)[1])
+    if not path:
+        return node, reads_as, args
+    step, rest = path[:2], path[2:]
+    if reads_as is None and len(step) == 2 and type_of(node) == "image" and step[0] == "cell" and not rest:
+        if step[1] not in node.table.get("cells", {}):
+            raise ValueError(f"{node.path} has no cell {step[1]}")
+        return node, "image", {"cell": [step[1]]}
+    if reads_as is None and len(step) == 2 and type_of(node) == "list" and step[0] == "items":
+        items = node.table.get("items", [])
+        if not step[1].isdigit() or int(step[1]) >= len(items):
+            raise ValueError(f"{node.path} has {len(items)} items, and no item {step[1]}")
+        return reached(declarations, items[int(step[1])], rest)
+    raise ValueError(f"nothing goes on from {node.path}")

@@ -3,7 +3,7 @@
 
 Discovers every splat unit under ``asm/<version>/`` and ``configs/<version>/``,
 including nested overlays that do not exist yet (``asm/USA/stage1/101/...``).
-Nothing here hardcodes main / gameplay / title.
+Nothing here hardcodes main / gameplay.
 """
 
 from __future__ import annotations

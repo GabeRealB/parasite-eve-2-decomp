@@ -35,7 +35,7 @@ options:
 
   # Main-exe import VRAM (absolute:True). Must end at the overlay load
   # address so it does not overlap this file's VRAM (splat'd alone, no
-  # exclusive_ram_id — same as title.yaml).
+  # exclusive_ram_id).
   global_vram_start: 0x80010000
   global_vram_end: 0x80093800
 

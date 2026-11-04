@@ -1,5 +1,15 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
 
+# The attract demos, in the order the title plays them: each a file of saved state and the room's logo.
+[demos]
+uid = "uid://6p4qnxbnkvf7"
+template = "list"
+items = [
+    { uid = "uid://j9yxdst1ap8z", path = "res://stage0/companions.node", output = "files/akropolis_square" },
+    { uid = "uid://j9yxdst1ap8z", path = "res://stage0/companions.node", output = "files/dryfield_main_street" },
+    { uid = "uid://j9yxdst1ap8z", path = "res://stage0/companions.node", output = "files/dryfield_underpass" },
+]
+
 [logo]
 uid = "uid://tudppllo4muy"
 template = "texture"

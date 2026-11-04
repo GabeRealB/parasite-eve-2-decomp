@@ -59,7 +59,7 @@ families = ["options"]
 [gameplay]
 type = "memory_slot"
 at = 0x80093800
-configs = ["gameplay", "title"]
+configs = ["gameplay"]
 
 [image_workspace]
 type = "memory_slot"

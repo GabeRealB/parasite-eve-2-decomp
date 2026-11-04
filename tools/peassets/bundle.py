@@ -25,7 +25,7 @@ What a resource is, and the name it gets when it is first met (`resource_ext`,
 * an MDEC still picture (a BS v2 bitstream, `.bs`): `<bundle>_picture_<slot>`.
 * an attract demo (`.demo`, the one resource loaded to 0x80161E20 of the
   stage-zero files 801000, 801100, 801200): a serialized game state and the
-  recorded pad input (`titleRestoreAttractDemoState`, src/title/title.c).
+  recorded pad input (`titleRestoreAttractDemoState`, packages/title/src/title.c).
 
 A resource already in the asset table, as an on-disc chunk or in another
 bundle, keeps its name: resources are deduplicated by their bytes.

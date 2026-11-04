@@ -1,5 +1,6 @@
-# Assets embedded in the resident images (main, gameplay, title), whose splat configs are written by hand rather
-# than generated from overlays.toml. The objects use overlays.toml's form, offsets into the image:
+# Assets embedded in the images overlays.toml does not generate: the resident ones (main, gameplay), whose splat
+# configs are written by hand, and the packages built from `packages/`, whose models are here for the asset table
+# alone, as nothing of theirs is written to C. The objects use overlays.toml's form, offsets into the image:
 #
 #   { kind = "model", at = <first array>, in_c = true }, { kind = "modelSource", at = <its TmdSource record> }
 #
@@ -20,4 +21,62 @@ objects = [
   { kind = "modelSource", at = "0x7EB1C" },
   { kind = "model", at = "0x7EB40", in_c = true },          # gEffectThrownModel91
   { kind = "modelSource", at = "0x7ECB8" },
+]
+
+[aya_mist]
+load_addr = 0x80115770
+objects = [
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x420" },
+  { kind = "model", at = "0x444" },
+  { kind = "modelSource", at = "0x860" },
+  { kind = "model", at = "0x884" },
+  { kind = "modelSource", at = "0xD50" },
+  { kind = "model", at = "0xD74" },
+  { kind = "modelSource", at = "0x1190" },
+  { kind = "model", at = "0x11B4" },
+  { kind = "modelSource", at = "0x6AA0" },
+]
+
+[aya_dryfield]
+load_addr = 0x80115770
+objects = [
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x5578" },
+  { kind = "model", at = "0x559C" },
+  { kind = "modelSource", at = "0x59B8" },
+  { kind = "model", at = "0x59DC" },
+  { kind = "modelSource", at = "0x5DF8" },
+  { kind = "model", at = "0x5E1C" },
+  { kind = "modelSource", at = "0x62E8" },
+  { kind = "model", at = "0x630C" },
+  { kind = "modelSource", at = "0x6728" },
+]
+
+[aya_akropolis]
+load_addr = 0x80115770
+objects = [
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x5908" },
+  { kind = "model", at = "0x592C" },
+  { kind = "modelSource", at = "0x5D5C" },
+  { kind = "model", at = "0x5D80" },
+  { kind = "modelSource", at = "0x624C" },
+  { kind = "model", at = "0x6270" },
+  { kind = "modelSource", at = "0x66A0" },
+]
+
+[aya_range]
+load_addr = 0x80115770
+objects = [
+  { kind = "model", at = "0x4" },
+  { kind = "modelSource", at = "0x420" },
+  { kind = "model", at = "0x444" },
+  { kind = "modelSource", at = "0x860" },
+  { kind = "model", at = "0x884" },
+  { kind = "modelSource", at = "0xD50" },
+  { kind = "model", at = "0xD74" },
+  { kind = "modelSource", at = "0x1190" },
+  { kind = "model", at = "0x11B4" },
+  { kind = "modelSource", at = "0x6B74" },
 ]

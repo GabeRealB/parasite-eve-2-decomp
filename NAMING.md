@@ -26,6 +26,18 @@ Three markers carry the rest of the meaning:
 A private symbol is simply the name it would have if public with `_` prepended,
 so there is one rule rather than a special case per kind.
 
+**Inside a package, a private name leaves out the package.** A package under
+`packages/` is a module of its own, and what is private to one of its
+translation units is never named outside it, so it is named as though its
+package were the whole program: `_gEyesOpenPixels`, `_startupTask`,
+`_ScreenWork`, not `_gAyaMistEyesOpenPixels` or `_titleStartupTask`. That is
+also what lets one source serve several packages. Public names keep the prefix
+(`gAyaMistBodyModel`, `titleScreenTask`): they meet other images' names in the
+declarations, symbol maps and imports. Private constants and macros leave it
+out too (`MENU_NEW_GAME`, `SCREEN_SKIP_BLACK_FADE`), as an option's name does: a
+package is preprocessed with `-Werror`, so a macro defined twice stops it, as an
+enum constant clashing with any name it sees does.
+
 A leading underscore is reserved by the C standard — at file scope before a
 lowercase letter, and in every scope before an uppercase one, which is what a
 private type name uses. Nothing in this toolchain enforces either rule, and the
@@ -444,7 +456,7 @@ static function instances marked `_`. Coefficients are signed halfword scalar
 polynomial terms, and sampling uses a parameter with 16 fractional bits.
 
 Package-specific routines keep their manifest-derived prefixes. The title
-interface is `include/title/title.h`, implemented by `src/title/title.c`.
+interface is `include/title/title.h`, implemented by `packages/title/src/title.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
 whose entry points retain package identities.
 

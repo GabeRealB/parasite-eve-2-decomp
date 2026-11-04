@@ -15,7 +15,6 @@ contents = [
 [package]
 type = "pe2pkg"
 package_name = "title"
-required = true
 sha1 = "597783ea6686fa5308be5be17aebe58c311a0ee0"
 
 [background]
