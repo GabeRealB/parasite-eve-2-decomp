@@ -12,8 +12,7 @@ Implementation references:
 | Binary layout constants | `tools/peassets/format.py` |
 | Extract / pack | `tools/peassets/extract.py`, `pack.py` |
 | Shared inflate/decode | `tools/peassets/asset_decode.py` (extract + viewer) |
-| LZSS decode / format | `tools/peassets/lzss.py`, `src/main/hasm/fsDecompressStream.s` |
-| LZSS encode (policies, identity) | `doc/LZSS_ENCODER.md`, `lzss.py` / `lzss_clut.py` / `lzss_cascading.py` |
+| LZSS (decode and encode) | `editor/crates/formats/src/lzss.rs`, [`LZSS_ENCODER.md`](LZSS_ENCODER.md); runtime `src/main/hasm/fsDecompressStream.s` |
 | Images / CLUT | `tools/peassets/image_codec.py`, `src/main/fs.c` |
 | Asset database | `tools/peassets/asset_db.py`, `asset_data.py` |
 | Runtime FS loader | `src/main/fs.c`, `include/main/fs.h` |
@@ -236,7 +235,7 @@ After sector unpack, the clean bytes are:
 | CLUT | 16-byte image-chunk header + one LZSS colour stream |
 | Others | Opaque bytes (music, text, `.bs`, …) as stored |
 
-LZSS bitstream details: §4. Encode policies: [`LZSS_ENCODER.md`](LZSS_ENCODER.md).
+LZSS bitstream details: §4. The encoder: [`LZSS_ENCODER.md`](LZSS_ENCODER.md).
 
 ---
 
@@ -257,9 +256,11 @@ Algorithm family (same as `fsDecompressStream` / md_hyena-style):
 - The offline decoder starts its ring write cursor at 0 and decrements stored
   offsets by 1; the runtime starts at 1 and uses absolute ring indices.
 
-Implementation: `tools/peassets/lzss.py` (decode / trim / pack / production
-encode). Runtime: `fsDecompressStream.s` (resumable, package/image-strip payloads) and
-`fsDecompressImagePayload.s` (non-resumable, in-memory). Same bitstream for both.
+Implementation: `editor/crates/formats/src/lzss.rs` (`decode_stream`,
+`decode_streams`, and `encode`, the original encoder,
+[`LZSS_ENCODER.md`](LZSS_ENCODER.md)). Runtime: `fsDecompressStream.s`
+(resumable, package/image-strip payloads) and `fsDecompressImagePayload.s`
+(non-resumable, in-memory). Same bitstream for both.
 
 `fsDecompressImagePayload` decodes into RAM and leaves both global byte
 cursors unchanged. Its 256-byte scratchpad ring is not cleared, and its
@@ -267,8 +268,7 @@ eight-bit reads can fetch one byte beyond the end token. The caller must
 provide readable lookahead, valid history for any unwritten ring slots and
 enough output storage; the decoder checks scratch-stack clearance only.
 
-**Encode policies, identity scores, multi_max research, and tool map:** see
-[`LZSS_ENCODER.md`](LZSS_ENCODER.md).
+**The encoder that made these streams:** [`LZSS_ENCODER.md`](LZSS_ENCODER.md).
 
 ## 5. Room packages (`.pe2pkg`)
 
