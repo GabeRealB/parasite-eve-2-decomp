@@ -26,7 +26,21 @@ EXTERN = re.compile(r"^extern\s+[^;()]*?\b(\w+)\s*(?:\[[^\]]*\]\s*)*;", re.M)
 PROTOTYPE = re.compile(r"^(?!static\b|typedef\b|#)[A-Za-z_][\w \t\*]*?\b(\w+)\s*\([^;{}()]*\)\s*;", re.M)
 
 
+@lru_cache(maxsize=None)
+def _public() -> dict[str, Path]:
+    """The packages' public folders by name, which the build links into its include path (`engine/fs.h`); Sony's
+    are spelled from include/psyq, and core's types through types.h."""
+    import sys
+    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
+    from declarations import Declarations
+
+    return {name: path for name, path in Declarations().public().items() if name not in ("psyq", "core")}
+
+
 def _spelling(path: Path) -> str:
+    for name, folder in _public().items():
+        if path.is_relative_to(ROOT / folder):
+            return f"{name}/{path.relative_to(ROOT / folder).as_posix()}"
     rel = path.relative_to(INCLUDE).as_posix()
     return rel.removeprefix("decomp/")                      # include/decomp is on the search path itself
 
@@ -36,9 +50,11 @@ def _index() -> tuple[dict[str, str], dict[str, str]]:
     """(type -> header, symbol -> header): the first definition in a sorted walk, psyq's only for psyq's names."""
     types: dict[str, str] = {}
     symbols: dict[str, str] = {}
+    public = [h for folder in _public().values() for h in (ROOT / folder).rglob("*.h")]
     headers = sorted(INCLUDE.rglob("*.h"), key=lambda p: (p.parts[len(INCLUDE.parts)] == "psyq", p.as_posix()))
+    headers = sorted(public, key=lambda p: _spelling(p)) + headers
     for h in headers:
-        if h.parts[len(INCLUDE.parts)] == "psyq" and _spelling(h) not in PSYQ:
+        if h.is_relative_to(INCLUDE) and h.parts[len(INCLUDE.parts)] == "psyq" and _spelling(h) not in PSYQ:
             continue
         text = h.read_text(errors="replace")
         for m in list(TYPEDEF_CLOSE.finditer(text)) + list(TYPEDEF_SIMPLE.finditer(text)):

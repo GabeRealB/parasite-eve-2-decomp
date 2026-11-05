@@ -67,7 +67,7 @@ def _flags_key(root: str) -> str:
 
 
 def _tracked(rel: str) -> bool:
-    return rel.startswith(("src/", "include/")) and not rel.startswith("include/psyq/")
+    return rel.startswith(("src/", "include/", "packages/")) and not rel.startswith(("include/psyq/", "packages/psyq/"))
 
 
 def _sha(root: str, rel: str) -> str | None:
@@ -557,7 +557,7 @@ class Index:
                         continue
                     # Graph records keep the SDK's extern declarations, flagged
                     # out of scope later; only sites leave the Psy-Q headers out.
-                    if not loc or not loc.startswith(("src/", "include/")):
+                    if not loc or not _tracked(loc):
                         continue
                     fid = self.file_id(loc)
                     sid = self.sym_id(usr, spelling)

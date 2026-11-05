@@ -12,7 +12,7 @@ s32 gMistShootingGalleryUnscaledBp;
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "mist_shooting_gallery_private.h"
 

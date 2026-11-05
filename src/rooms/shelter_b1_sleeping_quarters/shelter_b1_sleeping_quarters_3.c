@@ -16,7 +16,7 @@
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
-#include "gte.h"
+#include "math/gte.h"
 
 #include "engine/coord.h"
 #include "engine/display.h"

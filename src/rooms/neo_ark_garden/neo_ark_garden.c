@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/rand.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "neo_ark_garden_private.h"

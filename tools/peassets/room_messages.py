@@ -14,7 +14,7 @@ a script command without reading the script row by row.
 
 Everything printed is read from the room's package, no C initialiser is parsed
 (the rule and the helpers are room_scene.py's). A script is an `EvsCommand`
-array (include/gameplay/evs.h): six words a command, the opcode first. C is
+array (packages/gameplay/include/evs.h): six words a command, the opcode first. C is
 read for two things only, both a declaration's type and name: which symbols are
 `EvsCommand` arrays, and what type a payload record has. Each symbol's address
 and extent come from the room's symbol map (its `size:`, else the next symbol),
@@ -37,13 +37,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import room_scene  # noqa: E402
 from room_scene import SVEC, arr, rec, sizeof  # noqa: E402
 
-# include/gameplay/evs.h, EvsCommand: the opcode and five operand words.
+# packages/gameplay/include/evs.h, EvsCommand: the opcode and five operand words.
 EVS_COMMAND = rec(("opcode", "s32"), ("operands", arr("s32", 5)))
 OPCODE_SEND_MESSAGE = 1             # EVENT_SCRIPT_OPCODE_SEND_MESSAGE: 0 task slot, 1 selector, 2 message id, 3/4 argument words
 OPCODE_TARGETS = (43, 44, 46)       # JUMP, CALL_SCRIPT, SET_SKIP_TARGET: operand 0 is a command in a script
-SLOT_SCENE = 4                      # GAME_TASK_SLOT_SCENE, include/engine/session.h
+SLOT_SCENE = 4                      # GAME_TASK_SLOT_SCENE, packages/engine/include/session.h
 
-# The payload records, as include/gameplay/message.h lays them out (each has a STATIC_ASSERT_SIZEOF there).
+# The payload records, as packages/gameplay/include/message.h lays them out (each has a STATIC_ASSERT_SIZEOF there).
 VECTOR = rec(("vx", "s32"), ("vy", "s32"), ("vz", "s32"), ("pad", "s32"))
 RECORDS = {
     "AnimationPlayRequest": rec(("source", "pint"), ("animationId", "s32"), ("blend", "s32"), ("blendFrames", "s32"), ("enableWorldCollision", "s32")),

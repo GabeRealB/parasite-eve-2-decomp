@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "common.h"
 
 #include "shelter_b3_garbage_incinerator_private.h"

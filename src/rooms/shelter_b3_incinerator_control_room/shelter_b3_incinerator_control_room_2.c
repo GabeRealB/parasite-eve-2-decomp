@@ -5,7 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "common.h"
 
 #include "shelter_b3_incinerator_control_room_private.h"

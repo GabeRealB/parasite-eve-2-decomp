@@ -5,7 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "dryfield_night_motel_room_5_private.h"

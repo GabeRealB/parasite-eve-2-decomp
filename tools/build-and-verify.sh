@@ -18,7 +18,8 @@
 #
 # Formats:
 #   - src/**/*.{c,h}
-#   - include/engine/**/*.{c,h}
+#   - packages/** but psyq's and core's (pe2.h's macros spell paths)
+#   - include/<overlay>/**/*.{c,h}
 # Skips:
 #   - include/psyq/**
 #   - headers/macros at include/ root (macro.inc, …)
@@ -92,10 +93,12 @@ if [[ -z "$CLANG_FORMAT" ]]; then
     exit 1
 fi
 
-# Format src/, the packages written by hand, and every overlay include dir (main,
-# gameplay, future nested units). Skip include/psyq, include/decomp, and headers
-# at include/. What the build makes under packages/ is ignored by git and left.
-FORMAT_ROOTS=(src packages/aya packages/title)
+# Format src/, the packages but Sony's SDK and core, and every overlay include dir. Skip
+# include/psyq, include/decomp, and headers at include/.
+FORMAT_ROOTS=(src)
+while IFS= read -r dir; do
+    FORMAT_ROOTS+=("$dir")
+done < <(find packages -mindepth 1 -maxdepth 1 -type d ! -name psyq ! -name core | sort)
 while IFS= read -r dir; do
     FORMAT_ROOTS+=("$dir")
 done < <(
@@ -111,7 +114,7 @@ mapfile -t FORMAT_FILES < <(
 )
 
 if [[ ${#FORMAT_FILES[@]} -eq 0 ]]; then
-    echo "BUILD HAS FAILED. No source files found to format under src/ or include/engine/."
+    echo "BUILD HAS FAILED. No source files found to format under src/ or packages/."
     exit 1
 fi
 

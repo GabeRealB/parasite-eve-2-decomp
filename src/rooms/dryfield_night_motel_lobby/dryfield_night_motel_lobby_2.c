@@ -27,7 +27,7 @@ u8 _gDryfieldNightMotelLobbyCashRegisterDigits[DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_R
 #include <psyq/inline_c.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "dryfield_night_motel_lobby_private.h"
 

@@ -6,7 +6,7 @@
 #include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "actors/actor_150400.h"

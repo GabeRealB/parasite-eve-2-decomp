@@ -10,7 +10,7 @@
 #include <psyq/memory.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "actors/actor.h"
 

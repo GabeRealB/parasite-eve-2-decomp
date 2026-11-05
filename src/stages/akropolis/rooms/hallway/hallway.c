@@ -10,7 +10,7 @@
 #include <psyq/abs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/captions.h"
 #include "gameplay/collision.h"

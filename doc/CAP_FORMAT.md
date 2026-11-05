@@ -6,7 +6,7 @@
 | Asset type | `cap`, `raw/cap/<room>_dialogue_<i>.cap`; decoded `cap/<name>.json` |
 | Container | data resource of a room bundle ([`BUNDLE_FORMAT.md`](BUNDLE_FORMAT.md)) |
 | Companion asset | its glyph atlas, `font_atlas` (§9) |
-| Code | `src/gameplay/cap_reloc.c`, `cap_commands.c`, `captions.c`; `include/gameplay/cap.h` |
+| Code | `src/gameplay/cap_reloc.c`, `cap_commands.c`, `captions.c`; `packages/gameplay/include/cap.h` |
 | Tools | `tools/peassets/cap_decode.py`, `cap_dialogue.py`, `cap_text.py`, `cap_font.py` |
 
 A room runs command *n* (`capRunCommand`); the command chooses a key, and the

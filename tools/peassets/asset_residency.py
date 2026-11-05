@@ -66,12 +66,12 @@ CREATE TABLE member (grp INTEGER, file TEXT, page INTEGER, row INTEGER, mode TEX
 CREATE INDEX grp_loader ON grp(loader); CREATE INDEX member_grp ON member(grp); CREATE INDEX footprint_file ON footprint(file);
 """
 
-# `AreaResource.fileGroupIndex` -> the base of the file's group (include/gameplay/area.h).
+# `AreaResource.fileGroupIndex` -> the base of the file's group (packages/gameplay/include/area.h).
 GROUP_BASE = (10, 20, 30, 40, 50, 60, 0, 1, 2)
 SHIFTED_ROWS = range(245, 256)       # header rows the loader's row offset moves
 RELOCATED_FROM = 256                 # images at or below this row move by whole pages
 
-AREA_PLACEMENT_END = 0xFF            # ends an AreaPlacement and an AreaResource table (include/gameplay/areaplace.h)
+AREA_PLACEMENT_END = 0xFF            # ends an AreaPlacement and an AreaResource table (packages/gameplay/include/areaplace.h)
 UNUSED_PLACEMENT_ENTRY = 0           # a placement the loader steps over (src/gameplay/area_cd.c)
 TEXTURES_ONLY_GROUP = 5              # `AREA_RESOURCE_FILE_GROUP_BASE_60`: loaded only for a placement of the base file
 
@@ -258,7 +258,7 @@ def view_maps(project=None, problems: list[str] | None = None) -> dict[str, list
     """room package -> for each of its room indices, the file index of each view (1-based views).
 
     Read from the packages along gameplay's route (room_scene.py): the stage's map overlay holds, per area, a
-    directory of byte maps, one per room index (`ViewIndexTable` in include/gameplay/view.h), and
+    directory of byte maps, one per room index (`ViewIndexTable` in packages/gameplay/include/view.h), and
     `map[view - 1]` is the index of the view's file in the room's folder. Most room indices borrow gameplay's
     identity map, whose 50 bytes are read like any other.
 

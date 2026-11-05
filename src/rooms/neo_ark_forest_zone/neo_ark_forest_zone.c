@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "neo_ark_forest_zone_private.h"

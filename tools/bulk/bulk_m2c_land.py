@@ -209,7 +209,7 @@ def find_stub(host: Path, func: str) -> Optional[str]:
 # A dirty seed is a proven match whose accesses m2c could not type, so it writes
 # M2C_FIELD(arg0, s32 *, 0x30) where the source said arg0->state. For most of
 # them the type is not undescribed at all -- it is `Task`, which
-# include/engine/task_types.h already defines with every hot offset named (0x1C work,
+# packages/engine/include/task_types.h already defines with every hot offset named (0x1C work,
 # 0x30 state, 0x2C extra). Those need no new type and no judgement: retype the
 # parameter and substitute the field, and let the build adjudicate exactly as it
 # does for a clean seed.
@@ -225,9 +225,17 @@ ANY_M2C_RE = re.compile(r"\bM2C_[A-Z]")
 TASK_SIZE = 0x48
 
 
+def header_file(spelled: str) -> Path:
+    """The header an include names, as the build finds it: a package's public header by its name (`engine/task.h`),
+    else from include/."""
+    name, _, rest = spelled.partition("/")
+    public = REPO_ROOT / "packages" / name / "include" / rest
+    return public if rest and public.is_file() else REPO_ROOT / "include" / spelled
+
+
 def task_fields() -> dict[int, tuple[str, str]]:
     """offset -> (field name, declared type), read from the Task definition."""
-    header = REPO_ROOT / "include" / "engine" / "task.h"
+    header = REPO_ROOT / "packages" / "engine" / "include" / "task.h"
     if not header.is_file():
         return {}
     text = header.read_text(errors="ignore")
@@ -316,7 +324,7 @@ def declares(header: str, symbol: str) -> bool:
     every header for almost every body. Stripping comments first is what makes
     the answer mean anything.
     """
-    path = REPO_ROOT / "include" / header
+    path = header_file(header)
     if not path.is_file():
         return False
     code = COMMENT_RE.sub(" ", path.read_text(errors="ignore"))
@@ -350,7 +358,7 @@ def defines(header: str, symbol: str) -> bool:
     the header that owns it -- main/task.h for Task, TaskDesc, taskKill and
     taskSpawnFromTable alike.
     """
-    path = REPO_ROOT / "include" / header
+    path = header_file(header)
     if not path.is_file():
         return False
     code = COMMENT_RE.sub(" ", path.read_text(errors="ignore"))

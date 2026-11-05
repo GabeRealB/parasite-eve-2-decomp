@@ -17,7 +17,7 @@ and animation sit together.
 |------|----------------|
 | Stream walk + opcode switches | `src/engine/tmd.c` (`_tmdResolveSourceDrawHandlers`, `tmdBuildBufferHalf`) |
 | Early-image handlers | `src/engine/hasm/Tmd_StreamHandlers_Ops.s` |
-| Container types | `include/engine/tmd_types.h` (`TmdSource`, `TmdObject`) |
+| Container types | `packages/engine/include/tmd_types.h` (`TmdSource`, `TmdObject`) |
 | Attach path | `src/gameplay/model_objects.c` (`modelObjectAttachTmd`), `src/engine/task.c` |
 | Locate / carve streams | `tools/peassets/model/tmd.py` |
 

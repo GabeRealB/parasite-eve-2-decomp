@@ -12,7 +12,7 @@
  * packet code byte they stamp. Prim32 stamps the blended form (0x32), the alabel
  * tmdDrawStreamPrimG3PreXform the opaque one (0x30).
  * _tmdResolveSourceDrawHandlers resolves an entry into a stream beside its opcode and
- * Tmd_DispatchStream jalr's it (documented in include/engine/tmd.h).
+ * Tmd_DispatchStream jalr's it (documented in packages/engine/include/tmd.h).
  * Early-image placement (linker_section_order: .rodata).
  */
 

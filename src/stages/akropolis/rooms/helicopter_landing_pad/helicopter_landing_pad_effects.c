@@ -10,7 +10,7 @@
 #include <psyq/abs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "helicopter_landing_pad_private.h"
 

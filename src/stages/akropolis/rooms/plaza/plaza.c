@@ -12,7 +12,7 @@
 #include <psyq/libcd.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "stages/akropolis/actors/police_officers.h"
 

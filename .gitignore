@@ -59,7 +59,6 @@ configs/USA/generated/
 # A project made from your discs (tools/pe2project.py create): your data, never committed
 /project/
 
-# What packages compile against that is still `include/` and the images: made by the build (gen_package_library.py).
-/packages/gameplay/
-/packages/engine/
+# What a library still split publishes, read from its ELF by the build (gen_package_library.py).
+/packages/*/psx/symbols.ld
 

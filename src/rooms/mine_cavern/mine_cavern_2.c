@@ -8,7 +8,7 @@
 #include <psyq/stdio.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "mine_cavern_private.h"
 

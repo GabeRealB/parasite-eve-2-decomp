@@ -8,7 +8,7 @@
 #include <psyq/memory.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "actors/actor_403600.h"
 #include "actors/actor_303600.h"

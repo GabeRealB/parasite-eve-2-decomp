@@ -12,7 +12,7 @@
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/actor_presentation.h"
 #include "gameplay/actor_render.h"

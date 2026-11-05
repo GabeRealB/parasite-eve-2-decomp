@@ -15,6 +15,8 @@ CPP_FLAGS = [
     "-Iinclude",
     "-Iinclude/decomp",
     "-Iinclude/psyq",
+    "-Ibuild/include",
+    "-Ipackages/core/include",
     "-Isrc",
     "-D_LANGUAGE_C",
     "-D_MIPS_SZLONG=32",

@@ -83,6 +83,8 @@ INCLUDE_FLAGS = [
     "-I", str(REPO_ROOT / "build"),
     "-I", str(REPO_ROOT / "include" / "psyq"),
     "-I", str(REPO_ROOT / "include" / "decomp"),
+    "-I", str(REPO_ROOT / "build" / "include"),
+    "-I", str(REPO_ROOT / "packages" / "core" / "include"),
 ]
 CPP_FLAGS = [
     *INCLUDE_FLAGS,
@@ -309,13 +311,13 @@ def candidate_headers(overlay: str) -> list[str]:
     interfaces may give different meanings to the same load address, so the
     context is per overlay. Shared gameplay objects instead use their canonical
     declarations: `gAttachmentState` is `AttachmentState` from
-    `include/gameplay/attachments.h`, including for actor consumers.
+    `packages/gameplay/include/attachments.h`, including for actor consumers.
 
     The overlay's own header precedes gameplay's so that, when the two disagree,
     the greedy filter drops gameplay and keeps the overlay's own view.
     """
     heads = list(PSYQ_HEADERS)
-    d = REPO_ROOT / "include" / "engine"
+    d = REPO_ROOT / "packages" / "engine" / "include"
     if d.is_dir():
         heads += sorted(f"engine/{p.name}" for p in d.glob("*.h"))
     for family in ("actors", "weapons", "rooms", "aya", "kyle", "pe"):
@@ -323,7 +325,7 @@ def candidate_headers(overlay: str) -> list[str]:
         if own.is_file():
             heads.append(f"{family}/{overlay}.h")
             break
-    d = REPO_ROOT / "include" / "gameplay"
+    d = REPO_ROOT / "packages" / "gameplay" / "include"
     if d.is_dir():
         heads += sorted(f"gameplay/{p.name}" for p in d.glob("*.h"))
     return heads
@@ -391,7 +393,7 @@ def _file_sig(path: str) -> str:
 def _header_fingerprint(headers: list[str], c_file: Optional[Path]) -> str:
     """mtime+size of every header a context is built from, so editing one
     invalidates the cached preprocessing rather than being silently ignored."""
-    parts = [_file_sig(str(REPO_ROOT / "include" / h)) for h in headers]
+    parts = [_file_sig(str(REPO_ROOT / "build" / "include" / h if (REPO_ROOT / "build" / "include" / h).exists() else REPO_ROOT / "include" / h)) for h in headers]
     parts.append(_file_sig(str(REPO_ROOT / "include" / "decomp" / "common.h")))
     if c_file is not None:
         parts.append(_file_sig(str(c_file)))

@@ -751,7 +751,7 @@ OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
 OBJDIFF_TARGET_ASM = OBJDIFF_DIR / "target_asm.py"
 
 # Compilation flags (General)
-INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -I {BUILD_DIR}/include -Iinclude/psyq -Iinclude/decomp"
+INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -I {BUILD_DIR}/include -Iinclude/psyq -Iinclude/decomp -Ipackages/core/include"
 OPT_FLAGS = "-O2"
 ENDIAN = "-EL"
 DL_EXE_FLAGS = "-G0"
@@ -1227,6 +1227,28 @@ def declared_packages() -> list:
     return Declarations().packages()
 
 
+def link_public_headers() -> None:
+    """What a split unit reaches of the packages: each one's public folder by its name (`engine/fs.h`) in build/include,
+    and the same folders under `pkg/`, through which their headers name each other (PE2_INCLUDE). Every binding a
+    package's public header makes is a library's, filled the one way the splat build knows (pe2_values.h); it sets no
+    options."""
+    sys.path.insert(0, str(TOOLS_DIR / "buildsteps"))
+    from declarations import Declarations
+
+    public = Declarations().public()
+    folder = BUILD_DIR / "include"
+    for name, path in public.items():
+        if path.is_dir():
+            for link in (folder / name, folder / "pkg" / name):
+                project_tool().link_directory(link, path)
+    lines = "".join(f"#define pe2_bind_{name}\n" for name in sorted(public))
+    for name, text in (("pe2_values.h", lines), ("pe2_options.h", "")):
+        path = folder / name
+        if not path.is_file() or path.read_text(encoding="utf-8") != text:
+            folder.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
+
+
 def ninja_packages(
     ninja_file,
     game_version_idx: int,
@@ -1242,7 +1264,6 @@ def ninja_packages(
     version_dir = GAME_VERSIONS[game_version_idx].metadata.version_dir
     sys.path.insert(0, str(TOOLS_DIR / "buildsteps"))
     from declarations import Declarations
-    from gen_package_library import GENERATED, make
 
     declarations = Declarations()
     all_packages = declarations.packages()
@@ -1253,7 +1274,6 @@ def ninja_packages(
         sys.exit(1)
     if not packages:
         return [], []
-    make([Path("packages", name) for name in sorted({Path(p.path).parts[1] for p in all_packages})])
     root = BUILD_DIR / version_dir / "packages"
     images = BUILD_DIR / version_dir / "out"
     bindings = root / "bindings"
@@ -1438,6 +1458,7 @@ def ninja_build(
     ninja_rules_file.variable("INCLUDES", INCLUDE_FLAGS)
     ninja_rules_file.variable("AS_INCLUDES", INCLUDE_FLAGS)
     os.makedirs("build", exist_ok=True)
+    link_public_headers()
     for log in (".ninja_log", ".ninja_deps"):
         if os.path.exists(log) and not os.path.exists(os.path.join("build", log)):
             os.replace(log, os.path.join("build", log))
@@ -1640,10 +1661,12 @@ def ninja_build(
             writer.build(outputs=str(inc), rule="shape-inc", inputs=str(instance), implicit=shape_deps + instances,
                          variables={"name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
-    # The includes a room's generated files name come from an index of include/ (room/c_headers.py): a stamp of the
-    # headers' paths, rewritten only when the set changes, regenerates them when a header moves or appears.
+    # The includes a room's generated files name come from an index of include/ and the packages' public headers
+    # (room/c_headers.py): a stamp of the headers' paths, rewritten only when the set changes, regenerates them when a
+    # header moves or appears.
     header_stamp = BUILD_DIR / "include_headers.txt"
-    header_list = "".join(f"{h.as_posix()}\n" for h in sorted(Path("include").rglob("*.h")))
+    headers = [*Path("include").rglob("*.h"), *(h for p in Path("packages").glob("*/include") for h in p.rglob("*.h"))]
+    header_list = "".join(f"{h.as_posix()}\n" for h in sorted(headers))
     if not header_stamp.is_file() or header_stamp.read_text() != header_list:
         header_stamp.parent.mkdir(parents=True, exist_ok=True)
         header_stamp.write_text(header_list)

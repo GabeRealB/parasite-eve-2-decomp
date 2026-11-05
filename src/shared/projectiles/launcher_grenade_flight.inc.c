@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/actor_render.h"
 #include "gameplay/effect_ids.h"

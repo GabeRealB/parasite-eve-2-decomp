@@ -56,7 +56,7 @@ title	always		2	0	0	CD_COMMAND_LOAD_DEFAULT	src/title/title.c:576 _enqueueBackgr
 title	always		20100	-8	-3	CD_COMMAND_LOAD_RELOCATE_IMAGES	src/title/title.c:243 _initializeScreenTask	cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU): the options package, queued once the title screen task has its work block; the file holds a package chunk only, so the image offsets move nothing.
 title	optional	attract demo = scene	801000,801100,801200 by demo scene - 1	0	0	CD_COMMAND_LOAD_DEFAULT	src/title/title.c:759 titleEnqueueAttractDemoFile (called from src/engine/gameflow.c:221 gameFlowLaunchSessionTask)	Group 0x50, hundreds 10 + demoIndex, index 0; main's launch task calls it with gDisplayState.demoScene - 1 when the scene is below DISPLAY_DEMO_FIXED_REPLAY (0x10), and the title screen picks the scene as (initialization count + 2) % 3 + 1 on idle timeout with disc 1 only (title.c:379); each file is a replay capture with shared images and CLUTs, followed by the session-start load of file 0.
 #
-# --- cdCmdEnqueueDisplayResource profiles (src/engine/loadui.c:79; enum in include/engine/fs.h:240) ---
+# --- cdCmdEnqueueDisplayResource profiles (src/engine/loadui.c:79; enum in packages/engine/include/fs.h:240) ---
 # Always group 2, stage 0, id = 20000 + hundreds*100 + index.
 #   profile                                    mode                              page  row
 #   0 CD_COMMAND_DISPLAY_LOAD_MENU              CD_COMMAND_LOAD_RELOCATE_IMAGES   -8    -3

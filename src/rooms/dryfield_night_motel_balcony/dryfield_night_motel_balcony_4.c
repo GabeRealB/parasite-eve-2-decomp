@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 #include <psyq/memory.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "common.h"
 
 #include "dryfield_night_motel_balcony_private.h"

@@ -5,7 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "common.h"
 
 #include "shelter_1f_tent_private.h"

@@ -7,7 +7,7 @@
 #include <psyq/inline_c.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"

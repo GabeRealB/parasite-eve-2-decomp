@@ -5,7 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "neo_ark_eve_access_tunnel_private.h"

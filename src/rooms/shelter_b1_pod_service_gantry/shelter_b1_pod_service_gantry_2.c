@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "shelter_b1_pod_service_gantry_private.h"
 

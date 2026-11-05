@@ -4,7 +4,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/memory.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "gameplay/actor_render.h"

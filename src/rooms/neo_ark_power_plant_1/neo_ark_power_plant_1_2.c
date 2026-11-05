@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "neo_ark_power_plant_1_private.h"
 

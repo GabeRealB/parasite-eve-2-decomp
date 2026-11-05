@@ -8,7 +8,7 @@
 #include <psyq/rand.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"

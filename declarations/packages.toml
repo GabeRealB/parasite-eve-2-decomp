@@ -37,6 +37,14 @@ public = ["include"]
 sources = ["lib/libsn/snmain.s"]
 objects = ["lib/*/*.o"]
 
+# The GTE's commands as real COP2 instructions: what Sony's DMPSX made of the SDK's placeholder words, which no tool of
+# this build runs. It keeps the SDK's macro names, so the SDK's compound macros reach it too.
+[math]
+uid = "uid://11pxyk2e9y3yt"
+template = "library"
+public = ["include"]
+dependencies = [{ uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" }]
+
 [engine]
 uid = "uid://1gge5rcau98eq"
 template = "library"

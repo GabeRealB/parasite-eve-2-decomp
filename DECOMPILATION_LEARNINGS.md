@@ -2707,7 +2707,7 @@ see the aliasing entry) before asking the router to search it.
 
 ## A candidate needing a coordinate includes `main/coord.h`, not `<psyq/libgs.h>`
 
-The game's coordinate node is `GfxCoord` (`include/engine/coord.h`); libgs's
+The game's coordinate node is `GfxCoord` (`packages/engine/include/coord.h`); libgs's
 `GsCOORDINATE2` is not used by game code. `include/psyq/libgs.h` is vendored
 without its own includes, so adding it directly dies on a wall of parse errors
 (`VECTOR` / `MATRIX` / `SVECTOR` from `libgte.h`, `POLY_*` / `CVECTOR` /
@@ -11698,7 +11698,7 @@ MIPS `lwc2`/`ctc2`/`swc2` and match as-is. Command macros (`gte_rtv0`,
 `gte_mvmva`, …) emit DMPSX placeholder `.word 0x00000xxx` values that this
 toolchain never rewrites — they assemble to the wrong instruction.
 
-For GTE *commands*, `#include "gte.h"` (`include/decomp/gte.h`) after
+For GTE *commands*, `#include "gte.h"` (`packages/math/include/gte.h`) after
 `inline_c.h` and call the SDK names: it redefines every `inline_c.h` command
 (`gte_rtps()`, `gte_rtv0()`, `gte_gpf12()`, …) with the real COP2 word DMPSX
 would have produced, adds `gte_rtv0_sf0()`/`gte_rtv1_sf0()`/`gte_rtv2_sf0()`,
@@ -12354,7 +12354,7 @@ pointer in `$v0` so the first `lbu` can land in `$v1`.
 
 The double-buffered ordering-table descriptors (size `0x14`, two entries =
 `0x28`) are the SDK's `GsOT` from `<psyq/libgs.h>`, which
-`include/engine/display.h` includes. Both pairs use it: `gGpuTaskOrderingTables`
+`packages/engine/include/display.h` includes. Both pairs use it: `gGpuTaskOrderingTables`
 (task-owned presentation) and `gGpuFrameOrderingTables` (the game loop's tables). Do not
 define a local struct with the same layout.
 
@@ -17597,7 +17597,7 @@ the message never mentions a header. `GfxCoord` comes from `main/coord.h`.
 
 ## Do not include `libgs.h` for `GsF_LIGHT`
 
-The 0x14 OT descriptors are libgs `GsOT`, which `include/engine/display.h` brings
+The 0x14 OT descriptors are libgs `GsOT`, which `packages/engine/include/display.h` brings
 in through `<psyq/libgs.h>`. Including that header in a TU that already has a
 conflicting `GsClearOt` prototype fails with `conflicting types for GsClearOt`.
 
@@ -21227,7 +21227,7 @@ same bar the compared register in one column (`bne $a0,$v0` against retail's
 `(Task* task, s32 msgId, s32 arg2, s32 arg3)`, not a register pin; restoring the
 two leading parameters scored 100% on the next build. A `regs`-only residue on a
 function whose only reference is a data `.word` is arity, so read
-`include/gameplay/D4.h` before touching the register allocation.
+`packages/gameplay/include/D4.h` before touching the register allocation.
 The same trap reports as a `regs` penalty only while the seed *keeps* a
 placeholder for the dead argument. When **every** leading parameter is dead,
 m2c's seed drops them from the signature, and then the symptom is a **missing
@@ -22267,7 +22267,7 @@ early prototype instead. `sndLoadProcessSector` → `_sndLoadPrepareBankSlot` is
 ## A room's dispatch wrapper can forward incoming `$a1`-`$a3` without moving them
 
 `taskMessageDispatch` is declared `(Task*, s32, s32, s32)` in
-`include/gameplay/message.h`. A room wrapper can forward all four incoming
+`packages/gameplay/include/message.h`. A room wrapper can forward all four incoming
 arguments explicitly, replacing only the task. A historical attempt instead
 materialised the outgoing words from incorrectly shifted wrapper parameters:
 
@@ -35838,7 +35838,7 @@ in `$t7` across the loop, so the SXY fifo load's temporary lands in `$24`
 (`$t8`). This used to be forced with fixed-register asm macros; it is not
 needed. Each corner is `gte_ldSXYP(*(const u32*)&packet->x0)` (and then `x1` and
 `x2`) inside `_tmdStoreTexturedTriangleFacing`, called with
-`&(*packetPair)[0]` (a single `mtc2 %0, $15`, `include/decomp/gte.h`), and the
+`&(*packetPair)[0]` (a single `mtc2 %0, $15`, `packages/math/include/gte.h`), and the
 allocator picks `$t8` itself:
 
 ```
@@ -46280,7 +46280,7 @@ the destination of a store. `_actor341900RemovePlayerEquipment 1 attempt, base_1
 
 ## Model-body coordinates and graphics-node strides
 
-Model tasks carry `TmdObject` (`include/engine/tmd_types.h`) in `Task.extra.tmd`:
+Model tasks carry `TmdObject` (`packages/engine/include/tmd_types.h`) in `Task.extra.tmd`:
 `coords` points to the owned part array, `flags` is the u16 halfword whose
 `TMD_OBJECT_SKIP_ACTIVE_DRAW` bit `taskKill` sets, and `buffer` is the storage
 `tmdAllocPrimitiveBuffer` / `tmdFreePrimitiveBuffer` own. Coordinate-body tasks instead carry
@@ -46778,7 +46778,7 @@ plus a swapped destination register in its delay slot.
 ## A shared actor text unit's own prototypes outrank the gameplay header
 
 Merging `_actor03800ActionCeilingWait`'s L-label span needed the byte at `0x801153F2`,
-which is `gSceneCombatState.signals.bytes.actionFlags` in `include/gameplay/scene_combat.h`. Adding that include
+which is `gSceneCombatState.signals.bytes.actionFlags` in `packages/gameplay/include/scene_combat.h`. Adding that include
 to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
 own hand-written prototypes for `worldTargetUnlinkNode`, `worldCollisionUnlinkBody`,
 `worldCoordSetActorColorMode`, `sceneReleaseBattleRefWithRewards`, `worldCoordUpdateActorColor`,
@@ -46790,7 +46790,7 @@ signatures would silently retype the arguments of every already-matched
 function in the unit.
 
 Reach the bytes through the state record instead of a local prototype block:
-`gSceneCombatState.signals.bytes.actionFlags` and `gSceneCombatState.actorControl` (`include/gameplay/scene_combat.h`, with
+`gSceneCombatState.signals.bytes.actionFlags` and `gSceneCombatState.actorControl` (`packages/gameplay/include/scene_combat.h`, with
 `gSceneCombatState` listed in the family's imports file as `absolute:True`) assemble to
 the same `lui $v0,0x8011` / `lbu $v0,0x53F2($v0)` the target has. The flat
 byte aliases this entry once recommended (`D_801153F2`, `D_801153F4`) are gone. Reconciling a shared
@@ -46943,7 +46943,7 @@ The structure that *is* universal, and the better anchor:
 
 * `Task::msgTable` holds id/handler records viewed by the dispatcher as
   `TaskMessageEntry[]` -- `{s32 messageId; TaskMessageHandler handler;}`,
-  already defined in `include/gameplay/message.h` -- terminated by `TASK_MESSAGE_TABLE_END` with
+  already defined in `packages/gameplay/include/message.h` -- terminated by `TASK_MESSAGE_TABLE_END` with
   one zero word after it. `taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13EE, ...)` in
   `src/gameplay/D4.c` is the caller. 167 of 168 rooms store one; the ids seen
   are 0x13EE..0x13F2. Do not invent a room-local struct for it, as this pass
@@ -49521,7 +49521,7 @@ the table long before believing the argument count. Input: `base_1.i`
 
 The scratch prelude carries no `Task`, so m2c invents field names for the pointer
 argument from its own heuristics, and they need not agree with
-`include/engine/task.h`. `_helicopterLandingPadNo9UpdateChestModel` came back reading
+`packages/engine/include/task.h`. `_helicopterLandingPadNo9UpdateChestModel` came back reading
 `task->extra` at 0x8 and `task->parent` at 0x2C — the project's `Task` with the
 two names exchanged (`parent` is 0x8, `extra` is 0x2C). The chain is right and
 the offsets are right; only the names lie:
@@ -50626,7 +50626,7 @@ symptom here was `reorder`, not `regs`.
 
 ## A global read at two widths belongs in a union, not a second `extern`
 
-`gEquipmentModeBaseStats` is declared once in `include/gameplay/268.h`, but the two TUs that
+`gEquipmentModeBaseStats` is declared once in `packages/gameplay/include/268.h`, but the two TUs that
 read its head field disagree about the width: gameplay's `equipmentRecalculateMaxHp` does
 `lhu v0, 0(v0)` (the value enters a `u16` accumulator before the `s16` maximum), while the
 Mist shooting gallery's STATUS panel does `lw s2, 0(v0)` and compares it with
@@ -52516,7 +52516,7 @@ but the game never uses them that way: room and actor overlays keep the
 object's Euler angles there and pass `node + 0x44` to `RotMatrix` /
 `RotMatrixZYX` with `&node->coord` (`node + 4`) as the output. m2c shows it
 as three `u16` stores followed by `RotMatrix(temp + 0x44, temp + 4)`. Write
-it against `GfxCoord` (`include/gameplay/coord.h`): `coord->param.rot.vx = …;
+it against `GfxCoord` (`packages/gameplay/include/coord.h`): `coord->param.rot.vx = …;
 RotMatrix(&coord->param.rot, &coord->coord); coord->composeStamp = 0;`. The type is 0x50
 bytes like the libgs one, so indexing a coordinate array divides by the same
 stride it did before.
@@ -52526,7 +52526,7 @@ stride it did before.
 Every overlay that first needed a coordinate node declared its own type for it,
 and the declarations are one type. `GpDisp2dCoord`, `MistR18Coord`, `RoomCoord`,
 `GpCoordPose`, `GpCoordPlace`, `TonfaCoord` and the actors' `…Coord`s were all
-merged into `GfxCoord` (`include/gameplay/coord.h`), including the ones that
+merged into `GfxCoord` (`packages/gameplay/include/coord.h`), including the ones that
 stopped before the parent link.
 
 The test is the access path, not the layout. A struct reached as
@@ -52774,7 +52774,7 @@ close: all 120 permutations of the five stores, every position for the
 6-minute permuter run all topped out at 98.6%.
 
 `0x80073BAA` is `gPlayerStatus + 0x22`, already declared as
-`PlayerStatus::weaponSlotItem` in `include/engine/wipsys_types.h`. It is the
+`PlayerStatus::weaponSlotItem` in `packages/engine/include/wipsys_types.h`. It is the
 compact primary weapon-slot item, packed into `GameActor.collisionBodies[GAME_ACTOR_BODY_WEAPON].key` by the
 very use being decompiled.
 Writing `gPlayerStatus.weaponSlotItem` restores the dependence and the block matched
@@ -53077,7 +53077,7 @@ size (`addiu $sp,$sp,-0x28` against the ROM's `-0x30`, with the `$s0`/`$ra`
 slots shifted to match), the stack local handed to `taskMessageDispatch` as `arg2`
 is bigger than the fields the function writes. `_akropolisFountainClimbMovePlayer`
 stores only three words at `sp+0x10`/`0x14`/`0x18` yet reserves 0x18 bytes of
-locals: the payload is the 0x18-byte `ActorTransform` (`include/gameplay/message.h`),
+locals: the payload is the 0x18-byte `ActorTransform` (`packages/gameplay/include/message.h`),
 and msg `0x3F2` fills its position `pos` while leaving the angles `rot`
 untouched.
 
@@ -56862,7 +56862,7 @@ shape. What found it was one grep:
 
 ```
 $ grep -rn "rsin" include/
-include/gameplay/3CD8.h:321:  ... `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` offsets that are ...
+packages/gameplay/include/3CD8.h:321:  ... `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` offsets that are ...
 ```
 
 So before writing anything from m2c output, take the two or three most
@@ -56871,14 +56871,14 @@ constant such as `* 31` or `>> 12`, a scratch size, a primitive code byte — an
 grep `include/` as well as `src/`. Porting the twin took one attempt against a
 92.98% m2c baseline.
 
-Corollary: the scratch-struct docs in `include/gameplay/3CD8.h` and
-`include/gameplay/3FB8.h` are a catalog of `SCRATCH_STACK_CURSOR_SLOT` layouts
+Corollary: the scratch-struct docs in `packages/gameplay/include/3CD8.h` and
+`packages/gameplay/include/3FB8.h` are a catalog of `SCRATCH_STACK_CURSOR_SLOT` layouts
 (`EffectCentreScratch`, `EffectShapeScratch`, `EffectBillboardScratch`, …;
 a record only one function uses, such as `_EffectPixelSparkScratch`, is private
 to its source file instead). Any overlay function whose prologue is `lw` from
 `0x1F8003FC` / `addiu -N` / `sw` back is very likely one of them; match the size
 and field offsets against that list first. Use the canonical shared record when its layout and meaning agree, as with
-`EffectShapeScratch` in `include/gameplay/effects.h`; a distinct layout needs its
+`EffectShapeScratch` in `packages/gameplay/include/effects.h`; a distinct layout needs its
 own declaration.
 
 ## `setUV4` is not the same RTL as eight `quad->uN =` statements
@@ -57639,7 +57639,7 @@ forces the next input section down to alignment 4, and the image ends up 4
 bytes short. A gap between two rodata subsegments is therefore a sign the split
 is wrong, not something to pad around.
 
-The `TaskFuncTableN` family in `include/engine/task_types.h` exists for the global
+The `TaskFuncTableN` family in `packages/engine/include/task_types.h` exists for the global
 shape; add the missing arity there rather than declaring a bare array.
 
 The same test can come out the other way, and then the wrapper type is the
@@ -57950,7 +57950,7 @@ The callee must still narrow the set index: that `andi $x,0xffff` before the
 The earlier direct-body attempt with an `s32` parameter and a `(u16)` cast at
 the use restored the `andi` but reordered the two parameter-save pairs in the
 prologue. The current wrapper and its canonical declaration in
-`include/gameplay/animation.h` both accept `s32 setIndex`; the wrapper passes
+`packages/gameplay/include/animation.h` both accept `s32 setIndex`; the wrapper passes
 `(u16)setIndex` to the inline `_animationSeekSlotWithBlend` helper. This preserves
 the required mask and parameter-save order without conflicting declarations
 or per-caller prototypes.
@@ -58393,7 +58393,7 @@ mismatch by declaring their own four-argument prototype and not including
 header.
 
 The fix is to give the definition the two trailing parameters it never reads
-and update `include/gameplay/3A34.h` to match. Unused register parameters cost
+and update `packages/gameplay/include/3A34.h` to match. Unused register parameters cost
 no instructions on MIPS o32, so `gameplay` still checksums, and the shared
 declaration then describes what the callers actually do. Prefer this over an
 `__asm__("worldCoordUpdateActorColor")` alias on a second name — the alias works, but
@@ -59935,7 +59935,7 @@ With `extern void* D_8006AC4C;` and `(u8*)D_8006AC4C`, the load is a scalar
 global: alias analysis proves it independent of the `gGameSession->field_*`
 stores, the list scheduler sinks it below them, and the score sticks at 94.5%
 with `insert`/`delete` = 2 no matter how the three statements are ordered. With
-`gMdecMovieOutputBuffers[1]` -- the array declaration `include/engine/stream.h` already has --
+`gMdecMovieOutputBuffers[1]` -- the array declaration `packages/engine/include/stream.h` already has --
 the load is a struct reference, conflicts with the struct stores, and stays
 pinned above them: byte-identical after linking.
 
@@ -62901,7 +62901,7 @@ The block layout is the fingerprint. Read it straight off the store offsets — 
 — then grep the headers for a struct of that size and shape:
 
 ```
-grep -n "STATIC_ASSERT_SIZEOF(Gp.*Scratch, 0x1C)" include/gameplay/3CD8.h
+grep -n "STATIC_ASSERT_SIZEOF(Gp.*Scratch, 0x1C)" packages/gameplay/include/3CD8.h
 ```
 
 That named `EffectShapeScratch`, also used by `effectDrawSpinningBillboard`, whose
@@ -69730,7 +69730,7 @@ use the wrong operand order or the wrong fold. `p = coord; p += linkIndex;` give
 assigned twice, `w = (s32*)(linkIndex * sizeof(GfxCoord) + (u32)coord); w++;`,
 matches exactly. `gfxSetRotIdentity(&coord[linkIndex].coord)` matches
 too, without the integer cast, so that helper now lives in
-`include/engine/gfx.h`.
+`packages/engine/include/gfx.h`.
 
 ## `move v0, sN; slti v0, v0, K; bnez; addiu sN, sN, 1` is `while (j++ < K)`
 
@@ -69944,7 +69944,7 @@ stack `MATRIX` as `addiu v1,s3,4; addiu v0,sp,0x38` followed by three groups of
 gets the registers but not the bases: GCC folds the stack destination into
 `sh t4,0x38(sp)` and the source into `lhu t4,4(s1)`, and computes
 `addiu v0,sp,0x38` only for the GTE load (94.9%). The shared
-`gte_TransposeMatrix(src, dst)` in `include/decomp/gte.h` - one `__asm__
+`gte_TransposeMatrix(src, dst)` in `packages/math/include/gte.h` - one `__asm__
 volatile` holding all 18 loads and stores with `"r"(src), "r"(dst)` inputs and
 `$12`-`$14` clobbered, libgte's `TransposeMatrix` sequence inlined - puts both
 addresses in registers, and CSE shares the destination with
@@ -74426,7 +74426,7 @@ The two addresses are `gMcSaveData.characterId` (`gMcSaveData = 0x80072168`) and
 `Wip_SysConfig.field_21` (`Wip_SysConfig = 0x80073B88`) - the spelling
 The two addresses are `gMcSaveData.field_22` (`gMcSaveData = 0x80072168`) and
 `gPlayerStatus.weapon` (`gPlayerStatus = 0x80073B88`) - the spelling
-`include/gameplay/3CD8.h` already documents for this index. Writing them that
+`packages/gameplay/include/3CD8.h` already documents for this index. Writing them that
 way makes both loads `mem/s`, the exemption no longer applies, the store keeps
 those dependents, becomes ready two cycles later and lands where the ROM has it.
 100% with no pins.
@@ -76230,7 +76230,7 @@ four assignments are dead stores and disappear — taking the `andi` and the thr
 `li`s that fed them with them.
 
 **Fix.** Use the payload's real type: message `0x3F4` takes an `AnimationPlayRequest`
-(0x14 bytes, `include/gameplay/3FB8.h`), so one `AnimationPlayRequest msg` with a single
+(0x14 bytes, `packages/gameplay/include/3FB8.h`), so one `AnimationPlayRequest msg` with a single
 `&msg` makes every field store observable and lands the frame at `0x30` as retail
 has it. Four other overlays send this message (`actor_400600`, `actor_405800`,
 `actor_403100`, …) and name its fields. Grep the message id in `src/` before
@@ -77590,7 +77590,7 @@ the build reports a two-byte `stack` penalty that no dump explains, because
 there is no codegen difference at all. The argument index is the whole bug.
 
 The actors' message dispatch uses the four argument positions of `TaskMessageHandler`
-(`include/gameplay/message.h`),
+(`packages/gameplay/include/message.h`),
 and `taskMessageDispatch` ends in `entry->handler(receiver, messageId, firstArg, secondArg)`:
 
 ```c
@@ -84576,7 +84576,7 @@ taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E8, &_gActor33580
 ```
 
 The payload is not an `s32`: it is the five-word `AnimationPlayRequest`
-(`include/gameplay/message.h`, size 0x14) — `source.index` receives the animation-bank table index
+(`packages/gameplay/include/message.h`, size 0x14) — `source.index` receives the animation-bank table index
 from `playerActorWriteWeaponAnimationBankIndex`, `animationId` is the animation id the handler plays, and
 `blend`/`blendFrames`/`enableWorldCollision` are zero. `src/rooms/acropolis_sanctuary/
 acropolis_sanctuary.c` carries the identical pattern already matched as
@@ -84589,7 +84589,7 @@ same address; the typed form costs nothing.
 
 Two things the seed gets wrong beyond the type:
 
-* `taskMessageDispatch`'s prototype lives in `include/gameplay/D4.h`, which
+* `taskMessageDispatch`'s prototype lives in `packages/gameplay/include/D4.h`, which
   `gameplay/gameplay.h` does not pull in — include it explicitly. m2c's
   `? taskMessageDispatch(void *, ?, s32 *, ?);` placeholder is a parse error, not a
   declaration; delete the line once the header is in.
@@ -86280,7 +86280,7 @@ s32 _actor451100QuietWalkApplyCommand(Task* unusedTask, s32 messageId, const Act
 
 The message dispatcher in this family passes
 `(Task*, s32, <first payload>, <second payload>)` through the unprototyped
-`TaskMessageHandler` (`include/gameplay/message.h`), so the payload is argument
+`TaskMessageHandler` (`packages/gameplay/include/message.h`), so the payload is argument
 3 and the unused receiver/message-ID positions still have to be declared.
 Read a small `stack` as "check the argument registers" whenever
 `stack_accesses` is 0; splitting locals is the wrong move.
@@ -86606,7 +86606,7 @@ but leaves the table's structure undocumented.
 The type is recoverable from the consumer, which is already matched C:
 `taskMessageDispatch` (`src/gameplay/companion_load.c`) walks `msgTable` as `const TaskMessageEntry*` with
 `entry++` and stops at `entry->messageId == TASK_MESSAGE_TABLE_END`; `TaskMessageEntry` is
-`{s32 messageId; TaskMessageHandler handler;}` = 8 bytes (`include/gameplay/message.h`). So
+`{s32 messageId; TaskMessageHandler handler;}` = 8 bytes (`packages/gameplay/include/message.h`). So
 `extern TaskMessageEntry D_<room>_<vram>[];` with a bare `task->msgTable = D_...;` -
 the `rooms_shared_8017db84.c` idiom - is the accurate spelling, and it matches.
 
@@ -87583,7 +87583,7 @@ first when the dup index rates it 1.00.
 `_neoArkWoodlandPathInitRoomTask` opens the way every room's state 0 does -
 park the room's message table in `Task::msgTable`, publish the task in pointer
 slot 7 - and m2c seeded it as `gameSetTaskSlot(7)`, one argument. The real call
-takes two, `gameSetTaskSlot(index, 7)` (`include/engine/session.h`), and the seed
+takes two, `gameSetTaskSlot(index, 7)` (`packages/engine/include/session.h`), and the seed
 is not a wild miss: it scores 99.4% with `regs=3`, because the instruction
 count, the block graph, the calls and the delay-slot words all already match and
 only three registers differ.
@@ -89380,7 +89380,7 @@ Inputs: `base_1.i`
 m2c read the target's `lw a2,8(v1)` / `move a1,s1` / `jal` triple as a three
 argument call and emitted `taskReparent(temp_a0, index, temp_a2)`, which compiles
 only because the seed declares the callee itself instead of including the header.
-`taskReparent` takes two arguments (`include/engine/task.h`, `src/engine/task.c`),
+`taskReparent` takes two arguments (`packages/engine/include/task.h`, `src/engine/task.c`),
 and the `$a2` value - the parent object's coordinate pointer - is stored into
 `coord->parent` before the call: a local the allocator parked in an argument
 register, not an argument.
@@ -89798,7 +89798,7 @@ cse's dead-store pass' earlier sibling, and it runs before every dump you would
 normally look at, which is why `.cse` and `.flow` both already look clean.
 
 Give the payload its type and pass `&msg` as the tree already does
-everywhere else (the record is now `ActorCommand` in `include/gameplay/message.h`;
+everywhere else (the record is now `ActorCommand` in `packages/gameplay/include/message.h`;
 the example below predates it):
 
 ```c
@@ -90423,7 +90423,7 @@ same padded parameter list. What is worth separating is how the *type* and the
 The arity is fixed by the only caller a table handler has. `taskMessageDispatch`
 (`src/gameplay/D4.c`) walks the room's `TaskMessageEntry[]` and calls
 `entry->handler(index, value, arg2, arg3)` - four arguments - which
-`TaskMessageHandler` in `include/gameplay/message.h` spells
+`TaskMessageHandler` in `packages/gameplay/include/message.h` spells
 `s32 (*)(Task* task, s32 messageId, TaskMessageArg firstArg, TaskMessageArg secondArg)`. So the room's own table
 matters for the convention: `_gDryfieldMainStreetRoomMessages` registers this
 function under `0x13EF` beside `Room_Snd01` under `0x13F2`, and `Room_Snd01` is
@@ -90447,7 +90447,7 @@ static s32 _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unus
 
 This contradicts the type given for the same id in the breezeway entry below,
 which concluded `RoomEventMsg* in, RoomEventMsg* out` from two matched twins.
-`RoomEventMsg` (8 bytes, `include/gameplay/message.h`) belongs to the other
+`RoomEventMsg` (8 bytes, `packages/gameplay/include/message.h`) belongs to the other
 mechanism - `RoomsShared8017d638(RoomEventReq* req, RoomEventMsg* msg)`, the
 room requisites gate - and nothing in that gate re-dispatches to a table
 handler. Both records carry a `u8` at offset 2, which is why the `lbu` that
@@ -90571,7 +90571,7 @@ call, so the allocator picks `$a1` for it unprompted, and no delay-slot store is
 involved.
 
 The real prototype is `Enemy* sceneFindEnemyByPlaceKey(u16 placeKey)`
-(`include/gameplay/scene_runtime.h`). The natural one-argument body written against it
+(`packages/gameplay/include/scene_runtime.h`). The natural one-argument body written against it
 compiles byte-identically - 100.000%, same 19 instructions, same block count -
 so the seed was not wrong enough to fail, only misleading. An argument register
 live at a call is therefore a third shape to check next to the delay-slot store
@@ -91932,7 +91932,7 @@ differences looked like textbook local-alloc tie-breaks:
 The `a0`/`a1` pair is the tell. The project declares
 
 ```c
-void gameSetTaskSlot(struct Task* task, s32 slot);   /* include/engine/session.h */
+void gameSetTaskSlot(struct Task* task, s32 slot);   /* packages/engine/include/session.h */
 void* gameGetTaskSlot(s32 index);
 ```
 
@@ -93276,7 +93276,7 @@ so the object diff reads as a pure allocation problem, and the only tell is the
 argument register itself: `li $a0,7` where the target has `li $a1,7`.
 
 The real prototype is `void gameSetTaskSlot(struct Task* task, s32 slot)`
-(`include/engine/session.h`). Passing the task as the first argument was 100.000%
+(`packages/engine/include/session.h`). Passing the task as the first argument was 100.000%
 with all penalties zero on the first build, at the same 34 instructions.
 
 Room state-0 bodies open `task->field_24 = <msg table>; gameSetTaskSlot(task, 7);`,
@@ -96464,7 +96464,7 @@ the dependence appears, and the block schedules in source order — 100.00%:
     matrix = (MATRIX*)((u8*)((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top - 0x20);
     ((ScratchStackCursor*)SCRATCH_STACK_CURSOR_SLOT)->top = matrix;
 
-`ScratchStackCursor` in `include/engine/scratch.h` is that view,
+`ScratchStackCursor` in `packages/engine/include/scratch.h` is that view,
 and `Actor00300ByteView` beside it is the reverse case. So when a store and a
 nearby load disagree about `mem/s` and the scheduler swaps them, the fix is to
 make the *access form* agree, not to reorder the statements: statement order
@@ -99691,7 +99691,7 @@ GCC 2.8.1 does not narrow a halfword load to the width actually used, so a
 plain `{ u16 code; u16 mode; }` payload does not produce those byte loads:
 `work->field_91C = msg->code;` compiles to `lhu` plus `srl 8` where the target
 has `lbu 1(a2)` (measured 92.15%, `insert=2 delete=1`). The source read bytes,
-so the type needs a byte view. `ActorCommand` (`include/gameplay/message.h`) gives
+so the type needs a byte view. `ActorCommand` (`packages/gameplay/include/message.h`) gives
 the first two bytes through its `context.loc` union, and the third byte, the low
 half of `command`, needs no view at all: a truncating cast of the halfword does
 narrow the load, so `(u8)msg->command` compiles to `lbu 2(a2)`:
@@ -99834,7 +99834,7 @@ the complementary cause. Where that entry's single local aliased one struct
 field, here a *group* of stores has one addressable member.
 
 The fix is the project's dispatch-payload idiom: declare the record as a named
-four-byte struct (`ActorCommand`, `include/gameplay/message.h`) and take `&stopRequest`
+four-byte struct (`ActorCommand`, `packages/gameplay/include/message.h`) and take `&stopRequest`
 once.
 Every field is then addressable, the stores survive, and the same edit also
 settled the register penalty: with no ADDRESSOF pseudo to keep alive across the
@@ -101565,8 +101565,8 @@ Evidence: scratch `nonmatchings/_securityMonitorsInitRupertLighting-vacuum/`. `b
 object `3bbd323f…` as `base_1.c`, `build.sh` reports it as a repeat). Compiler
 `60d886cd…` throughout. `_SecurityMonitorsWork` is declared in
 `src/actors/security_monitors/security_monitors.c`; `gfxSetRotIdentity` is declared in
-`include/engine/gfx.h` and its packed `GfxRotationWords` view in
-`include/engine/gfx_types.h`.
+`packages/engine/include/gfx.h` and its packed `GfxRotationWords` view in
+`packages/engine/include/gfx_types.h`.
 
 ## `regs` counts every operand field, so an immediate mismatch is a types bug, not allocation (_securityMonitorsInitSwat, 2026-09-16)
 
@@ -101792,7 +101792,7 @@ store differ, so a sibling from the family is a better template than the seed.
 Evidence: scratch `nonmatchings/_patioSwatMemberHide-vacuum/`; `base.c`
 (100.000%) and `base_1.c` (typed port, 100.000%, `Repeated assembly: base_1.c
 reproduces base.c`); `include/actors/patio_swat_member.h` gained `WorldCollisionBody body`
-inside a new `pad_898[0x24]`, `include/gameplay/1BC.h` renamed `Enemy.pad_4D`
+inside a new `pad_898[0x24]`, `packages/gameplay/include/1BC.h` renamed `Enemy.pad_4D`
 to `field_4D`.
 
 ## A switch whose cases share a body must repeat that body, one `case` per copy (_patioSwatMemberApplyCommand, 2026-09-16)
@@ -107937,7 +107937,7 @@ Both spellings assemble to the same `lui`/`ori`/`lw`/`sw`; nothing in the object
 dump distinguishes them. Only the schedule does.
 
 **Fix.** Name the head as the overlay's own one-word struct, as the sibling
-overlays already do (`ScratchStackCursor` in `include/engine/scratch.h`):
+overlays already do (`ScratchStackCursor` in `packages/engine/include/scratch.h`):
 
 ```c
 typedef struct { void* top; } ScratchStackCursor;
@@ -108955,7 +108955,7 @@ the same shape `_actor01900ApplyCommand`, the matching sibling, already had.
 `+0x10`, and the object dump showed `addiu a0,a0,0x10` against the target's `addiu a0,a0,4`.
 `GfxCoord` is `{ u32 composeStamp; MATRIX coord; ... }`, so `coord` is at **+4** — the offset is a
 struct member, not arithmetic on a pointer of m2c's invention. Writing the real type
-(`TmdObject::coords` is already `GfxCoord*` in `include/engine/tmd.h`) gives the `+4` back, and
+(`TmdObject::coords` is already `GfxCoord*` in `packages/engine/include/tmd.h`) gives the `+4` back, and
 `->composeStamp = 0` / `->coord.t[0]` land on the same object m2c split into two expressions.
 
 The lesson generalises past these two: when a seed is in the 90s with a *uniform* penalty spread and
@@ -109034,7 +109034,7 @@ Scratch `nonmatchings/_actor401000FallFront-vacuum`.
 `_oddStrangerGrabPull` writes three `sw` at `0`/`4`/`8` and three `sh` at
 `0x10`/`0x12`/`0x14` into `D_actor_401000_80155018`, a 0x20-byte zeroed run in
 the package's `.data` with no symbol anywhere under `src/`. That is `ActorTransform`
-(`include/gameplay/message.h`) — the same 0x18-byte slot-3 payload the stack-local
+(`packages/gameplay/include/message.h`) — the same 0x18-byte slot-3 payload the stack-local
 senders use ("A short frame around a `taskMessageDispatch` payload means the wrong
 payload type"). Declare it in the overlay header and reach it through a pointer:
 
@@ -110947,7 +110947,7 @@ overlay's does not (for GTE commands such as `gte_rtps()`, `#include "gte.h"`
 after `<psyq/inline_c.h>`), and a scratch struct.
 Look for the second in the shared headers before adding a type - the sibling's
 private `M4a1PykeBeamScratch` is exactly the `GpEffFt4Scratch` of
-`include/gameplay/3FB8.h`, and a reused type name costs nothing, because the
+`packages/gameplay/include/3FB8.h`, and a reused type name costs nothing, because the
 layout is what the compiler sees.
 
 ### Byte-identical across two *families* still cannot be promoted
@@ -116377,7 +116377,7 @@ Two things in that block are not codegen, they are the source:
   loads would land in `$v0` / `$a3` / `$t0` first.
 
 The macro is in the tree already: `gte_ReadMatrixColumn(m, col, v)` in
-`include/decomp/gte.h` is `lhu $12,%2(%0)` / `lhu $13,%3(%0)` /
+`packages/math/include/gte.h` is `lhu $12,%2(%0)` / `lhu $13,%3(%0)` /
 `lhu $14,%4(%0)` / `sh $12,0(%1)` / `sh $13,2(%1)` / `sh $14,4(%1)` with the
 column's offsets as immediate operands, and `gte_WriteMatrixColumn(v, m, col)`
 is the way back - 100.000% once the body uses it, here with column 2. Every
@@ -116999,7 +116999,7 @@ __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
 ```
 
   That asm is a hack, and the natural source needs neither it nor the stack
-  local: `_gfxLoadRotSv(matrix, &blk->delta)` (`include/engine/gfxgte.h`) replaces
+  local: `_gfxLoadRotSv(matrix, &blk->delta)` (`packages/engine/include/gfxgte.h`) replaces
   the copy, `gte_SetRotMatrix` and the asm, and the helper's own inlined local
   gets its address formed at the `lwc2` pair (`_actor01100BearingToPlayerSlot`, 100%).
   That function has since become a plain call of `_actorAngleBearingInFrame` on a
@@ -117991,7 +117991,7 @@ pseudo, and survives with a register of its own. Two locals in this overlay
 is the tell, not the aliasing.
 
 The nine-halfword copy onto the coordinate, now
-`gfxCopyRotation` (`include/engine/gfx.h`), has the same shape one level down:
+`gfxCopyRotation` (`packages/engine/include/gfx.h`), has the same shape one level down:
 
 ```c
     rootMatrix = &rootCoord->coord;
@@ -118013,7 +118013,7 @@ exemption from the store side": the typed word-view stores are `mem/s:SI`, the
 The rule crosses families unchanged: `_dryfieldBreezewayDrawKeyItemLineSegment` (a room
 overlay) builds the same identity splat for its `RotMatrixZ` and shows the same
 3-frame + 2-`$s0` split, so its `GfxMatrix` union (the word-wise view in
-`include/engine/gfx_types.h`) is named for the three words it can pair and the two
+`packages/engine/include/gfx_types.h`) is named for the three words it can pair and the two
 diagonal ones go through a `MATRIX* mtx = &matw.mat` instead. Reading all five
 off the union gives all five frame-relative (98.756%); the split is the tell
 here too, and `_actor403100StepDefeat` is the matched sibling to copy the
@@ -119570,7 +119570,7 @@ Scratch `nonmatchings/_mineRefugeCircuitPanelTask-vacuum`.
 
 The seed for this room message handler declared `M2C_UNK playerActorRestoreEquipment(u8 *)`
 and called it as `playerActorRestoreEquipment(&D_80073BA9)`. The callee takes no arguments
-at all (`Task* playerActorRestoreEquipment(void)`, `include/gameplay/player_actor.h`), and the
+at all (`Task* playerActorRestoreEquipment(void)`, `packages/gameplay/include/player_actor.h`), and the
 argument was read out of this target shape:
 
 ```
@@ -119793,7 +119793,7 @@ lwl/lwr pairs as two unaligned 32-bit *stores of unknown values* and emits
 `M2C_FIELD(arg3, ..., 3) = M2C_UNALIGNED32(M2C_ERROR(...))`, which compiles to
 `sw zero,3(a1); sw zero,7(a1)` - two stores where the target has an 8-byte copy, the
 second landing after the `jal` because it fills the call's shadow. `RoomEventMsg`
-(`include/gameplay/message.h`) is 8 bytes at *alignment 2*, which is why the copy is
+(`packages/gameplay/include/message.h`) is 8 bytes at *alignment 2*, which is why the copy is
 unaligned at all: a plain 8-byte struct assignment.
 
 Two more tells in the same prologue: `$a0`/`$a1` are dead because m2c's two-argument
@@ -120847,7 +120847,7 @@ does not reach unaided, not as residue to clean up.
 The sibling's `firstWord = *frameWords`, after viewing `gFsImageWorkspacePtr` as
 a pointer to the complete GPU-word array, needs no editing for a carrier
 that reads the pointer directly: `strips` sits at offset 0 of `FsImgBuffers`
-(`include/engine/fs_types.h`), so the view uses the struct's own address and
+(`packages/engine/include/fs_types.h`), so the view uses the struct's own address and
 compiles to the single `lw $t1,%lo(gFsImageWorkspacePtr)($v0)` the carrier wants. Only
 the include differs - the carrier's TU has to add `#include "engine/fs.h"`.
 `promote` refuses this shape for the same family-scoped reason as above ("only
@@ -122436,7 +122436,7 @@ D_801153F4[0] = 2;         /* mem/s:QI, symbol still D_801153F4 */
 Scores, all with the same host file otherwise: m2c baseline 86.094%; the rewrite
 to a natural `switch` (dropping m2c's gotos and the phantom second argument to
 `playerActorSetScriptedControl`, which is `void playerActorSetScriptedControl(s32)` - see
-`include/gameplay/actor_presentation.h`) 97.760%; `gSceneCombatState.actorControl = 2;` 99.920%;
+`packages/gameplay/include/actor_presentation.h`) 97.760%; `gSceneCombatState.actorControl = 2;` 99.920%;
 `D_801153F4[0] = 2;` 100.000%. Contrast this with the store-side entries above
 (`_neoArkAltarSelectPostSequenceRoom`, `shooting_gallery_targets`): those match a *store* against a
 later *load*; here the missing edge is what lets a load hoist, and the observable
@@ -124616,7 +124616,7 @@ Three smaller ones from the same function:
 
 **Superseded for the same idiom in `_actor342000GluttonPartTask`:** moving the
 push, the three gather/`gpf 12`/scatter columns and the pop into one
-`static inline` helper (`_gfxScaleMatrixColumns(MATRIX*, const VECTOR*)` in `include/engine/gfxgte.h`,
+`static inline` helper (`_gfxScaleMatrixColumns(MATRIX*, const VECTOR*)` in `packages/engine/include/gfxgte.h`,
 written with `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
 absolute and the helper's own `column` stops the `-8(head)` fold. So try the helper
@@ -125239,7 +125239,7 @@ it is the empty result that is ambiguous, because it means either "no match" or
 "the wrapper filtered the file".
 
 The same applies to any first search that contradicts something already known to
-be true - in this session, `include/gameplay/gameplay.h` referencing `VECTOR`
+be true - in this session, `packages/gameplay/include/gameplay.h` referencing `VECTOR`
 with no definition anywhere, and `libgs.h` using `VECTOR` while `libgte.h`
 appeared not to declare it, were both wrapper artefacts rather than facts.
 
@@ -125503,7 +125503,7 @@ The header had not reverted: the build had reformatted it.
 
 **Why.** `tools/build-and-verify.sh` runs `clang-format -i` over `src/` plus
 *every* directory directly under `include/` except `psyq` and `decomp` — not
-just `include/engine/`, which is what the summary at the top of the script
+just `packages/engine/include/`, which is what the summary at the top of the script
 suggests. An overlay header is therefore a formatted file like any other.
 
 The specific trap is a `///` block placed immediately after a field whose line
@@ -129100,7 +129100,7 @@ Inputs: `base_6.i`
 ## A narrow prototype parameter sign-extends at *every* call site; a block-scope old-style declaration is what removes it (_actor142900ScreenShakeTask, 2026-09-17)
 
 The caller-side complement of the `s16`/`s32` parameter entry above. `displaySetShakeY`
-is declared `void displaySetShakeY(s8 offsetY)` in `include/engine/display.h`, and it
+is declared `void displaySetShakeY(s8 offsetY)` in `packages/engine/include/display.h`, and it
 sign-extends that byte on *entry* (`sll a0,a0,24; sra a0,a0,24`), so a caller that hands it
 a full SImode value behaves identically. GCC emits the call-site conversion anyway. The mips
 port defines `PROMOTE_PROTOTYPES` (`config/mips/mips.h`), so `convert_arguments`
@@ -135536,7 +135536,7 @@ Do not loosen the prototypes to make it fit. Put the type in a header of its
 own, carrying nothing but that type, and include it from both sides: the module
 header includes it so nothing else changes, and each family header includes it
 instead of the module header. A header holding one type and no declarations has
-no prototypes to collide with. `include/gameplay/enemy_params.h` is the worked
+no prototypes to collide with. `packages/gameplay/include/enemy_params.h` is the worked
 example: the header carries the record and no function prototypes.
 
 A forward declaration is the other way out - give the type a tag, declare
@@ -142101,7 +142101,7 @@ The game never uses libgs's `GsCOORDINATE2` as libgs defines it: no code reads
 its `param` or `super` pointer, no libgs coordinate function is called, and the
 8 bytes libgs gives those pointers hold inline owner state: Euler angles
 (`param.rot`), a weapon-model flag, or the lighting interpretation. Game code therefore uses one type,
-`GfxCoord` in `include/engine/coord.h`, for every coordinate node. A
+`GfxCoord` in `packages/engine/include/coord.h`, for every coordinate node. A
 `(GfxCoord*)((u8*)p - OFFSET_OF(GfxCoord, coord))` reach from a local matrix
 back to its node is written `PARENT_OF(p, GfxCoord, coord)`.
 
@@ -153647,7 +153647,7 @@ register for both without a head-pointer local.
 
 **Use.** Where a scratch reservation needs a struct view of the cursor or a
 `head`/`head - 1` pair to hold its place, try the single-expression macro
-first. `ScratchStackCursor` in `include/engine/scratch.h` now has no user.
+first. `ScratchStackCursor` in `packages/engine/include/scratch.h` now has no user.
 
 ## A run of identical guards where each compare uses its predecessor's constant: a second, constant condition that only cse2 can fold (_desertChaserAnimCues, actor_323400 / actor_421600, 2026-10-07)
 

@@ -268,6 +268,10 @@ def collect(paths, db):
 def spell(owner: str, header: str) -> str:
     if header.startswith("include/psyq/"):
         return f"<{header[len('include/'):]}>"
+    parts = header.split("/")
+    # a package's public header, by its name, as build/include links it
+    if len(parts) > 3 and parts[0] == "packages" and parts[2] == "include" and not owner.startswith(f"packages/{parts[1]}/"):
+        return f'"{parts[1]}/{"/".join(parts[3:])}"'
     for prefix in ("include/decomp/", "include/"):
         if header.startswith(prefix):
             return f'"{header[len(prefix):]}"'

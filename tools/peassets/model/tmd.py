@@ -169,14 +169,14 @@ SRC_VERTS = 0x14
 SRC_NORMS = 0x18
 SRC_SKELETON = 0x1C   # partCount x TmdBone (0x24): rest pose + parent index
 SRC_STREAM = 0x20
-TMD_BONE_SIZE = 0x24   # include/engine/tmd_types.h: MATRIX local, s32 parentIndex
+TMD_BONE_SIZE = 0x24   # packages/engine/include/tmd_types.h: MATRIX local, s32 parentIndex
 BONE_SIZE = 0x24
 
 
 def read_skeleton(data: bytes, base: int, src_off: int) -> dict | None:
     """The rest pose behind a `TmdSource`, or None when it does not resolve.
 
-    ``TmdSource`` carries the whole skeleton (see `include/engine/tmd_types.h`):
+    ``TmdSource`` carries the whole skeleton (see `packages/engine/include/tmd_types.h`):
     ``+0x0C`` the part count, ``+0x10`` a table of how many vertices each part
     owns (``partVertexCounts``) - these groups need not exhaust the complete
     vertex array - and ``+0x1C`` one 0x24-byte bone per part holding a rest

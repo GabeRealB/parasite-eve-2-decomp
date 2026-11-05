@@ -12,7 +12,9 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
   `src/<family>/<overlay>` for the generated overlay families (`src/weapons/m93r`, …)
 - `packages/` overlays migrated out of splat: `packages/title` and the four
   `packages/aya/aya_*` are source, written by hand (see "Packages" below)
-- `include/<overlay>` headers for that unit (`include/engine`, `include/gameplay`, …)
+- `include/<overlay>` headers for that unit (`include/weapons`, `include/rooms`, …); a package's public headers are
+  its own `include/` (`packages/engine/include`, `packages/gameplay/include`), which split units include by the
+  package's name (`engine/fs.h`)
 - `asm/<ver>/<overlay>/nonmatchings` unmatched functions (one `.s` per function). Overlays may be nested (e.g. `asm/USA/stage1/101/nonmatchings`).
 - `asm/<ver>/<overlay>/matchings` already-matched functions
 - `packages/psyq` the Psy-Q SDK as the game links it: its headers and, in `lib/`, the members of its libraries the executable links (`lib/versions.txt`)
@@ -31,9 +33,10 @@ repository's ninja build, which needs no Rust, and the editor's.
 |---|---|
 | `packages/<...>/src`, `include`, `psx/link.ld` | source, written by hand |
 | `packages/core/include/pe2.h` | core's one public file: the macros a source declares slots with, and through its private `src/` the types and helpers every package uses; written by hand |
-| `packages/{main,gameplay}` | made from `include/` at every `ninja_config.py` run (`gen_package_library.py`), gitignored |
+| `packages/{engine,gameplay}/include` | the public headers of the two images still split, written by hand like any package's |
+| `packages/math` | `gte.h`: the GTE's commands as the COP2 words Sony's DMPSX made of the SDK's placeholders |
 | `packages/psyq` | the SDK: `include/`, a copy of `include/psyq` (which the decomp's tools read), and `lib/`, its objects and `snmain.s`, which the package compiles |
-| `packages/{main,gameplay}/psx/symbols.ld` | made from their ELFs by ninja, gitignored |
+| `packages/{engine,gameplay}/psx/symbols.ld` | made from their ELFs by ninja (`gen_package_library.py`), gitignored |
 | `configs/USA/package_slots.toml` | where each `slot` loads; `executable` is the PS-EXE, its header written by the target (`tools/buildsteps/psx_exe.py`) |
 | `configs/USA/resident.toml` | the models a package carries, which `dump_asset_db.py` catalogs |
 
@@ -81,10 +84,16 @@ never decode: a slot is the bytes the disc stores, found through the declaration
 code and layout; that assets rebuild those bytes is the editor's to prove. Where
 both make a token it must be the same text.
 
-**A header a resident image needs stays in `include/` as well.** `engine` and
-`gameplay` compile against `include/aya/aya.h` and `include/title/title.h`, and
-take the addresses from their imports files. Those are plain copies of the
-packages' public headers, so a rename there is a change in both.
+**What splat still builds reaches the packages' headers where they are.**
+`ninja_config.py` links each package's public folder into `build/include` by
+its name, so a split unit includes `engine/fs.h` or `title/title.h` with no
+copy, and again under `build/include/pkg`, through which those headers name
+each other (`PE2_INCLUDE`). They are written as a package's headers are: they
+include `pe2.h`, and the splat build fills their bindings one way, with a
+`pe2_values.h` of its own beside the links. `include/decomp`'s `types.h` and
+`common.h` are core's with splat's additions (`INCLUDE_ASM`, the version
+macros), so both builds have one set of types. A split image still takes the
+addresses of what it calls from its imports file.
 
 **Disc records stay.** `dump_asset_db.py` rebuilds `asset_data.py` from the disc,
 so a package keeps its record and its models in `resident.toml`, which is also
@@ -597,19 +606,19 @@ When you see pointer arithmetic patterns like `*(type*)((u8*)ptr + offset)`:
      executable) uses public module headers under `include/`. Include the
      canonical declaration instead of copying caller-local prototypes. Count
      callback/inline uses and cross-image aliases when deciding ownership.
-     - **Main executable** (`src/engine/`, `include/engine/`): see `NAMING.md` for
-       the module → header map (e.g. sound in `include/engine/sound.h`, UI in
+     - **Main executable** (`src/engine/`, `packages/engine/include/`): see `NAMING.md` for
+       the module → header map (e.g. sound in `packages/engine/include/sound.h`, UI in
        `ui.h`, FS/CdCmd in `fs.h`). Include the specific module header; do not
        add a kitchen-sink aggregator.
      - **Overlays:** public headers belong to their owning overlay under
        `include/`; private headers live next to its source. Public headers must
        not depend on private headers. Do not put overlay-only types in
-       `include/engine/`.
+       `packages/engine/include/`.
      - **Gameplay BSS:** keep the existing definitions in first-declaration
        order in the prologue, before API headers, with their required types
        available first. Header moves must preserve the matching storage layout;
        they do not justify changing alignment or inventing padding.
-   - Use `include/engine/unknown_syms.h` only for residual main-executable symbols
+   - Use `packages/engine/include/unknown_syms.h` only for residual main-executable symbols
      (`func_800*`, unfiled BSS/data) with no module home yet. Do **not** add new
      named types or Module_ APIs there.
 

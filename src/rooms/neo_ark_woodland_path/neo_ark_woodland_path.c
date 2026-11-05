@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/rand.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "common.h"
 
 #include "neo_ark_woodland_path_private.h"

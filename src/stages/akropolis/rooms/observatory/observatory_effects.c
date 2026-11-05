@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "observatory_private.h"
 

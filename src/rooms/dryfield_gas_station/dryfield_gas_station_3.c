@@ -25,7 +25,7 @@ Task* _gDryfieldGasStationArrivalCutsceneTask;
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "dryfield_gas_station_private.h"
 

@@ -7,7 +7,7 @@
 #include <psyq/gtemac.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "gameplay/actor_render.h"

@@ -39,8 +39,10 @@ class Overlay:
 
     @property
     def include_path(self) -> Optional[Path]:
-        candidate = REPO_ROOT / "include" / self.name
-        return candidate if candidate.is_dir() else None
+        for candidate in (REPO_ROOT / "packages" / self.name / "include", REPO_ROOT / "include" / self.name):
+            if candidate.is_dir():
+                return candidate
+        return None
 
 
 @dataclass(frozen=True)
@@ -615,7 +617,7 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         "build, it is rodata placement, not codegen: run `python3 tools/bulk/rodata_triage.py "
         "<overlay>`. A generated jump table must own *and start* its unit's .rodata.",
         "Do not read that file end-to-end.",
-        "New types for this overlay live under its own `include/`, not `include/engine/unknown_syms.h`.",
+        "New types for this overlay live under its own `include/`, not `packages/engine/include/unknown_syms.h`.",
     ]
     return "\n".join(lines) + "\n"
 

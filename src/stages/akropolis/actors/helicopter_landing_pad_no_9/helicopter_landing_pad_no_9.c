@@ -7,7 +7,7 @@
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "helicopter_landing_pad_no_9_private.h"
 

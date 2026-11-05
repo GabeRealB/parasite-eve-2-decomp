@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "shelter_b1_sterilization_room_private.h"
 

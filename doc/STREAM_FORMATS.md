@@ -11,7 +11,7 @@ and **seeks the CD** to feed hardware (SPU or MDEC) in real time.
 
 | Area | Code / tools |
 |------|----------------|
-| Descriptor struct | `include/engine/stream_types.h` (`StreamSlot`), `tools/peassets/format.py` |
+| Descriptor struct | `packages/engine/include/stream_types.h` (`StreamSlot`), `tools/peassets/format.py` |
 | Runtime load of descriptors | `src/engine/fs.c` (`fsBuildFolderTables`, `_fsStage0HeaderReadyCallback`) |
 | Movie play | `src/engine/stream.c` (`Stream_*`, `Mdec_*`), `cdcmd.c` (cmd `0x61`) |
 | Audio play | `src/engine/cdaudio.c`, `cdstream.c` (`CdStream_*`, `_MtsHeader`) |
@@ -603,4 +603,4 @@ Content at INTER0@75977 == INTER1@18620 (hash match)
 - [`ASSET_FORMATS.md`](ASSET_FORMATS.md) — stage chunks, BS stills, SPK, stages.json
 - jPSXdec *PlayStation1_STR_format* — general STR/MDEC reference
 - `src/engine/cdstream.c` — `_MtsHeader`, `CdStreamState`
-- `include/engine/stream_types.h` — `StreamSlot`; `include/engine/stream.h` — MDEC helpers
+- `packages/engine/include/stream_types.h` — `StreamSlot`; `packages/engine/include/stream.h` — MDEC helpers

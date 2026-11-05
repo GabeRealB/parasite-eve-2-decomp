@@ -7,7 +7,7 @@
 #include <psyq/inline_c.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "actors/actor_450200.h"
 #include "actors/actor_450200.h"

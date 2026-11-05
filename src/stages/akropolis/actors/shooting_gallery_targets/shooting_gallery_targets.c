@@ -7,7 +7,7 @@
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "types.h"
 
 #include "gameplay/actor.h"

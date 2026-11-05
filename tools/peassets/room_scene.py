@@ -62,7 +62,7 @@ from model import tmd  # noqa: E402
 from asset_residency import GROUP_BASE  # noqa: E402
 
 SCHEMA = 1
-FLOOR_NORMAL_Y = -0xDDA          # include/gameplay/world_collision.h WORLD_COLLISION_FLOOR_NORMAL_Y; strictly below is floor
+FLOOR_NORMAL_Y = -0xDDA          # packages/gameplay/include/world_collision.h WORLD_COLLISION_FLOOR_NORMAL_Y; strictly below is floor
 SCREEN = (320, 240)              # src/engine/displaymode.c: draw offset is (width / 2, height / 2)
 STAGE_NAMES = {1: "acropolis", 2: "dryfield", 3: "dryfield_night", 4: "mine_shelter", 5: "shelter_neo_ark"}
 YAW_SPECIAL = {0x7800: "FACE_TRANSITION_POINT_ALT", 0x7FFE: "KEEP_FACING", 0x7FFF: "FACE_TRANSITION_POINT"}
@@ -79,7 +79,7 @@ CONVENTIONS = {
              "A grid face whose 4th index is 65535 is a triangle. Trigger/occluder `corners` are already origin + offset, in world space.",
     "grid": "cell(x, z) = ((worldX + xBias) / cellSize, (worldZ + zBias) / cellSize); cells[x * cellCountZ + z] lists face indices. "
             "origin = (-xBias, -zBias). A face is floor when its normal's Y < -3546. A face whose first two vertex indices are both 0 is skipped by the sphere passes.",
-    "camera": "ViewCamera (include/gameplay/view.h). matrix M is world->camera rotation (rows = camera right, down, forward in world axes; 4096 = 1.0). "
+    "camera": "ViewCamera (packages/gameplay/include/view.h). matrix M is world->camera rotation (rows = camera right, down, forward in world axes; 4096 = 1.0). "
               "translation t is the NEGATED camera origin: p_cam = M * (p_world + t), camera position = -t (given as `position`). "
               "Projection: sx = 160 + screenDistance * Xc / Zc, sy = 120 + screenDistance * Yc / Zc on a 320x240 screen, camera +Y down, +Z forward "
               "(GTE H = screenDistance, geometry offset (0,0), draw offset = screen centre). fovY = 2*atan(120 / screenDistance).",
@@ -343,7 +343,7 @@ OBJECT_SPAWN = rec(("kind", "u16"), ("taskDesc", TASK_DESC))
 OBJECT_ROOM = rec(("places", "pint"), ("spawns", "ptr"))
 SURFACE = rec(("field_0", "u8"), ("probePassThrough", "u8"), ("weaponImpactEnabled", "u8"), ("suppressPushback", "u8"), ("footstepSounds", "ptr"))
 FOOTSTEPS = rec(("walk", "s32"), ("run", "s32"), ("scriptedJump", "s32"))
-# include/gameplay/sprites.h. A source's rectangle is (w, h) pixels at (x0, y0) from the drawing origin, read from
+# packages/gameplay/include/sprites.h. A source's rectangle is (w, h) pixels at (x0, y0) from the drawing origin, read from
 # texel (u0, v0) of its page; the last four bytes are the modulation colour and the GPU code bits.
 SPRITE_VIEW = rec(("sources", "ptr"), ("batches", "ptr"), ("drawAreas", "ptr"))
 SPRITE_BATCH = rec(("firstSprite", "u16"), ("spriteCount", "u16"), ("hidden", "u8"), ("skipCachedPackets", "u8"), ("field_6", arr("u8", 2)))
@@ -565,7 +565,8 @@ class Project:
     def code_constants(self, text: str):
         if self._globals is None:
             self._globals = {"NULL": 0}
-            texts = [asset_journal.code_of(p) for p in sorted((ROOT / "include").rglob("*.h")) if "psyq" not in p.parts]
+            headers = [*(ROOT / "include").rglob("*.h"), *(h for p in (ROOT / "packages").glob("*/include") for h in p.rglob("*.h"))]
+            texts = [asset_journal.code_of(p) for p in sorted(headers) if "psyq" not in p.parts]
             for _ in range(3):
                 seen: dict[str, set[int]] = defaultdict(set)
                 for header in texts:
@@ -1301,7 +1302,7 @@ class Scene:
         actors_here = set()
         for index, row in enumerate(variants or []):
             if index == 0 and not row["placements"] and not row["resources"]:
-                continue        # slot 0 is never a layout (include/gameplay/area.h)
+                continue        # slot 0 is never a layout (packages/gameplay/include/area.h)
             # A slot storing NULL/NULL is still a selectable variant: the room with nothing placed.
             rsym, psym = self.ref(row["resources"], sizeof(RESOURCE)), self.ref(row["placements"], sizeof(PLACEMENT))
             entry = {"variant": index, "default": index == 1, "empty": not row["placements"] and not row["resources"],

@@ -9,7 +9,7 @@
  * Permanent handwritten assembly (splat type: hasm).
  * One body per stream opcode: _tmdResolveSourceDrawHandlers resolves the body into the
  * stream beside the opcode, and Tmd_DispatchStream jalr's it. Each body is
- * labelled for the command it serves (documented in include/engine/tmd.h).
+ * labelled for the command it serves (documented in packages/engine/include/tmd.h).
  * Dual-entry alternates use alabel (e.g.
  * alabel tmdDrawStreamPrimGt3OneNormalSemiTrans shares the body of glabel
  * tmdDrawStreamPrimGt3OneNormal).

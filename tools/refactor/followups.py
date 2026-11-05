@@ -334,7 +334,7 @@ def triage(db, root: str, ledger: str) -> None:
             if cur is None:
                 # A document or a tool can still spell a name the code dropped,
                 # and that is usually the entry's very point.
-                code = (row["loc_file"] or "").startswith(("src/", "include/", "configs/"))
+                code = (row["loc_file"] or "").startswith(("src/", "include/", "packages/", "configs/"))
                 state = "stale" if not code and row["loc_file"] and in_file(row["loc_file"], symbol) else "gone"
             elif cur != symbol:
                 state = "renamed"

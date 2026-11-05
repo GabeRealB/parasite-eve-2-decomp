@@ -60,7 +60,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
     `AreaResource` lists. A resource row names a file (`fileNumber`,
     `fileGroupIndex`) and the actor it is for: `taskTable[taskIndex]`, a
     `TaskDesc` whose `data.model` is the model's `TmdSource` when its body kind
-    is a TMD model (include/gameplay/area.h, include/engine/task_types.h). So the
+    is a TMD model (packages/gameplay/include/area.h, packages/engine/include/task_types.h). So the
     row says which file's textures the model spawned through it is drawn with.
 
     The task table is an address in an actor overlay, and the row does not say
@@ -88,7 +88,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
             for name, slot, _entry in slot_packages(spec):
                 loads[name] = slots.get(slot.get("slot"), int(spec["load_addr"]))
     by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") in ("model", "tmd")}
-    last = lambda r: r["entryId"] == 0xFF  # noqa: E731 - AREA_RESOURCE_END / AREA_PLACEMENT_END (include/gameplay/area.h)
+    last = lambda r: r["entryId"] == 0xFF  # noqa: E731 - AREA_RESOURCE_END / AREA_PLACEMENT_END (packages/gameplay/include/area.h)
     missed = unresolved if unresolved is not None else []
 
     def holds(package: str | None, address: int) -> bool:

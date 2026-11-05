@@ -6,7 +6,7 @@
 #include <psyq/gtemac.h>
 #include <psyq/inline_c.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "common.h"
 
 #include "gameplay/companion_load.h"

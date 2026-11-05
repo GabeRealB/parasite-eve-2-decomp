@@ -1,7 +1,7 @@
 """The event-script vocabulary: opcodes, task slots and message ids by name.
 
-Made once from include/engine/session.h (GAME_TASK_SLOT_*), include/gameplay/message.h and captions.h (*_MESSAGE_*)
-and include/gameplay/evs.h (EVENT_SCRIPT_OPCODE_*); the extractor never reads C. A message id the table does not name
+Made once from packages/engine/include/session.h (GAME_TASK_SLOT_*), packages/gameplay/include/message.h and captions.h (*_MESSAGE_*)
+and packages/gameplay/include/evs.h (EVENT_SCRIPT_OPCODE_*); the extractor never reads C. A message id the table does not name
 is written as a number.
 """
 

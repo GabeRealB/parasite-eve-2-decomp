@@ -203,7 +203,7 @@ def speaker_token(name: str | int) -> str | None:
     return None if isinstance(name, int) else name.rsplit("#", 1)[0] if "#" in name else name
 
 
-# What each opcode reads (CapCommand, include/gameplay/cap.h). Bytes an opcode does not read are left over from
+# What each opcode reads (CapCommand, packages/gameplay/include/cap.h). Bytes an opcode does not read are left over from
 # the tool that wrote the file - a counter's unread `tally_count` is 1 in 600 of 601 - and are kept apart, under
 # `unread`, written only where they differ from that opcode's usual value.
 COMMAND_READS = {

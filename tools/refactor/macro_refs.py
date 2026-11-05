@@ -161,7 +161,7 @@ class Inventory:
                 original = logical[directive.start():directive.end()]
                 match = re.search(r'[<"]([^>"]+)[>"]', original)
                 if match:
-                    for base in (Path(file).parent, Path("include"), Path("include/decomp"), Path("src")):
+                    for base in (Path(file).parent, Path("include"), Path("build/include"), Path("include/decomp"), Path("src")):
                         path = (self.root / base / match[1]).resolve()
                         try:
                             rel = path.relative_to(self.root.resolve()).as_posix()

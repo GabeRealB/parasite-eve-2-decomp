@@ -5,7 +5,7 @@ what the log should say. Handlers act when one happens, with the game stopped: `
 which packages a finished load has put in memory, so that the events in them can be hooked.
 
 The layouts are the decomp's own: FsFileLoadKey (src/engine/fs_types.h), GameLocationKey
-(include/engine/session_types.h), SOUND_ID (include/engine/sound_ids.h); which packages a disc file carries comes from
+(packages/engine/include/session_types.h), SOUND_ID (packages/engine/include/sound_ids.h); which packages a disc file carries comes from
 the extractor's tables (tools/peassets/asset_data.py).
 """
 import re
@@ -42,7 +42,7 @@ def named(value: int, header: str, prefix: str) -> str:
     return name[len(prefix):].lower().replace("_", " ") if name else str(signed(value))
 
 
-# The bank types a sound id's top nibble names (include/engine/sound_ids.h, src/engine/sound_types.h). Type 1 is the
+# The bank types a sound id's top nibble names (packages/engine/include/sound_ids.h, src/engine/sound_types.h). Type 1 is the
 # room's footstep bank, 14 the parasite-energy banks, 15 the music sequences.
 SOUND_TYPES = {0: "common", 1: "footstep", 2: "weapon", 4: "character", 5: "area", 6: "ambient", 14: "parasite energy", 15: "sequence"}
 # What a load policy makes the loader do (fsLoadFile and the chunk reader, src/engine/fs.c): which chunks of the file
@@ -82,7 +82,7 @@ def file_load(record, trace):
     LOADING["mode"] = mode
     # The offsets are signed bytes: pages of 64 across for images high in video memory or relocated, rows for
     # palettes whose header says row 245..255.
-    return {"event": "file_load", **what, **named_file(what), "mode": mode, "policy": named(mode, "include/engine/fs_types.h", "CD_COMMAND_LOAD_"),
+    return {"event": "file_load", **what, **named_file(what), "mode": mode, "policy": named(mode, "packages/engine/include/fs_types.h", "CD_COMMAND_LOAD_"),
             "takes": LOAD_MODES.get(mode, LOAD_MODES[0]), "page_offset": signed(record["a2"]), "row_offset": signed(record["a3"]),
             "from": trace.symbol(record["ra"])}
 
@@ -107,7 +107,7 @@ def named_file(what: dict) -> dict:
         out["stage_name"] = "library"
         name = next((n for n, f in (tree()[0].get("files") or {}).items() if f["id"] == what["file"]), None)
     elif "stage" in what:
-        stage = constants("include/engine/areas.h", "GAME_STAGE_").get(what["stage"])
+        stage = constants("packages/engine/include/areas.h", "GAME_STAGE_").get(what["stage"])
         if stage:
             out["stage_name"] = stage[len("GAME_STAGE_"):].lower()
         folder = next(((n, f) for n, f in (tree().get(what["stage"], {}).get("folders") or {}).items() if f["id"] == what["folder"]), None)
@@ -225,7 +225,7 @@ def package_loaded(record, trace):
 
 @renderer("file_loaded")
 def file_loaded_line(record, trace):
-    return {"event": "file_loaded", **LOADING, **named_file(LOADING), "policy": named(LOADING.get("mode", 0), "include/engine/fs_types.h", "CD_COMMAND_LOAD_"), "packages": packages_of(LOADING)}
+    return {"event": "file_loaded", **LOADING, **named_file(LOADING), "policy": named(LOADING.get("mode", 0), "packages/engine/include/fs_types.h", "CD_COMMAND_LOAD_"), "packages": packages_of(LOADING)}
 
 
 @renderer("sound_request")
@@ -243,7 +243,7 @@ def variant_set(record, trace):
     view, room, area, stage, warp, current = struct.unpack_from("<6B", record["a0:8"])
     return {"event": "variant_set", "stage": stage, "area": area, "room": room, "view": view, "warp": warp, "was": current,
             "variant": record["a1"], "reset_mode": signed(record["a2"]),
-            "saved_poses": named(record["a2"], "include/gameplay/scene_runtime.h", "AREA_VARIANT_"), "from": trace.symbol(record["ra"])}
+            "saved_poses": named(record["a2"], "packages/gameplay/include/scene_runtime.h", "AREA_VARIANT_"), "from": trace.symbol(record["ra"])}
 
 
 def location(data: bytes) -> dict:
@@ -294,7 +294,7 @@ def image_chunk(record, trace):
     """fsUploadImageChunk: the chunk's header gives where it goes. Height is stored before width (FsImageChunk)."""
     if record["phase"] == "exit":
         status = record["v0"] & 0xFF
-        return {"event": "image_chunk_upload", "phase": "exit", "status": status, "result": named(status, "include/engine/fs.h", "FILE_SYSTEM_IMAGE_UPLOAD_")}
+        return {"event": "image_chunk_upload", "phase": "exit", "status": status, "result": named(status, "packages/engine/include/fs.h", "FILE_SYSTEM_IMAGE_UPLOAD_")}
     x, y, h, w = struct.unpack_from("<4H", record["a0:8"])
     return {"event": "image_chunk_upload", "phase": "enter", "x": x, "y": y, "w": w, "h": h, "waits_for_gpu": bool(record["a1"] & 0xFF), "kind": "palette" if h <= 16 and w in (16, 256) else "image",
             "from": trace.symbol(record["ra"])}
@@ -330,17 +330,17 @@ def room_of(stage: int, area: int) -> str | None:
 def cd_command(record, trace):
     """cdCmdEnqueue(command, fileKey, commandArgs): the request's opcode; for a file load, which file and how.
 
-    A file's id is split over the two blocks (include/engine/fs_types.h): the key has the index, group and stage -
+    A file's id is split over the two blocks (packages/engine/include/fs_types.h): the key has the index, group and stage -
     its second byte is never read - and the arguments have the hundreds, the load policy and the image offsets."""
     opcode = record["a0"] & 0xFF
-    command = constants("include/engine/fs_types.h", "CD_COMMAND_").get(opcode) or constants("include/engine/fs.h", "CD_COMMAND_").get(opcode)
+    command = constants("packages/engine/include/fs_types.h", "CD_COMMAND_").get(opcode) or constants("packages/engine/include/fs.h", "CD_COMMAND_").get(opcode)
     out = {"event": "cd_command", "command": command[len("CD_COMMAND_"):].lower().replace("_", " ") if command else str(opcode), "opcode": f"{opcode:#04x}"}
     if opcode == 0x21:
         index, _unread, group, stage = record["a1:4"]
         hundreds, mode = record["a2:4"][0], record["a2:4"][1]
         out.update({"file": group * 10000 + hundreds * 100 + index} if stage == 0 else {"stage": stage, "folder": group * 100 + hundreds, "index": index})
         out.update(named_file(out))
-        out.update({"mode": mode, "policy": named(mode, "include/engine/fs_types.h", "CD_COMMAND_LOAD_"),
+        out.update({"mode": mode, "policy": named(mode, "packages/engine/include/fs_types.h", "CD_COMMAND_LOAD_"),
                     "page_offset": signed(record["a2:4"][2] | (0xFFFFFF00 if record["a2:4"][2] & 0x80 else 0)),
                     "row_offset": signed(record["a2:4"][3] | (0xFFFFFF00 if record["a2:4"][3] & 0x80 else 0))})
     out["from"] = trace.symbol(record["ra"])
@@ -349,8 +349,8 @@ def cd_command(record, trace):
 
 @renderer("flag")
 def flag(record, trace):
-    """gameFlagSetNibble(flagId, value): the flag by its name in include/engine/gameflag_ids.h."""
-    name = constants("include/engine/gameflag_ids.h", "GAME_FLAG_").get(record["a0"])
+    """gameFlagSetNibble(flagId, value): the flag by its name in packages/engine/include/gameflag_ids.h."""
+    name = constants("packages/engine/include/gameflag_ids.h", "GAME_FLAG_").get(record["a0"])
     out = {"event": "flag_set", "flag": name or f"{record['a0']:#05x}", "id": f"{record['a0']:#05x}", "value": record["a1"] & 0xF, "from": trace.symbol(record["ra"])}
     noted = flag_notes()["flags"].get(record["a0"])                  # what the person at the tracer has written about it
     if noted and noted.get("description"):
@@ -366,7 +366,7 @@ def flag(record, trace):
 def flag_byte(record, trace):
     """gameFlagSetPackedByte(nibbleIndex, packedValue): two nibbles at once; either index of a pair names the byte."""
     low = record["a0"] & ~1
-    names = [constants("include/engine/gameflag_ids.h", "GAME_FLAG_").get(low + n) or f"{low + n:#05x}" for n in (0, 1)]
+    names = [constants("packages/engine/include/gameflag_ids.h", "GAME_FLAG_").get(low + n) or f"{low + n:#05x}" for n in (0, 1)]
     out = {"event": "flag_byte_set", "flags": names, "value": f"{record['a1'] & 0xFF:#04x}", "from": trace.symbol(record["ra"])}
     notes, value = flag_notes(), record["a1"] & 0xFF
     if low == OBJECTIVE_BYTE and value in notes["objectives"]:
@@ -388,7 +388,7 @@ def companion(record, trace):
 
 @renderer("sound_stop")
 def sound_stop(record, trace):
-    """sndEvtRequestScriptStop(selector, stopControl) (include/engine/sound.h)."""
+    """sndEvtRequestScriptStop(selector, stopControl) (packages/engine/include/sound.h)."""
     selector, control = record["a0"], record["a1"] & 0xFFFF
     if selector & 0xFF:                                   # an entry: that id, or every instance of it
         what = {**sound(selector), "which": "every instance" if (selector >> 8) & 0xFF == 0xFF else "that instance"}
@@ -428,7 +428,7 @@ def caption_file(record, trace):
 
 @renderer("caption_sequence")
 def caption_sequence(record, trace):
-    """capStartSequenceSlot(commandIndex, playbackMode, variantKey) (include/gameplay/captions.h)."""
+    """capStartSequenceSlot(commandIndex, playbackMode, variantKey) (packages/gameplay/include/captions.h)."""
     modes = {0: "in the current display", 1: "after a display transition", 2: "after a transition, with room-effect messages around it",
              3: "after a transition, only if no sequence has started"}
     mode = record["a1"] & 0xFFFF
@@ -449,12 +449,12 @@ def stream_scene(record, trace):
 
 
 def message_names() -> dict[int, list[str]]:
-    """value -> the message constants of include/gameplay/message.h with that value (several enums share numbers)."""
+    """value -> the message constants of packages/gameplay/include/message.h with that value (several enums share numbers)."""
     if "messages" not in _CONSTANTS:
         import re
         found: dict[int, list[str]] = {}
         try:
-            text = (REPO / "include/gameplay/message.h").read_text(errors="replace")
+            text = (REPO / "packages/gameplay/include/message.h").read_text(errors="replace")
         except OSError:
             text = ""
         for name, value in re.findall(r"^\s*(\w*MESSAGE\w*)\s*=\s*(0x[0-9A-Fa-f]+|\d+)\s*[,}/]", text, re.M):
@@ -551,17 +551,17 @@ def flag_command(trace, text):
     """flag ID [VALUE]   show a game flag, or set it (0..15); ID is a number or a GAME_FLAG_ name"""
     parts = text.split()
     if not parts:                                    # no arguments: show the flags and ask
-        named = constants("include/engine/gameflag_ids.h", "GAME_FLAG_")
+        named = constants("packages/engine/include/gameflag_ids.h", "GAME_FLAG_")
         picked = trace.choose(f"{len(named)} flags have names", [(name[len("GAME_FLAG_"):], f"{value:#05x}") for value, name in sorted(named.items())])
         if picked is None:
             return "nothing done"
         value = trace.ask(f"set {picked} to (0..15; nothing to only show it): ")
         parts = [picked] + ([value] if value else [])
-    by_name = {name: value for value, name in constants("include/engine/gameflag_ids.h", "GAME_FLAG_").items()}
+    by_name = {name: value for value, name in constants("packages/engine/include/gameflag_ids.h", "GAME_FLAG_").items()}
     ident = by_name.get(parts[0].upper(), by_name.get("GAME_FLAG_" + parts[0].upper()))
     if ident is None:
         ident = int(parts[0], 0)
-    name = constants("include/engine/gameflag_ids.h", "GAME_FLAG_").get(ident, f"{ident:#05x}")
+    name = constants("packages/engine/include/gameflag_ids.h", "GAME_FLAG_").get(ident, f"{ident:#05x}")
     if len(parts) > 1 and not 0 <= int(parts[1], 0) <= 15:
         return "a flag holds 0..15"
     # The flag functions read or write one nibble, so they may be called wherever the game stands - short of the
@@ -899,7 +899,7 @@ def location_of(data: bytes) -> dict:
 
 # ---- the player's numbers
 #
-# They are plain values in the player's status (PlayerStatus, include/engine/wipsys_types.h), which the game reads
+# They are plain values in the player's status (PlayerStatus, packages/engine/include/wipsys_types.h), which the game reads
 # every frame, so they are read and written as memory: no call into the game, and so from wherever it is stopped.
 
 PLAYER_NUMBERS = {      # name -> (offset in gPlayerStatus, struct format, offset of its maximum or None, what it is)
@@ -949,7 +949,7 @@ for _name in PLAYER_NUMBERS:
 # The game's flags are nibbles, written one at a time or two at once as a packed byte; the current objective is one
 # such byte. What each means is found by watching it change, so `watch_flags` stops the game when a flag or a value
 # appears that the notes do not have, and asks. The notes are a file of the person's own, outside the repository:
-# the names in include/engine/gameflag_ids.h are not consulted - a flag is known when its meaning has been written here.
+# the names in packages/engine/include/gameflag_ids.h are not consulted - a flag is known when its meaning has been written here.
 
 FLAG_EVENTS = ("flag_nibble", "flag_byte")      # the two ways the game writes a flag: one nibble, or a packed byte
 FLAG_NOTES = REPO / "local" / "gametrace" / "flag_notes.toml"

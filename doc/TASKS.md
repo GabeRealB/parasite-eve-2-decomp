@@ -5,13 +5,13 @@ with a per-frame callback, optional parent/child links, and an optional TMD mode
 or single-coordinate body. There is no separate entity list. Enemies, UI, camera,
 memcard, title, and room overlays are all spawned the same way.
 
-Field-level layouts: [`include/engine/task_types.h`](../include/engine/task_types.h).
+Field-level layouts: [`packages/engine/include/task_types.h`](../include/engine/task_types.h).
 Overlay RAM slots that many callbacks live in: [`OVERLAYS.md`](OVERLAYS.md).
 Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 
 | Area | Code / data |
 |------|-------------|
-| Types + APIs | `include/engine/task.h`, `src/engine/task.c` |
+| Types + APIs | `packages/engine/include/task.h`, `src/engine/task.c` |
 | Extra lists / OT spawn | `src/engine/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
 | Frame tick | `src/engine/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
 | Bank tables | `src/engine/textdraw.c` (`gTaskDescBanks`); each referenced resident descriptor table defines its own extent |
@@ -468,7 +468,7 @@ onto the currently selected execution list.
 ## 7. Work that hangs off a task
 
 The `Task` is the actor. Specific systems stash extra state in the leftover
-slots (see [`include/engine/task.h`](../include/engine/task.h)):
+slots (see [`packages/engine/include/task.h`](../include/engine/task.h)):
 
 | Slot | Typical payload |
 |------|-----------------|

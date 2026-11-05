@@ -10,7 +10,7 @@
 #include <psyq/rand.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor.h"

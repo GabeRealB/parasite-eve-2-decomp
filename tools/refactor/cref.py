@@ -51,7 +51,7 @@ _EXTRA_FLAGS = ["-target", "mipsel-unknown-elf", "-std=gnu89", "-ferror-limit=0"
 
 def repo_root() -> str:
     """Repository root, two levels above this package."""
-    here = os.path.dirname(os.path.abspath(__file__))
+    here = os.path.dirname(os.path.realpath(__file__))
     return os.path.dirname(os.path.dirname(here))
 
 
@@ -388,7 +388,8 @@ def abspath(name: str, root: str) -> str:
     through a relative -I comes back relative to the process cwd, not to root."""
     if not name:
         return ""
-    return os.path.normpath(name if os.path.isabs(name) else os.path.join(root, name))
+    # A package's header found through build/include's links is the package's file.
+    return os.path.realpath(name if os.path.isabs(name) else os.path.join(root, name))
 
 
 def relpath(name: str, root: str) -> str:

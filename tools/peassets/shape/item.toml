@@ -6,7 +6,7 @@
 #              the same three for the item before it is identified (itemGetText).
 #   info       the information panel of its preview file (itemMenuInfoTask, src/gameplay/item_stats.c): CRLF
 #              lines up to `\Z`, five header rows drawn 15 pixels apart, then the rows of a scrolling list.
-#   descriptor its row of gameplay's descriptor table (`ItemDesc`, include/gameplay/inventory.h): price,
+#   descriptor its row of gameplay's descriptor table (`ItemDesc`, packages/gameplay/include/inventory.h): price,
 #              classification (the shape's `category` in the high nibble, the low by shape: an ammunition's
 #              `caliber`, an effect item's `medicine`, a weapon's `weapon_class`), flags, and the
 #              address of its catalog text, which follows from the catalog output (the shared empty text for

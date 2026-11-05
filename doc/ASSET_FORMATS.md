@@ -15,7 +15,7 @@ Implementation references:
 | LZSS (decode and encode) | `editor/crates/formats/src/lzss.rs`, [`LZSS_ENCODER.md`](LZSS_ENCODER.md); runtime `src/engine/hasm/fsDecompressStream.s` |
 | Images / CLUT | `tools/peassets/image_codec.py`, `src/engine/fs.c` |
 | Asset database | `tools/peassets/asset_db.py`, `asset_data.py` |
-| Runtime FS loader | `src/engine/fs.c`, `include/engine/fs.h` |
+| Runtime FS loader | `src/engine/fs.c`, `packages/engine/include/fs.h` |
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 | **Overlays (RAM slots, rooms, models)** | [`OVERLAYS.md`](OVERLAYS.md) |
 | **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/model/tmd.py`, `src/engine/tmd.c` |
@@ -386,7 +386,7 @@ asset table.
 ### 7.1 On-disk structure
 
 ```text
-FsImageChunk (0x10 bytes) — runtime struct in include/engine/fs_types.h:
+FsImageChunk (0x10 bytes) — runtime struct in packages/engine/include/fs_types.h:
   u16 x, y      VRAM destination (x in halfwords, y in rows)
   u16 h, w      height in rows, then width in halfwords
   u8  unused[8] unread by the loader; zero in every retail CLUT payload and bundle image
@@ -829,7 +829,7 @@ Layout, from `animationBindModelContext` / `animationResetSlot` / `animationRese
 ```text
 table entry ─→ AnimationSet*[]        slot 0 unused; NULL entries are holes
 
-AnimationSet (types in include/gameplay/animation.h):
+AnimationSet (types in packages/gameplay/include/animation.h):
   0x00  const AnimationRecord* records            shared 4-byte keyframe/control records
   0x04  const u16*             trackStartIndices  absolute first-record index per model-part track
   0x08  const void*            poseBanks[8]       banks indexed by the track's encoding (1 or 4)

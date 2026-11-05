@@ -6,13 +6,13 @@
     area_variants.py                      every stored variant, by target room
 
 A room's placement variant (which actors and files it loads) is saved state.
-Other overlays change it with `AreaApplyRec` lists (include/gameplay/area_flags.h):
+Other overlays change it with `AreaApplyRec` lists (packages/gameplay/include/area_flags.h):
 each record names a stage, an area and the variant to store, and a policy
 byte whose high nibble says which save modes accept it. A variant no list
 stores is either the room's default or set some other way.
 
 Dryfield by day and by night share saved area state: where both stages have a
-room with one area id, both address the same slot (include/engine/gameflag_types.h,
+room with one area id, both address the same slot (packages/engine/include/gameflag_types.h,
 `GameFlagDryfieldBank`). A record naming either stage is therefore listed under
 both rooms, marked "(shared slot)" on the one the record does not name.
 
@@ -41,7 +41,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from asset_data import TREE  # noqa: E402
 
 STAGES = (1, 2, 3, 4, 5)         # GameLocationKey.stage of the five stages with room folders
-LIST_END = 0xFF                  # AreaApplyRec.stage that ends a list (AREA_APPLY_END, include/gameplay/area_flags.h)
+LIST_END = 0xFF                  # AreaApplyRec.stage that ends a list (AREA_APPLY_END, packages/gameplay/include/area_flags.h)
 RECORD_SIZE = 4                  # AreaApplyRec { u8 stage, area, variant, policy } (STATIC_ASSERT_SIZEOF there)
 DRYFIELD_TWIN = {2: 3, 3: 2}     # the day and night stages share saved area slots
 

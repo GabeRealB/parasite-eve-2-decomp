@@ -184,7 +184,7 @@ Place each function, global and type according to its actual consumers:
   beside the source, such as `src/gameplay/attachments.h`.
 - **Several overlays, or the resident executable and an overlay:** use the
   owning module's public header under `include/`, such as
-  `include/gameplay/attachments.h`. Public headers must not include private
+  `packages/gameplay/include/attachments.h`. Public headers must not include private
   source-directory headers.
 
 Count definitions and actual uses, including callbacks, inline helpers and
@@ -340,7 +340,7 @@ requires them, and include only the interface actually used.
 Platform memory helpers in `include/decomp/common.h` describe fixed PlayStation
 hardware regions and use the full `PLAYSTATION_` macro prefix. They provide byte
 addresses, not allocation or ownership. The scratch stack in
-`include/engine/scratch.h` manages temporary blocks within that region; its cursor
+`packages/engine/include/scratch.h` manages temporary blocks within that region; its cursor
 access, block reservation/release helpers and byte-offset constants use
 `SCRATCH_STACK_`. Inline cursor writers use `scratchStack`, with `_` for each
 translation unit's static instance, in the same scratch-stack interface.
@@ -350,34 +350,34 @@ in a row identify different responsibilities in the same source group.
 
 | Prefix | Responsibility | Source examples | Interface / type headers |
 |---|---|---|---|
-| `fs`, `cdCmd`, `cdSync`, `cdVol` | Filesystem, queued CD requests, drive recovery, CD volume | `fs.c`, `cdcmd.c`, `cdsync.c`, `cdvol.c` | `include/engine/fs.h`, `include/engine/fs_types.h`, `src/engine/fs.h` |
-| `boot`, `gameMain` | Initialization and main loop | `main.c`, `boot.c`, `gamemain.c` | `src/engine/boot.h`, `src/engine/gamemain.h`, `include/engine/gamemain.h` |
-| `gameFlow`, `fade` | Session flow and screen fades | `gameflow.c`, `bootload.c` | `include/engine/gameflow.h`, `src/engine/gameflow.h` |
+| `fs`, `cdCmd`, `cdSync`, `cdVol` | Filesystem, queued CD requests, drive recovery, CD volume | `fs.c`, `cdcmd.c`, `cdsync.c`, `cdvol.c` | `packages/engine/include/fs.h`, `packages/engine/include/fs_types.h`, `src/engine/fs.h` |
+| `boot`, `gameMain` | Initialization and main loop | `main.c`, `boot.c`, `gamemain.c` | `src/engine/boot.h`, `src/engine/gamemain.h`, `packages/engine/include/gamemain.h` |
+| `gameFlow`, `fade` | Session flow and screen fades | `gameflow.c`, `bootload.c` | `packages/engine/include/gameflow.h`, `src/engine/gameflow.h` |
 | `playClock` | Resetting the resident partial-minute play-time accumulator after a save load; gameplay advances it | `gameflow.c` | `src/engine/session.h` |
-| `gameDebug` | Resident diagnostic controls, input overrides/replay and session-load status shared with gameplay | `stage.c` (resident storage), `gamemain.c` (reset), gameplay consumers | `include/engine/game_debug.h` (resident controls), `include/engine/game_debug_types.h` (state type), `include/gameplay/game_debug.h` (gameplay input-override export) |
-| `loadUi` | Loading and disk-swap presentation | `loadui.c` | `include/engine/loadui.h` |
-| `stage` | Stage mode tasks, view/file transitions, their grey fade and guarded graphics resources, and music selection | `stage.c`, `stage_music.c` | `include/engine/stage.h`, `include/engine/stage_types.h`, `src/engine/stage.h` |
-| `display`, `gpu` | Frame presentation, display state and ordering tables | `gamemain.c`, `displaymode.c`, `otutil.c` | `include/engine/display.h`, `include/engine/display_types.h`, `src/engine/display.h` |
-| `gfx` | Graphics coordinates, matrices, lights and image slots | `gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/engine/gfx.h`, `include/engine/gfx_types.h`, `include/engine/coord.h`, `src/engine/gfx.h` |
+| `gameDebug` | Resident diagnostic controls, input overrides/replay and session-load status shared with gameplay | `stage.c` (resident storage), `gamemain.c` (reset), gameplay consumers | `packages/engine/include/game_debug.h` (resident controls), `packages/engine/include/game_debug_types.h` (state type), `packages/gameplay/include/game_debug.h` (gameplay input-override export) |
+| `loadUi` | Loading and disk-swap presentation | `loadui.c` | `packages/engine/include/loadui.h` |
+| `stage` | Stage mode tasks, view/file transitions, their grey fade and guarded graphics resources, and music selection | `stage.c`, `stage_music.c` | `packages/engine/include/stage.h`, `packages/engine/include/stage_types.h`, `src/engine/stage.h` |
+| `display`, `gpu` | Frame presentation, display state and ordering tables | `gamemain.c`, `displaymode.c`, `otutil.c` | `packages/engine/include/display.h`, `packages/engine/include/display_types.h`, `src/engine/display.h` |
+| `gfx` | Graphics coordinates, matrices, lights and image slots | `gfxlight.c`, `gfxmtx.c`, `boot.c` | `packages/engine/include/gfx.h`, `packages/engine/include/gfx_types.h`, `packages/engine/include/coord.h`, `src/engine/gfx.h` |
 | `gpuExt` | GPU status helpers | `gpuext.c` | `src/engine/gpuext.h` |
-| `mem` | Main and auxiliary heaps and memory operations | `mem.c` | `include/engine/mem.h`, `src/engine/mem.h` |
-| `task` | Task allocation, lists, dispatch and banks; the banks and their slots by name (`TASK_BANK_*`, `TASK_<BANK>_*`, `TASK_ID`) | `task.c`, `taskbank.c`, `taskutil.c` | `include/engine/task.h`, `include/engine/task_ids.h`, `include/engine/task_types.h`, `src/engine/task.h` |
-| `pad` | Controller state and polling | `pad.c`, `padutil.c` | `include/engine/pad.h`, `include/engine/pad_types.h`, `src/engine/pad.h` |
-| `mc`, `mcMenu` | Save data, memory-card operations and prompts | `mc.c`, `mcmenu.c` | `include/engine/mc.h`, `include/engine/mc_types.h`, `src/engine/mc.h` |
-| `ui` | Generic windows, panels and list controls | `ui.c`, `mcmenu.c` | `include/engine/ui.h`, `include/engine/ui_types.h`, `src/engine/ui.h` |
-| `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `include/engine/text.h`, `src/engine/text.h` |
-| `cdAudio` | CD audio playback | `cdaudio.c` | `include/engine/cdaudio.h`, `include/engine/cdaudio_types.h`, `src/engine/cdaudio.h` |
+| `mem` | Main and auxiliary heaps and memory operations | `mem.c` | `packages/engine/include/mem.h`, `src/engine/mem.h` |
+| `task` | Task allocation, lists, dispatch and banks; the banks and their slots by name (`TASK_BANK_*`, `TASK_<BANK>_*`, `TASK_ID`) | `task.c`, `taskbank.c`, `taskutil.c` | `packages/engine/include/task.h`, `packages/engine/include/task_ids.h`, `packages/engine/include/task_types.h`, `src/engine/task.h` |
+| `pad` | Controller state and polling | `pad.c`, `padutil.c` | `packages/engine/include/pad.h`, `packages/engine/include/pad_types.h`, `src/engine/pad.h` |
+| `mc`, `mcMenu` | Save data, memory-card operations and prompts | `mc.c`, `mcmenu.c` | `packages/engine/include/mc.h`, `packages/engine/include/mc_types.h`, `src/engine/mc.h` |
+| `ui` | Generic windows, panels and list controls | `ui.c`, `mcmenu.c` | `packages/engine/include/ui.h`, `packages/engine/include/ui_types.h`, `src/engine/ui.h` |
+| `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `packages/engine/include/text.h`, `src/engine/text.h` |
+| `cdAudio` | CD audio playback | `cdaudio.c` | `packages/engine/include/cdaudio.h`, `packages/engine/include/cdaudio_types.h`, `src/engine/cdaudio.h` |
 | `cdStream`, `cdReady` | CD-to-SPU streaming and ready queue | `cdstream.c` | `src/engine/cdstream.h` |
 | `sndVolume` | Combined MIDI/script master-volume policies and their request gates | `sndscript.c`, `sndevt.c` | `src/engine/sound.h` |
-| `sndOutput` | Resident mono/stereo output selection shared by MIDI, sound scripts, CD input and streaming voices | `cdvol.c` | `include/engine/sound.h`, `src/engine/sound.h` |
-| `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `include/engine/sound.h`, `include/engine/sound_types.h`, `src/engine/sound.h` |
-| `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c`, gameplay `scene_runtime.c` (PE file requests) | `include/engine/sound.h`, `src/engine/sound.h`, `src/engine/sound_types.h`, `src/gameplay/scene_runtime.h` (PE file requests) |
-| `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/engine/sound.h`, `src/engine/sound.h` |
-| `stream`, `mdec` | Stream slots and MDEC movie/image decoding; scene/audio selection, payload-sector intake, completion and stream halt requests | `stream.c`, `stage.c` (image decoding), gameplay `scene_runtime.c` (scene stream coordination) | `include/engine/stream.h`, `include/engine/stream_types.h`, `src/engine/stream.h`, `include/gameplay/scene_runtime.h` (scene stream coordination) |
-| `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/engine/tmd.h`, `include/engine/tmd_types.h`, `src/engine/tmd.h` |
-| `gameFlag` | Packed game flags | `gameflag.c`, gameplay `cap_commands.c` (optional nibble and whole-byte access) | `include/engine/gameflag.h`, `include/engine/gameflag_types.h`, `include/gameplay/gameflag.h` (gameplay exports) |
-| `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/engine/session.h`, `include/engine/session_types.h`, `include/engine/wipsys.h`, `include/engine/wipsys_types.h` |
-| `random` | Shared 32-bit pseudo-random sequence for gameplay and loaded overlays; consumers advance the recurrence directly, independently of SDK `rand()` | `gamemain.c` (resident state), gameplay and overlay consumers | `include/engine/random.h` |
+| `sndOutput` | Resident mono/stereo output selection shared by MIDI, sound scripts, CD input and streaming voices | `cdvol.c` | `packages/engine/include/sound.h`, `src/engine/sound.h` |
+| `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `packages/engine/include/sound.h`, `packages/engine/include/sound_types.h`, `src/engine/sound.h` |
+| `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c`, gameplay `scene_runtime.c` (PE file requests) | `packages/engine/include/sound.h`, `src/engine/sound.h`, `src/engine/sound_types.h`, `src/gameplay/scene_runtime.h` (PE file requests) |
+| `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `packages/engine/include/sound.h`, `src/engine/sound.h` |
+| `stream`, `mdec` | Stream slots and MDEC movie/image decoding; scene/audio selection, payload-sector intake, completion and stream halt requests | `stream.c`, `stage.c` (image decoding), gameplay `scene_runtime.c` (scene stream coordination) | `packages/engine/include/stream.h`, `packages/engine/include/stream_types.h`, `src/engine/stream.h`, `packages/gameplay/include/scene_runtime.h` (scene stream coordination) |
+| `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `packages/engine/include/tmd.h`, `packages/engine/include/tmd_types.h`, `src/engine/tmd.h` |
+| `gameFlag` | Packed game flags | `gameflag.c`, gameplay `cap_commands.c` (optional nibble and whole-byte access) | `packages/engine/include/gameflag.h`, `packages/engine/include/gameflag_types.h`, `packages/gameplay/include/gameflag.h` (gameplay exports) |
+| `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `packages/engine/include/session.h`, `packages/engine/include/session_types.h`, `packages/engine/include/wipsys.h`, `packages/engine/include/wipsys_types.h` |
+| `random` | Shared 32-bit pseudo-random sequence for gameplay and loaded overlays; consumers advance the recurrence directly, independently of SDK `rand()` | `gamemain.c` (resident state), gameplay and overlay consumers | `packages/engine/include/random.h` |
 
 `Wip*` and `Wip_*` are provisional spellings, not a subsystem to perpetuate.
 Establish the owner of each remaining item. The historical `wipsyscfg.c` filename
@@ -392,43 +392,43 @@ prefixes, choose the responsibility the symbol actually implements.
 
 | Prefix | Responsibility | Source examples | Interface / type headers |
 |---|---|---|---|
-| `actorRender` | Actor model drawing, coordinate updates and position/orientation records | `actor_render.c` | `include/gameplay/actor_render.h`, `include/gameplay/message.h` (`ActorTransform`), `src/gameplay/actor_render.h` |
-| `modelObject`, `animation` | Model attachments, child-model task lifecycle and animation state | `model_objects.c`, `player_state.c` (child-model task states), `scene_runtime.c` | `include/gameplay/model_objects.h`, `include/gameplay/animation.h`, `include/gameplay/animation_types.h`, `src/gameplay/model_objects.h` |
-| `modelLighting` | Lit model transforms and primitive emission | `model_lighting.c` | `include/gameplay/model_lighting.h`, `src/gameplay/model_lighting.h` |
-| `worldCoord` | Room/world transforms and light queries | `world_coords.c` | `include/gameplay/world_coords.h`, `src/gameplay/world_coords.h` |
-| `gfx` | Transform composition, Euler extraction and direction-facing rotations exported by gameplay | `scene_runtime.c`, `hud_sprites.c`, `object_lists.c` | `include/gameplay/scene_runtime.h`, `include/gameplay/hud_sprites.h` |
-| `fade`, `display` | Full-screen colour pulses and fades; display-transition fades; redraw of the previous framebuffer for temporal blending | `scene_runtime.c`, `item_menu.c` (display-transition fade) | `include/gameplay/display.h` (fade control and display-transition task), `include/gameplay/scene_runtime.h` (task dispatch); individual task states are TU-local |
-| `worldCollision` | Collision grids, object lists, contact dispatch and contact offsets | `world_collision.c`, `collision_grid.c`, `object_lists.c`, `scene_runtime.c` (contact offsets) | `include/gameplay/world_collision.h`, `include/gameplay/world_collision_types.h`, `include/gameplay/collision.h`, `include/gameplay/scene_runtime.h` (contact offsets), `src/gameplay/world_collision.h` |
-| `worldTarget` | Target tracking, lock-on, reticle and floating damage/heal readouts | `world_targets.c` | `include/gameplay/world_targets.h`, `include/gameplay/world_targets_types.h`, `src/gameplay/world_targets.h` |
-| `objectTask` | Object task/message control | `object_task.c` | `include/gameplay/object_task.h`, `src/gameplay/object_task.h` |
-| `taskMessage` | Synchronous id-selected task messages and integer/address argument transport | `companion_load.c` (`taskMessageDispatch`) | `include/gameplay/message.h` (`TaskMessageArg`, `TaskMessageHandler`, `TaskMessageEntry`) |
+| `actorRender` | Actor model drawing, coordinate updates and position/orientation records | `actor_render.c` | `packages/gameplay/include/actor_render.h`, `packages/gameplay/include/message.h` (`ActorTransform`), `src/gameplay/actor_render.h` |
+| `modelObject`, `animation` | Model attachments, child-model task lifecycle and animation state | `model_objects.c`, `player_state.c` (child-model task states), `scene_runtime.c` | `packages/gameplay/include/model_objects.h`, `packages/gameplay/include/animation.h`, `packages/gameplay/include/animation_types.h`, `src/gameplay/model_objects.h` |
+| `modelLighting` | Lit model transforms and primitive emission | `model_lighting.c` | `packages/gameplay/include/model_lighting.h`, `src/gameplay/model_lighting.h` |
+| `worldCoord` | Room/world transforms and light queries | `world_coords.c` | `packages/gameplay/include/world_coords.h`, `src/gameplay/world_coords.h` |
+| `gfx` | Transform composition, Euler extraction and direction-facing rotations exported by gameplay | `scene_runtime.c`, `hud_sprites.c`, `object_lists.c` | `packages/gameplay/include/scene_runtime.h`, `packages/gameplay/include/hud_sprites.h` |
+| `fade`, `display` | Full-screen colour pulses and fades; display-transition fades; redraw of the previous framebuffer for temporal blending | `scene_runtime.c`, `item_menu.c` (display-transition fade) | `packages/gameplay/include/display.h` (fade control and display-transition task), `packages/gameplay/include/scene_runtime.h` (task dispatch); individual task states are TU-local |
+| `worldCollision` | Collision grids, object lists, contact dispatch and contact offsets | `world_collision.c`, `collision_grid.c`, `object_lists.c`, `scene_runtime.c` (contact offsets) | `packages/gameplay/include/world_collision.h`, `packages/gameplay/include/world_collision_types.h`, `packages/gameplay/include/collision.h`, `packages/gameplay/include/scene_runtime.h` (contact offsets), `src/gameplay/world_collision.h` |
+| `worldTarget` | Target tracking, lock-on, reticle and floating damage/heal readouts | `world_targets.c` | `packages/gameplay/include/world_targets.h`, `packages/gameplay/include/world_targets_types.h`, `src/gameplay/world_targets.h` |
+| `objectTask` | Object task/message control | `object_task.c` | `packages/gameplay/include/object_task.h`, `src/gameplay/object_task.h` |
+| `taskMessage` | Synchronous id-selected task messages and integer/address argument transport | `companion_load.c` (`taskMessageDispatch`) | `packages/gameplay/include/message.h` (`TaskMessageArg`, `TaskMessageHandler`, `TaskMessageEntry`) |
 | `linkedActor` | Linked actor helpers | `linked_actors.c` | `src/gameplay/linked_actors.h` |
-| `area`, `direction` | Area layouts, entry, flags, transitions, facing and warps | `area_entry.c`, `area_transitions.c`, `direction_input.c`, `direction_facing.c` | `include/gameplay/area.h`, `include/gameplay/areaplace.h`, `include/gameplay/area_entry.h`, `include/gameplay/area_transitions.h`, `include/gameplay/direction.h`, `src/gameplay/area_transitions.h` |
-| `loading`, `view` | Gameplay loading, view images and camera records/application | `area_cd.c`, `cd_loading.c`, `load_screen.c`, `view_load.c`, `view_image.c`, `hud_sprites.c` (camera application) | `include/gameplay/loading.h`, `include/gameplay/view.h`, `src/gameplay/loading.h` |
-| `gameFlow` | Session reload from live saved state, coordinating combat exit, display holds and the resource rebuild | `companion_load.c` (resident task-bank callback and reload phases), `load_screen.c` (rebuild phase) | `include/gameplay/companion_load.h`, `src/gameplay/companion_load.h` |
-| `sprite` | Sprite allocation and linking | `sprite_link.c` | `include/gameplay/sprites.h`, `include/gameplay/loading.h` |
-| `companion` | Companion selection, actor setup, scripted motion/playback, decision timing and health bands | `companion_load.c`, `player_state.c` (behavior and message helpers) | `include/gameplay/companion_load.h`, `include/gameplay/player_state.h` (behavior and message helpers), `src/gameplay/companion_load.h` |
-| `inventory`, `item` | Inventory contents, quantities, sorting, item properties and use | `item_inventory.c`, `item_sort.c`, `item_collect.c`, `item_boost.c`, `item_use.c`, `starter_inventory.c` | `include/gameplay/items.h`, `include/gameplay/inventory.h`, `include/gameplay/battle_reward.h` (battle reward lists), `src/gameplay/items.h`, `src/gameplay/item_use.h` |
-| `equipment`, `attachment` | Equipment selection, attachment combinations, modifiers, Parasite Energy target contacts and area wireframes | `equipment.c`, `attachments.c`, `attach_combo.c`, `attachment_stats.c`, `attachment_menu.c`, `object_lists.c` (target contacts), `linked_actors.c` (area targeting and wireframes) | `include/gameplay/items.h`, `include/gameplay/attachments.h`, `include/gameplay/attachment_state.h`, `src/gameplay/attachments.h` |
-| `itemMenu`, `menu`, `menuMap` | Inventory panels and commands, menu flow, and map-screen loading, navigation and rendering | `item_menu.c`, `item_panels.c`, `item_stats.c`, `menu_root.c`, `menu_actions.c`, `menu_armor.c`, `menu_prompt.c` | `include/gameplay/item_menu.h`, `include/gameplay/map.h` (map-screen records the `mapui` packages define), `src/gameplay/item_menu.h`, `src/gameplay/menu.h` |
-| `shop` | Saved-area dispatch to room-owned shop sessions | `menu_actions.c` | `include/gameplay/item_menu.h`; room implementations in `src/shared/room/shop.h` |
+| `area`, `direction` | Area layouts, entry, flags, transitions, facing and warps | `area_entry.c`, `area_transitions.c`, `direction_input.c`, `direction_facing.c` | `packages/gameplay/include/area.h`, `packages/gameplay/include/areaplace.h`, `packages/gameplay/include/area_entry.h`, `packages/gameplay/include/area_transitions.h`, `packages/gameplay/include/direction.h`, `src/gameplay/area_transitions.h` |
+| `loading`, `view` | Gameplay loading, view images and camera records/application | `area_cd.c`, `cd_loading.c`, `load_screen.c`, `view_load.c`, `view_image.c`, `hud_sprites.c` (camera application) | `packages/gameplay/include/loading.h`, `packages/gameplay/include/view.h`, `src/gameplay/loading.h` |
+| `gameFlow` | Session reload from live saved state, coordinating combat exit, display holds and the resource rebuild | `companion_load.c` (resident task-bank callback and reload phases), `load_screen.c` (rebuild phase) | `packages/gameplay/include/companion_load.h`, `src/gameplay/companion_load.h` |
+| `sprite` | Sprite allocation and linking | `sprite_link.c` | `packages/gameplay/include/sprites.h`, `packages/gameplay/include/loading.h` |
+| `companion` | Companion selection, actor setup, scripted motion/playback, decision timing and health bands | `companion_load.c`, `player_state.c` (behavior and message helpers) | `packages/gameplay/include/companion_load.h`, `packages/gameplay/include/player_state.h` (behavior and message helpers), `src/gameplay/companion_load.h` |
+| `inventory`, `item` | Inventory contents, quantities, sorting, item properties and use | `item_inventory.c`, `item_sort.c`, `item_collect.c`, `item_boost.c`, `item_use.c`, `starter_inventory.c` | `packages/gameplay/include/items.h`, `packages/gameplay/include/inventory.h`, `packages/gameplay/include/battle_reward.h` (battle reward lists), `src/gameplay/items.h`, `src/gameplay/item_use.h` |
+| `equipment`, `attachment` | Equipment selection, attachment combinations, modifiers, Parasite Energy target contacts and area wireframes | `equipment.c`, `attachments.c`, `attach_combo.c`, `attachment_stats.c`, `attachment_menu.c`, `object_lists.c` (target contacts), `linked_actors.c` (area targeting and wireframes) | `packages/gameplay/include/items.h`, `packages/gameplay/include/attachments.h`, `packages/gameplay/include/attachment_state.h`, `src/gameplay/attachments.h` |
+| `itemMenu`, `menu`, `menuMap` | Inventory panels and commands, menu flow, and map-screen loading, navigation and rendering | `item_menu.c`, `item_panels.c`, `item_stats.c`, `menu_root.c`, `menu_actions.c`, `menu_armor.c`, `menu_prompt.c` | `packages/gameplay/include/item_menu.h`, `packages/gameplay/include/map.h` (map-screen records the `mapui` packages define), `src/gameplay/item_menu.h`, `src/gameplay/menu.h` |
+| `shop` | Saved-area dispatch to room-owned shop sessions | `menu_actions.c` | `packages/gameplay/include/item_menu.h`; room implementations in `src/shared/room/shop.h` |
 | `telephone` | Saved-area dispatch to room-owned telephone save/statistics menus | `item_sort.c` | `src/gameplay/telephone.h`; room implementations in `src/shared/room/telephone.h` |
-| `itemPickup`, `itemPlacement` | Pickup dispatch and placed items | `pickup_dispatch.c`, `item_placement.c` | `include/gameplay/item_placement.h`, `src/gameplay/item_placement.h` |
+| `itemPickup`, `itemPlacement` | Pickup dispatch and placed items | `pickup_dispatch.c`, `item_placement.c` | `packages/gameplay/include/item_placement.h`, `src/gameplay/item_placement.h` |
 | `weapon` | Resident weapon/ammunition properties and stat presentation | `weapon_stats.c` | `src/gameplay/weapon_data.h` |
-| `damage` | Damage calculation, attack and hazard properties, enemy hit reactions and combat modifiers | `damage.c`, `object_fields.c` | `include/gameplay/damage.h`, `src/gameplay/damage.h` |
-| `enemy` | Enemy work objects and the shared parameters of one enemy kind | `scene_runtime.c` (`_enemyAllocateWork`) | `include/gameplay/enemy.h`, `include/gameplay/enemy_params.h` |
-| `cap` | CAP relocation, dialogue, commands, rendering and playback | `cap_commands.c`, `cap_control.c`, `cap_reloc.c`, `cap_script.c`, `cap_start.c`, `captions.c` | `include/gameplay/cap.h`, `include/gameplay/captions.h`, `src/gameplay/cap.h`, `src/gameplay/captions.h` |
-| `evs` | Event-script dispatch | `evs_scripts.c` | `include/gameplay/evs.h`, `include/gameplay/evs_scripts.h`, `src/gameplay/evs_scripts.h` |
-| `effect` | Gameplay effect tasks and scratch workspace records shared by effect drawers across overlays | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `include/gameplay/effect_tasks.h`, `include/gameplay/effects.h` (workspace types), `src/gameplay/effect_tasks.h` |
-| `gpu` | RGB555 palette interpolation, raw texture and palette uploads to VRAM, and GPU packet blend-mode commands linked into the current depth-sorted ordering table | `scene_runtime.c` (palette interpolation), `world_targets.c` (image uploads), `room_effects.c` | `include/gameplay/scene_runtime.h` (palette interpolation), `include/gameplay/gpu_image_upload.h`, `include/gameplay/actor_render.h` (actor texture placement), `include/gameplay/room_effects.h` |
-| `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
-| `hud` | HUD sprites, numbers, status bars and tracking | `hud_sprites.c`, `linked_actors.c` (HP/MP status block and radar markers) | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
+| `damage` | Damage calculation, attack and hazard properties, enemy hit reactions and combat modifiers | `damage.c`, `object_fields.c` | `packages/gameplay/include/damage.h`, `src/gameplay/damage.h` |
+| `enemy` | Enemy work objects and the shared parameters of one enemy kind | `scene_runtime.c` (`_enemyAllocateWork`) | `packages/gameplay/include/enemy.h`, `packages/gameplay/include/enemy_params.h` |
+| `cap` | CAP relocation, dialogue, commands, rendering and playback | `cap_commands.c`, `cap_control.c`, `cap_reloc.c`, `cap_script.c`, `cap_start.c`, `captions.c` | `packages/gameplay/include/cap.h`, `packages/gameplay/include/captions.h`, `src/gameplay/cap.h`, `src/gameplay/captions.h` |
+| `evs` | Event-script dispatch | `evs_scripts.c` | `packages/gameplay/include/evs.h`, `packages/gameplay/include/evs_scripts.h`, `src/gameplay/evs_scripts.h` |
+| `effect` | Gameplay effect tasks and scratch workspace records shared by effect drawers across overlays | `effect_tasks.c`, `effect_attach.c`, `player_actor.c` | `packages/gameplay/include/effect_tasks.h`, `packages/gameplay/include/effects.h` (workspace types), `src/gameplay/effect_tasks.h` |
+| `gpu` | RGB555 palette interpolation, raw texture and palette uploads to VRAM, and GPU packet blend-mode commands linked into the current depth-sorted ordering table | `scene_runtime.c` (palette interpolation), `world_targets.c` (image uploads), `room_effects.c` | `packages/gameplay/include/scene_runtime.h` (palette interpolation), `packages/gameplay/include/gpu_image_upload.h`, `packages/gameplay/include/actor_render.h` (actor texture placement), `packages/gameplay/include/room_effects.h` |
+| `roomEffect` | Room effect state and tasks | `room_effects.c` | `packages/gameplay/include/room_effects.h`, `src/gameplay/room_effects.h` |
+| `hud` | HUD sprites, numbers, status bars and tracking | `hud_sprites.c`, `linked_actors.c` (HP/MP status block and radar markers) | `packages/gameplay/include/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
 | `playClock` | The task that runs play: play-time accounting, player and companion death checks, and the per-frame HUD update it calls | `model_lighting.c` (`_PlayClockWork`, start and per-frame states), `ending.c` (state table), `hud_sprites.c` (dispatch, death fade) | `src/gameplay/model_lighting.h`, `src/gameplay/ending.h`, `src/gameplay/hud_sprites.h` |
-| `actionPrompt` | Point-and-click action cursors shared by room and actor overlays | `menu_actions.c` (resident per-port slots) | `include/gameplay/action_prompt.h`, `src/shared/room/action_prompt.h` |
-| `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
-| `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `include/gameplay/actor_spawn_types.h` (player/companion spawn transforms), `src/gameplay/actor.h` (player/companion spawn options), `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
-| `scene` | Scene tasks, actor-command routing, combat state and runtime coordination | `scene_runtime.c`, `world_targets.c` (combat state) | `include/gameplay/scene_runtime.h`, `include/gameplay/scene_combat.h`, `include/gameplay/world_state.h` (combat type), `include/gameplay/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
-| `ending` | Ending sequence control and the post-credits replay-award spawn bridge | `ending.c`, `scene_runtime.c` (award bridge) | `include/gameplay/ending.h`, `src/gameplay/ending.h` |
+| `actionPrompt` | Point-and-click action cursors shared by room and actor overlays | `menu_actions.c` (resident per-port slots) | `packages/gameplay/include/action_prompt.h`, `src/shared/room/action_prompt.h` |
+| `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `packages/gameplay/include/pad_input.h`, `packages/gameplay/include/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
+| `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `packages/gameplay/include/player_actor.h`, `packages/gameplay/include/player_state.h`, `packages/gameplay/include/actor_spawn_types.h` (player/companion spawn transforms), `src/gameplay/actor.h` (player/companion spawn options), `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
+| `scene` | Scene tasks, actor-command routing, combat state and runtime coordination | `scene_runtime.c`, `world_targets.c` (combat state) | `packages/gameplay/include/scene_runtime.h`, `packages/gameplay/include/scene_combat.h`, `packages/gameplay/include/world_state.h` (combat type), `packages/gameplay/include/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
+| `ending` | Ending sequence control and the post-credits replay-award spawn bridge | `ending.c`, `scene_runtime.c` (award bridge) | `packages/gameplay/include/ending.h`, `src/gameplay/ending.h` |
 
 This is not a blanket assignment of every symbol in those files. For example,
 inventory state, effects and player state are different owners even when their
@@ -436,9 +436,9 @@ implementations occur in one TU. Check each item's references before selecting
 its prefix. Uncertain state blocks in otherwise understood files remain subject
 to analysis.
 
-`include/gameplay/actor_presentation.h` groups the current player and companion's
+`packages/gameplay/include/actor_presentation.h` groups the current player and companion's
 presentation messages and animation-bank index writers under `playerActor` and
-`companion`. `include/gameplay/sound.h` declares `sndEvt` stage-relative script
+`companion`. `packages/gameplay/include/sound.h` declares `sndEvt` stage-relative script
 requests and the `sndScript` stage-id resolver. These interfaces are gameplay
 exports even though their saved state and sound queue are resident.
 
@@ -456,7 +456,7 @@ static function instances marked `_`. Coefficients are signed halfword scalar
 polynomial terms, and sampling uses a parameter with 16 fractional bits.
 
 Package-specific routines keep their manifest-derived prefixes. The title
-interface is `include/title/title.h`, implemented by `packages/title/src/title.c`.
+interface is `packages/title/include/title.h`, implemented by `packages/title/src/title.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
 whose entry points retain package identities.
 
@@ -685,14 +685,14 @@ between two translation units.
 
 `actionPrompt` owns the point-and-click action cursor shared by room and actor
 overlays. The resident per-port state and its public types are gameplay
-(`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The hotspot
+(`packages/gameplay/include/action_prompt.h`, slots in `menu_actions.c`). The hotspot
 table entry is `ActionPromptHotspot` in that header. The included
 motion, drawing, hotspot test and outline are `src/shared/room/action_prompt.h` and
 its fragments; a package includes only the fragments it carries.
 
 `planarReflection` owns player and held-object reflections. Gameplay dispatches
 the player task to the captured room through
-`include/gameplay/planar_reflection.h`; room-specific wrappers export the
+`packages/gameplay/include/planar_reflection.h`; room-specific wrappers export the
 included implementation from `src/shared/room/planar_reflection.h` under their
 package prefixes.
 
@@ -1260,7 +1260,7 @@ transform-cache refresh for redraws while simulation is stopped, and the order
 of the splash depth increment. `PykeFlameBody`
 is the flying flame's collision block: the list-1 sphere and the one contact it borrows.
 The splash, the ground glow and the fireball's floor quad share
-`EffectGroundQuadScratch` in `include/gameplay/effects.h`: the flat quad's
+`EffectGroundQuadScratch` in `packages/gameplay/include/effects.h`: the flat quad's
 corners and their projected screen positions, with ordering depth and the GTE
 FLAG word left on the call stack.
 
@@ -1341,7 +1341,7 @@ task callback, which gameplay's counted room-effect table imports.
 
 ## Documentation
 
-[`include/engine/mem.h`](include/engine/mem.h) is the worked example. Read it before
+[`packages/engine/include/mem.h`](packages/engine/include/mem.h) is the worked example. Read it before
 documenting a new module. Its symbols have not been migrated yet, so the
 examples below are shown in the target naming rather than quoted verbatim.
 

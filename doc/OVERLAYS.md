@@ -7,8 +7,8 @@ decomp (`fs.c`, `loadui.c`, `stage.c`, `tmd.c`, gameplay `scene_runtime.c`), and
 of the binaries (MIPS prologues, TMD-like streams, sibling textures, strings).
 
 Related: on-disc chunk packing in [`ASSET_FORMATS.md`](ASSET_FORMATS.md);
-TMD playback in `src/engine/tmd.c` / `include/engine/tmd.h`; animation player in
-`src/gameplay/scene_runtime.c` / `include/gameplay/animation.h`; the cooperative actor list in
+TMD playback in `src/engine/tmd.c` / `packages/engine/include/tmd.h`; animation player in
+`src/gameplay/scene_runtime.c` / `packages/gameplay/include/animation.h`; the cooperative actor list in
 [`TASKS.md`](TASKS.md) (bank 6 callbacks live in the room overlay slot).
 
 | Area | Code / data |
@@ -40,7 +40,7 @@ same `.pe2pkg` as code (or *instead* of code). Textures are sibling `.pe2img`
 | **STAGE0** | Flat library, ids encoded as base-100 digits | Global swap-ins: gameplay/title, Aya, weapons, actors, maps, menus |
 | **STAGE1–5** | **Folders** (one room each) | Per-room script overlay at a single address |
 
-For stage zero, a `CdCmdEntry` in `include/engine/fs_types.h` identifies a file as
+For stage zero, a `CdCmdEntry` in `packages/engine/include/fs_types.h` identifies a file as
 `fileGroup * 10000 + args.file.fileIdHundreds * 100 + fileIndex`.
 The other three `args.file` bytes hold the load mode and signed image offsets.
 `fsLoadFile` switches on `fileKey->fileGroup` (the 10000s

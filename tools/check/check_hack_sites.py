@@ -24,7 +24,7 @@ compares the number of sites in the files a change touches, before and after,
 and fails if it grew. A change that moves a site between files, or removes one
 and needs another elsewhere, is unaffected: only the total counts.
 
-Psy-Q's `gte_*` macros and `include/decomp/gte.h` emit GTE instructions and are
+Psy-Q's `gte_*` macros and `packages/math/include/gte.h` emit GTE instructions and are
 not counted; that header also holds `gte_RotTransLV`, the one hand-written GTE
 routine.
 """
@@ -44,7 +44,7 @@ MACRO = re.compile(r'\b(SCHED_BARRIER|SOFT_BARRIER|SOFT_COMPILER_BARRIER|COMPILE
 # `extern T name __asm__("symbol+offset");`: a declaration bound to another symbol's storage.
 ALIAS = re.compile(r'^[^=(]*\b(?:asm|__asm__)\s*\(\s*"[A-Za-z_.$][\w.$]*(?:\s*\+\s*\w+)?"\s*\)\s*;')
 COMMENT = re.compile(r'//[^\n]*|/\*.*?\*/', re.S)
-EXEMPT = ("include/psyq/", "include/decomp/gte.h", "include/decomp/common.h")
+EXEMPT = ("include/psyq/", "packages/math/include/gte.h", "include/decomp/common.h")
 
 
 def code(text: str) -> str:
@@ -78,7 +78,7 @@ def sites(text: str) -> list[tuple[int, str, str]]:
 
 
 def counted(path: str) -> bool:
-    return path.endswith((".c", ".h")) and path.startswith(("src/", "include/")) and not path.startswith(EXEMPT)
+    return path.endswith((".c", ".h")) and path.startswith(("src/", "include/", "packages/")) and not path.startswith(EXEMPT)
 
 
 def git(*args: str) -> str:

@@ -1227,7 +1227,7 @@ Best scratch score: $score
 Rules:
 - Do not claim another function. Do not start vacuum. Do not create a worktree.
 - Do not \`git reset --hard\` except to undo a change **you just made** that failed verify.
-- New types stay in this overlay's include/ tree, not include/engine/unknown_syms.h.
+- New types stay in this overlay's include/ tree, not packages/engine/include/unknown_syms.h.
 - No pointer arithmetic with manual offsets.
 
 $(stale_build_warning "$ROOT")

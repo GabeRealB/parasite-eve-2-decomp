@@ -13,7 +13,7 @@
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/direction_input.h"
 #include "gameplay/display.h"

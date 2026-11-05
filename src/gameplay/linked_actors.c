@@ -6,7 +6,7 @@
 #include <psyq/inline_c.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "gameplay/area_entry.h"
 #include "gameplay/attachment_state.h"

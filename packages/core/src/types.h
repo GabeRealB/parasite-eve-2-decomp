@@ -7,6 +7,12 @@
 #define NULL 0
 #endif
 
+/* The type of `sizeof`, under the guard the SDK's headers define it by, so that either may come first. */
+#ifndef _SIZE_T
+#define _SIZE_T
+typedef unsigned int size_t;
+#endif
+
 typedef signed char        byte;
 typedef signed char        i8;
 typedef signed short       i16;

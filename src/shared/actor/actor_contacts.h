@@ -21,7 +21,7 @@
 #include <psyq/abs.h>
 #include <psyq/memory.h>
 
-#include "gte.h"
+#include "math/gte.h"
 #include "overlay.h"
 #include "types.h"
 

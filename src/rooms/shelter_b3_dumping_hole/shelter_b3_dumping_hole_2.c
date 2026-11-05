@@ -8,7 +8,7 @@
 #include <psyq/strings.h>
 
 #include "common.h"
-#include "gte.h"
+#include "math/gte.h"
 
 #include "shelter_b3_dumping_hole_private.h"
 
