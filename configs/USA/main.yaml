@@ -15,7 +15,7 @@ options:
 
   asm_path: asm/USA/main
   src_path: src/main
-  o_path: ../../lib
+  o_path: ../../packages/psyq/lib
   build_path: build/USA
   # create_asm_dependencies: True
   # Permanent handwritten helpers (type hasm) live under src_path so reconfigure
@@ -154,7 +154,7 @@ segments:
       - [0x4b00, c, main] # Main function.
       - [0x4b38, c, gpuext] # gpuExtIsDisplayEnabled
       - [0x4b54, pad] # libsn/snmain is aligned to an 8 byte boundary
-      - [0x4b58, o, libsn/snmain] # entry point: reconstructed from SNMAIN.obj (lib/libsn/snmain.s)
+      - [0x4b58, o, libsn/snmain] # entry point: reconstructed from SNMAIN.obj (packages/psyq/lib/libsn/snmain.s)
       - [0x4cd8, o, libapi/c57] # InitHeap
       - [0x4ce8, o, libapi/a39] # SetSp
       - [0x4cf8, c, boot] # cold-boot / title path, bootColdStartTask

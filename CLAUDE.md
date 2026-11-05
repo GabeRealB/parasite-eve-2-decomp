@@ -15,7 +15,7 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 - `include/<overlay>` headers for that unit (`include/main`, `include/gameplay`, …)
 - `asm/<ver>/<overlay>/nonmatchings` unmatched functions (one `.s` per function). Overlays may be nested (e.g. `asm/USA/stage1/101/nonmatchings`).
 - `asm/<ver>/<overlay>/matchings` already-matched functions
-- `lib` library code such as Psy-Q objects we link against
+- `packages/psyq` the Psy-Q SDK as the game links it: its headers and, in `lib/`, the members of its libraries the executable links (`lib/versions.txt`)
 - `assets` binary asset blobs extracted from the rom
 
 ### Packages
@@ -31,9 +31,10 @@ repository's ninja build, which needs no Rust, and the editor's.
 |---|---|
 | `packages/<...>/src`, `include`, `psx/link.ld` | source, written by hand |
 | `packages/core/include/pe2.h` | core's one public file: the macros a source declares slots with, and through its private `src/` the types and helpers every package uses; written by hand |
-| `packages/{main,gameplay,psyq}` | made from `include/` at every `ninja_config.py` run (`gen_package_library.py`), gitignored |
+| `packages/{main,gameplay}` | made from `include/` at every `ninja_config.py` run (`gen_package_library.py`), gitignored |
+| `packages/psyq` | the SDK: `include/`, a copy of `include/psyq` (which the decomp's tools read), and `lib/`, its objects and `snmain.s`, which the package compiles |
 | `packages/{main,gameplay}/psx/symbols.ld` | made from their ELFs by ninja, gitignored |
-| `configs/USA/package_slots.toml` | where each `slot` loads |
+| `configs/USA/package_slots.toml` | where each `slot` loads; `executable` is the PS-EXE, its header written by the target (`tools/buildsteps/psx_exe.py`) |
 | `configs/USA/resident.toml` | the models a package carries, which `dump_asset_db.py` catalogs |
 
 **A package reaches another two ways.** A slot, `PE2_BIND(main, package)` with

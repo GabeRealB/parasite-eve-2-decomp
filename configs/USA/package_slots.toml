@@ -1,6 +1,8 @@
 # Where a package's slot loads on the PS1, by the name its declaration gives (`slot`).
 # A package's link script places it at SLOT, which the build sets from here.
 
+# The executable: the image the BIOS loads, with the header the target writes (tools/buildsteps/psx_exe.py).
+executable = 0x80010000
 resident = 0x80093800
 weapon   = 0x8011D1C0
 aya      = 0x80115770

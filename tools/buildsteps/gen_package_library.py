@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """The libraries packages compile and link against, made from what the rest of the build reads.
 
-`main`, `gameplay` and `psyq` are not packages of their own yet: `include/` is what they are, which every overlay still in
-`src/` compiles against. So what a package includes of them is made from there into `packages/<library>/include`, as much
+`main` and `gameplay` are not packages of their own yet: `include/` is what they are, which every overlay still in `src/`
+compiles against. `psyq` is (`packages/psyq`): what they include of `include/psyq`, a copy of its public files the decomp's
+tools read, is named by package and not made. So what a package includes of them is made from there into `packages/<library>/include`, as much
 as packages reach, with its includes of others named by package (`PE2_INCLUDE`) and each named one bound (`PE2_BIND`).
 What they include of `include/decomp/` is core's, a package written by hand (`packages/core`) whose one public file is
 `pe2.h`: such an include becomes `pe2.h`, and one of what core does not give stops the build. `ninja_config.py` does this
@@ -20,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PACKAGES = Path("packages")
-GENERATED = ("gameplay", "main", "psyq")
+GENERATED = ("gameplay", "main")
 # What core gives through `pe2.h`, of what `include/decomp/` holds; the rest of it no package has.
 THROUGH_PE2 = frozenset({"common.h", "types.h"})
 # What cpp searches after a file's own folder, as the build passes it.

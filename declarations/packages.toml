@@ -25,10 +25,17 @@ uid = "uid://1hq6535kv7l92"
 template = "library"
 public = ["include"]
 
+# Sony's SDK, as the game links it: its headers, and of its libraries the members the executable links, each converted from
+# the SDK's object - but libsn's start-up, which no ELF object can hold: its reconstruction is a source, compiled with the
+# package (lib/versions.txt).
 [psyq]
 uid = "uid://6xwnsgn9562h"
 template = "library"
 public = ["include"]
+
+[psyq.target.psx]
+sources = ["lib/libsn/snmain.s"]
+objects = ["lib/*/*.o"]
 
 [main]
 uid = "uid://1gge5rcau98eq"

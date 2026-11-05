@@ -1016,6 +1016,16 @@ __SN_BSS_SIZE = main_BSS_END - main_BSS_START;
 """
 
 
+def package_compiled(object_path: str, game_version_idx: int) -> str:
+    """Where a package's object a split link names is made: a package's source beside where its prebuilt objects sit
+    (packages/psyq/lib/libsn/snmain.s) compiles into the build, as every package's units do; anything else is itself."""
+    path = Path(object_path)
+    if path.parts[:1] != ("packages",) or not path.with_suffix(".s").is_file():
+        return object_path
+    version_dir = GAME_VERSIONS[game_version_idx].metadata.version_dir
+    return (BUILD_DIR / version_dir / "packages" / path.parts[1] / Path(*path.parts[2:])).as_posix()
+
+
 def define_main_start_symbols() -> None:
     """Give libsn's start-up the section bounds psylink would have: appended to main's script once."""
     dest = Path("linkers/USA/main.ld")
@@ -1023,7 +1033,11 @@ def define_main_start_symbols() -> None:
         return
     text = dest.read_text(encoding="utf-8")
     if "__SN_SBSS_START" not in text:
-        dest.write_text(text + MAIN_START_SYMBOLS, encoding="utf-8")
+        text += MAIN_START_SYMBOLS
+    # The start-up is psyq's source, compiled where the package's objects are made (`package_compiled`).
+    reconstructed = "packages/psyq/lib/libsn/snmain.o("
+    text = text.replace(reconstructed, package_compiled(reconstructed[:-1], 0) + "(")
+    dest.write_text(text, encoding="utf-8")
 
 
 def append_main_overlay_imports() -> None:
@@ -1269,7 +1283,9 @@ def ninja_packages(
     # What each package and library makes for what links it: its units compiled, by their kind, and its objects as
     # they are. A scoped build compiles only what the packages it builds link.
     provided: dict[str, list[str]] = {}
+    # What the packages built link, and every library with something to compile: the split executable links psyq's.
     wanted = {p.path for p in packages} | {d.path for p in packages for d in p.dependencies(declarations)}
+    wanted |= {p.path for p in declarations.compiled() if p.declaration.template == "library"}
     for package in declarations.compiled():
         if package.path not in wanted:
             continue
@@ -1365,6 +1381,19 @@ def ninja_packages(
                 "published": " ".join(f"-T {path}" for path in linked),
             },
         )
+        if package.slot == "executable":
+            # The image the BIOS loads, under the release's name, with the header the target writes around it.
+            exe = (images / GAME_VERSIONS[game_version_idx].metadata.exe_disk1).as_posix()
+            ninja_file.build(outputs=f"{image}.image", rule="objcopy", inputs=f"{image}.elf", variables={"sections": "-j .image"})
+            ninja_file.build(
+                outputs=exe,
+                rule="psx-exe",
+                inputs=[f"{image}.image", f"{image}.elf"],
+                implicit=[str(TOOLS_DIR / "buildsteps" / "psx_exe.py")],
+                variables={"address": slot, "release": version},
+            )
+            built[package.name] = exe
+            continue
         ninja_file.build(outputs=image, rule="objcopy", inputs=f"{image}.elf", variables={"sections": "-j .image"})
         built[package.name] = image
 
@@ -1486,6 +1515,11 @@ def ninja_build(
         description="package-symbols $out",
         command=f"{PYTHON} {GEN_PACKAGE_LIBRARY} symbols $in $out --nm {NM} $exported",
         restat=True,
+    )
+    ninja_rules_file.rule(
+        "psx-exe",
+        description="psx-exe $out",
+        command=f"{PYTHON} {TOOLS_DIR / 'buildsteps' / 'psx_exe.py'} $in $out --address $address --release $release",
     )
     # An image's layout alone: where its own names land, its references left open, so that what it publishes depends
     # on nothing another image publishes. A reference left open cannot be relocated (a jump to 0 does not reach), which
@@ -1771,7 +1805,7 @@ def ninja_build(
                 target_path = str(entry.object_path)
 
                 if target_path in emitted_objects:
-                    elf_build_requirements.append(target_path)
+                    elf_build_requirements.append(package_compiled(target_path, game_version_idx))
                     continue
                 emitted_objects.add(target_path)
 
@@ -1805,15 +1839,6 @@ def ninja_build(
                                 inputs=source_path,
                                 variables={"DLFLAG": DL_OVL_FLAGS},
                             )
-                    case "o" if Path(target_path).with_suffix(".s").is_file():
-                        # An SDK object the converter cannot make, reconstructed as its source beside
-                        # where the converted ones sit (lib/libsn/snmain.s).
-                        ninja_file.build(
-                            outputs=target_path,
-                            rule="as",
-                            inputs=str(Path(target_path).with_suffix(".s")),
-                            variables={"DLFLAG": DL_EXE_FLAGS},
-                        )
                     case "c":
                         cc_entries.append(
                             compile_commands_entry(
@@ -1865,7 +1890,7 @@ def ninja_build(
                         sys.exit(1)
 
                 if not seg.is_lib:
-                    elf_build_requirements += [str(s) for s in [entry.object_path]]
+                    elf_build_requirements += [package_compiled(str(entry.object_path), game_version_idx)]
 
         if split_config.split_basename == "main":
             output = f"{BUILD_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}/out/{GAME_VERSIONS[game_version_idx].metadata.exe_disk1}"
