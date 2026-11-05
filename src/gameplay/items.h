@@ -6,9 +6,9 @@
 #include "gameplay/inventory.h"
 #include "inventory.h"
 
-#include "main/mc_types.h"
-#include "main/task_types.h"
-#include "main/ui_types.h"
+#include "engine/mc_types.h"
+#include "engine/task_types.h"
+#include "engine/ui_types.h"
 
 // Inventory contents, collection flags, quantities, sorting and equipment.
 

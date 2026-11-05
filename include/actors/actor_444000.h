@@ -8,8 +8,8 @@
 #include "gameplay/animation.h"
 #include "gameplay/pad_script.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Requests a vertical screen shake from the garbage-incinerator Glutton host.
 ///

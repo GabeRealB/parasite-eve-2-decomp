@@ -25,7 +25,7 @@
 #include "types.h"
 
 #include "gameplay/world_collision_types.h"
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Sizing numerator for the nozzle billboard; projected half-side is 31 * scale / depth.
 enum { FLAMETHROWER_FLAME_NOZZLE_SIZE_SCALE = 0x80 };

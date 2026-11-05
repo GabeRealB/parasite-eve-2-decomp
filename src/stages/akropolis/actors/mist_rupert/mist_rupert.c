@@ -18,13 +18,13 @@
 #include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/tmd.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/gfx.h"
+#include "engine/mem.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/tmd.h"
+#include "engine/tmd_types.h"
 #include "../../../../shared/actor/actor_messages.h"
 
 /// Eye-band destination within the actor texture: width in VRAM words, Y/height in rows.

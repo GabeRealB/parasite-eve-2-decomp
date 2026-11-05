@@ -14,15 +14,15 @@
 #include "gameplay/world_targets.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/areas.h"
-#include "main/event_flags.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/event_flags.h"
+#include "engine/gameflag.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 static s32 _junkYardCommandMessage(Task* task, s32 messageId, s32 command, s32 unusedSecondArg);
 

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_300700_H
 #define INCLUDE_ACTORS_ACTOR_300700_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Moth TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR` with automatic model buffers.
 ///

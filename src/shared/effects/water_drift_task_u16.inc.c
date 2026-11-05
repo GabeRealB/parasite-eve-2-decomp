@@ -1,6 +1,6 @@
 #include "gameplay/message.h"
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the water effects library; see water_effects.h. */
 

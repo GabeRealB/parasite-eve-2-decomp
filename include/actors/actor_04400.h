@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_04400_H
 #define INCLUDE_ACTORS_ACTOR_04400_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn indices of the Mad Chaser package carried in actor slots 1 and 3.
 enum {

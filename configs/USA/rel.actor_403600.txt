@@ -1,4 +1,4 @@
-// Reloc overrides for the actor_403600 package (same format as rel.main.txt).
+// Reloc overrides for the actor_403600 package (same format as rel.engine.txt).
 //
 // _actor403600ProcessContacts keeps %hi(gRandomLcgState) in $s6 across its loop.
 // splat pairs most of the %lo uses with that hoisted %hi but misses these four,

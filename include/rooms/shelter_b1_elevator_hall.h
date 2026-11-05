@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Encounter layouts indexed by the hall's saved placement variant, in 0..11.
 ///

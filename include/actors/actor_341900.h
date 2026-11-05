@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_341900_H
 #define INCLUDE_ACTORS_ACTOR_341900_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Public entry index and complete extent of the Glutton entrance spawn table.
 enum {

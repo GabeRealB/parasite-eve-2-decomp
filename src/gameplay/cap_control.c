@@ -5,13 +5,13 @@
 #include "gameplay/cap.h"
 #include "gameplay/evs.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/text.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/mem.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/text.h"
 
 /// Scene-sync timer latch (0 disarmed, 1 armed); inactive CAP playback pauses it.
 static s8 _gCapSceneSyncArmed;

@@ -10,9 +10,9 @@
  * code that uses them.
  */
 
-#include "main/areas.h"
-#include "main/sound_ids.h"
-#include "main/sound_types.h"
+#include "engine/areas.h"
+#include "engine/sound_ids.h"
+#include "engine/sound_types.h"
 
 #include "../../dryfield_time.h"
 

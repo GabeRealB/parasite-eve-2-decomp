@@ -17,8 +17,8 @@
 
 #include "types.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
 
 /// Puff texture dimensions are in texels; rotation uses 4096 units per turn and Q12 trigonometry.
 enum {

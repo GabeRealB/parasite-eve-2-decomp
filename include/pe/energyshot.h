@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_ENERGYSHOT_H
 #define INCLUDE_PE_ENERGYSHOT_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Advances the rising additive billboard in effect-bank slot 0xDD.
 ///

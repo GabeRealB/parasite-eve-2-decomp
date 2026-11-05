@@ -5,7 +5,7 @@
 
 #include "gameplay/map.h"
 
-#include "main/areas.h"
+#include "engine/areas.h"
 
 /// Per-stage inclusive area-ID limits for the map's marked-area cache.
 ///

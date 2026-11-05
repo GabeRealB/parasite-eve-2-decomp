@@ -63,7 +63,7 @@ from asset_residency import GROUP_BASE  # noqa: E402
 
 SCHEMA = 1
 FLOOR_NORMAL_Y = -0xDDA          # include/gameplay/world_collision.h WORLD_COLLISION_FLOOR_NORMAL_Y; strictly below is floor
-SCREEN = (320, 240)              # src/main/displaymode.c: draw offset is (width / 2, height / 2)
+SCREEN = (320, 240)              # src/engine/displaymode.c: draw offset is (width / 2, height / 2)
 STAGE_NAMES = {1: "acropolis", 2: "dryfield", 3: "dryfield_night", 4: "mine_shelter", 5: "shelter_neo_ark"}
 YAW_SPECIAL = {0x7800: "FACE_TRANSITION_POINT_ALT", 0x7FFE: "KEEP_FACING", 0x7FFF: "FACE_TRANSITION_POINT"}
 TRIGGER_KIND = {1: "VIEW_BOUNDARY", 2: "FACING_QUAD", 3: "QUAD", 4: "NEAR_OR_FACING_QUAD"}
@@ -370,7 +370,7 @@ def is_pointer(value) -> bool:
 # A file-scope definition: the declared name is the last identifier before the dimensions and the `=`.
 DECLARATION = re.compile(r"^(?!(?:extern|typedef|return)\b)[A-Za-z_][^\n;(){}=]*?\b([A-Za-z_]\w*)[ \t]*(?:\[[^\]\n]*\][ \t]*)*"
                          r"(?:(?:__attribute__\s*\(\(.*?\)\)|[A-Z][A-Z0-9_]*\s*\([^()\n]*\))\s*)*=(?!=)", re.M)
-SOURCE_DIRS = {"rooms": "src/rooms/{}", "mapui": "src/mapui/{}", GAMEPLAY: "src/gameplay", "main": "src/main"}
+SOURCE_DIRS = {"rooms": "src/rooms/{}", "mapui": "src/mapui/{}", GAMEPLAY: "src/gameplay", "main": "src/engine"}
 
 
 class Project:
@@ -591,7 +591,7 @@ class Project:
             if "areaSetPlacementVariant" not in raw and "loc.variant" not in raw:
                 continue
             rel = path.relative_to(ROOT).as_posix()
-            if rel.startswith("src/gameplay/") or rel.startswith("src/main/"):
+            if rel.startswith("src/gameplay/") or rel.startswith("src/engine/"):
                 continue        # the generic appliers (AreaApplyRec, save restore, new game), not a room's own setter
             overlay = path.parent.name
             text = asset_journal.code_of(path)
@@ -1159,7 +1159,7 @@ class Scene:
                     if not item["background"]["bs"]:
                         item["note"] = "the view's file has no bs chunk: no background picture of its own"
                 else:
-                    item["note"] = f"the room's folder has no file {file}: nothing is loaded for this view (src/main/fs.c), the camera still applies"
+                    item["note"] = f"the room's folder has no file {file}: nothing is loaded for this view (src/engine/fs.c), the camera still applies"
                 if cameras is not None and 1 <= file <= len(cameras):
                     item["camera"] = self.camera(cameras[file - 1], file - 1)
                 elif cameras is not None:
@@ -1318,7 +1318,7 @@ class Scene:
                         "groupBase": GROUP_BASE[r["fileGroupIndex"]] if r["fileGroupIndex"] < len(GROUP_BASE) else None,
                         "taskIndex": r["taskIndex"], "taskTable": task, "actor": actor, **file}
                 if item["fileExists"] is False:
-                    item["note"] = "the disc has no file with this id: nothing is loaded for it (src/main/fs.c)"
+                    item["note"] = "the disc has no file with this id: nothing is loaded for it (src/engine/fs.c)"
                 if actor:
                     actors_here.add(actor)
                 resources.setdefault(r["entryId"], (r, item))

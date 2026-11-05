@@ -1,7 +1,7 @@
 #ifndef INCLUDE_AYA_GAME_OVER_H
 #define INCLUDE_AYA_GAME_OVER_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Indices of the package's bodyless presentation tasks.
 enum {

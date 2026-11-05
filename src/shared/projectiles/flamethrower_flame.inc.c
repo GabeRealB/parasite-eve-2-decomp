@@ -20,14 +20,14 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_collision_types.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/random.h"
-#include "main/scratch.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/gfx.h"
+#include "engine/mem.h"
+#include "engine/random.h"
+#include "engine/scratch.h"
+#include "engine/task_types.h"
 
 #include "flamethrower_flame.h"
 

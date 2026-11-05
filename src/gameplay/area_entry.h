@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "main/mc_types.h"
-#include "main/task_types.h"
+#include "engine/mc_types.h"
+#include "engine/task_types.h"
 
 /// Encoded heading for an ordinary item-gain notice.
 extern u8 gItemPickupObtainedNoticeText[];

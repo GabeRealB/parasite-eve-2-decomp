@@ -1,4 +1,4 @@
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
@@ -29,7 +29,7 @@ static void _madChaserLurkStartIdleHold(Task* task)
     work->subState    = work->subState + 1;
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
@@ -127,7 +127,7 @@ static void _madChaserLurkPrepareLook(Task* task)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 

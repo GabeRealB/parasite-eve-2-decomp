@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 /// Area-map page sentinel for an area with no selectable map page.
 ///

@@ -10,7 +10,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Two bodyless priority-192 recipes for the balcony's two-movie presentation.
 ///

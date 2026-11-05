@@ -23,8 +23,8 @@
 
 #include "types.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"

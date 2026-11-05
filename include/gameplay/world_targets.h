@@ -10,8 +10,8 @@
 #include "gameplay/enemy.h"
 #include "gameplay/world_targets_types.h"
 
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Returns the live enemy containing an embedded target node.
 ///

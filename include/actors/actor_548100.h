@@ -1,7 +1,7 @@
 #ifndef ACTORS_ACTOR_548100_H
 #define ACTORS_ACTOR_548100_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn recipe for the mine refuge's interactive power-panel task.
 ///

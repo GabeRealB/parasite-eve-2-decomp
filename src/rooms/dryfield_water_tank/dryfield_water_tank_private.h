@@ -8,7 +8,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "rooms/dryfield_water_tank.h"
 

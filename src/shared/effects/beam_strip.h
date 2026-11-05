@@ -9,7 +9,7 @@
 #ifndef SRC_SHARED_BEAM_STRIP_H
 #define SRC_SHARED_BEAM_STRIP_H
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 static void _beamStripDraw(const GfxCoord* startCoord, const SVECTOR* worldEnd, s32 textureFrame, s16 widthScale);
 

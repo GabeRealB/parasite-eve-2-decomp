@@ -1,5 +1,5 @@
-#include "main/random.h"
-#include "main/sound_ids.h"
+#include "engine/random.h"
+#include "engine/sound_ids.h"
 
 /* Part of the Glutton library; see glutton.h. */
 
@@ -166,7 +166,7 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Glutton library; see glutton.h. */
 

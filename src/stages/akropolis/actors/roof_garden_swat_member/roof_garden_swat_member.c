@@ -12,14 +12,14 @@
 #include "gameplay/message.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/gfx.h"
+#include "engine/mem.h"
+#include "engine/session_types.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 #include "../../rooms/roof_garden/config.h"
 

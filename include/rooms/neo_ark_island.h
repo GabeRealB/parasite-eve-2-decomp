@@ -12,7 +12,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Extents of the island's mapped view resources and collision surface directory.
 enum {

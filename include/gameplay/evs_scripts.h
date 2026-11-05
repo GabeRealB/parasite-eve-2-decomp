@@ -5,7 +5,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Shared event/scene playback pause latch (0 running, nonzero paused).
 ///

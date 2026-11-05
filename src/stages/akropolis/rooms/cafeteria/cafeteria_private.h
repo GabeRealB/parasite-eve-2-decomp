@@ -11,7 +11,7 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Descriptor indices for the cafeteria movie transition; there is no end marker.
 enum {

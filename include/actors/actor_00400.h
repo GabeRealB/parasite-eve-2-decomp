@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_00400_H
 #define INCLUDE_ACTORS_ACTOR_00400_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Indices of the Bog Diver's body and its independently owned child tasks.
 enum {

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_223600_H
 #define INCLUDE_ACTORS_ACTOR_223600_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Blood Suckler spawn recipe for the general-store scripted figure.
 ///

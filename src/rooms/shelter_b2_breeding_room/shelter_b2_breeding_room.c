@@ -13,12 +13,12 @@
 #include "gameplay/items.h"
 #include "gameplay/message.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 #include "mapui/map_shelter.h"
 

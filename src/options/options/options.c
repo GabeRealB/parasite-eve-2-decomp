@@ -6,15 +6,15 @@
 
 #include "common.h"
 
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/task_types.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/ui_types.h"
+#include "engine/display.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/pad.h"
+#include "engine/sound.h"
+#include "engine/task_types.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/ui_types.h"
 
 /// Options-list label for restoring the live saved configuration defaults.
 ///

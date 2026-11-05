@@ -8,7 +8,7 @@
 
 #include "direction.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Handlers for the seven latched world-collision trigger actions, indexed by action kind.
 ///

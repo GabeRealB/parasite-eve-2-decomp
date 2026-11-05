@@ -20,10 +20,10 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 
-#include "main/coord.h"
-#include "main/gfx.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/gfx.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Commands shared by the intro script and its slab-model slider tasks.
 ///

@@ -1,6 +1,6 @@
 // Symbols outside this overlay (main exe and other overlays).
 // splat 0.50: not in this binary, so they must be absolute.
-// Main-exe names must match configs/USA/sym.main.txt at the same address.
+// Main-exe names must match configs/USA/sym.engine.txt at the same address.
 
 memConfigureImageMemory = 0x800144F8; // type:func absolute:True
 CdFlush = 0x80015AF4; // type:func absolute:True

@@ -10,7 +10,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static void _capDialogueLoopTask(Task* task);
 

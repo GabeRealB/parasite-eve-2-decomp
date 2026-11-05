@@ -15,13 +15,13 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gamemain.h"
-#include "main/scratch.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/gamemain.h"
+#include "engine/scratch.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.

@@ -18,7 +18,7 @@
 #
 # Formats:
 #   - src/**/*.{c,h}
-#   - include/main/**/*.{c,h}
+#   - include/engine/**/*.{c,h}
 # Skips:
 #   - include/psyq/**
 #   - headers/macros at include/ root (macro.inc, …)
@@ -111,7 +111,7 @@ mapfile -t FORMAT_FILES < <(
 )
 
 if [[ ${#FORMAT_FILES[@]} -eq 0 ]]; then
-    echo "BUILD HAS FAILED. No source files found to format under src/ or include/main/."
+    echo "BUILD HAS FAILED. No source files found to format under src/ or include/engine/."
     exit 1
 fi
 

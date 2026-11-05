@@ -11,9 +11,9 @@
 #include "gameplay/effects.h"
 #include "gameplay/scene.h"
 
-#include "main/coord.h"
-#include "main/display_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/display_types.h"
+#include "engine/task_types.h"
 
 /// Effect ids each room installs for the shared effects enemies spawn.
 ///

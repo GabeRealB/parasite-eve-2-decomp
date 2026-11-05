@@ -3,8 +3,8 @@
 
 #include "gameplay/area_flags.h"
 
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 // Area transitions and persistent area-flag updates.
 

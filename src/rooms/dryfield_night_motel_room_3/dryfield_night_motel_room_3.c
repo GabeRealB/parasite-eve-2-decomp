@@ -5,10 +5,10 @@
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 #include "../../shared/room/room_variants.h"
 
 static s32 _dryfieldNightMotelRoom3RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);

@@ -11,10 +11,10 @@
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
 
-#include "main/coord.h"
-#include "main/scratch.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/scratch.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /*
  * Types that more than one overlay family carries.

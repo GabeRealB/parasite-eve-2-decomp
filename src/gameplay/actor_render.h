@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_ACTOR_RENDER_H
 #define GAMEPLAY_PRIVATE_ACTOR_RENDER_H
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 /// Refreshes a coordinate below an excluded ancestor, with view rebasing for parentless nodes.
 ///

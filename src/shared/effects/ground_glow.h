@@ -21,7 +21,7 @@
 #define SRC_SHARED_GROUND_GLOW_H
 
 #include "common.h"
-#include "main/coord.h"
+#include "engine/coord.h"
 
 static void _groundGlowDraw(const GfxCoord* ground, s32 halfExtent);
 

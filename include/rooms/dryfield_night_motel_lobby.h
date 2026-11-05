@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Eleven absent placement/resource variants for the nighttime motel lobby.
 ///

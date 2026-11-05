@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Horizontal framebuffer displacement in pixels for the scene distortion.
 ///

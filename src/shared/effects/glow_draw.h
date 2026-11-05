@@ -24,7 +24,7 @@
 
 #include "gameplay/effects.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 /// Projection, Q12 trigonometry, pulse and texture units of the included glow drawers.
 enum {

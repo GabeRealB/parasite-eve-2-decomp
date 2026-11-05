@@ -5,7 +5,7 @@
 
 #include "gameplay/direction.h"
 
-#include "main/gameflow.h"
+#include "engine/gameflow.h"
 
 // Direction input state, action dispatch and warp handling.
 

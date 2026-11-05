@@ -18,7 +18,7 @@
 
 #include "actors/actor.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #ifndef MAD_CHASER_ENEMY_PARAMS
 /// Selects the carrier-owned parameters borrowed by both Mad Chaser spawn paths.

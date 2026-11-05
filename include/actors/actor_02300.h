@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_02300_H
 #define INCLUDE_ACTORS_ACTOR_02300_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Beam Sword Rook GOLEM spawn descriptors: 0 body, 1 sword, 2 shield; all are TMD bodies.
 ///

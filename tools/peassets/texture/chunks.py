@@ -5,7 +5,7 @@ compressed stream itself is a choice of the encoder (doc/LZSS_ENCODER.md), and w
 decodes past a strip or a palette, the 1-byte gaps the original compressor left between strips, and where its page
 offsets point. `image_content` and `palette_content` are exactly the part that has to be identical.
 
-An image chunk (fsBeginImageColumns, fsUploadImageStrips in src/main/fs.c):
+An image chunk (fsBeginImageColumns, fsUploadImageStrips in src/engine/fs.c):
 
     page table   (u16 x, u16 y, u32 offset) per page, then the terminator (0xFFFF, y, 0), then zeros up to `slots`
                  entries: the original tool sized the table for its source sheet, `slots` pages wide, and left some

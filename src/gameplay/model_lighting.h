@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_MODEL_LIGHTING_H
 #define GAMEPLAY_PRIVATE_MODEL_LIGHTING_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Initializes the play monitor's clock/HUD work and starts the current room's tasks.
 ///

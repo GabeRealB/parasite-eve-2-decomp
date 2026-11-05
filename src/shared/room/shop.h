@@ -16,7 +16,7 @@
 #ifndef SRC_SHARED_SHOP_H
 #define SRC_SHARED_SHOP_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Special row ids in stock lists; the terminator is never offered as a row.
 enum {

@@ -181,7 +181,7 @@
 
 #include "common.h"
 
-#include "main/display_types.h"
+#include "engine/display_types.h"
 
 #include "gameplay/effects.h"
 

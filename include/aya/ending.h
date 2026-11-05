@@ -1,7 +1,7 @@
 #ifndef INCLUDE_AYA_ENDING_H
 #define INCLUDE_AYA_ENDING_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Bodyless controller for replay awards, cleared-save confirmation and restart.
 ///

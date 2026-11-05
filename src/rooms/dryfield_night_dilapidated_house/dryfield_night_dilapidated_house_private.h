@@ -10,7 +10,7 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Bodyless movie launcher and display-controller recipes, in slots 0 and 1.
 ///

@@ -8,7 +8,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Motel room 4's collision resources for room ID 1.
 ///

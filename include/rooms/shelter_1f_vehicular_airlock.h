@@ -9,8 +9,8 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Models the Neo Ark map UI overlay's enemy descriptors attach.
 extern TmdSource gShelter1fVehicularAirlockModel03A58;

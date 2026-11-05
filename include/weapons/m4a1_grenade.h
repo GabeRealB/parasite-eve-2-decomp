@@ -3,9 +3,9 @@
 
 #include "gameplay/animation.h"
 
-#include "main/sound_ids.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/sound_ids.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 #include "weapons/weapon_index.h"
 

@@ -9,7 +9,7 @@
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// The tunnel's light collection: five mutable point lights, no directional or cone lights.
 ///

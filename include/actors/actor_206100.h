@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_206100_H
 #define INCLUDE_ACTORS_ACTOR_206100_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Sea Diver spawn recipes: 0 enemy body, 1 flying shot with a coordinate body.
 ///

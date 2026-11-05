@@ -18,12 +18,12 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/fs_types.h"
-#include "main/gameflag.h"
-#include "main/gfx_types.h"
-#include "main/session.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/fs_types.h"
+#include "engine/gameflag.h"
+#include "engine/gfx_types.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
 
 #include "mappic/mappic.h"
 

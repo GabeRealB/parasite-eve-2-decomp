@@ -19,13 +19,13 @@
 #include "scene_runtime.h"
 
 #include "gameplay/damage.h"
-#include "main/gfx.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/gfx.h"
+#include "engine/gameflag.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 /// Terminator of the ordered collected-item catalog, distinct from INVENTORY_ITEM_NONE.
 enum { INVENTORY_COLLECTED_LIST_END = 0xFFFF };

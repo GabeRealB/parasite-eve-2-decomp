@@ -9,6 +9,6 @@
 #ifndef SRC_SHARED_RISING_SPARK_H
 #define SRC_SHARED_RISING_SPARK_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #endif /* SRC_SHARED_RISING_SPARK_H */

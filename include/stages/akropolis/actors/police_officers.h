@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Area placement entries the plaza's two police officers are spawned from: the rookie at the tower's entrance and the
 /// sergeant at the barricade.

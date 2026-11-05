@@ -41,7 +41,7 @@ from room_scene import SVEC, arr, rec, sizeof  # noqa: E402
 EVS_COMMAND = rec(("opcode", "s32"), ("operands", arr("s32", 5)))
 OPCODE_SEND_MESSAGE = 1             # EVENT_SCRIPT_OPCODE_SEND_MESSAGE: 0 task slot, 1 selector, 2 message id, 3/4 argument words
 OPCODE_TARGETS = (43, 44, 46)       # JUMP, CALL_SCRIPT, SET_SKIP_TARGET: operand 0 is a command in a script
-SLOT_SCENE = 4                      # GAME_TASK_SLOT_SCENE, include/main/session.h
+SLOT_SCENE = 4                      # GAME_TASK_SLOT_SCENE, include/engine/session.h
 
 # The payload records, as include/gameplay/message.h lays them out (each has a STATIC_ASSERT_SIZEOF there).
 VECTOR = rec(("vx", "s32"), ("vy", "s32"), ("vz", "s32"), ("pad", "s32"))

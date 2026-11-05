@@ -5,10 +5,10 @@
 #include "gameplay/cap.h"
 #include "gameplay/captions.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/task.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/task.h"
 
 CapSequenceRecord* gCapSelectedSequence;
 

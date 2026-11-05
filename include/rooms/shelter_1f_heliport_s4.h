@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Number of logical views and identity-mapped camera/sprite slots in the stage-4 heliport.
 enum { SHELTER_1F_HELIPORT_S4_VIEW_COUNT = 5 };

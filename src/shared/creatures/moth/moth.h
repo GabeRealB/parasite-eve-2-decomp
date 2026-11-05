@@ -13,7 +13,7 @@
 
 #include "actors/actor.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"

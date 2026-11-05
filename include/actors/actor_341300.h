@@ -3,7 +3,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Scene task recipes: 0 textured quads, 1 player facing, 2 placed-resource exit.
 ///

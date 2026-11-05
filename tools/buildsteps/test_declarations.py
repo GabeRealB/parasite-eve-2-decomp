@@ -102,11 +102,11 @@ link_script = "psx/link.ld"
 uid = "uid://2"
 template = "library"
 
-[main]
+[engine]
 uid = "uid://3"
 template = "library"
 
-[main.target.psx]
+[engine.target.psx]
 symbols = "psx/symbols.ld"
 
 [no_target]
@@ -116,8 +116,8 @@ template = "package"
         package, = declared.packages()
         self.assertEqual((package.path, package.name, package.slot), ("packages/title", "title", "resident"))
         self.assertEqual(package.link_script, Path("packages/title/psx/link.ld"))
-        self.assertEqual(declared.published(), [Path("packages/main/psx/symbols.ld")])
-        self.assertEqual(declared.package_names(), {"title", "core", "main", "no_target"})
+        self.assertEqual(declared.published(), [Path("packages/engine/psx/symbols.ld")])
+        self.assertEqual(declared.package_names(), {"title", "core", "engine", "no_target"})
         self.assertEqual(declared.packages("pc"), [])
         self.assertEqual(declared.public(), {})
 

@@ -1,6 +1,6 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
-#include "main/event_flags.h"
+#include "engine/event_flags.h"
 
 /// Allocates the enemy's body work, initializes its rig and links four collision spheres.
 ///
@@ -354,7 +354,7 @@ static void _maggotCaterpillarRunBehaviour(Task* actor)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 

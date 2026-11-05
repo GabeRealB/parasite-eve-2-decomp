@@ -1,5 +1,5 @@
 // Reloc overrides for the gameplay overlay.
-// Add entries here when splat misidentifies a reloc (same format as rel.main.txt).
+// Add entries here when splat misidentifies a reloc (same format as rel.engine.txt).
 //
 // These instructions are %hi/%lo of a symbol in the original object, but the
 // matching C emits a numeric immediate (so GCC can fill a C branch delay slot;

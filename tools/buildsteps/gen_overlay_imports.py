@@ -13,7 +13,7 @@ analysis: any address it could not name appears in the split output verbatim as
 the reference set, relocation handling included.
 
 Names come from the map of the overlay that *defines* the symbol - main
-symbols from sym.main.txt, gameplay symbols from sym.gameplay.txt - so an
+symbols from sym.engine.txt, gameplay symbols from sym.gameplay.txt - so an
 overlay calls a function by the same name its owner uses. Addresses with no
 entry in either map keep their `func_`/`D_` form; they are real references to
 still-unnamed code, and naming them is a separate job.
@@ -32,7 +32,7 @@ from pathlib import Path
 
 MANIFEST = Path("configs/USA/overlays.toml")
 SYM_MAPS = [
-    ("main", Path("configs/USA/sym.main.txt")),
+    ("engine", Path("configs/USA/sym.engine.txt")),
     ("gameplay", Path("configs/USA/sym.gameplay.txt")),
 ]
 TOKEN = re.compile(r"\b(func|D)_([0-9A-F]{8})\b")

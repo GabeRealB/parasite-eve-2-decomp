@@ -8,7 +8,7 @@
 #include "cap.h"
 #include "gameplay/captions.h"
 
-#include "main/text.h"
+#include "engine/text.h"
 
 CapChoice gCapChoices[CAP_CHOICE_CAPACITY];
 

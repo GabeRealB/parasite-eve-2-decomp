@@ -12,7 +12,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 enum {
     NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT               = 1,

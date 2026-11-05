@@ -417,7 +417,7 @@ typedef struct {
 } OddStrangerTransformStorage;
 STATIC_ASSERT_SIZEOF(OddStrangerTransformStorage, 0x20);
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static void _oddStrangerTickBlendedAnimation(Task* task);
 static void _oddStrangerDriveAnimation(Task* task);

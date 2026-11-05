@@ -20,7 +20,7 @@
 #include "actors/actor.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Work block of the reversing walker, kept at `Task::work`.
 ///

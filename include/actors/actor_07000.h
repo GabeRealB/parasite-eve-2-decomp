@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_07000_H
 #define INCLUDE_ACTORS_ACTOR_07000_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Sucklerceph spawn descriptors: 0 standing, 1 hidden/drop, both with TMD bodies.
 ///

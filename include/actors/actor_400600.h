@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_400600_H
 #define INCLUDE_ACTORS_ACTOR_400600_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn recipe for the Zebra Stalker body task, running at priority 96.
 ///

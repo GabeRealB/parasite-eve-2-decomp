@@ -8,7 +8,7 @@ A sound-script bank (`imageKind` 2) carries an `hONE` image at 0x800: a header
 with the bank id and an entry count, a table of entry offsets, and for each
 entry a `oneC` channel chunk followed by `oneV` commands, with `Loop`/`Wait`/`endL`
 flow commands among them, up to `endC`
-(src/main/sound_types.h, src/main/sndscript.c). A `oneV` keys one voice on a
+(src/engine/sound_types.h, src/engine/sndscript.c). A `oneV` keys one voice on a
 layer, named by program and layer within it; a program is a group of the
 bank's layer table, so its layers follow those of the programs before it. A
 layer's wave address says which sample it plays; the extractor numbers
@@ -17,8 +17,8 @@ and the entry in its low byte.
 
 A `oneV` may name another bank: its samples then come from that bank, which has
 to be loaded too. 0xFFFF is looked up as bank 0 (`sndBankFind`,
-src/main/sndbank.c), the boot bank. An entry whose stored offset is 0 has no
-script, and a request for it is rejected (src/main/sndscript.c,
+src/engine/sndbank.c), the boot bank. An entry whose stored offset is 0 has no
+script, and a request for it is rejected (src/engine/sndscript.c,
 `SOUND_BANK_ENTRY_ABSENT`).
 """
 from __future__ import annotations
@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[2]
 import project  # noqa: E402
 RAW = project.root() / "raw" / "spk"
 IMAGE = 0x800
-# `Loop` and `Wait` are eight-byte flow commands and `endL` is its tag alone (src/main/sndscript.c, `_SndScriptCmd`).
+# `Loop` and `Wait` are eight-byte flow commands and `endL` is its tag alone (src/engine/sndscript.c, `_SndScriptCmd`).
 CHUNK = {b"oneC": 0x10, b"oneV": 0x18, b"oneA": 0x08, b"oneE": 0x18, b"Loop": 0x08, b"Wait": 0x08, b"endL": 0x04}
 
 

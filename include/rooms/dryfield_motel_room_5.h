@@ -8,7 +8,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Number of logical views and mapped camera/sprite records in daytime motel room 5.
 enum { DRYFIELD_MOTEL_ROOM_5_VIEW_COUNT = 6 };

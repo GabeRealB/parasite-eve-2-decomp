@@ -7,7 +7,7 @@ decomp (`fs.c`, `loadui.c`, `stage.c`, `tmd.c`, gameplay `scene_runtime.c`), and
 of the binaries (MIPS prologues, TMD-like streams, sibling textures, strings).
 
 Related: on-disc chunk packing in [`ASSET_FORMATS.md`](ASSET_FORMATS.md);
-TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
+TMD playback in `src/engine/tmd.c` / `include/engine/tmd.h`; animation player in
 `src/gameplay/scene_runtime.c` / `include/gameplay/animation.h`; the cooperative actor list in
 [`TASKS.md`](TASKS.md) (bank 6 callbacks live in the room overlay slot).
 
@@ -15,8 +15,8 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 |------|-------------|
 | Load addresses | `assets/USA/stages.json` (`type: room_pkg`, `load_addr`) |
 | File tree / ids | `tools/peassets/asset_data.py` (`TREE`) |
-| CD file lookup | `src/main/fs.c` (`fsLoadFile`, `_fsStage0HeaderReadyCallback`) |
-| Room enter | `src/main/stage.c` (`_stageBeginModeExitLoad`), `src/main/loadui.c` (`cdCmdEnqueueDisplayResource`) |
+| CD file lookup | `src/engine/fs.c` (`fsLoadFile`, `_fsStage0HeaderReadyCallback`) |
+| Room enter | `src/engine/stage.c` (`_stageBeginModeExitLoad`), `src/engine/loadui.c` (`cdCmdEnqueueDisplayResource`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
 | Model stream | `_tmdResolveSourceDrawHandlers` / `tmdBuildBufferHalf` |
 | Anim player | `AnimationContext` / `AnimationSlot` / `AnimationSet` (`scene_runtime.c`) |
@@ -40,7 +40,7 @@ same `.pe2pkg` as code (or *instead* of code). Textures are sibling `.pe2img`
 | **STAGE0** | Flat library, ids encoded as base-100 digits | Global swap-ins: gameplay/title, Aya, weapons, actors, maps, menus |
 | **STAGE1–5** | **Folders** (one room each) | Per-room script overlay at a single address |
 
-For stage zero, a `CdCmdEntry` in `include/main/fs_types.h` identifies a file as
+For stage zero, a `CdCmdEntry` in `include/engine/fs_types.h` identifies a file as
 `fileGroup * 10000 + args.file.fileIdHundreds * 100 + fileIndex`.
 The other three `args.file` bytes hold the load mode and signed image offsets.
 `fsLoadFile` switches on `fileKey->fileGroup` (the 10000s

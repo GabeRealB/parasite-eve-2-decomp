@@ -1,4 +1,4 @@
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
@@ -99,8 +99,8 @@ static void _sucklercephDormantTick(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(SUCKLERCEPH_DORMANT_SCRATCH_BYTES);
 }
 
-#include "main/random.h"
-#include "main/sound.h"
+#include "engine/random.h"
+#include "engine/sound.h"
 
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
@@ -536,7 +536,7 @@ static void _sucklercephDeathState(Enemy* enemy, Task* task)
 
 #undef SUCKLERCEPH_REQUEST_POSITIONED_SOUND
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 

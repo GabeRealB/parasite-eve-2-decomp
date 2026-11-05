@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_323300_H
 #define INCLUDE_ACTORS_ACTOR_323300_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Toilet encounter spawn recipes: 0 woman, 1 Lesser Stranger revealed by her command.
 ///

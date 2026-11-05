@@ -123,7 +123,7 @@ static void _generatorBodyHit(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_GeneratorBodyHitScratch);
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Generator library; see generator.h. */
 
@@ -225,7 +225,7 @@ static inline void _generatorUpdateAnimationInline(Task* task)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Generator library; see generator.h. */
 

@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Placement/resource directory for night Junk Yard variants 0..21.
 ///

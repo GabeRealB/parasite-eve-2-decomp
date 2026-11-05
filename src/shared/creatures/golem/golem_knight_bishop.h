@@ -83,8 +83,8 @@ enum {
 
 #include "actors/actor.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
 
 /// What a `GolemKnightBishopRegion` covers, and how the golem answers the
 /// player standing inside it.

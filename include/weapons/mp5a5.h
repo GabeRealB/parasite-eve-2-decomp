@@ -5,7 +5,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Native player animation bank shared by the MP5A5 and both upgrade packages (asset weapons/mp5a5/bank).
 ///

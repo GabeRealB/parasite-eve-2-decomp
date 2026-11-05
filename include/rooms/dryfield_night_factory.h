@@ -14,7 +14,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Eight nighttime factory recipes, indexed 0..7 with no terminator.
 ///

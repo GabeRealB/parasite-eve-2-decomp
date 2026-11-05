@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_401800_H
 #define INCLUDE_ACTORS_ACTOR_401800_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Odd Stranger TMD spawn descriptor; priority `TASK_PRIORITY_ACTOR`, with automatic model buffers disabled.
 ///

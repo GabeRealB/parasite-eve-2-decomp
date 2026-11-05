@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_160900_H
 #define INCLUDE_ACTORS_ACTOR_160900_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Aya/Kyle cutscene spawn recipes used by the pod service gantry.
 ///

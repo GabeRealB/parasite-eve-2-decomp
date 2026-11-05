@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_205200_H
 #define INCLUDE_ACTORS_ACTOR_205200_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Coordinate-body recipes: 0 destructible-part controller, 1 child part.
 ///

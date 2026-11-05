@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 /// One attack delivered through a collision body's key.
 ///

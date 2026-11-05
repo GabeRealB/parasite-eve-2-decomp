@@ -13,8 +13,8 @@
 #include "items.h"
 #include "item_menu.h"
 
-#include "main/mc.h"
-#include "main/wipsys.h"
+#include "engine/mc.h"
+#include "engine/wipsys.h"
 
 InventoryItemRow* gInventoryIndirectRows;
 

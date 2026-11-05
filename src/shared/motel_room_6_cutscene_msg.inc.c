@@ -1,6 +1,6 @@
 /* Part of the motel room 6 library; see motel_room_6.h. */
 
-#include "main/event_flags.h"
+#include "engine/event_flags.h"
 
 #ifndef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND
 #error "Bind MOTEL_ROOM_6_HANDLE_OTHER_COMMAND to the carrier's non-cutscene command handler"

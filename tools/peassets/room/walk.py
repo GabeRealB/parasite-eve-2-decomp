@@ -72,7 +72,7 @@ class Images:
         self.stage_image, self.room_name, self.room, self.gameplay = stage_image, room_name, room, gameplay
         self.own, self.base = (room, ROOM_LOAD) if room_name else (stage_image, STAGE_LOAD)
         sym = ROOT / "configs" / "USA"
-        self.names = {**symbol_map(sym / "sym.main.txt"), **symbol_map(sym / "sym.gameplay.txt"),
+        self.names = {**symbol_map(sym / "sym.engine.txt"), **symbol_map(sym / "sym.gameplay.txt"),
                       **symbol_map(sym / "sym" / "mapui" / f"{self.stage_name}.txt", room_name or "-",
                                    owned_only=not stage_symbols),   # a required stage's own names: its exports
                       **(symbol_map(sym / "sym" / "rooms" / f"{room_name}.txt") if room_name else {})}

@@ -3,7 +3,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Resets room presentation/music state and selects the loaded map's room task.
 ///

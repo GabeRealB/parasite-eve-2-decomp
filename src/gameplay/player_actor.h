@@ -10,8 +10,8 @@
 #include "gameplay/message.h"
 #include "gameplay/world_targets_types.h"
 
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Scratch-stack displacement used by player/companion distance and bearing queries.
 ///

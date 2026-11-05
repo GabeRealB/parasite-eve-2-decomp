@@ -16,14 +16,14 @@
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 
-#include "main/coord.h"
-#include "main/random.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/random.h"
+#include "engine/mem.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 #include "overlay.h"
 

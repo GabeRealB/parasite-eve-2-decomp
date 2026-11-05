@@ -6,9 +6,9 @@
 #include "gameplay/animation.h"
 #include "area_flags.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Placed-object room directories and live two-bit object states by stage.
 ///

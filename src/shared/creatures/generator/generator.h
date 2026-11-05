@@ -21,7 +21,7 @@
 
 #include "gameplay/world_collision_types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Runtime kind/table index for actor_105300's Beta Generator in Power Plant 2.
 ///

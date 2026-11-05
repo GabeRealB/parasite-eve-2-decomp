@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-#include "main/task_types.h"
-#include "main/ui_types.h"
+#include "engine/task_types.h"
+#include "engine/ui_types.h"
 
 /// Menu handler applied to one task-owned UI node. Takes the node and the task
 /// that owns it, and returns nothing.

@@ -10,7 +10,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // Data shared with this overlay's reserve-pool controller TU.
 #include "../../shared/room/roaming_enemies_data.h"

@@ -94,7 +94,7 @@ if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
 }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Continue room_visual_effects.inc.c after the preceding overlay wrappers. */
 

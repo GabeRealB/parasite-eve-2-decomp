@@ -10,7 +10,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Area updates after the first call: the patio and cafeteria move to variant 3,
 /// the MIST parking lot to variant 2.

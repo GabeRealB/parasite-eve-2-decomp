@@ -9,8 +9,8 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Placement variants of the hallway.
 extern AreaVariant gAkropolisHallwayAreaVariants[13];

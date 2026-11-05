@@ -8,7 +8,7 @@
 #include "gameplay/inventory.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "rooms/room.h"
 

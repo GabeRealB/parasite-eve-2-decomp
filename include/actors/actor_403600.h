@@ -4,9 +4,9 @@
 #include "common.h"
 #include "types.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Enemy task descriptors for this package (0 boss, 1 translucent double, 2 scene figure).
 ///

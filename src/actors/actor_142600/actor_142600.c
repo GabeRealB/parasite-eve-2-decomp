@@ -7,7 +7,7 @@
 #include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 
-#include "main/session.h"
+#include "engine/session.h"
 
 // This package contains no code: only the retained scene data below. Its id
 // word, before the data, is written by the link (tools/splat_ext/pkgid.py).

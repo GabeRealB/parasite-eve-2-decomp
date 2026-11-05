@@ -5,8 +5,8 @@
 
 #include "gameplay/cap.h"
 
-#include "main/task_types.h"
-#include "main/text.h"
+#include "engine/task_types.h"
+#include "engine/text.h"
 
 // CAP dialogue commands, text state, relocation and task control.
 

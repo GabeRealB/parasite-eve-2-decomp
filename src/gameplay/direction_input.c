@@ -16,13 +16,13 @@
 #include "gameplay/view.h"
 #include "gameplay/world_collision.h"
 
-#include "main/display.h"
-#include "main/gameflow.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/gameflow.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 u16 gDirectionPreviousActionControl;

@@ -5,8 +5,8 @@
 
 #include "gameplay/areaplace.h"
 
-#include "main/gameflag_types.h"
-#include "main/task_types.h"
+#include "engine/gameflag_types.h"
+#include "engine/task_types.h"
 
 /// Selectors for an area's global-library file-group base.
 ///

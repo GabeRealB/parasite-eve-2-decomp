@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Commands broadcast to the room's Desert Chasers with `ACTOR_COMMAND_MESSAGE_APPLY`.
 ///

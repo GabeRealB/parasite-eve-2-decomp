@@ -21,14 +21,14 @@
 #include "world_coords.h"
 #include "world_targets.h"
 
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 #include "stages/akropolis/stage.h"
 

@@ -11,7 +11,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Resolves water-tower departures and starts the kitchen-door event when eligible.
 ///

@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "main/event_flags.h"
-#include "main/gameflag_types.h"
+#include "engine/event_flags.h"
+#include "engine/gameflag_types.h"
 
 /// Optional flag updates use zero to mean that no flag is associated with the event.
 enum { GAME_FLAG_OPTIONAL_NONE = 0 };

@@ -12,7 +12,7 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Two bodyless priority-192 tasks for the return-to-MIST movie.
 extern TaskDesc gAkropolisHelicopterLandingPadMovieTasks[2];

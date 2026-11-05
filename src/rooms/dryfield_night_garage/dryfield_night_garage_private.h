@@ -8,7 +8,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/inventory.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 extern AnimationSet gDryfieldNightGarageAnimation04B80;
 

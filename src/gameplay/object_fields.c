@@ -9,7 +9,7 @@
 #include "gameplay/enemy_params.h"
 #include "damage.h"
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /// Calls to the buildup tick function accumulated before advancing one step.
 #define DAMAGE_ENEMY_BUILDUP_STEP_TICKS 0x1F

@@ -19,7 +19,7 @@
 
 #include "gameplay/hud_sprites.h"
 
-#include "main/gfx.h"
+#include "engine/gfx.h"
 
 /// Packed trail tints: red at bit 8, green at bit 4 and blue at bit 0.
 ///

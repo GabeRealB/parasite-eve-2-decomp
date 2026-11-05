@@ -8,7 +8,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Motel room 3's room-1 collision mesh, view boundaries and exit trigger.
 ///

@@ -8,7 +8,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // neo_ark_substation
 /// Collision resources for the substation's sole room, indexed by room ID minus one.

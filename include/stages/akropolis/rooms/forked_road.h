@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Actor layout variants of the forked road.
 extern AreaVariant gAkropolisForkedRoadAreaVariants[24];

@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_ENDING_H
 #define GAMEPLAY_PRIVATE_ENDING_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Six phases of the play-time/HUD controller and its death/restart sequence.
 ///

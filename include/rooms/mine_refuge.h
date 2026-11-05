@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Number of retained placement-variant slots, including absent slots.
 enum { MINE_REFUGE_AREA_VARIANT_COUNT = 11 };

@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 
 /// Resolves a sound id's nonzero stage nibble against the current session stage.
 ///

@@ -10,7 +10,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Access-tunnel layouts indexed by the saved placement variant (0..21).
 ///

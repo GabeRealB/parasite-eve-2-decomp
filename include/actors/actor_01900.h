@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_01900_H
 #define INCLUDE_ACTORS_ACTOR_01900_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Grinning Stranger TMD spawn descriptor shared by actor_101900 and actor_301900.
 ///

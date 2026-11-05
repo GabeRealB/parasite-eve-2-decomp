@@ -18,7 +18,7 @@
 #ifndef SRC_SHARED_ACTION_PROMPT_H
 #define SRC_SHARED_ACTION_PROMPT_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "gameplay/action_prompt.h"
 

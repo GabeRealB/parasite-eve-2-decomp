@@ -440,14 +440,14 @@ actually got.
 
 `///` immediately above the declaration, opening with one summary sentence, with
 anything further after a blank `///` line. Cross-references in backticks.
-`include/main/mem.h` is the worked example for functions and types.
+`include/engine/mem.h` is the worked example for functions and types.
 
 **Struct fields take aligned trailing `//` comments**, not a `///` block each, so
 the declaration stays readable as a table. Where a field takes a small set of
 values, enumerate them — `(0 none, 1 TMD model, 2 2D display)` — because nothing
 else says what a 2 means. **Never annotate a field with its offset**: the layout
 is already in the types and fixed by `STATIC_ASSERT_SIZEOF`, and the annotation
-sits in exactly the column the comment needs. `include/main/task.h` is the
+sits in exactly the column the comment needs. `include/engine/task.h` is the
 worked example.
 
 Say **what** something is and **why** it exists. Not how you worked it out —
@@ -491,7 +491,7 @@ GCC 2.8.1, `-O2`, no `-finline-functions`.
 - **Anonymous struct and union members do not work.** The declaration is
   accepted and every access to it is then rejected. Nest with *named* members:
   `owner->at4.loc`, not `owner->loc`. `_GpuStatusRegister` in
-  `src/main/gpuext.c` is the worked example: its bitfields sit in a struct
+  `src/engine/gpuext.c` is the worked example: its bitfields sit in a struct
   member named `bits`.
 - `static` is safe more often than it looks, since nothing is inlined unless
   explicitly marked.

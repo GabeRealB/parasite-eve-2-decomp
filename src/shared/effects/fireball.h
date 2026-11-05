@@ -13,7 +13,7 @@
 
 #include "types.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 static void _fireballDrawGlow(const GfxCoord* coord, s16 halfExtent);
 static void _fireballDrawGroundGlow(const GfxCoord* coord, s32 halfExtent);

@@ -17,7 +17,7 @@ has been processed.
                                       share a parallel round
 
 `<spec>` is the form the other refactor tools take, e.g.
-`src/main/stage.c/stageSetFadeRate`. With no argument, `next` considers the
+`src/engine/stage.c/stageSetFadeRate`. With no argument, `next` considers the
 whole graph.
 
 Project macros use definition-file/name identity and conservative lexical
@@ -1075,7 +1075,7 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
     return [g for g in order if g not in pset] + steps
 
 
-RESIDENT_UNITS = ("src/main/", "src/gameplay/")
+RESIDENT_UNITS = ("src/engine/", "src/gameplay/")
 ENUM_UNIT = "enum:"
 
 

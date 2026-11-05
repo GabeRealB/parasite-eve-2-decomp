@@ -1,7 +1,7 @@
 #ifndef INCLUDE_STAGES_AKROPOLIS_MAP_H
 #define INCLUDE_STAGES_AKROPOLIS_MAP_H
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 // Each shape is an area's flat outline in the model X/Z plane, white and without normals. The map scales a
 // page's outlines by 2107/4096 and maps Z to inverted screen Y, and borrows their vertices and first stream

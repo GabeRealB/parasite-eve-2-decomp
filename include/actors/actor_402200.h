@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_402200_H
 #define INCLUDE_ACTORS_ACTOR_402200_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Knight GOLEM model-task descriptor exported to room resource tables.
 ///

@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_ITEM_PLACEMENT_H
 #define GAMEPLAY_PRIVATE_ITEM_PLACEMENT_H
 
-#include "main/session_types.h"
+#include "engine/session_types.h"
 
 /// Spawns every matched object in the destination area's flag-bank place list.
 ///

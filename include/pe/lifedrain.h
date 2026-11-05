@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_LIFEDRAIN_H
 #define INCLUDE_PE_LIFEDRAIN_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Advances the short-lived rising spark emitted by Life Drain.
 ///

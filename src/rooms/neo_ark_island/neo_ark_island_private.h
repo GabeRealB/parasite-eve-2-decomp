@@ -8,7 +8,7 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// The island's collision mesh and 4-by-5 XZ cell index.
 ///

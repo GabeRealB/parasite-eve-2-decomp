@@ -60,7 +60,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
     `AreaResource` lists. A resource row names a file (`fileNumber`,
     `fileGroupIndex`) and the actor it is for: `taskTable[taskIndex]`, a
     `TaskDesc` whose `data.model` is the model's `TmdSource` when its body kind
-    is a TMD model (include/gameplay/area.h, include/main/task_types.h). So the
+    is a TMD model (include/gameplay/area.h, include/engine/task_types.h). So the
     row says which file's textures the model spawned through it is drawn with.
 
     The task table is an address in an actor overlay, and the row does not say

@@ -10,9 +10,9 @@
 #include "gameplay/enemy_params.h"
 #include "gameplay/world_targets_types.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Bit of `Enemy::reactionFlags` requesting an immediate actor stagger.
 ///

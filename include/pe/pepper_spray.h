@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_PEPPER_SPRAY_H
 #define INCLUDE_PE_PEPPER_SPRAY_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Advances and draws one spark from the Pepper Spray effect.
 ///

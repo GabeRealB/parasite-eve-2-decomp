@@ -8,11 +8,11 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 
 ## Project Structure
 
-- `src/<overlay>` decompiled C (`src/main`, `src/gameplay`) and
+- `src/<overlay>` decompiled C (`src/engine`, `src/gameplay`) and
   `src/<family>/<overlay>` for the generated overlay families (`src/weapons/m93r`, …)
 - `packages/` overlays migrated out of splat: `packages/title` and the four
   `packages/aya/aya_*` are source, written by hand (see "Packages" below)
-- `include/<overlay>` headers for that unit (`include/main`, `include/gameplay`, …)
+- `include/<overlay>` headers for that unit (`include/engine`, `include/gameplay`, …)
 - `asm/<ver>/<overlay>/nonmatchings` unmatched functions (one `.s` per function). Overlays may be nested (e.g. `asm/USA/stage1/101/nonmatchings`).
 - `asm/<ver>/<overlay>/matchings` already-matched functions
 - `packages/psyq` the Psy-Q SDK as the game links it: its headers and, in `lib/`, the members of its libraries the executable links (`lib/versions.txt`)
@@ -37,8 +37,8 @@ repository's ninja build, which needs no Rust, and the editor's.
 | `configs/USA/package_slots.toml` | where each `slot` loads; `executable` is the PS-EXE, its header written by the target (`tools/buildsteps/psx_exe.py`) |
 | `configs/USA/resident.toml` | the models a package carries, which `dump_asset_db.py` catalogs |
 
-**A package reaches another two ways.** A slot, `PE2_BIND(main, package)` with
-`#include PE2_INCLUDE(main, fs.h)`, is a dependency the build may fill with
+**A package reaches another two ways.** A slot, `PE2_BIND(engine, package)` with
+`#include PE2_INCLUDE(engine, fs.h)`, is a dependency the build may fill with
 another package. Its declaration's `dependencies` are fixed: each one's public
 folders go on its include path, after its own `include/` and `src/`, and theirs
 after them, so those headers are included by their plain names, as Unreal's
@@ -81,7 +81,7 @@ never decode: a slot is the bytes the disc stores, found through the declaration
 code and layout; that assets rebuild those bytes is the editor's to prove. Where
 both make a token it must be the same text.
 
-**A header a resident image needs stays in `include/` as well.** `main` and
+**A header a resident image needs stays in `include/` as well.** `engine` and
 `gameplay` compile against `include/aya/aya.h` and `include/title/title.h`, and
 take the addresses from their imports files. Those are plain copies of the
 packages' public headers, so a rename there is a change in both.
@@ -97,7 +97,7 @@ into `sys / types.h`.
 
 ### Generated overlay configs
 
-`main` / `gameplay` have hand-written splat configs; each has quirks a
+`engine` / `gameplay` have hand-written splat configs; each has quirks a
 template cannot express. Every other overlay is a flat `.pe2pkg` with the same
 shape, and there are 442 of them, so their configs are **generated**:
 
@@ -454,7 +454,7 @@ overlay.
   give-up in `tools/match/difficult_functions`, joined to the function's assembly
   metrics. Re-run it after a few hundred new matches; `--write` updates the
   constants block in `score_functions.py` in place.
-- `./tools/vacuum/vacuum.sh [--grok|--claude] [--dry-run] [--orchestrator] [--difficult] [--overlay NAME]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. `--difficult` retries only names in `tools/match/difficult_functions` (a verified match removes that name from the list); `--overlay gameplay` (or `USA/main`) restricts to that overlay; both flags together are the intersection. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit. Best scratch C is kept at `tools/giveups/<func>/` (gitignored) so a later retry does not start from m2c. `--orchestrator` claims a function via `tools/vacuum/vacuum_orch.py`, matches in a throwaway `pe2-wt-<func>` worktree, independently verifies that worktree (agents often sha256 leftover `build/` artifacts), fast-ports when trunk files have not moved, otherwise runs a port agent. Failed trunk landings are retried (`VACUUM_PORT_TRIES`, default 2) then marked difficult so the same claim cannot loop. Do not run a non-orchestrator vacuum on this checkout at the same time as an orchestrator session.
+- `./tools/vacuum/vacuum.sh [--grok|--claude] [--dry-run] [--orchestrator] [--difficult] [--overlay NAME]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. `--difficult` retries only names in `tools/match/difficult_functions` (a verified match removes that name from the list); `--overlay gameplay` (or `USA/engine`) restricts to that overlay; both flags together are the intersection. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit. Best scratch C is kept at `tools/giveups/<func>/` (gitignored) so a later retry does not start from m2c. `--orchestrator` claims a function via `tools/vacuum/vacuum_orch.py`, matches in a throwaway `pe2-wt-<func>` worktree, independently verifies that worktree (agents often sha256 leftover `build/` artifacts), fast-ports when trunk files have not moved, otherwise runs a port agent. Failed trunk landings are retried (`VACUUM_PORT_TRIES`, default 2) then marked difficult so the same claim cannot loop. Do not run a non-orchestrator vacuum on this checkout at the same time as an orchestrator session.
 - `./tools/vacuum/vacuum_overlay_list.sh --list FILE [--profile P] [--jobs N]
   [--difficult]` drive `vacuum_overlay.sh` through an ordered list of overlays,
   several at a time.
@@ -597,19 +597,19 @@ When you see pointer arithmetic patterns like `*(type*)((u8*)ptr + offset)`:
      executable) uses public module headers under `include/`. Include the
      canonical declaration instead of copying caller-local prototypes. Count
      callback/inline uses and cross-image aliases when deciding ownership.
-     - **Main executable** (`src/main/`, `include/main/`): see `NAMING.md` for
-       the module → header map (e.g. sound in `include/main/sound.h`, UI in
+     - **Main executable** (`src/engine/`, `include/engine/`): see `NAMING.md` for
+       the module → header map (e.g. sound in `include/engine/sound.h`, UI in
        `ui.h`, FS/CdCmd in `fs.h`). Include the specific module header; do not
        add a kitchen-sink aggregator.
      - **Overlays:** public headers belong to their owning overlay under
        `include/`; private headers live next to its source. Public headers must
        not depend on private headers. Do not put overlay-only types in
-       `include/main/`.
+       `include/engine/`.
      - **Gameplay BSS:** keep the existing definitions in first-declaration
        order in the prologue, before API headers, with their required types
        available first. Header moves must preserve the matching storage layout;
        they do not justify changing alignment or inventing padding.
-   - Use `include/main/unknown_syms.h` only for residual main-executable symbols
+   - Use `include/engine/unknown_syms.h` only for residual main-executable symbols
      (`func_800*`, unfiled BSS/data) with no module home yet. Do **not** add new
      named types or Module_ APIs there.
 
@@ -648,7 +648,7 @@ First we need to spin up a decomp environment for the function, run:
 ./tools/match/claude --bootstrap-only <function name>
 ```
 
-The script searches every overlay under `asm/<ver>/` (not just `main`). Move to the directory it prints (`SCRATCH_DIR=…`). Read `BRIEF.md` there instead of re-exploring the repo.
+The script searches every overlay under `asm/<ver>/` (not just `engine`). Move to the directory it prints (`SCRATCH_DIR=…`). Read `BRIEF.md` there instead of re-exploring the repo.
 
 Use the tools in this directory to match the function. You may need to make several attempts. Each attempt should be in a new file (base_1.c, base_2.c, ... base_n.c, etc). It's okay to give up if you're unable to match after _10_ attempts.
 
@@ -853,7 +853,7 @@ asset sits inside a unit whose data is in C, the unit defines it itself: mark
 its `EMBEDDED_ASSETS` record `"include": True`, and the build turns the
 extracted file into `build/include/assets/<id>.inc` (`tools/buildsteps/gen_asset_inc.py`),
 which the definition includes as its initializer (`_gFontGlyphsMedium` in
-`src/main/textdraw.c`). For **inspection**, catalog it by address in
+`src/engine/textdraw.c`). For **inspection**, catalog it by address in
 `asset_db.EMBEDDED_ASSETS` and it flows through the normal extract pipeline
 into `raw/{type}/` and the type directory, like any on-disc asset. See
 `doc/ASSET_FORMATS.md` 7.7.

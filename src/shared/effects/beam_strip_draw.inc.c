@@ -10,10 +10,10 @@
 #include "gte.h"
 #include "types.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/scratch.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/scratch.h"
 
 #include "beam_strip.h"
 

@@ -1,4 +1,4 @@
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_120300_H
 #define INCLUDE_ACTORS_ACTOR_120300_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Live indices in Gary Douglas's garage task descriptor table, without a terminator.
 enum {

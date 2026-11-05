@@ -4,7 +4,7 @@
  * singleton values must remain unchanged until the pending prompt finishes.
  */
 
-#include "main/event_flags.h"
+#include "engine/event_flags.h"
 
 /// Selects the General Store's underpass destination from event and switch state.
 ///

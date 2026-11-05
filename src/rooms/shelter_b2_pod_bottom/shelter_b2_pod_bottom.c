@@ -23,12 +23,12 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/coord.h"
-#include "main/gameflag_ids.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/gameflag_ids.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 #include "mapui/map_shelter.h"
 

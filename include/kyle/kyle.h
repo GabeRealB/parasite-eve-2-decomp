@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 /// Kyle Madigan's native companion animation bank for resource variant 1.
 ///

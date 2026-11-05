@@ -6,8 +6,8 @@
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
 
 /// Number of ring-band shapes selected by the effect's band index (0..2).
 enum { SHELTER_B6_TRAINING_ROOM_BAND_COUNT = 3 };

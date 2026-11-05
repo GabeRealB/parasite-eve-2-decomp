@@ -209,7 +209,7 @@ def find_stub(host: Path, func: str) -> Optional[str]:
 # A dirty seed is a proven match whose accesses m2c could not type, so it writes
 # M2C_FIELD(arg0, s32 *, 0x30) where the source said arg0->state. For most of
 # them the type is not undescribed at all -- it is `Task`, which
-# include/main/task_types.h already defines with every hot offset named (0x1C work,
+# include/engine/task_types.h already defines with every hot offset named (0x1C work,
 # 0x30 state, 0x2C extra). Those need no new type and no judgement: retype the
 # parameter and substitute the field, and let the build adjudicate exactly as it
 # does for a clean seed.
@@ -227,7 +227,7 @@ TASK_SIZE = 0x48
 
 def task_fields() -> dict[int, tuple[str, str]]:
     """offset -> (field name, declared type), read from the Task definition."""
-    header = REPO_ROOT / "include" / "main" / "task.h"
+    header = REPO_ROOT / "include" / "engine" / "task.h"
     if not header.is_file():
         return {}
     text = header.read_text(errors="ignore")

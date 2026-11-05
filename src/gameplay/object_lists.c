@@ -17,11 +17,11 @@
 #include "gameplay/room.h"
 
 #include "gameplay/damage.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task_types.h"
+#include "engine/mc.h"
+#include "engine/mem.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
 
 /// Scratch-stack workspace for finding the contact nearest a capsule body's second endpoint.
 ///

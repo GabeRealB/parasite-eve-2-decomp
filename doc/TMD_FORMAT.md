@@ -3,7 +3,7 @@
 What we know about the **model streams** inside the `.pe2pkg` overlay packages:
 the container that ties a mesh together, the packet stream that describes its
 faces, and what each opcode means. Derived from the matching decomp
-(`src/main/tmd.c`, `src/main/hasm/Tmd_StreamHandlers_Ops.s`,
+(`src/engine/tmd.c`, `src/engine/hasm/Tmd_StreamHandlers_Ops.s`,
 `src/gameplay/scene_runtime.c`) and from walking the 360 model streams the extractor
 carves out of the retail USA discs.
 
@@ -15,10 +15,10 @@ and animation sit together.
 
 | Area | Code / tools |
 |------|----------------|
-| Stream walk + opcode switches | `src/main/tmd.c` (`_tmdResolveSourceDrawHandlers`, `tmdBuildBufferHalf`) |
-| Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
-| Container types | `include/main/tmd_types.h` (`TmdSource`, `TmdObject`) |
-| Attach path | `src/gameplay/model_objects.c` (`modelObjectAttachTmd`), `src/main/task.c` |
+| Stream walk + opcode switches | `src/engine/tmd.c` (`_tmdResolveSourceDrawHandlers`, `tmdBuildBufferHalf`) |
+| Early-image handlers | `src/engine/hasm/Tmd_StreamHandlers_Ops.s` |
+| Container types | `include/engine/tmd_types.h` (`TmdSource`, `TmdObject`) |
+| Attach path | `src/gameplay/model_objects.c` (`modelObjectAttachTmd`), `src/engine/task.c` |
 | Locate / carve streams | `tools/peassets/model/tmd.py` |
 
 **Status.** The format is understood well enough to write an exporter. An
@@ -572,7 +572,7 @@ Every family the per-frame switch dispatches to, with the primitive it builds
 and where its texture coordinates come from. Read out of the handlers: some of
 the bodies are the early image's own, the rest are decompiled in
 `src/gameplay/model_objects.c` and `src/gameplay/model_lighting.c`. The early
-image resolves those by absolute address through `configs/USA/sym.main.imports.txt` — which is why they are easy
+image resolves those by absolute address through `configs/USA/sym.engine.imports.txt` — which is why they are easy
 to miss.
 
 "Refs" is what precedes the UV words: the ref block — `nv` vertex offsets then

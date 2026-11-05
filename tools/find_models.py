@@ -176,7 +176,7 @@ def stage_maps() -> dict[int, str]:
     Its entries are pointers to the maps' own tables, so the relocation naming
     each one names the map package the stage uses.
     """
-    obj = ROOT / "build/USA/src/main/boot.c.o"
+    obj = ROOT / "build/USA/src/engine/boot.c.o"
     syms = subprocess.run(["mips-linux-gnu-nm", str(obj)], capture_output=True, text=True).stdout
     base = int(re.search(r"^([0-9a-f]+) \w _gGfxImageSlotTablesByStage$", syms, re.M).group(1), 16)
     relocs = subprocess.run(["mips-linux-gnu-readelf", "-rW", str(obj)], capture_output=True, text=True).stdout

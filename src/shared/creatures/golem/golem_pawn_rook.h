@@ -137,7 +137,7 @@
 
 #include "gameplay/enemy.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Shield-table row values; front-facing covered hits redirect HP loss to the shield.
 enum {

@@ -457,7 +457,7 @@ static inline void _golemKnightBishopUpdateTintInline(Task* task)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 

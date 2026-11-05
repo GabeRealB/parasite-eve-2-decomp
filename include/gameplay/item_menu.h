@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
-#include "main/ui_types.h"
+#include "engine/task_types.h"
+#include "engine/ui_types.h"
 
 // Inventory menu tasks, item panels, prompts and their shared descriptors.
 

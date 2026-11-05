@@ -10,15 +10,15 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/areas.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/areas.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 /// Signed BP award or escape penalty, retained while the single result panel is live.
 static s16 _gItemMenuBattleResultBpDelta;

@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Actor layouts for Mine Mesa (stage 4, area 1), indexed by placement variant.
 ///

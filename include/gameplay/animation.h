@@ -8,8 +8,8 @@
 
 #include "gameplay/animation_types.h"
 
-#include "main/coord.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/tmd_types.h"
 
 /// Unpacked local transform of one animated model part.
 ///

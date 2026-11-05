@@ -12,10 +12,10 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/gfx_types.h"
-#include "main/stage_types.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/gfx_types.h"
+#include "engine/stage_types.h"
+#include "engine/task_types.h"
 
 /// Mine/Shelter's image-memory slots for captured frames and auxiliary heaps.
 ///

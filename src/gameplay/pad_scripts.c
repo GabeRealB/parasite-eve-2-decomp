@@ -5,10 +5,10 @@
 #include "pad_script.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "engine/mem.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/task.h"
 
 /// Duration units of each per-frame motor refresh; one unit spans two serviced controller polls.
 enum { PAD_SCRIPT_MOTOR_REFRESH_DURATION_UNITS = 1 };

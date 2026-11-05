@@ -7,11 +7,11 @@
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 static s32 _dryfieldMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldMotelRoom1ResolveTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);

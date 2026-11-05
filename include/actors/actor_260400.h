@@ -1,7 +1,7 @@
 #ifndef ACTORS_ACTOR_260400_H
 #define ACTORS_ACTOR_260400_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Wounded Rupert Broderick spawn recipes: 0 body walker, 1 attached Mongoose.
 ///

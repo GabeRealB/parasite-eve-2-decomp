@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // Native animation sets referenced by room script banks.
 extern AnimationSet gAkropolisHelicopterLandingPadPlayerHelipadReportEscapeClip;

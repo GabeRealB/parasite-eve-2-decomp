@@ -16,14 +16,14 @@
 #include "items.h"
 #include "scene_runtime.h"
 
-#include "main/areas.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/areas.h"
+#include "engine/gameflag.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 /// Collection-bit packing and the bit that starts the Ice Bag's age timer.
 enum {

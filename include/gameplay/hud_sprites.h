@@ -8,8 +8,8 @@
 
 #include "gameplay/view.h"
 
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Queues battle-escape results for an engaged or resumed battle without a pending reset.
 ///

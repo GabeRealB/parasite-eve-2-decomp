@@ -28,16 +28,16 @@
 
 #include "actors/actor_800100.h"
 
-#include "main/display.h"
-#include "main/gamemain.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/random.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/gamemain.h"
+#include "engine/gfx.h"
+#include "engine/mem.h"
+#include "engine/random.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/wipsys.h"
 
 #include "pe/antibody.h"
 

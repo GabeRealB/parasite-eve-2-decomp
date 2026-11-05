@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Native weapon IDs for the armed companion's saved resource variant.
 ///

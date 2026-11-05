@@ -5,8 +5,8 @@
 #include "item_use.h"
 #include "gameplay/items.h"
 
-#include "main/mc_types.h"
-#include "main/ui_types.h"
+#include "engine/mc_types.h"
+#include "engine/ui_types.h"
 
 u8 gItemMenuTransferMoveText[] = "Move";
 

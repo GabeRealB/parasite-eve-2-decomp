@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/text.h"
+#include "engine/text.h"
 
 /// Callback for cursor effects and code cues during timed CAP text reveal.
 ///

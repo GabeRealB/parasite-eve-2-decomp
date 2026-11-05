@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PACKAGES = Path("packages")
-GENERATED = ("gameplay", "main")
+GENERATED = ("gameplay", "engine")
 # What core gives through `pe2.h`, of what `include/decomp/` holds; the rest of it no package has.
 THROUGH_PE2 = frozenset({"common.h", "types.h"})
 # What cpp searches after a file's own folder, as the build passes it.

@@ -102,7 +102,7 @@ Options:
                     8, including one function stalled at 99.928% after 40
                     attempts that matched on its first.
                     A verified match removes that name from the list.
-  --overlay NAME    Only pick functions from this overlay (gameplay, USA/main,
+  --overlay NAME    Only pick functions from this overlay (gameplay, USA/engine,
                     asm path suffix). Combined with --difficult: intersection.
   -h, --help        Show this help
 
@@ -252,7 +252,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --overlay)
       if [[ $# -lt 2 ]]; then
-        echo "Error: --overlay requires a value (e.g. gameplay, USA/main)"
+        echo "Error: --overlay requires a value (e.g. gameplay, USA/engine)"
         usage
         exit 1
       fi
@@ -1227,7 +1227,7 @@ Best scratch score: $score
 Rules:
 - Do not claim another function. Do not start vacuum. Do not create a worktree.
 - Do not \`git reset --hard\` except to undo a change **you just made** that failed verify.
-- New types stay in this overlay's include/ tree, not include/main/unknown_syms.h.
+- New types stay in this overlay's include/ tree, not include/engine/unknown_syms.h.
 - No pointer arithmetic with manual offsets.
 
 $(stale_build_warning "$ROOT")

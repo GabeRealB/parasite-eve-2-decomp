@@ -9,10 +9,10 @@
 #include "gameplay/message.h"
 #include "gameplay/player_actor.h"
 
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/session.h"
-#include "main/sound_ids.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/session.h"
+#include "engine/sound_ids.h"
 
 #include "rooms/shelter_r47.h"
 

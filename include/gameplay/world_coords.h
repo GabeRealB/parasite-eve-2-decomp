@@ -9,9 +9,9 @@
 #include "gameplay/enemy.h"
 #include "gameplay/light.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Number of directly indexed transient point-light slots.
 enum { WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT = 8 };

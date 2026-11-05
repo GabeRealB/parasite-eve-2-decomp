@@ -9,14 +9,14 @@
 #include "cdcmd.h"
 #include "items.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/sound.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 /// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is

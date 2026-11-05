@@ -118,7 +118,7 @@ def join(recs, by_name, by_vram):
         hit = by_name.get(rec["name"])
         if hit is None:
             families = [rec["family"]] if rec["family"] else []
-            families += ["main", "gameplay", "actors", "rooms", "title", "weapons"]
+            families += ["engine", "gameplay", "actors", "rooms", "title", "weapons"]
             for addr in HEX8.findall(rec["name"].upper()):
                 for family in families:
                     if (family, addr) in by_vram:

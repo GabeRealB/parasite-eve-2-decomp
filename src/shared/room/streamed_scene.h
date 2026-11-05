@@ -7,7 +7,7 @@
 #ifndef SRC_SHARED_STREAMED_SCENE_H
 #define SRC_SHARED_STREAMED_SCENE_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Playback phases stored in the movie task's byte-sized state selector.
 enum {

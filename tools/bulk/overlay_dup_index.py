@@ -51,7 +51,7 @@ MANIFEST = Path("configs/USA/overlays.toml")
 # two separate functions - the segment links once, so neither can be served by
 # the other. Treating the whole family as one overlay is what keeps `solved`
 # and `siblings` from offering to share them.
-SINGLE_LINK = frozenset({"main", "gameplay"})
+SINGLE_LINK = frozenset({"engine", "gameplay"})
 WORD = re.compile(r"^\s*/\* [0-9A-F]+ ([0-9A-F]{8}) ([0-9A-F]{8}) \*/", re.M)
 REF = re.compile(r"%(?:hi|lo)\(([A-Za-z_]\w*)\)|\b(?:jal|j)\s+([A-Za-z_]\w*)")
 
@@ -1303,7 +1303,7 @@ def cmd_similar(data: dict, name: str, topn: int, floor: float) -> int:
             agree[f["name"]] += 1
     # cflow is corroboration, never a finding on its own. A branch skeleton is
     # generic even well past the length gate: an actor task function scored 1.00
-    # against four memory-card state machines in src/main/mc.c, and a brief
+    # against four memory-card state machines in src/engine/mc.c, and a brief
     # showing only that sends the reader somewhere useless. Keep it when another
     # class also found something; otherwise say nothing.
     if not any(results.get(c) for c in ("shape", "fields", "calls")):

@@ -12,7 +12,7 @@ byte whose high nibble says which save modes accept it. A variant no list
 stores is either the room's default or set some other way.
 
 Dryfield by day and by night share saved area state: where both stages have a
-room with one area id, both address the same slot (include/main/gameflag_types.h,
+room with one area id, both address the same slot (include/engine/gameflag_types.h,
 `GameFlagDryfieldBank`). A record naming either stage is therefore listed under
 both rooms, marked "(shared slot)" on the one the record does not name.
 
@@ -46,7 +46,7 @@ RECORD_SIZE = 4                  # AreaApplyRec { u8 stage, area, variant, polic
 DRYFIELD_TWIN = {2: 3, 3: 2}     # the day and night stages share saved area slots
 
 # The executable is not a package: a PS-X EXE whose header gives the load address at 0x18 and whose image starts at
-# 0x800 (configs/USA/main.yaml: target_path, and the header segment it cuts first).
+# 0x800 (configs/USA/engine.yaml: target_path, and the header segment it cuts first).
 MAIN_EXE = "assets/USA/main.exe"
 
 # The one thing taken from C: that a name is declared as an array of AreaApplyRec. Group 1 is set on an `extern`.

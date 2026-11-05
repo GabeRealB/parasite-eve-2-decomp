@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_160700_H
 #define INCLUDE_ACTORS_ACTOR_160700_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Descriptor indices for Pierce Carradine and his carried model.
 enum {

@@ -6,8 +6,8 @@
 PE2_BIND(gameplay, package)
 #include PE2_INCLUDE(gameplay, gpu_image_upload.h)
 
-PE2_BIND(main, package)
-#include PE2_INCLUDE(main, tmd_types.h)
+PE2_BIND(engine, package)
+#include PE2_INCLUDE(engine, tmd_types.h)
 
 /*
  * What Aya's four outfit packages publish: her body, her hands and the facial animation each one carries. They are

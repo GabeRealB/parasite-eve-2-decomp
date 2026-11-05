@@ -615,7 +615,7 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         "build, it is rodata placement, not codegen: run `python3 tools/bulk/rodata_triage.py "
         "<overlay>`. A generated jump table must own *and start* its unit's .rodata.",
         "Do not read that file end-to-end.",
-        "New types for this overlay live under its own `include/`, not `include/main/unknown_syms.h`.",
+        "New types for this overlay live under its own `include/`, not `include/engine/unknown_syms.h`.",
     ]
     return "\n".join(lines) + "\n"
 

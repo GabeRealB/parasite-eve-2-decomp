@@ -26,13 +26,13 @@ static s32 _gDryfieldWarehouseAmbienceVolumePercent;
 #include "gameplay/sprites.h"
 #include "gameplay/world_collision.h"
 
-#include "main/coord.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 /// Unreferenced empty sprite-batch list; its intended view assignment is unproven.
 ///

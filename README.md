@@ -24,7 +24,7 @@ The decompilation is complete: the executable `SLUS_010.42`, the resident `gamep
 - **Matching hacks.**
   - Register pins: `hp` in `_actor403600ChooseAttack`, `previousRandomState` in `effectHitSparkBurstTask`, `secondBuffer` in `spriteAllocateViewCachedPackets`.
   - Inline assembly outside the GTE macros: `actor143000CaptureStripTask`, `_capDrawTextStream` (two statements), `_actor560800HandleKyleCue`, `_screenWaveGridTask`.
-  - Handwritten assembly in `src/main/hasm/`: `fsDecompressStream`, `fsDecompressImagePayload`, `tmdDrawModelStream`, `tmdSkipStreamRecord`, `Tmd_DispatchStream`, `Tmd_StreamHandler_Prim32`, `Tmd_StreamHandler_Prim3A`, `Tmd_StreamHandlers_Ops`.
+  - Handwritten assembly in `src/engine/hasm/`: `fsDecompressStream`, `fsDecompressImagePayload`, `tmdDrawModelStream`, `tmdSkipStreamRecord`, `Tmd_DispatchStream`, `Tmd_StreamHandler_Prim32`, `Tmd_StreamHandler_Prim3A`, `Tmd_StreamHandlers_Ops`.
 - **Patches to maspsx** ([`tools/patches/README.md`](tools/patches/README.md)), not upstream:
   - `maspsx-bss-layout` reaches beyond the assembler: it also reproduces where the linker, PSYLINK, places non-`static` variables, and depends on `align_main_bss` in `ninja_config.py` and on those variables being declared in address order.
   - `maspsx-lo-load-nop` and `maspsx-bss-local` change assembler behaviour only.
@@ -211,7 +211,7 @@ lib/                   # Prebuilt Psy-Q .o files linked into the executable
 linkers/               # Generated linker scripts (not in git)
 packages/              # Overlays both build paths compile: each its sources and link script
 rom/                   # Disc images and extracted disc trees (not in git)
-src/                   # C source: src/main, src/gameplay,
+src/                   # C source: src/engine, src/gameplay,
                        #   src/<family>/<overlay>, src/stages/<stage>/rooms/<room>
                        #   (merged day/night rooms), and src/shared: code several
                        #   overlays include, by module (actor, creatures/<name>,

@@ -3,8 +3,8 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Native player animation bank for the equipped M4A1 Javelin (asset weapons/m4a1_javelin/bank).
 ///

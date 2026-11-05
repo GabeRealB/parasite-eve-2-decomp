@@ -5,7 +5,7 @@
 
 #include "hud.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Eligible HUD updates remaining before menu input and ability-category switching resume.
 ///

@@ -6,9 +6,9 @@
 #include "gameplay/actor.h"
 #include "gameplay/message.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Restores the resident player's current HP and MP to their stored maxima.
 ///

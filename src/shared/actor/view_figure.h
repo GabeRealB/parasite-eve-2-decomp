@@ -18,7 +18,7 @@
 
 #include "actors/actor.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Work block of a view figure's task.
 ///

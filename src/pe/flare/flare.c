@@ -7,8 +7,8 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/sound.h"
+#include "engine/coord.h"
+#include "engine/sound.h"
 
 void flareEffectTask(Task* task)
 {

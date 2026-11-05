@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 /// Sets the shared material greys used by environment-layer model drawing.
 ///

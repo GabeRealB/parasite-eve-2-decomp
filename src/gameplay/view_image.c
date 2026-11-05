@@ -8,10 +8,10 @@
 #include "gameplay/loading.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/fs.h"
-#include "main/mem.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/fs.h"
+#include "engine/mem.h"
+#include "engine/task_types.h"
 
 #include "stages/akropolis/stage.h"
 

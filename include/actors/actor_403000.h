@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_403000_H
 #define INCLUDE_ACTORS_ACTOR_403000_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Blizzard Chaser spawn recipe for the Mine Cavern encounter.
 ///

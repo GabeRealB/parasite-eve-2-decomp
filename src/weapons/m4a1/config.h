@@ -3,7 +3,7 @@
 
 // Configuration of the M4A1 Rifle and its upgrades.
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 #include "weapons/sounds.h"
 
 // ---------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Gallery exit and abort decision-task descriptors (indices 0 and 1).
 extern TaskDesc gShootingGalleryPierceGalleryDecisionTaskDescs[2];

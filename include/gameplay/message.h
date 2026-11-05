@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Requests and resolves a room transition within the active stage.
 ///

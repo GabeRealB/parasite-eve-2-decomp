@@ -3,7 +3,7 @@
 
 // Configuration of the M249.
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 #include "weapons/sounds.h"
 #include "weapons/weapon_index.h"
 

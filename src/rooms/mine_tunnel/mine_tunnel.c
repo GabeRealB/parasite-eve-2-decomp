@@ -13,12 +13,12 @@
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_targets.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 #include "mapui/map_shelter.h"
 

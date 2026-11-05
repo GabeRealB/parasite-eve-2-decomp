@@ -15,15 +15,15 @@
 #include "gameplay/scene_combat.h"
 #include "gameplay/view.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/text.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/text.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 u8 gCapSuppressViewChanges;

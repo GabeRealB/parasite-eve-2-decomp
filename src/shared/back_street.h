@@ -11,7 +11,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static s32 _roomVariantResolveBackStreet(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 

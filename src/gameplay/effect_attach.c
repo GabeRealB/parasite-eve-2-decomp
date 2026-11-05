@@ -14,10 +14,10 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
-#include "main/random.h"
-#include "main/gfx.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "engine/random.h"
+#include "engine/gfx.h"
+#include "engine/session.h"
+#include "engine/task.h"
 
 TaskDesc gTaskBank10Descs[TASK_10_SLOT_COUNT] = {
     { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill, { .value = 0 } },

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_MAPPIC_MAPPIC_H
 #define INCLUDE_MAPPIC_MAPPIC_H
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 // mappic_s2_00
 /// Motel room 6's area-fill quad on page 1 of the daytime Dryfield map.

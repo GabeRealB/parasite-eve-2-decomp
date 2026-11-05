@@ -12,7 +12,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Four borrowed eight-point Bog Diver patrol rings, selected by spawn bits 4..5.
 ///

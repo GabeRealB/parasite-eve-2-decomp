@@ -5,8 +5,8 @@
 
 #include "gameplay/animation.h"
 
-#include "main/tmd_types.h"
-#include "main/task_types.h"
+#include "engine/tmd_types.h"
+#include "engine/task_types.h"
 
 /// Commands carried by `ActorCommand::command` for the scrolling shaft.
 ///

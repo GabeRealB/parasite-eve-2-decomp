@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Number of logical and mapped camera/sprite views in the breezeway.
 enum { DRYFIELD_BREEZEWAY_VIEW_COUNT = 6 };

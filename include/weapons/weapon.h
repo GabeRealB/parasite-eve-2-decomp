@@ -10,10 +10,10 @@
 #include "gameplay/geometry.h"
 #include "gameplay/inventory.h"
 
-#include "main/mc_types.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/mc_types.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 #include "weapons/weapon_index.h"
 

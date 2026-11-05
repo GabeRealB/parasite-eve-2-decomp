@@ -12,7 +12,7 @@
 #include "gameplay/message.h"
 #include "gameplay/enemy_params.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // Target spots share an index across placements, effects and saved destruction bits.
 enum {

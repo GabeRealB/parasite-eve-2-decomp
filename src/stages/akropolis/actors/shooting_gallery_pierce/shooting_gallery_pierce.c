@@ -12,10 +12,10 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
 

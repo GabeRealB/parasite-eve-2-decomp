@@ -8,7 +8,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Collision resources for the lobby's single room, indexed by room minus one.
 ///

@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Decimal location key selecting a room task from a stage's descriptor table.
 ///

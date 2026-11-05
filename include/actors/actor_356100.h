@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_356100_H
 #define INCLUDE_ACTORS_ACTOR_356100_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Horned Stranger spawn recipe for Neo Ark's forest zone.
 ///

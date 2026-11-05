@@ -22,7 +22,7 @@
 
 #include "gameplay/geometry.h"
 
-#include "main/wipsys_types.h"
+#include "engine/wipsys_types.h"
 
 /// Unsigned-word sentinel for a nearest-node scan with no selected node.
 ///

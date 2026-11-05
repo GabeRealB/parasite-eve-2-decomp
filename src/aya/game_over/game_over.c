@@ -6,17 +6,17 @@
 
 #include "common.h"
 
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/fs.h"
-#include "main/fs_types.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/fs.h"
+#include "engine/fs_types.h"
+#include "engine/mem.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 /// Phases of the Game Over screen, in the order `_GameOverWork::phase` steps through them.
 enum {

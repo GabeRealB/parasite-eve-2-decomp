@@ -13,12 +13,12 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/gfx_types.h"
-#include "main/session_types.h"
-#include "main/sound_types.h"
-#include "main/stage_types.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/gfx_types.h"
+#include "engine/session_types.h"
+#include "engine/sound_types.h"
+#include "engine/stage_types.h"
+#include "engine/task_types.h"
 
 /// Highest area ID covered by the stage's menu-map and area-music tables.
 enum { MAP_NEO_ARK_AREA_ID_LIMIT = GAME_AREA_NEO_ARK_SUBSTATION };

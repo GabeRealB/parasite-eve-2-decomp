@@ -3,7 +3,7 @@
 
 #include "gameplay/world_state.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Scene-wide battle state, actor controls, rewards and enemy-group signals.
 ///

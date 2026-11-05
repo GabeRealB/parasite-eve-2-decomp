@@ -4,7 +4,7 @@
 
 #include "actors/actor_00100.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 #include "../../shared/effects/glow_draw.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
@@ -52,17 +52,17 @@ Task* _gDryfieldGasStationArrivalCutsceneTask;
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gameflow.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/gameflow.h"
+#include "engine/mem.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/tmd_types.h"
 
 #include "mapui/map_dryfield.h"
 

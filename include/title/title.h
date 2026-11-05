@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Two bodyless spawn recipes for title startup (0) and intro playback (1).
 ///

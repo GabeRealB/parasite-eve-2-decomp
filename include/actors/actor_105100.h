@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_105100_H
 #define INCLUDE_ACTORS_ACTOR_105100_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Stinger spawn recipes: 0 enemy TMD body, 1 fireball coordinate body, 2 beam coordinate body.
 ///

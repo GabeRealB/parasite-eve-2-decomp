@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_421600_H
 #define INCLUDE_ACTORS_ACTOR_421600_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Water Tower Desert Chaser spawn recipe; priority `TASK_PRIORITY_ACTOR`, automatic model buffers disabled.
 ///

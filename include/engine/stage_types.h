@@ -1,0 +1,88 @@
+#ifndef ENGINE_STAGE_TYPES_H
+#define ENGINE_STAGE_TYPES_H
+
+#include "common.h"
+
+/// Values of the resident stage-music request completion byte; storage is u8.
+enum {
+    STAGE_MUSIC_LOAD_ACTIVE = 0,
+    STAGE_MUSIC_LOAD_IDLE   = 0xFF,
+};
+
+/// Request modes in the stage-music task's untruncated spawnArg1 value.
+///
+/// Every mode selects the area's scene column except COUNTDOWN, which uses the
+/// scene's direct countdown-table index. LOAD_ONLY skips starting after a new
+/// load; an already-loaded selection can bypass that gate and apply its policy.
+enum {
+    STAGE_MUSIC_REQUEST_ORDINARY   = 0, // Deferred entries are not started; other non-immediate starts wait for view readiness
+    STAGE_MUSIC_REQUEST_AREA_ENTRY = 1, // Apply the area's entry policy without the ordinary request's view/deferred gates
+    STAGE_MUSIC_REQUEST_COUNTDOWN  = 2, // Countdown-table selection with a 300-task-frame outgoing-song deadline
+    STAGE_MUSIC_REQUEST_LOAD_ONLY  = 3, // Area selection; a newly queued load finishes without starting the song
+};
+
+/// How a stage music task disposes of the song it replaces.
+///
+/// A requester fills this in and then spawns the task, which reads it once
+/// while choosing the new music-table entry. Nothing clears it afterwards, and
+/// every requester writes both members: rooms, the area-entry, ending and load
+/// tasks, and the event script's scene-music instruction.
+///
+/// The duration ends up in the sound queue's sequence-stop request, which keeps
+/// whole multiples of four updates and stops the song at once when none
+/// remain. Where the task stops a song to make way for another it adds one
+/// first, wrapping at 16 bits; where the selected entry has no sequence it
+/// passes the value as stored.
+typedef struct {
+    u16 fadeOutTicks; // Audio updates the outgoing song takes to fade out (0 stops it at once)
+    u16 field_2;      // Written with every request; nothing reads it, role unproven
+} StageMusicParams;
+STATIC_ASSERT_SIZEOF(StageMusicParams, 0x4);
+
+/// Byte sentinel selecting fade-out without loading or starting a stage sequence.
+///
+/// In area and countdown `StageMusicEntry` tables, 255 ends the request after
+/// stopping the recorded outgoing sequence with the stored fade duration.
+/// `startMode` is ignored. Direct area start/stop helpers skip these entries.
+/// This is also the MIDI driver's unloaded/invalid id; it is not a file id
+/// to load. The macro is an `int` constant expression stored in a `u8` field.
+#define STAGE_MUSIC_NO_SEQUENCE 0xFF
+
+/// First-column byte marker allowing the stage ambient script in an area.
+///
+/// The area row's column-zero `sequenceId` is compared with 128 independently
+/// of the selected scene column. Matching permits `SOUND_STAGE_AMBIENT` to
+/// start when its mute flag is clear; choosing another area's row stops a
+/// requested ambient loop if the marker is absent. The ordinary MIDI selector
+/// does not exclude 128 when it selects column zero. Whether that happens in
+/// reachable night-stage requests is unproven, so this value must not be
+/// treated as exclusively an ambient sentinel. An `int` constant expression
+/// stored in the table's `u8` field.
+#define STAGE_MUSIC_AMBIENT_AREA 0x80
+
+/// How a stage music task starts the sequence of the `StageMusicEntry` it selects.
+enum {
+    /// Started once loaded; on an ordinary room entry, not until the view is ready.
+    STAGE_MUSIC_START_WHEN_VIEW_READY = 0,
+    /// Loaded but not started on an ordinary room entry; if it is already
+    /// loaded, the current song only fades out. A later area request starts it.
+    STAGE_MUSIC_START_DEFERRED = 1,
+    /// Started as soon as it is loaded, without waiting for the view.
+    STAGE_MUSIC_START_IMMEDIATE = 2,
+    /// Loaded only; the stage music routines never start it.
+    STAGE_MUSIC_START_NEVER = 3,
+};
+
+/// One entry of a stage's music table: the MIDI sequence an area plays and how it starts.
+///
+/// Each stage map overlay supplies two tables. The area table holds one row per
+/// area, of a stage-specific length, and the scene event chooses the column, so
+/// an area's music follows story progress. The countdown table is indexed
+/// directly by the scene's music entry number.
+typedef struct {
+    u8 sequenceId; // MIDI sequence id, also its file in group 4 (`STAGE_MUSIC_NO_SEQUENCE` none)
+    u8 startMode;  // `STAGE_MUSIC_START_*` (0 when view ready, 1 deferred, 2 immediate, 3 never)
+} StageMusicEntry;
+STATIC_ASSERT_SIZEOF(StageMusicEntry, 0x2);
+
+#endif // ENGINE_STAGE_TYPES_H

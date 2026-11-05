@@ -19,7 +19,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// State indices the handlers test and store in `ActorMsgStateWork::state`.
 ///

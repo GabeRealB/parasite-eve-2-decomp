@@ -2,7 +2,7 @@
 
 What we know about on-disc stage data (`STAGE0.HED` / `STAGE*.CDF`), chunk
 types, sector packing, compression, and image load paths. Derived from the
-retail USA discs, the matching decomp (`src/main/fs.c`, hasm decompressors),
+retail USA discs, the matching decomp (`src/engine/fs.c`, hasm decompressors),
 and the extract/pack tools under `tools/peassets/`.
 
 Implementation references:
@@ -12,14 +12,14 @@ Implementation references:
 | Binary layout constants | `tools/peassets/format.py` |
 | Extract / pack | `tools/peassets/extract.py`, `pack.py` |
 | Shared inflate/decode | `tools/peassets/asset_decode.py` (extract + viewer) |
-| LZSS (decode and encode) | `editor/crates/formats/src/lzss.rs`, [`LZSS_ENCODER.md`](LZSS_ENCODER.md); runtime `src/main/hasm/fsDecompressStream.s` |
-| Images / CLUT | `tools/peassets/image_codec.py`, `src/main/fs.c` |
+| LZSS (decode and encode) | `editor/crates/formats/src/lzss.rs`, [`LZSS_ENCODER.md`](LZSS_ENCODER.md); runtime `src/engine/hasm/fsDecompressStream.s` |
+| Images / CLUT | `tools/peassets/image_codec.py`, `src/engine/fs.c` |
 | Asset database | `tools/peassets/asset_db.py`, `asset_data.py` |
-| Runtime FS loader | `src/main/fs.c`, `include/main/fs.h` |
+| Runtime FS loader | `src/engine/fs.c`, `include/engine/fs.h` |
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 | **Overlays (RAM slots, rooms, models)** | [`OVERLAYS.md`](OVERLAYS.md) |
-| **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/model/tmd.py`, `src/main/tmd.c` |
-| **Resource bundles** | [`BUNDLE_FORMAT.md`](BUNDLE_FORMAT.md), `tools/peassets/bundle.py`, `src/main/fs.c` |
+| **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/model/tmd.py`, `src/engine/tmd.c` |
+| **Resource bundles** | [`BUNDLE_FORMAT.md`](BUNDLE_FORMAT.md), `tools/peassets/bundle.py`, `src/engine/fs.c` |
 | **Dialogue (CAP)** | [`CAP_FORMAT.md`](CAP_FORMAT.md), `src/gameplay/cap_reloc.c`, `src/gameplay/captions.c` |
 | Animation in packages | `tools/peassets/pkg_anim.py`, `src/gameplay/scene_runtime.c` |
 | Assets embedded in the executables | `tools/peassets/exe_assets.py` |
@@ -179,7 +179,7 @@ where `n_sectors` is derived from the on-disc blob (extract) or from the
 minimum sectors needed for the clean payload (pack).
 
 Runtime: `gFsLzssInputEnd = gFsSectorBuffers.sector.bytes + sector_len` marks the decompress input boundary
-(`src/main/fs.c`).
+(`src/engine/fs.c`).
 
 ### 3.4 Extract vs pack
 
@@ -386,7 +386,7 @@ asset table.
 ### 7.1 On-disk structure
 
 ```text
-FsImageChunk (0x10 bytes) — runtime struct in include/main/fs_types.h:
+FsImageChunk (0x10 bytes) — runtime struct in include/engine/fs_types.h:
   u16 x, y      VRAM destination (x in halfwords, y in rows)
   u16 h, w      height in rows, then width in halfwords
   u8  unused[8] unread by the loader; zero in every retail CLUT payload and bundle image
@@ -555,7 +555,7 @@ case) use this bias; inline commands leave `glyphTable` unchanged.
 pen by 2 pixels, or by 1 when `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`.
 `xOffset` / `yOffset` are signed pixel offsets.
 
-`textUploadPalettes` (`src/main/textutil.c`):
+`textUploadPalettes` (`src/engine/textutil.c`):
 
 | Source | Size | `LoadImage` dest | GPU clut |
 |---|---|---|---|
@@ -1203,8 +1203,8 @@ expects SMF; SPK playback goes through **`_sndScriptExecCommand`** (`one*` opcod
 | Gap | Notes |
 |-----|--------|
 | **`hONE` header** | Layout known from the loader: 4-byte magic, `u16` bank id, `u16` entry count, then that many `u16` offsets of entry blocks relative to the header |
-| **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — the command structs are typed beside the interpreter in `src/main/sndscript.c` (`oneC` in `src/main/sound_types.h`); still need a stream walker |
-| **`_sndScriptExecCommand`** | Decompiled in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
+| **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — the command structs are typed beside the interpreter in `src/engine/sndscript.c` (`oneC` in `src/engine/sound_types.h`); still need a stream walker |
+| **`_sndScriptExecCommand`** | Decompiled in `src/engine/sndscript.c` — authoritative interpreter for timing and opcodes |
 | **Timed event list** | Needs Wait/Loop stack + timebase (script ticks vs frame rate) |
 | **Audio mix / “play the song”** | Needs timed events + pitch (root/fine/`oneV`, `oneE` envelope) + vol/pan + ADSR (`oneA`) + polyphony; samples alone are not enough |
 | **WAV → SPK encoder** | Not planned; matching packs use raw |

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_00300_H
 #define INCLUDE_ACTORS_ACTOR_00300_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Brain Stinger spawn descriptors: 0 enemy body, 1 drain attachment, 2 flying fireball.
 ///

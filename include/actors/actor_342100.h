@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_342100_H
 #define INCLUDE_ACTORS_ACTOR_342100_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Dumping-hole spawn recipes: 0 encounter/blaze controller, 1 kill placeholder, 2 fade, 3 body fire, 4 fire emitter.
 ///

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_401000_H
 #define INCLUDE_ACTORS_ACTOR_401000_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Odd Stranger spawn recipe exported by actor_401000 to room resources.
 ///

@@ -12,10 +12,10 @@
 #include "gameplay/loading.h"
 #include "gameplay/room.h"
 
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task_types.h"
+#include "engine/gfx.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
 
 /// Fractional bits of unit collision directions and normals (4096 per unit).
 enum { WORLD_COLLISION_DIRECTION_FRACTION_BITS = 12 };

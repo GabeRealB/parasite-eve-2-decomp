@@ -10,7 +10,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Transfer Tunnel actor layouts, indexed by the saved area variant (0..21).
 ///

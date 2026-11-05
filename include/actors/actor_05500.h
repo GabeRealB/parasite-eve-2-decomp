@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_05500_H
 #define INCLUDE_ACTORS_ACTOR_05500_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Caterpillar body and puff spawn descriptors: indices 0 and 1, no terminator.
 ///

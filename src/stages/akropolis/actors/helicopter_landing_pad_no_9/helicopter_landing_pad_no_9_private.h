@@ -16,10 +16,10 @@
 #include "gameplay/message.h"
 #include "gameplay/enemy_params.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Length of one No. 9 patrol-lap side, corner to corner in world X/Z units.
 #define HELICOPTER_LANDING_PAD_NO_9_LAP_SIDE_LENGTH 13200

@@ -10,7 +10,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Saved-area changes committed when the water-hole conversation scene ends.
 ///

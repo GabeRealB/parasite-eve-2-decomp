@@ -5,7 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 #include "overlay.h"
 

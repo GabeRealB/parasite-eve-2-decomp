@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/text.h"
+#include "engine/text.h"
 
 /// One row of a jukebox SELECT list: the sequence to play and the label drawn
 /// for that row.

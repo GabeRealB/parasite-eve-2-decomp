@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Number of logical views and identity-mapped camera/sprite slots in the garden.
 enum { NEO_ARK_GARDEN_VIEW_COUNT = 7 };

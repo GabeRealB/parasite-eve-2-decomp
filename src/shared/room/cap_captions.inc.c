@@ -12,14 +12,14 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/world_targets.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/text.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
+#include "engine/text.h"
 
 // CAP text words are read as signed halfwords for control-token dispatch.
 enum {

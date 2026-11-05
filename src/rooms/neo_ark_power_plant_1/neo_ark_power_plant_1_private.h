@@ -8,7 +8,7 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Room-controller routes for transitions, key items, interactions and CAP commands.
 ///

@@ -5,8 +5,8 @@
 
 #include "gameplay/display.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Dispatches the four-state lifecycle of a task-owned attached child model.
 ///

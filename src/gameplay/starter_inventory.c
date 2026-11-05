@@ -8,10 +8,10 @@
 #include "gameplay/items.h"
 #include "items.h"
 
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task_types.h"
-#include "main/wipsys.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
+#include "engine/wipsys.h"
 
 /// Catalog ids, attachment positions and container indices used by the field-loadout reset.
 enum {

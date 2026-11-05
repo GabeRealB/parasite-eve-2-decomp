@@ -3,7 +3,7 @@
 
 // Configuration of the P08, its snail-magazine variant and the Mongoose.
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 #include "weapons/sounds.h"
 #include "weapons/weapon_index.h"
 

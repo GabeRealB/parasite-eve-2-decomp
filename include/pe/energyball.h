@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_ENERGYBALL_H
 #define INCLUDE_PE_ENERGYBALL_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Charges, steers and retires one collision-bearing Energy Ball.
 ///

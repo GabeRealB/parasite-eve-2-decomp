@@ -3,8 +3,8 @@
 
 #include "common.h"
 
-#include "main/mc.h"
-#include "main/mc_types.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
 
 /// Inventory rows selected by `INVENTORY_ITEM_TABLE_INDIRECT`.
 ///

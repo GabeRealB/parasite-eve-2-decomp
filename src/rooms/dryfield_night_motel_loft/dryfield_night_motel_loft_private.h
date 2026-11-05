@@ -10,7 +10,7 @@
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Point-light collection shared by both room selectors.
 ///

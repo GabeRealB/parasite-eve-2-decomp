@@ -1,7 +1,7 @@
 #ifndef ACTORS_ACTOR_260500_H
 #define ACTORS_ACTOR_260500_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn recipe for Jodie, the heliport's nineteen-part quiet conversation walker.
 ///

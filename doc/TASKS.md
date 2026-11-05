@@ -5,20 +5,20 @@ with a per-frame callback, optional parent/child links, and an optional TMD mode
 or single-coordinate body. There is no separate entity list. Enemies, UI, camera,
 memcard, title, and room overlays are all spawned the same way.
 
-Field-level layouts: [`include/main/task_types.h`](../include/main/task_types.h).
+Field-level layouts: [`include/engine/task_types.h`](../include/engine/task_types.h).
 Overlay RAM slots that many callbacks live in: [`OVERLAYS.md`](OVERLAYS.md).
 Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 
 | Area | Code / data |
 |------|-------------|
-| Types + APIs | `include/main/task.h`, `src/main/task.c` |
-| Extra lists / OT spawn | `src/main/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
-| Frame tick | `src/main/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
-| Bank tables | `src/main/textdraw.c` (`gTaskDescBanks`); each referenced resident descriptor table defines its own extent |
+| Types + APIs | `include/engine/task.h`, `src/engine/task.c` |
+| Extra lists / OT spawn | `src/engine/otutil.c` (`displaySpawnTaskFromTable`, `displaySpawnTask`, `taskSpawnFromTableOnDefaultList`, `taskSpawnOnDefaultList`) |
+| Frame tick | `src/engine/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
+| Bank tables | `src/engine/textdraw.c` (`gTaskDescBanks`); each referenced resident descriptor table defines its own extent |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`gEffectTaskDescs`, `gTaskBank10Descs`) |
 | Title extras | `packages/title/src/title.c`, `gTitleStartupTaskDescriptors` |
 | Enemies | `src/gameplay/scene_runtime.c` (`_enemySpawn`, `enemySpawnFromTable`) |
-| UI stack descs | `src/main/ui.c` (`uiSpawnObject`) |
+| UI stack descs | `src/engine/ui.c` (`uiSpawnObject`) |
 
 **Coverage.** The scheduler is fully described. Bank 0 (system) and bank 9 (FX)
 can be cataloged. Banks 6–7 and most overlay-local tables are still an index
@@ -126,7 +126,7 @@ Spawn type (low byte of `header.fields.flags`, stored as `Task::bodyKind`) is th
 exactly one. `extra.allocation` supplies the kind-independent NULL check during
 spawn. A copy of this union borrows the body; teardown leaves the pointer bits
 unchanged, so the release marker (`bodyKind` 0xFF, privately named
-`TASK_BODY_RELEASED` in `src/main/task.c`) forbids further body access. It marks
+`TASK_BODY_RELEASED` in `src/engine/task.c`) forbids further body access. It marks
 a task ready for collection even if that task never had a body;
 `TASK_BODY_NONE` instead denotes a live task without an attached body. Such a
 task can still own callback work and children, and a successful later body
@@ -468,7 +468,7 @@ onto the currently selected execution list.
 ## 7. Work that hangs off a task
 
 The `Task` is the actor. Specific systems stash extra state in the leftover
-slots (see [`include/main/task.h`](../include/main/task.h)):
+slots (see [`include/engine/task.h`](../include/engine/task.h)):
 
 | Slot | Typical payload |
 |------|-----------------|

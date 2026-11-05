@@ -3,7 +3,7 @@
 
 #include "gameplay/area_flags.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "rooms/room.h"
 

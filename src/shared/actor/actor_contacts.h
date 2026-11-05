@@ -30,12 +30,12 @@
 #include "gameplay/actor_render.h"
 #include "gameplay/world_collision.h"
 
-#include "main/coord.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/session_types.h"
+#include "engine/coord.h"
+#include "engine/gfx.h"
+#include "engine/mc.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
 
 /* Scratch blocks private to the library. */
 

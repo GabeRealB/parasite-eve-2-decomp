@@ -37,12 +37,12 @@ public = ["include"]
 sources = ["lib/libsn/snmain.s"]
 objects = ["lib/*/*.o"]
 
-[main]
+[engine]
 uid = "uid://1gge5rcau98eq"
 template = "library"
 public = ["include"]
 
-[main.target.psx]
+[engine.target.psx]
 symbols = "psx/symbols.ld"
 
 [gameplay]

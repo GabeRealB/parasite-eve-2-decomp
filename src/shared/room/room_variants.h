@@ -20,7 +20,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// A stage's room-variant resolver, as a room holds one to call it indirectly.
 ///

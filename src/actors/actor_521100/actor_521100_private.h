@@ -13,8 +13,8 @@
 #include "gameplay/effects.h"
 #include "gameplay/message.h"
 
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Values of `Actor521100Work::state`: the behaviour the fighting golem runs
 /// each frame. Each one steps through its own `subState` values.

@@ -1,4 +1,4 @@
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 
 /* Part of the gas station sounds library; see gas_station_sounds.h. */
 

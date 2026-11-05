@@ -13,7 +13,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Room-space unit normals for the room-2/3 collision mesh (4096 per unit).
 ///

@@ -10,11 +10,11 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/mc_types.h"
-#include "main/scratch.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/mc_types.h"
+#include "engine/scratch.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Scratch-stack block for the M249's attack handler.
 ///

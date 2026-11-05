@@ -19,7 +19,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // Bind ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE immediately before the resolver
 // fragment and undefine it immediately afterwards. The day and night driveway

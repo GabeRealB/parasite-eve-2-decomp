@@ -13,7 +13,7 @@
 
 #include "common.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Work block of the bridge model task.
 ///

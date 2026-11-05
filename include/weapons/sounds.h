@@ -1,7 +1,7 @@
 #ifndef INCLUDE_WEAPONS_SOUNDS_H
 #define INCLUDE_WEAPONS_SOUNDS_H
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 
 #include "weapons/weapon_index.h"
 

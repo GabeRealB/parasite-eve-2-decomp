@@ -5,8 +5,8 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 enum {
     /// A shell's detonation in the Grenade Pistol's and MM1's banks, one bank per round (`GRENADE_ROUND_*`). The

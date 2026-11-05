@@ -5,7 +5,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn recipe for Soldier A, placed as actor 2 in the Shelter 1F tent.
 ///

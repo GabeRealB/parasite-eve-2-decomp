@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_STARTER_INVENTORY_H
 #define GAMEPLAY_STARTER_INVENTORY_H
 
-#include "main/mc_types.h"
+#include "engine/mc_types.h"
 
 /// Number of container selectors accepted by the inventory-transfer screen.
 enum { INVENTORY_CONTAINER_COUNT = 12 };

@@ -6,7 +6,7 @@
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Garden room receiver's transition, key-item, direction-action and command handlers.
 ///

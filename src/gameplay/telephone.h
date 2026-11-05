@@ -1,8 +1,8 @@
 #ifndef GAMEPLAY_PRIVATE_TELEPHONE_H
 #define GAMEPLAY_PRIVATE_TELEPHONE_H
 
-#include "main/task_types.h"
-#include "main/ui_types.h"
+#include "engine/task_types.h"
+#include "engine/ui_types.h"
 
 /// Telephone save/statistics panel recipe for a placed save-point action.
 ///

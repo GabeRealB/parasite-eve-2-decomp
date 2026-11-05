@@ -11,16 +11,16 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/event_flags.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/stream.h"
-#include "main/stream_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/event_flags.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/stream.h"
+#include "engine/stream_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 /// Set when an arrival ride starts; zero whenever the room is loaded.
 static s32 _gAkropolisObservatoryArrivalSceneStarted;

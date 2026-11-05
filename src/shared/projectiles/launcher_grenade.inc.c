@@ -5,8 +5,8 @@
 #include "gameplay/geometry.h"
 #include "gameplay/world_collision.h"
 
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 #include "weapons/weapon.h"
 

@@ -340,44 +340,44 @@ requires them, and include only the interface actually used.
 Platform memory helpers in `include/decomp/common.h` describe fixed PlayStation
 hardware regions and use the full `PLAYSTATION_` macro prefix. They provide byte
 addresses, not allocation or ownership. The scratch stack in
-`include/main/scratch.h` manages temporary blocks within that region; its cursor
+`include/engine/scratch.h` manages temporary blocks within that region; its cursor
 access, block reservation/release helpers and byte-offset constants use
 `SCRATCH_STACK_`. Inline cursor writers use `scratchStack`, with `_` for each
 translation unit's static instance, in the same scratch-stack interface.
 
-Source basenames in this table are relative to `src/main/`. Multiple prefixes
+Source basenames in this table are relative to `src/engine/`. Multiple prefixes
 in a row identify different responsibilities in the same source group.
 
 | Prefix | Responsibility | Source examples | Interface / type headers |
 |---|---|---|---|
-| `fs`, `cdCmd`, `cdSync`, `cdVol` | Filesystem, queued CD requests, drive recovery, CD volume | `fs.c`, `cdcmd.c`, `cdsync.c`, `cdvol.c` | `include/main/fs.h`, `include/main/fs_types.h`, `src/main/fs.h` |
-| `boot`, `gameMain` | Initialization and main loop | `main.c`, `boot.c`, `gamemain.c` | `src/main/boot.h`, `src/main/gamemain.h`, `include/main/gamemain.h` |
-| `gameFlow`, `fade` | Session flow and screen fades | `gameflow.c`, `bootload.c` | `include/main/gameflow.h`, `src/main/gameflow.h` |
-| `playClock` | Resetting the resident partial-minute play-time accumulator after a save load; gameplay advances it | `gameflow.c` | `src/main/session.h` |
-| `gameDebug` | Resident diagnostic controls, input overrides/replay and session-load status shared with gameplay | `stage.c` (resident storage), `gamemain.c` (reset), gameplay consumers | `include/main/game_debug.h` (resident controls), `include/main/game_debug_types.h` (state type), `include/gameplay/game_debug.h` (gameplay input-override export) |
-| `loadUi` | Loading and disk-swap presentation | `loadui.c` | `include/main/loadui.h` |
-| `stage` | Stage mode tasks, view/file transitions, their grey fade and guarded graphics resources, and music selection | `stage.c`, `stage_music.c` | `include/main/stage.h`, `include/main/stage_types.h`, `src/main/stage.h` |
-| `display`, `gpu` | Frame presentation, display state and ordering tables | `gamemain.c`, `displaymode.c`, `otutil.c` | `include/main/display.h`, `include/main/display_types.h`, `src/main/display.h` |
-| `gfx` | Graphics coordinates, matrices, lights and image slots | `gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/main/gfx.h`, `include/main/gfx_types.h`, `include/main/coord.h`, `src/main/gfx.h` |
-| `gpuExt` | GPU status helpers | `gpuext.c` | `src/main/gpuext.h` |
-| `mem` | Main and auxiliary heaps and memory operations | `mem.c` | `include/main/mem.h`, `src/main/mem.h` |
-| `task` | Task allocation, lists, dispatch and banks; the banks and their slots by name (`TASK_BANK_*`, `TASK_<BANK>_*`, `TASK_ID`) | `task.c`, `taskbank.c`, `taskutil.c` | `include/main/task.h`, `include/main/task_ids.h`, `include/main/task_types.h`, `src/main/task.h` |
-| `pad` | Controller state and polling | `pad.c`, `padutil.c` | `include/main/pad.h`, `include/main/pad_types.h`, `src/main/pad.h` |
-| `mc`, `mcMenu` | Save data, memory-card operations and prompts | `mc.c`, `mcmenu.c` | `include/main/mc.h`, `include/main/mc_types.h`, `src/main/mc.h` |
-| `ui` | Generic windows, panels and list controls | `ui.c`, `mcmenu.c` | `include/main/ui.h`, `include/main/ui_types.h`, `src/main/ui.h` |
-| `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `include/main/text.h`, `src/main/text.h` |
-| `cdAudio` | CD audio playback | `cdaudio.c` | `include/main/cdaudio.h`, `include/main/cdaudio_types.h`, `src/main/cdaudio.h` |
-| `cdStream`, `cdReady` | CD-to-SPU streaming and ready queue | `cdstream.c` | `src/main/cdstream.h` |
-| `sndVolume` | Combined MIDI/script master-volume policies and their request gates | `sndscript.c`, `sndevt.c` | `src/main/sound.h` |
-| `sndOutput` | Resident mono/stereo output selection shared by MIDI, sound scripts, CD input and streaming voices | `cdvol.c` | `include/main/sound.h`, `src/main/sound.h` |
-| `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `include/main/sound.h`, `include/main/sound_types.h`, `src/main/sound.h` |
-| `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c`, gameplay `scene_runtime.c` (PE file requests) | `include/main/sound.h`, `src/main/sound.h`, `src/main/sound_types.h`, `src/gameplay/scene_runtime.h` (PE file requests) |
-| `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/main/sound.h`, `src/main/sound.h` |
-| `stream`, `mdec` | Stream slots and MDEC movie/image decoding; scene/audio selection, payload-sector intake, completion and stream halt requests | `stream.c`, `stage.c` (image decoding), gameplay `scene_runtime.c` (scene stream coordination) | `include/main/stream.h`, `include/main/stream_types.h`, `src/main/stream.h`, `include/gameplay/scene_runtime.h` (scene stream coordination) |
-| `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/main/tmd.h`, `include/main/tmd_types.h`, `src/main/tmd.h` |
-| `gameFlag` | Packed game flags | `gameflag.c`, gameplay `cap_commands.c` (optional nibble and whole-byte access) | `include/main/gameflag.h`, `include/main/gameflag_types.h`, `include/gameplay/gameflag.h` (gameplay exports) |
-| `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/main/session.h`, `include/main/session_types.h`, `include/main/wipsys.h`, `include/main/wipsys_types.h` |
-| `random` | Shared 32-bit pseudo-random sequence for gameplay and loaded overlays; consumers advance the recurrence directly, independently of SDK `rand()` | `gamemain.c` (resident state), gameplay and overlay consumers | `include/main/random.h` |
+| `fs`, `cdCmd`, `cdSync`, `cdVol` | Filesystem, queued CD requests, drive recovery, CD volume | `fs.c`, `cdcmd.c`, `cdsync.c`, `cdvol.c` | `include/engine/fs.h`, `include/engine/fs_types.h`, `src/engine/fs.h` |
+| `boot`, `gameMain` | Initialization and main loop | `main.c`, `boot.c`, `gamemain.c` | `src/engine/boot.h`, `src/engine/gamemain.h`, `include/engine/gamemain.h` |
+| `gameFlow`, `fade` | Session flow and screen fades | `gameflow.c`, `bootload.c` | `include/engine/gameflow.h`, `src/engine/gameflow.h` |
+| `playClock` | Resetting the resident partial-minute play-time accumulator after a save load; gameplay advances it | `gameflow.c` | `src/engine/session.h` |
+| `gameDebug` | Resident diagnostic controls, input overrides/replay and session-load status shared with gameplay | `stage.c` (resident storage), `gamemain.c` (reset), gameplay consumers | `include/engine/game_debug.h` (resident controls), `include/engine/game_debug_types.h` (state type), `include/gameplay/game_debug.h` (gameplay input-override export) |
+| `loadUi` | Loading and disk-swap presentation | `loadui.c` | `include/engine/loadui.h` |
+| `stage` | Stage mode tasks, view/file transitions, their grey fade and guarded graphics resources, and music selection | `stage.c`, `stage_music.c` | `include/engine/stage.h`, `include/engine/stage_types.h`, `src/engine/stage.h` |
+| `display`, `gpu` | Frame presentation, display state and ordering tables | `gamemain.c`, `displaymode.c`, `otutil.c` | `include/engine/display.h`, `include/engine/display_types.h`, `src/engine/display.h` |
+| `gfx` | Graphics coordinates, matrices, lights and image slots | `gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/engine/gfx.h`, `include/engine/gfx_types.h`, `include/engine/coord.h`, `src/engine/gfx.h` |
+| `gpuExt` | GPU status helpers | `gpuext.c` | `src/engine/gpuext.h` |
+| `mem` | Main and auxiliary heaps and memory operations | `mem.c` | `include/engine/mem.h`, `src/engine/mem.h` |
+| `task` | Task allocation, lists, dispatch and banks; the banks and their slots by name (`TASK_BANK_*`, `TASK_<BANK>_*`, `TASK_ID`) | `task.c`, `taskbank.c`, `taskutil.c` | `include/engine/task.h`, `include/engine/task_ids.h`, `include/engine/task_types.h`, `src/engine/task.h` |
+| `pad` | Controller state and polling | `pad.c`, `padutil.c` | `include/engine/pad.h`, `include/engine/pad_types.h`, `src/engine/pad.h` |
+| `mc`, `mcMenu` | Save data, memory-card operations and prompts | `mc.c`, `mcmenu.c` | `include/engine/mc.h`, `include/engine/mc_types.h`, `src/engine/mc.h` |
+| `ui` | Generic windows, panels and list controls | `ui.c`, `mcmenu.c` | `include/engine/ui.h`, `include/engine/ui_types.h`, `src/engine/ui.h` |
+| `text`, `font`, `prim` | Text layout, glyphs and basic drawing primitives | `textdraw.c`, `textutil.c`, `caption_draw.c` | `include/engine/text.h`, `src/engine/text.h` |
+| `cdAudio` | CD audio playback | `cdaudio.c` | `include/engine/cdaudio.h`, `include/engine/cdaudio_types.h`, `src/engine/cdaudio.h` |
+| `cdStream`, `cdReady` | CD-to-SPU streaming and ready queue | `cdstream.c` | `src/engine/cdstream.h` |
+| `sndVolume` | Combined MIDI/script master-volume policies and their request gates | `sndscript.c`, `sndevt.c` | `src/engine/sound.h` |
+| `sndOutput` | Resident mono/stereo output selection shared by MIDI, sound scripts, CD input and streaming voices | `cdvol.c` | `include/engine/sound.h`, `src/engine/sound.h` |
+| `midi`, `sndEvt` | Music sequencing and sound events | `sndevt.c` | `include/engine/sound.h`, `include/engine/sound_types.h`, `src/engine/sound.h` |
+| `sndLoad`, `sndScript`, `sndVoice`, `sndBank`, `sndBankSlot` | Sound loading, scripts, voices and banks | `sndscript.c`, `sndbank.c`, gameplay `scene_runtime.c` (PE file requests) | `include/engine/sound.h`, `src/engine/sound.h`, `src/engine/sound_types.h`, `src/gameplay/scene_runtime.h` (PE file requests) |
+| `sndHeap`, `linInterp`, `audioTick`, `spu`, `asyncCb` | Sound heap, ramps, audio ticks, SPU control and callbacks | `sndbank.c`, `spu.c` | `include/engine/sound.h`, `src/engine/sound.h` |
+| `stream`, `mdec` | Stream slots and MDEC movie/image decoding; scene/audio selection, payload-sector intake, completion and stream halt requests | `stream.c`, `stage.c` (image decoding), gameplay `scene_runtime.c` (scene stream coordination) | `include/engine/stream.h`, `include/engine/stream_types.h`, `src/engine/stream.h`, `include/gameplay/scene_runtime.h` (scene stream coordination) |
+| `tmd` | TMD model streams and primitive dispatch | `tmd.c`, `hasm/` | `include/engine/tmd.h`, `include/engine/tmd_types.h`, `src/engine/tmd.h` |
+| `gameFlag` | Packed game flags | `gameflag.c`, gameplay `cap_commands.c` (optional nibble and whole-byte access) | `include/engine/gameflag.h`, `include/engine/gameflag_types.h`, `include/gameplay/gameflag.h` (gameplay exports) |
+| `game`, `player` | Resident session and saved player state | `task.c`, `gameflow.c`, `wipsyscfg.c` | `include/engine/session.h`, `include/engine/session_types.h`, `include/engine/wipsys.h`, `include/engine/wipsys_types.h` |
+| `random` | Shared 32-bit pseudo-random sequence for gameplay and loaded overlays; consumers advance the recurrence directly, independently of SDK `rand()` | `gamemain.c` (resident state), gameplay and overlay consumers | `include/engine/random.h` |
 
 `Wip*` and `Wip_*` are provisional spellings, not a subsystem to perpetuate.
 Establish the owner of each remaining item. The historical `wipsyscfg.c` filename
@@ -1341,7 +1341,7 @@ task callback, which gameplay's counted room-effect table imports.
 
 ## Documentation
 
-[`include/main/mem.h`](include/main/mem.h) is the worked example. Read it before
+[`include/engine/mem.h`](include/engine/mem.h) is the worked example. Read it before
 documenting a new module. Its symbols have not been migrated yet, so the
 examples below are shown in the target naming rather than quoted verbatim.
 
@@ -1368,7 +1368,7 @@ rename can find them.
 
 ### Struct fields
 
-[`src/main/gpuext.c`](src/main/gpuext.c) is the example. The type carries
+[`src/engine/gpuext.c`](src/engine/gpuext.c) is the example. The type carries
 a `///` block; the fields carry **aligned trailing `//`**, which keeps the
 declaration readable as a table:
 
@@ -1530,7 +1530,7 @@ typedef struct {
 
 **Every member has to be named.** This compiler does not support anonymous
 struct or union members: it accepts the declaration and then rejects every
-access to it. `_GpuStatusRegister` in `src/main/gpuext.c` is the worked
+access to it. `_GpuStatusRegister` in `src/engine/gpuext.c` is the worked
 example: its bitfields sit in a struct member named `bits` beside the whole
 `word`, so a field is `status.bits.displayDisabled`. So a union form is
 `session->location`, not `session->loc`; a nested struct form is `session->loc`.

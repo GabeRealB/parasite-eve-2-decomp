@@ -3,7 +3,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Indices into the water-tank figure's two-entry spawn table.
 enum {

@@ -4,7 +4,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Head-aim update state and angular limits in 4096 units per turn.
 enum {

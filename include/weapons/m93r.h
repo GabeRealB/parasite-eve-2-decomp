@@ -3,8 +3,8 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Native player animation bank supplied by the loaded M93R package (asset weapons/m93r/bank).
 ///

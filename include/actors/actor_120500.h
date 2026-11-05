@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_120500_H
 #define INCLUDE_ACTORS_ACTOR_120500_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Motel scene spawn recipes: 0 empty placement, 1 Kyle Madigan's view-parented body.
 ///

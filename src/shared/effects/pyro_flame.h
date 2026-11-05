@@ -9,7 +9,7 @@
 
 #include "types.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 /// Number of 32-texel cells in the flame's horizontal animation strip.
 enum { PYRO_FLAME_FRAME_COUNT = 8 };

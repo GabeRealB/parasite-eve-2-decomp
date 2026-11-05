@@ -4,10 +4,10 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/scene_runtime.h"
 
-#include "main/areas.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/task_types.h"
 
 enum { LOADING_FILE_ID_RADIX = 100 };
 

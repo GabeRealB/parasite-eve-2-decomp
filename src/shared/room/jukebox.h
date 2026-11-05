@@ -19,7 +19,7 @@
 
 #include "gameplay/attachments.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static void _jukeboxHostTask(Task* task);
 

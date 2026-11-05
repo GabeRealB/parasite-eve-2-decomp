@@ -6,7 +6,7 @@
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "rooms/room_common.h"
 

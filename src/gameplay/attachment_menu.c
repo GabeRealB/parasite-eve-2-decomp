@@ -13,13 +13,13 @@
 #include "gameplay/items.h"
 #include "items.h"
 
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/sound.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 enum {
     ITEM_MENU_ARMOR_ITEM_FIRST       = 0x60,

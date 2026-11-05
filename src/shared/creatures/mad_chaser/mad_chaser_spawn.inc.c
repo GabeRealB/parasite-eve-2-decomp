@@ -283,7 +283,7 @@ static void _madChaserCombatTick(Task* task)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 

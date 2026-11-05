@@ -23,10 +23,10 @@
 #ifndef SRC_SHARED_WATER_EFFECTS_H
 #define SRC_SHARED_WATER_EFFECTS_H
 
-#include "main/areas.h"
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/task_types.h"
 
 static void _waterDrawSplash(const GfxCoord* coord, s32 halfSize, s32 brightness);
 /* WATER_SHARED_U16_DRAWERS is an empty presence flag. The including file

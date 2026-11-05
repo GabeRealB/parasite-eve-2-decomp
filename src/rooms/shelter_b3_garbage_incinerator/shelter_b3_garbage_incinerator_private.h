@@ -12,8 +12,8 @@
 #include "gameplay/message.h"
 #include "gameplay/room.h"
 
-#include "main/task_types.h"
-#include "main/text.h"
+#include "engine/task_types.h"
+#include "engine/text.h"
 
 #include "overlay.h"
 

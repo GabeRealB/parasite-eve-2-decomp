@@ -10,7 +10,7 @@
 
 #include "types.h"
 
-#include "main/display.h"
+#include "engine/display.h"
 
 /// Selects this carrier's `void(s32)` frame-capture function identifier.
 ///

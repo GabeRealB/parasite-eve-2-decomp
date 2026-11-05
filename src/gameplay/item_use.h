@@ -8,8 +8,8 @@
 
 #include "gameplay/battle_reward.h"
 
-#include "main/mc_types.h"
-#include "main/task_types.h"
+#include "engine/mc_types.h"
+#include "engine/task_types.h"
 
 /// Stage-indexed battle-reward lists for normal/replay (mode 0) and Scavenger (2).
 ///

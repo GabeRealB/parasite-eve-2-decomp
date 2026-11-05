@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Native player animation bank supplied by the loaded tonfa baton package (asset weapons/tonfa_baton/bank).
 ///

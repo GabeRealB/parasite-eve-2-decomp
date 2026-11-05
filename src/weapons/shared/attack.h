@@ -13,10 +13,10 @@
 #include "gameplay/world_collision_types.h"
 #include "gameplay/world_coords.h"
 
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/session_types.h"
-#include "main/sound_ids.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/session_types.h"
+#include "engine/sound_ids.h"
 
 /// Ends a shot's contact tests and requests the chosen surface's impact effect and sound.
 ///

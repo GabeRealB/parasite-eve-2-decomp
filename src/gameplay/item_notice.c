@@ -11,13 +11,13 @@
 #include "scene_runtime.h"
 #include "telephone.h"
 
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 const UiObjectDesc gTelephoneMenuDescriptor __attribute__((section(".data"))) = { USER_INTERFACE_PANEL_TITLE_STYLE, { -64, -32, 128, 64 }, 60, 0, TASK_BODY_NONE, 192, telephoneDispatchMenuTask, 0 };
 

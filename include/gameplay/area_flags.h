@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// `flagIndex` value that ends an `AreaObjectPlace` list.
 enum { AREA_OBJECT_PLACE_END = 0xFFFF };

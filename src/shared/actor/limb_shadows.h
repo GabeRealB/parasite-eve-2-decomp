@@ -10,7 +10,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static void _limbShadowDrawSegment(Task* actor, s16 firstJoint, s16 secondJoint, s16 halfWidth, s16 worldY, u8 shade);
 

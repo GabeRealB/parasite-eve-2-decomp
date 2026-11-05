@@ -23,13 +23,13 @@
 #include "gameplay/view.h"
 #include "world_collision.h"
 
-#include "main/areas.h"
-#include "main/event_flags.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "engine/areas.h"
+#include "engine/event_flags.h"
+#include "engine/gameflag.h"
+#include "engine/gameflow.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/task.h"
 
 #include "stages/akropolis/stage.h"
 

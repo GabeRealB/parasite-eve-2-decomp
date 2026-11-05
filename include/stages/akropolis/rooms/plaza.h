@@ -10,7 +10,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // The clips the plaza places for its scenes, which police_officers's banks bind: the rookie officer's at the tower's
 // entrance, the sergeant's at the barricade, and Aya's. Each is named for the line or step it plays on.

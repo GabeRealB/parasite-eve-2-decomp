@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_INFERNO_H
 #define INCLUDE_PE_INFERNO_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Sequences Inferno's level-specific flame fans and red-amber screen wash.
 ///

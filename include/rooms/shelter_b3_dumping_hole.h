@@ -13,9 +13,9 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Twelve enemy-entry spots around the dumping hole's two opposing walls.
 ///

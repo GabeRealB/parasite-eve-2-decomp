@@ -21,13 +21,13 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "main/coord.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/tmd.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/gfx.h"
+#include "engine/mem.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/tmd.h"
+#include "engine/tmd_types.h"
 
 /// `_Actor210700Work::blinkStep`: the eye image the blink posts next.
 ///

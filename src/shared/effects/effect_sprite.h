@@ -11,7 +11,7 @@
 
 #include "types.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 // Select the carrier's billboard signature before the first inclusion: either
 // halfword (u16, s16) or word (s32, s32) arguments. Drift-only rooms define neither.

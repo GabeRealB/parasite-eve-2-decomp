@@ -13,12 +13,12 @@ load to the asset table - `file` (a stage-zero id) or `stage`/`folder`/`index` t
 and that to its chunks - and keeps, for everything a load puts somewhere, where it is:
 
     video memory   a rectangle per image column and palette, moved by the load's page and row offsets
-                   (asset_residency.moved, after src/main/fs.c)
+                   (asset_residency.moved, after src/engine/fs.c)
     main memory    an address range: a package where the loader put it; each slot of a caption
                    bundle at the destination and length its directory gives (bundle.py); a background's
-                   stored bytes in the one image workspace (`gFsImageWorkspace`, src/main/fs.c:896-907); a
+                   stored bytes in the one image workspace (`gFsImageWorkspace`, src/engine/fs.c:896-907); a
                    music sequence's MIDI image in the one sequence buffer
-    sound memory   a bank's samples: the address `sndLoadPlaceScriptSamples` (src/main/sndscript.c:746-829)
+    sound memory   a bank's samples: the address `sndLoadPlaceScriptSamples` (src/engine/sndscript.c:746-829)
                    gives its type, for the wave bytes the bank's header states; a sequence's at the fixed
                    address of the sequence pool
 
@@ -30,21 +30,21 @@ trace differ is kept in `disagreements` and printed by `check` and `show`: a pac
 not arrive, one that arrives unpredicted, another address or length.
 
 **A music sequence** is not a chunk of a file: a stage-zero file of group 4 (ids 40100-40199) is one headerless
-image, tag `hMPK`, read whole by the sound loader's sector reader (src/main/fs.c:650-662, src/main/cdvol.c:85-145),
+image, tag `hMPK`, read whole by the sound loader's sector reader (src/engine/fs.c:650-662, src/engine/cdvol.c:85-145),
 so the extraction keeps it as `stage0/<file>/raw.bin` and the asset table lists the file with no chunks. It is
 placed under the file's name. Its image kind is 0 (`SOUND_BANK_IMAGE_SEQUENCE`): the MIDI image goes to the one
-resident buffer `_gMidiSequenceBuffer` (src/main/sndevt.c:311, 1454-1457, 2781-2783) for the image bytes rounded up
-to 4, and the samples to SPU address 0x1010 (src/main/sndevt.c:2811-2818) plus the header's block offset
-(src/main/sndevt.c:2468), for the wave bytes the header states. Nothing frees it: `sndBankFree` returns at once for
-type 0xF (src/main/sndbank.c:744-754) and the area sound reset frees other slots (src/main/sndscript.c:719-741).
+resident buffer `_gMidiSequenceBuffer` (src/engine/sndevt.c:311, 1454-1457, 2781-2783) for the image bytes rounded up
+to 4, and the samples to SPU address 0x1010 (src/engine/sndevt.c:2811-2818) plus the header's block offset
+(src/engine/sndevt.c:2468), for the wave bytes the header states. Nothing frees it: `sndBankFree` returns at once for
+type 0xF (src/engine/sndbank.c:744-754) and the area sound reset frees other slots (src/engine/sndscript.c:719-741).
 Its residency ends when the next sequence image is loaded: there is one buffer, one pool and one bank, whose tables
-the new image's replace (src/main/sndbank.c:623-627), so the old samples end with them even when the new upload is
+the new image's replace (src/engine/sndbank.c:623-627), so the old samples end with them even when the new upload is
 shorter. Three sequences on the disc upload only part of the pool and play the rest from what an earlier one left
 (their layers name sample offsets below their own upload); that is noted on them, and checked against the bytes.
 
 **A palette uploaded outside a file load** has one of two sources, told apart by the function that called the
 uploader. Gameplay's view code uploads the slot of the room's caption bundle before the mapped view's number
-(src/gameplay/view_image.c:45-60). `_mdecStepSceneImageDecode` (src/main/stage.c:1237-1338) uploads the image chunks
+(src/gameplay/view_image.c:45-60). `_mdecStepSceneImageDecode` (src/engine/stage.c:1237-1338) uploads the image chunks
 of a *scene image*: a block inside the scene's audio stream (`raw/audio/<stream>.mts`, between the audio chunks),
 whose 60-byte `StreamSceneImageHeader` names the view it is for and up to three image chunks. Such a view arrives
 with no file load at all (src/gameplay/view_load.c:66-68).
@@ -52,12 +52,12 @@ with no file load at all (src/gameplay/view_load.c:66-68).
 **Residency ends by overwrite, and only so.** Whatever lands on any part of a resident thing ends it, from that
 event on: a partly overwritten image or palette is not valid any more. In main memory a package also clears its
 whole slot - from its load address up to the next load address any package has - so nothing whose destination
-lies there survives it. A movie's workspace backup lands on (704,0)-(1023,255) (src/main/stream.c:1154-1165).
+lies there survives it. A movie's workspace backup lands on (704,0)-(1023,255) (src/engine/stream.c:1154-1165).
 A sound bank also ends at its free (`sound_bank_free` naming its id; a free of an empty slot releases nothing),
 and a music sequence's samples at the next sequence image (see below).
 Each ended thing records what displaced it and at which event.
 
-What a load mode leaves out is the loader's (src/main/fs.c:673-699, 781-950): mode 1 only seeks, so nothing is
+What a load mode leaves out is the loader's (src/engine/fs.c:673-699, 781-950): mode 1 only seeks, so nothing is
 loaded; modes 2 and 5 stop the load at the first package or bundle chunk; 4 skips the background; 5 and 6 skip
 sound banks; 3 relocates images. A text chunk is never loaded (fs.c:932-937).
 
@@ -98,21 +98,21 @@ HEADER = """# Observed residency: what the traces of the running game (tools/gam
 MODES = {0: "default", 1: "seek only", 2: "init sound", 3: "relocate images", 4: "skip background", 5: "images only", 6: "skip sound"}
 STOP_AT_PACKAGE = (2, 5)             # CD_COMMAND_LOAD_INIT_SOUND, _IMAGES_ONLY: a package or bundle chunk ends the load
 MOVIE_RECT = (704, 0, 320, 256)      # streamPrepareMovieWorkspace's two backup blocks, side by side
-WORKSPACE = 0x801D7000               # gFsImageWorkspace (configs/USA/sym.main.imports.txt): where a background's bytes go
-DESCRIPTORS, DESCRIPTOR_SIZE = 0x8007E0D8, 0x20        # gSndBankDescriptors (configs/USA/sym.main.txt)
+WORKSPACE = 0x801D7000               # gFsImageWorkspace (configs/USA/sym.engine.imports.txt): where a background's bytes go
+DESCRIPTORS, DESCRIPTOR_SIZE = 0x8007E0D8, 0x20        # gSndBankDescriptors (configs/USA/sym.engine.txt)
 SPU_BLOCK = 64
-SEQUENCE_TYPE = 0xF                                    # SOUND_BANK_TYPE_SEQUENCE >> 12 (src/main/sound_types.h:121)
-SEQUENCE_SAMPLES = 0x1010                              # SOUND_LOAD_SEQUENCE_SAMPLE_BASE (src/main/sndevt.c:2811)
-MIDI_BUFFER, MIDI_BUFFER_BYTES = 0x8007F8E0, 0x2800    # _gMidiSequenceBuffer (configs/USA/sym.main.txt; src/main/sndevt.c:311)
-SEQUENCE_FILES = range(40100, 40200)                   # stage zero, group 4, hundreds 1: the files fsLoadFile hands to the sound-bank reader (src/main/fs.c:650-662)
+SEQUENCE_TYPE = 0xF                                    # SOUND_BANK_TYPE_SEQUENCE >> 12 (src/engine/sound_types.h:121)
+SEQUENCE_SAMPLES = 0x1010                              # SOUND_LOAD_SEQUENCE_SAMPLE_BASE (src/engine/sndevt.c:2811)
+MIDI_BUFFER, MIDI_BUFFER_BYTES = 0x8007F8E0, 0x2800    # _gMidiSequenceBuffer (configs/USA/sym.engine.txt; src/engine/sndevt.c:311)
+SEQUENCE_FILES = range(40100, 40200)                   # stage zero, group 4, hundreds 1: the files fsLoadFile hands to the sound-bank reader (src/engine/fs.c:650-662)
 SEQUENCE_TAG = b"hMPK"
-SCENE_DECODER = 0x8004017C                             # _mdecStepSceneImageDecode (configs/USA/sym.main.txt; src/main/stage.c:1237)
-SCENE_HEADER = struct.Struct("<i3i3iii3h3hHhhhH2x")    # StreamSceneImageHeader (include/main/stream_types.h:122-136)
+SCENE_DECODER = 0x8004017C                             # _mdecStepSceneImageDecode (configs/USA/sym.engine.txt; src/engine/stage.c:1237)
+SCENE_HEADER = struct.Struct("<i3i3iii3h3hHhhhH2x")    # StreamSceneImageHeader (include/engine/stream_types.h:122-136)
 SCENE_BUFFERS = 5                                      # STREAM_SCENE_BUFFER_DECODE .. _EXTERNAL
-SCENE_CHUNK_ROW_SHIFT = -3                             # STREAM_SCENE_CHUNK_Y_SHIFT_ROWS, for a chunk its header marks relocated (src/main/stage.c:1243, 1308-1311)
+SCENE_CHUNK_ROW_SHIFT = -3                             # STREAM_SCENE_CHUNK_Y_SHIFT_ROWS, for a chunk its header marks relocated (src/engine/stage.c:1243, 1308-1311)
 SECTOR = 0x800
 PACKAGE_MODES = (0, 3, 4, 6)                           # the load modes under which a file's package chunk is read (see the docstring)
-RESET_TASKS = ("bootColdStartTask", "bootReloadTitleTask")   # queued by _gameMainInitialize (src/main/gamemain.c:167)
+RESET_TASKS = ("bootColdStartTask", "bootReloadTitleTask")   # queued by _gameMainInitialize (src/engine/gamemain.c:167)
 
 
 def num(r: dict, *keys, default=0) -> int:
@@ -297,7 +297,7 @@ class World:
 
         `path` is a file as the tree names it (`0/file40134`); the extraction keeps a file it cannot split into
         chunks whole, as `stage<N>/<file>/raw.bin`. The header is the sound loader's `SndBankPayload`
-        (src/main/sound_types.h:408-420); the group table (4 bytes each) and the layer table (0x14 bytes each, the
+        (src/engine/sound_types.h:408-420); the group table (4 bytes each) and the layer table (0x14 bytes each, the
         sample's byte offset in the pool last) follow it."""
         if path not in self._sequences:
             stage, _slash, name = path.partition("/")
@@ -313,10 +313,10 @@ class World:
         return self._sequences[path]
 
     def symbol(self, name: str) -> int | None:
-        """The address of a function of the main program, by the name the symbol map gives it (configs/USA/sym.main.txt)."""
+        """The address of a function of the main program, by the name the symbol map gives it (configs/USA/sym.engine.txt)."""
         if self._symbols is None:
             self._symbols = {}
-            path = ROOT / "configs" / "USA" / "sym.main.txt"
+            path = ROOT / "configs" / "USA" / "sym.engine.txt"
             if path.is_file():
                 for m in re.finditer(r"^(\w+)\s*=\s*0x([0-9A-Fa-f]+);", path.read_text(encoding="utf-8", errors="replace"), re.M):
                     self._symbols.setdefault(m.group(1), int(m.group(2), 16))
@@ -358,7 +358,7 @@ class World:
 
 
 def spu_address(kind: int, slot: int, wave: int, state: dict) -> int | None:
-    """Where `sndLoadPlaceScriptSamples` puts a script bank's samples (src/main/sndscript.c:746-829).
+    """Where `sndLoadPlaceScriptSamples` puts a script bank's samples (src/engine/sndscript.c:746-829).
     A sequence image does not come here: see `Replay.sequence_loaded`."""
     size = (wave + SPU_BLOCK - 1) & ~(SPU_BLOCK - 1)
     if kind == 0:
@@ -524,7 +524,7 @@ class Replay:
 
     def on_cd_command(self, n, r, frm):
         if frm in RESET_TASKS:
-            # The run was initialised again (src/main/gamemain.c:167): the player is nowhere until the next room.
+            # The run was initialised again (src/engine/gamemain.c:167): the player is nowhere until the next room.
             self.loc.update(stage=0, area=0, room=0, view=0, warp=0, variant=0, name="", file=None, bg=None)
             self.room = self.arriving = None
             return "mark", f"the run is initialised: {frm} queues the title's file", None
@@ -742,7 +742,7 @@ class Replay:
     def scene_upload(self, n, stored, frm):
         """An image chunk of a scene image: `_mdecStepSceneImageDecode` uploads the chunks of the header whose view is
         the live one, in the order the header lists them, a relocated one three rows up and one down
-        (src/main/stage.c:1306-1317). The stream is the one selected last; the bytes are the stream's."""
+        (src/engine/stage.c:1306-1317). The stream is the one selected last; the bytes are the stream's."""
         view, scene = self.loc["view"], self.scene
         stem = scene and (scene["stem"] or self.w.stream(self.loc["stage"], self.loc["area"] * 100 + 1, *scene["key"]))
         if not self.scene_left and stem:
@@ -794,7 +794,7 @@ class Replay:
         if not keys:
             self.miss(n, f"bank {begun['bank']} loaded, and the file being loaded lists no bank with that id")
         ruled = spu_address(ident >> 12, slot, wave, self.spu)
-        # `wave_at` is the header's block offset in bytes: the upload starts that far into the pool (src/main/sndevt.c:2468).
+        # `wave_at` is the header's block offset in bytes: the upload starts that far into the pool (src/engine/sndevt.c:2468).
         address = ruled + (begun.get("wave_at") or 0) if ruled else None
         if ident >> 12 == 4:
             self.spu["character"][slot] = ruled + wave if ruled else None
@@ -811,7 +811,7 @@ class Replay:
     def sequence_loaded(self, n, begun, ident, slot):
         """A sequence image (image kind 0): its MIDI image to the one sequence buffer, its samples to the sequence pool."""
         load, wave, image, offset = self.loading, begun["wave_bytes"], begun.get("program_bytes", 0), begun.get("wave_at") or 0
-        # A stage-zero file of group 4 is read whole by the sound-bank reader: the image is the file (src/main/fs.c:650-662).
+        # A stage-zero file of group 4 is read whole by the sound-bank reader: the image is the file (src/engine/fs.c:650-662).
         if load is not None and load.get("file") in SEQUENCE_FILES:
             asset, head = load["path"].rsplit("/", 1)[-1], self.w.sequence(load["path"])
             said = {"id": ident, "kind": 0, "offset": offset, "image": image, "wave": wave}
@@ -824,7 +824,7 @@ class Replay:
             asset, head = f"bank {begun['bank']}", None
             self.miss(n, f"sequence image {begun['bank']} loaded" + (f" during the load of {load['path']}, which is not a sequence file" if load else " while no file load was open")
                       + "; it is placed without a name")
-        size = (image + 3) & ~3                       # the copy rounds the image up to 4 (src/main/sndevt.c:2418)
+        size = (image + 3) & ~3                       # the copy rounds the image up to 4 (src/engine/sndevt.c:2418)
         if size > MIDI_BUFFER_BYTES:
             self.miss(n, f"{asset}: its MIDI image is {size} bytes, more than the {MIDI_BUFFER_BYTES} of the sequence buffer, which the loader does not check")
         before = next((t for t in reversed(self.live) if t["mem"] == "s" and t.get("sequence")), None)
@@ -847,7 +847,7 @@ class Replay:
                 self.miss(n, f"{asset}: {len(below)} of its sample starts are below the {offset:#x} it uploads from, and "
                           + (f"{before['asset']}, the sequence loaded before it, does not account for them" if before else "no sequence was loaded before it"))
         # There is one sequence bank: the new image's tables are written over the old one's in the block the loader
-        # keeps for them (src/main/sndbank.c:623-627, src/main/sndevt.c:2397-2410). So the old sequence's samples stop
+        # keeps for them (src/engine/sndbank.c:623-627, src/engine/sndevt.c:2397-2410). So the old sequence's samples stop
         # being a bank here even where the new upload does not reach them - those bytes stay in sound memory.
         label = asset + (f" of {load['path']}" if load else "")
         for other in [t for t in self.live if t["mem"] == "s" and t.get("sequence")]:
@@ -864,7 +864,7 @@ class Replay:
         if not r.get("bank"):
             return "dim", f"free of an empty bank slot · from {frm}", None
         ident = int(r["bank"], 16)
-        if ident >> 12 == SEQUENCE_TYPE:              # sndBankFree returns at once for a sequence bank (src/main/sndbank.c:744-754)
+        if ident >> 12 == SEQUENCE_TYPE:              # sndBankFree returns at once for a sequence bank (src/engine/sndbank.c:744-754)
             return "dim", f"free of sequence bank {r['bank']} by {frm}: releases nothing", None
         gone = [t for t in self.live if t["mem"] == "s" and t["bank"] == ident]
         for t in gone:
@@ -872,7 +872,7 @@ class Replay:
         return "load", f"bank {r['bank']} freed by {frm}" + (f": {', '.join(t['asset'] for t in gone)}" if gone else " (no resident bank has that id)"), None
 
     def on_sound_reset_for_area(self, n, r, frm):
-        self.spu["type1"] = 0                       # gSndLoadType1SampleOrigin = 0 (src/main/sndscript.c:712)
+        self.spu["type1"] = 0                       # gSndLoadType1SampleOrigin = 0 (src/engine/sndscript.c:712)
         self.spu["character"] = {}
         return "mark", f"sound reset for stage {num(r, 'stage', 'a0')} area {num(r, 'area', 'a1')} · from {frm}", None
 
@@ -926,7 +926,7 @@ class Replay:
             return "dim", f"music start returned {r.get('result', r.get('v0'))}", None
         wanted = num(r, "sequence", "a0")
         held = next((t for t in reversed(self.live) if t["mem"] == "s" and t.get("sequence")), None)
-        # The request is only queued here; the start needs the loaded image to be that sequence (src/main/stage_music.c:352-357).
+        # The request is only queued here; the start needs the loaded image to be that sequence (src/engine/stage_music.c:352-357).
         about = "no sequence image is resident" if held is None else f"{held['asset']} is the resident sequence image" if held["bank"] & 0xFF == wanted else f"the resident sequence image is {held['asset']}, sequence {held['bank'] & 0xFF}"
         return "sound", f"music sequence {wanted} requested ({about}) · from {frm}", None
 

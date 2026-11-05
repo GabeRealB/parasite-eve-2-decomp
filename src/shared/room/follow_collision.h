@@ -15,7 +15,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 static void _followCollisionRebuildObstacle(const GfxCoord* modelRoot, const SVECTOR* roomOffset);
 

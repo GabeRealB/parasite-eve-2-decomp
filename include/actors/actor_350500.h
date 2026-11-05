@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_350500_H
 #define INCLUDE_ACTORS_ACTOR_350500_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Masked Eve Brea reversing-walker spawn recipe for the B6 corridor.
 ///

@@ -19,12 +19,12 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 #include "mapui/map_shelter.h"
 

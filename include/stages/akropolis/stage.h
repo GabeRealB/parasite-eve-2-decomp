@@ -12,11 +12,11 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/gfx_types.h"
-#include "main/session_types.h"
-#include "main/stage_types.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/gfx_types.h"
+#include "engine/session_types.h"
+#include "engine/stage_types.h"
+#include "engine/task_types.h"
 
 /// Live fixed-marker count; the marker records add a page-zero terminator.
 enum { AKROPOLIS_STAGE_MARKER_COUNT = 14 };

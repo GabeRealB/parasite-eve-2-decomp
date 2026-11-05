@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_AREA_ENTRY_H
 #define GAMEPLAY_AREA_ENTRY_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Slot of the controlled character in `gPlayerActorTasks`.
 ///

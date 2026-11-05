@@ -11,7 +11,7 @@
 
 #include "types.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 /// Selects an opaque, raw-textured leaf instead of brightness modulation.
 enum { LEAF_BRIGHTNESS_RAW_TEXTURE = 0 };

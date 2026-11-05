@@ -11,8 +11,8 @@
 #include "gameplay/items.h"
 #include "scene_runtime.h"
 
-#include "main/mc.h"
-#include "main/task_types.h"
+#include "engine/mc.h"
+#include "engine/task_types.h"
 
 /* Define BSS before private APIs to preserve first-declaration order. */
 u16 gItemPickupPublicationReady;

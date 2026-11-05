@@ -1,6 +1,6 @@
 /* Part of the Dryfield main street library; see main_street.h. */
 
-#include "main/event_flags.h"
+#include "engine/event_flags.h"
 
 /// Records masterkey use by retiring the room-6 and lobby keys.
 ///

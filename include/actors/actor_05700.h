@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_05700_H
 #define INCLUDE_ACTORS_ACTOR_05700_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Launcher Rook GOLEM spawn descriptors: 0 body, 1 launcher, 2 grenade, 3 shield.
 ///

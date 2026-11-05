@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
@@ -11,8 +11,8 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
-#include "main/ui_types.h"
+#include "engine/task_types.h"
+#include "engine/ui_types.h"
 
 /// Number of scored gallery target kinds, indexed 0..12.
 #define MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT 13

@@ -30,8 +30,8 @@
 
 #include "gameplay/scene_combat.h"
 
-#include "main/areas.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/task_types.h"
 
 #include "rooms/dryfield_water_tower.h"
 

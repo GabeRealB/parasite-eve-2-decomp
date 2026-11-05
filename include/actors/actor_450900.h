@@ -3,7 +3,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn-table indices for the growth-room companion scene tasks.
 enum {

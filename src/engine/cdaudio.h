@@ -1,0 +1,48 @@
+#ifndef ENGINE_PRIVATE_CDAUDIO_H
+#define ENGINE_PRIVATE_CDAUDIO_H
+
+#include "types.h"
+
+/// Results of requesting CD-audio cancellation.
+enum {
+    CD_AUDIO_CANCEL_OPEN_PENDING = -3, // Track setup has not reached its opening driver; cancel remains requested
+    CD_AUDIO_CANCEL_NO_FADE      = -2, // No playback to fade, or a wave load was redirected to its pause step
+    CD_AUDIO_CANCEL_OPENING      = -1, // Opening is still in progress; its driver observes the cancel request
+    CD_AUDIO_CANCEL_FADE_STARTED = 0,  // Fade-out and stream shutdown were started
+    CD_AUDIO_CANCEL_STOP_PENDING = 1,  // A stop step was already selected
+};
+
+/// Requests cancellation of track opening, playback or a wave upload.
+///
+/// Returns a `CD_AUDIO_CANCEL_*` result. The request remains latched until
+/// another track is set up; continue servicing the audio driver and poll
+/// `gCdAudioProgress.stopStep` for `CD_AUDIO_STOP_STEP_DONE` before reusing the stream.
+s32 cdAudioCancel(void);
+
+/// Requests CD-audio cancellation and blocks until its stop step is done.
+///
+/// Keep the VBlank audio driver running while cancellation is pending; this
+/// wait does not poll it and has no timeout. Call before resetting callbacks or
+/// reusing stream resources. The player's allocated buffers are not freed here.
+void cdAudioCancelAndWait(void);
+
+/// Initializes the CD-audio control word, streaming voice range and stereo output.
+///
+/// Clears only the first four progress steps and the player's driver, start
+/// report and volume; the repeated clear stores never advance past those words.
+/// Selects the default stream ring at SPU byte address 0x51010 and voices 22..23,
+/// then resets the stream's software state. Use before reads or playback: this
+/// does not stop hardware, retire callbacks or free voices. Drops the header
+/// buffer pointer without freeing the allocation or clearing its table aliases.
+void cdAudioInit(void);
+
+/// Advances the selected CD-audio driver and services stream playback once.
+///
+/// Called once per VBlank. A zero read base or idle driver suppresses both
+/// operations, including ready-queue polling. Otherwise the driver's low three
+/// bits select one of eight callbacks; its returned code is narrowed to a byte
+/// before the stream poll, even when it becomes idle. Playback and read buffers
+/// must remain live for the selected driver and its asynchronous callbacks.
+void cdAudioPollDriver(void);
+
+#endif // ENGINE_PRIVATE_CDAUDIO_H

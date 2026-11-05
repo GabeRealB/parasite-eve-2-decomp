@@ -10,12 +10,12 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_runtime.h"
 
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 static s32 _dryfieldNightR08RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightR08ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);

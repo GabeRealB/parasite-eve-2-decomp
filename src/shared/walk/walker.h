@@ -22,7 +22,7 @@
 
 #include "gameplay/actor_render_shadow_types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static void _actorRenderDrawFixedWalkerGroundShadow(Task* task);
 

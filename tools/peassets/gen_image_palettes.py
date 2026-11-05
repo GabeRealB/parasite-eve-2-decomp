@@ -17,8 +17,8 @@ def add(image, column, depth, palette, row, index, user, evidence):
 
 # ---- A. item preview pictures: stage 0, group 2, hundreds 1..7
 EV_A = ("src/gameplay/item_stats.c:72-75, :1085-1120 itemMenuDrawPreview (POLY_FT4, page 0x87 or 0x8F, CLUT 0x3F40 or 0x3F80); "
-        "src/gameplay/menu_armor.c:446-559 itemMenuEnqueuePreviewLoad (group 2, hundreds 1..7); src/main/loadui.c:121-135 (the profile's offsets); "
-        "tools/peassets/asset_residency.py moved() (src/main/fs.c:473-490, :1770-1776)")
+        "src/gameplay/menu_armor.c:446-559 itemMenuEnqueuePreviewLoad (group 2, hundreds 1..7); src/engine/loadui.c:121-135 (the profile's offsets); "
+        "tools/peassets/asset_residency.py moved() (src/engine/fs.c:473-490, :1770-1776)")
 PROFILES = {"MENU": ((-8, -3, "RELOCATE"), 0x87, 0x80, 0x3F40), "RELOCATED_PREVIEW": ((0, -2, "RELOCATE"), 0x8F, 0x80, 0x3F80),
             "PREVIEW": ((0, -2, ""), 0x8F, 0, 0x3F40)}
 from texture.declaration import texture_chunks

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_FLARE_H
 #define INCLUDE_PE_FLARE_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Runs the Flare's expanding pink glow, delayed gameplay result and fading screen flash.
 ///

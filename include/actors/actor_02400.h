@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_02400_H
 #define INCLUDE_ACTORS_ACTOR_02400_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Amoeba spawn descriptors: 0 TMD body, 1 coordinate-body fireball.
 ///

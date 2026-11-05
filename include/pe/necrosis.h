@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_NECROSIS_H
 #define INCLUDE_PE_NECROSIS_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Shrinks one Necrosis trail puff and emits drifting mist children.
 ///

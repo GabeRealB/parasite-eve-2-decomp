@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_PYROKINESIS_H
 #define INCLUDE_PE_PYROKINESIS_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Advances the collision-bearing Pyrokinesis flame through travel, stop and burst.
 ///

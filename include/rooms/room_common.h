@@ -8,8 +8,8 @@
 
 #include "gameplay/display.h"
 
-#include "main/coord.h"
-#include "main/ui_types.h"
+#include "engine/coord.h"
+#include "engine/ui_types.h"
 
 /// Per-room screen-fade record and the word that follows it.
 ///

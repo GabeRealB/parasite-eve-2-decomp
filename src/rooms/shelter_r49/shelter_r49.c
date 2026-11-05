@@ -9,11 +9,11 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 #include "mapui/map_shelter.h"
 

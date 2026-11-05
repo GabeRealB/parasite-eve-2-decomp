@@ -41,7 +41,7 @@
 
 #include "gameplay/display.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "rooms/room.h"
 #include "rooms/room_visual_effects.h"

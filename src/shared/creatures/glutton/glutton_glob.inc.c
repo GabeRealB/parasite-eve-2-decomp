@@ -1,4 +1,4 @@
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 
 /* Part of the Glutton library; see glutton.h. */
 
@@ -91,7 +91,7 @@ static void _gluttonGlobSpawn(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 
 /* Part of the Glutton library; see glutton.h. */
 

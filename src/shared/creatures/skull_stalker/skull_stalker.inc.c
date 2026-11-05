@@ -1,4 +1,4 @@
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 
@@ -120,7 +120,7 @@ static void _skullStalkerSpawnState(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Skull Stalker library; see skull_stalker.h. */
 

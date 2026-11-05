@@ -23,17 +23,17 @@
 #include "player_actor.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc_types.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc_types.h"
+#include "engine/mem.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 const u8* const* gItemMenuEquipmentStatLabels;
 

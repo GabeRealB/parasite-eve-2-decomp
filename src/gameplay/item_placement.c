@@ -14,10 +14,10 @@
 #include "scene_runtime.h"
 
 #include "gameplay/damage.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task_types.h"
+#include "engine/gfx.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
 
 /// Catalog and UI kinds used by Dryfield's shared placed-object lists.
 ///

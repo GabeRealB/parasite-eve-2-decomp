@@ -12,7 +12,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/display.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Persistent fade to black for an accepted keypad code and back into the terminal scene.
 ///

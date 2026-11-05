@@ -1,7 +1,7 @@
 #ifndef INCLUDE_STAGES_AKROPOLIS_ACTORS_HELICOPTER_LANDING_PAD_NO_9_H
 #define INCLUDE_STAGES_AKROPOLIS_ACTORS_HELICOPTER_LANDING_PAD_NO_9_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Emits the GOLEM's mode-controlled flame jet and orange transient light.
 void helicopterLandingPadNo9FlameJetTask(Task* task);

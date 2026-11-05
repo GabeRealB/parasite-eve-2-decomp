@@ -6,7 +6,7 @@
 #include "actor.h"
 #include "gameplay/actor_spawn_types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Restores the live companion's saved weapon and returns it to native idle playback.
 ///

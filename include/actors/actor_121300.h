@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_121300_H
 #define INCLUDE_ACTORS_ACTOR_121300_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn recipes for Eve's Dryfield lamp-shattering scene and its children.
 ///

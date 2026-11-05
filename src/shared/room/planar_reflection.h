@@ -20,7 +20,7 @@
 #ifndef SRC_SHARED_PLANAR_REFLECTION_H
 #define SRC_SHARED_PLANAR_REFLECTION_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /* Interface for the including source. */
 

@@ -3,7 +3,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Unused bodyless descriptor retained by the incinerator arrival scene package.
 ///

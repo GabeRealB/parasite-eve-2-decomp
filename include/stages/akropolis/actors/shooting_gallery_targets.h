@@ -1,7 +1,7 @@
 #ifndef INCLUDE_STAGES_AKROPOLIS_ACTORS_SHOOTING_GALLERY_TARGETS_H
 #define INCLUDE_STAGES_AKROPOLIS_ACTORS_SHOOTING_GALLERY_TARGETS_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Descriptor slots for the gallery mount and its carried target models.
 enum {

@@ -10,8 +10,8 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
 
 /// Number of retained placement-variant slots, including absent slots.
 enum { SHELTER_B6_TRAINING_ROOM_AREA_VARIANT_COUNT = 13 };

@@ -5,8 +5,8 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Native player animation bank shared by the two P08 magazine variants (asset weapons/p08/bank).
 ///

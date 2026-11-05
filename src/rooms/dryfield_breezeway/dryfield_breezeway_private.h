@@ -7,7 +7,7 @@
 #include "gameplay/message.h"
 #include "gameplay/direction.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Uploads the hanging line's 256-colour palette to VRAM (0, 256), then ends.
 ///

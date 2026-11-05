@@ -1,4 +1,4 @@
-# Declarations: the main executable, src/main's image - the same bytes on
+# Declarations: the main executable, src/engine's image - the same bytes on
 # both discs under each disc's name.
 
 [executable]

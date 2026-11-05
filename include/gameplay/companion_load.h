@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_COMPANION_LOAD_H
 #define GAMEPLAY_COMPANION_LOAD_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Empty entry point called first in a pair before Acropolis scene transitions.
 ///

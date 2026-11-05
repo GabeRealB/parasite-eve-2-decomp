@@ -29,16 +29,16 @@
 #include "weapon_data.h"
 #include "world_targets.h"
 
-#include "main/areas.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/game_debug.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/areas.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/game_debug.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 /// Byte mask that consumes the PE task's target/self-effect application request.
 ///

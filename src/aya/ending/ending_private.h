@@ -10,9 +10,9 @@
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
 
-#include "main/mc.h"
-#include "main/task_types.h"
-#include "main/ui_types.h"
+#include "engine/mc.h"
+#include "engine/task_types.h"
+#include "engine/ui_types.h"
 
 #include "rooms/shop_tier.h"
 

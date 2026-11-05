@@ -6,7 +6,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Live gallery training-session latch (0 inactive, 1 active).
 extern s32 gShootingGalleryPierceGalleryTrainingActive;

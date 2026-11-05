@@ -13,7 +13,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Four borrowed eight-point patrol rings selected by Diver spawn-argument bits 4..5.
 ///

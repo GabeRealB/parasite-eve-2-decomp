@@ -3,8 +3,8 @@
 
 #include "pe2.h"
 
-PE2_BIND(main, package)
-#include PE2_INCLUDE(main, task_types.h)
+PE2_BIND(engine, package)
+#include PE2_INCLUDE(engine, task_types.h)
 
 /// Two bodyless spawn recipes for title startup (0) and intro playback (1).
 ///

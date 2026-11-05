@@ -23,7 +23,7 @@
 #ifndef SRC_WEAPONS_SHARED_MUZZLE_FLASH_H
 #define SRC_WEAPONS_SHARED_MUZZLE_FLASH_H
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 enum {
     MUZZLE_FLASH_STREAK_COUNT       = 4,    // One streak per quadrant; the task masks indices by count - 1

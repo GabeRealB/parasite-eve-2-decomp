@@ -97,9 +97,9 @@ enum { GLUTTON_GROUP0_HIT_EFFECT_OFFSET_Z = 500 };
 #include "gameplay/animation_types.h"
 #include "gameplay/message.h"
 
-#include "main/coord.h"
-#include "main/gfx_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/gfx_types.h"
+#include "engine/task_types.h"
 
 /// Allocation holding a button-press hold the Glutton sends the player, and
 /// the eight bytes after it.

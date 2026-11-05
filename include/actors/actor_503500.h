@@ -3,8 +3,8 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Descriptor indices for the R48 drift emitters and fade from black.
 enum {

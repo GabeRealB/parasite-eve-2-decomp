@@ -13,12 +13,12 @@
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/task_types.h"
-#include "main/tmd.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/mem.h"
+#include "engine/task_types.h"
+#include "engine/tmd.h"
+#include "engine/tmd_types.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// Work block of a slider: one of the two long slab models the Brahman

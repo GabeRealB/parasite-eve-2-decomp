@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Reveals the loaded session from black and releases its display hold.
 ///

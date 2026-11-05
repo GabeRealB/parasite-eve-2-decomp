@@ -114,7 +114,7 @@ enum { MAGGOT_CATERPILLAR_POUNCE_RANGE = 2300 };
 
 #include "actors/actor.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Behaviour the per-frame tick runs, held in `MaggotCaterpillarWork::behaviour`.
 enum {

@@ -1,7 +1,7 @@
 #include "common.h"
 
-#include "main/areas.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/task_types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 /// Defeat/departure phase (0 waiting, 1 defeat scene running, 2 departure started).
@@ -49,19 +49,19 @@ static Task* _gShelterB6TrainingRoomPlayerHeadAimTask;
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/coord.h"
-#include "main/display_types.h"
-#include "main/fs.h"
-#include "main/fs_types.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/sound_ids.h"
+#include "engine/coord.h"
+#include "engine/display_types.h"
+#include "engine/fs.h"
+#include "engine/fs_types.h"
+#include "engine/gameflag.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/sound.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/sound_ids.h"
 
 #include "mapui/map_neo_ark.h"
 

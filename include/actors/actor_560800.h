@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Descriptor index used by the gantry to start the Aya/Eve/Kyle/No. 9 scene.
 enum { ACTOR_560800_TASK_CUTSCENE = 0 };

@@ -20,12 +20,12 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
-#include "main/display.h"
-#include "main/random.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/tmd_types.h"
+#include "engine/display.h"
+#include "engine/random.h"
+#include "engine/gfx.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/tmd_types.h"
 
 #include "weapons/weapon.h"
 

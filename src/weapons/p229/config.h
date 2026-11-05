@@ -4,7 +4,7 @@
 // Configuration of the P229.
 
 #include "gameplay/world_collision_types.h"
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 #include "weapons/sounds.h"
 #include "weapons/weapon_index.h"
 

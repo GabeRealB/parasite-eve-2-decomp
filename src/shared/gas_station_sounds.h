@@ -13,7 +13,7 @@
 
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static s32 _gasStationCueSoundMsg(Task* task, s32 messageId, s32 cueKey, s32 unusedArg);
 

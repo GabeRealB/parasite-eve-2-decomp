@@ -8,10 +8,10 @@
 #include "gameplay/items.h"
 #include "gameplay/starter_inventory.h"
 
-#include "main/mc.h"
-#include "main/areas.h"
-#include "main/session.h"
-#include "main/wipsys.h"
+#include "engine/mc.h"
+#include "engine/areas.h"
+#include "engine/session.h"
+#include "engine/wipsys.h"
 
 /* Item table a scan window lies in. */
 static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan);

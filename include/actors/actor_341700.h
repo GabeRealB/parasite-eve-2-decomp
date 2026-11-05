@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_341700_H
 #define INCLUDE_ACTORS_ACTOR_341700_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn indices of the dumping-hole Mad Chaser package.
 enum {

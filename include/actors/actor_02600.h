@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_02600_H
 #define INCLUDE_ACTORS_ACTOR_02600_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Slot-2 export of `gActor02600MaggotCaterpillarBodyTask` from actor_202600,
 /// with the same body descriptor contract.

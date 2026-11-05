@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_323400_H
 #define INCLUDE_ACTORS_ACTOR_323400_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Desert Chaser spawn recipe for the breezeway scripted encounter.
 ///

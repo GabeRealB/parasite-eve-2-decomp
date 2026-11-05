@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Emits additive hit puffs at random points in a parent-local cube, bank 6 slot 0x9A.
 ///

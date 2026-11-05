@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // Scripted controller-vibration commands and their task entry points.
 

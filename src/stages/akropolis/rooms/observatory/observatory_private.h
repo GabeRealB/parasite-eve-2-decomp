@@ -6,7 +6,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/pad_script.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Four bodyless priority-192 recipes for the observatory arrival movies.
 extern TaskDesc gAkropolisObservatoryArrivalTaskDescs[4];

@@ -8,8 +8,8 @@
 
 #include "gameplay/gpu_image_upload.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
 
 /// Queues texture copies after placing the first entry on an actor's texture page.
 ///

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_HEALING_H
 #define INCLUDE_PE_HEALING_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Advances the additive rising spark emitted by a Healing sparkle.
 ///

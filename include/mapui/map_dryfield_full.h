@@ -13,10 +13,10 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/gfx_types.h"
-#include "main/stage_types.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/gfx_types.h"
+#include "engine/stage_types.h"
+#include "engine/task_types.h"
 
 /// Highest area ID represented by the night stage's directories, including empty slots.
 enum { MAP_DRYFIELD_FULL_AREA_ID_LIMIT = GAME_AREA_DRYFIELD_NIGHT_UNDERPASS };

@@ -4,11 +4,11 @@ Score assembly functions by complexity and find the simplest one to decompile.
 
 Usage:
     python3 tools/match/score_functions.py <folder_path> [folder_path ...]
-    python3 tools/match/score_functions.py asm/USA/main/nonmatchings
-    python3 tools/match/score_functions.py asm/USA/main/nonmatchings asm/USA/title/nonmatchings
-    python3 tools/match/score_functions.py --exhaustive asm/USA/main/nonmatchings
-    python3 tools/match/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/main/nonmatchings
-    python3 tools/match/score_functions.py --min-score 0.4 --max-score 0.8 asm/USA/main/nonmatchings
+    python3 tools/match/score_functions.py asm/USA/engine/nonmatchings
+    python3 tools/match/score_functions.py asm/USA/engine/nonmatchings asm/USA/title/nonmatchings
+    python3 tools/match/score_functions.py --exhaustive asm/USA/engine/nonmatchings
+    python3 tools/match/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/engine/nonmatchings
+    python3 tools/match/score_functions.py --min-score 0.4 --max-score 0.8 asm/USA/engine/nonmatchings
 """
 
 import sys
@@ -498,12 +498,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python3 tools/match/score_functions.py asm/USA/main/nonmatchings
-  python3 tools/match/score_functions.py asm/USA/main/nonmatchings asm/USA/title/nonmatchings
-  python3 tools/match/score_functions.py --exhaustive asm/USA/main/nonmatchings
-  python3 tools/match/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/main/nonmatchings
-  python3 tools/match/score_functions.py --min-score 0.4 --max-score 0.8 asm/USA/main/nonmatchings
-  python3 tools/match/score_functions.py --exhaustive --min-score 0.5 asm/USA/main/nonmatchings
+  python3 tools/match/score_functions.py asm/USA/engine/nonmatchings
+  python3 tools/match/score_functions.py asm/USA/engine/nonmatchings asm/USA/title/nonmatchings
+  python3 tools/match/score_functions.py --exhaustive asm/USA/engine/nonmatchings
+  python3 tools/match/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/engine/nonmatchings
+  python3 tools/match/score_functions.py --min-score 0.4 --max-score 0.8 asm/USA/engine/nonmatchings
+  python3 tools/match/score_functions.py --exhaustive --min-score 0.5 asm/USA/engine/nonmatchings
         """,
     )
     parser.add_argument(

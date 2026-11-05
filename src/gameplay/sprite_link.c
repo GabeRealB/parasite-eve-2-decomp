@@ -16,11 +16,11 @@
 #include "gameplay/world_collision.h"
 #include "world_collision.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "engine/display.h"
+#include "engine/gfx.h"
+#include "engine/mem.h"
+#include "engine/session.h"
+#include "engine/task.h"
 
 /// Texture-page bits retained from a source when building the GPU draw-mode word.
 enum { SPRITE_SOURCE_TEXTURE_PAGE_MASK = 0x9FF };

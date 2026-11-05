@@ -6,8 +6,8 @@
 #include "actor.h"
 #include "gameplay/actor_spawn_types.h"
 
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Selects the companion scheduled for the live save's destination area.
 ///

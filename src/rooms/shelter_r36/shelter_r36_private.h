@@ -1,7 +1,7 @@
 #ifndef SRC_ROOMS_SHELTER_R36_SHELTER_R36_PRIVATE_H
 #define SRC_ROOMS_SHELTER_R36_SHELTER_R36_PRIVATE_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Zero-body movie task recipes: index 0 launcher, index 1 streamed player.
 ///

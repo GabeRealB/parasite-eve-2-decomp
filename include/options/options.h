@@ -1,7 +1,7 @@
 #ifndef OPTIONS_OPTIONS_H
 #define OPTIONS_OPTIONS_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Layout selectors carried in an options task's first spawn argument.
 enum {

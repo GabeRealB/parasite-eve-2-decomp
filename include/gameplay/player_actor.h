@@ -11,9 +11,9 @@
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
 
 /// Player actor states (`GameActor::state` in normal mode) that code outside the player actor enters.
 enum {

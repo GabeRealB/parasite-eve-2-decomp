@@ -16,8 +16,8 @@
 
 #include "gameplay/message.h"
 
-#include "main/display.h"
-#include "main/task_types.h"
+#include "engine/display.h"
+#include "engine/task_types.h"
 
 #include "overlay.h"
 

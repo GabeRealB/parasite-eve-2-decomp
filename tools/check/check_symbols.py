@@ -94,7 +94,7 @@ from elftools.elf.constants import SH_FLAGS
 from elftools.elf.elffile import ELFFile
 
 DECL = re.compile(r'^\s*([A-Za-z_.$][\w.$]*)\s*=\s*0x([0-9A-Fa-f]+)\s*;(.*)$')
-CORE = {'main': 'SLUS_010.42', 'gameplay': 'gameplay', 'title': 'title'}
+CORE = {'engine': 'SLUS_010.42', 'gameplay': 'gameplay', 'title': 'title'}
 NEVER_TOGETHER = {frozenset(('title', 'gameplay'))}
 ALWAYS = 'SLUS_010.42'
 # Memory the game addresses that no image of ours occupies: the kernel's area

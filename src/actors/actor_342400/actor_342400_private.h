@@ -5,7 +5,7 @@
 
 #include "gameplay/enemy_params.h"
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 /// Mad Chaser tuning shared by this overlay's data and spawn translation units.
 ///

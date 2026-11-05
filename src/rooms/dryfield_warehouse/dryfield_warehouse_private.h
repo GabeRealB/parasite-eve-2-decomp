@@ -8,7 +8,7 @@
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Three bodyless priority-192 recipes for the warehouse cutscene and its fades.
 ///

@@ -12,11 +12,11 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/gfx_types.h"
-#include "main/session_types.h"
-#include "main/stage_types.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/gfx_types.h"
+#include "engine/session_types.h"
+#include "engine/stage_types.h"
+#include "engine/task_types.h"
 
 /// Map-page and live-marker counts; marker records add a page-zero terminator.
 enum {

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_342400_H
 #define INCLUDE_ACTORS_ACTOR_342400_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn recipe indices for the incinerator encounter controller and its row spawners.
 enum {

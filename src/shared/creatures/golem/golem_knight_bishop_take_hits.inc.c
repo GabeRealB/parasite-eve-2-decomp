@@ -557,7 +557,7 @@ static s32 _golemKnightBishopPlayerInBox(Task* task)
     return 0;
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
@@ -945,7 +945,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
 
 #undef GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
@@ -1383,7 +1383,7 @@ static void _golemKnightBishopRecoverSeq(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(GOLEM_KNIGHT_BISHOP_RECOVERY_SCRATCH_BYTES);
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
@@ -1759,7 +1759,7 @@ static void _golemKnightBishopHeavyFlinchSeq(Task* task)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
@@ -1886,7 +1886,7 @@ static void _golemKnightBishopKnockdownSeq(Task* task)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 

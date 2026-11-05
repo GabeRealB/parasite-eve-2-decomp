@@ -10,10 +10,10 @@
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/stage.h"
-#include "main/task.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/stage.h"
+#include "engine/task.h"
 
 #include "stages/akropolis/stage.h"
 

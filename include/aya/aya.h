@@ -3,7 +3,7 @@
 
 #include "gameplay/gpu_image_upload.h"
 
-#include "main/tmd_types.h"
+#include "engine/tmd_types.h"
 
 /*
  * What Aya's four outfit packages publish: her body, her hands and the facial animation each one carries. They are

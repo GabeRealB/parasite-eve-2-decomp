@@ -12,10 +12,10 @@
 #include "gameplay/message.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/mem.h"
-#include "main/scratch.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/mem.h"
+#include "engine/scratch.h"
+#include "engine/tmd_types.h"
 #include "../../../../shared/actor/actor_messages.h"
 
 /// Work block of the No. 9 golem as a room script poses it: what its body plays and the matrices it is lit with.

@@ -4,7 +4,7 @@
 |---|---|
 | Disc | CDF chunk, opcode 4 (`FILE_SYSTEM_CHUNK_BUNDLE`) |
 | Asset type | `pe2bundle`, `raw/pe2bundle/<name>.pe2bundle`; no decoded form |
-| Loader | `src/main/fs.c` (`_FsCdfResourceEntry`, `gFsResourceSlots`) |
+| Loader | `src/engine/fs.c` (`_FsCdfResourceEntry`, `gFsResourceSlots`) |
 | Tool | `tools/peassets/bundle.py` |
 | Contents | up to 50 numbered resources; each extracted as an asset of its own |
 

@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Kyle Madigan's native companion animation bank for resource variant 2 (MM1).
 ///

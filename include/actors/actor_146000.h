@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_146000_H
 #define INCLUDE_ACTORS_ACTOR_146000_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Night water-hole scene spawn table: unused entry 0, scene controller at entry 1.
 ///

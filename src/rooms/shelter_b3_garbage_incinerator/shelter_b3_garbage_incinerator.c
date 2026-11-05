@@ -1,6 +1,6 @@
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 /// Lift task returned by room setup and addressed by the Glutton's carried-move event.
@@ -32,15 +32,15 @@ static u16 _gShelterB3GarbageIncineratorSwitchNoticeTicks;
 #include "gameplay/message.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/task.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/gameflag.h"
+#include "engine/mc.h"
+#include "engine/mc_types.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/sound.h"
+#include "engine/task.h"
 
 #include "mapui/map_shelter.h"
 

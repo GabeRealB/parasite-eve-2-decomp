@@ -4,10 +4,10 @@
 #include "hud.h"
 #include "game_debug_types.h"
 
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task_types.h"
-#include "main/wipsys.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
+#include "engine/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
 HudHpMp gHudDisplayedVitals;

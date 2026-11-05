@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Stored placement/resource slots published for the water-tank area.
 enum { DRYFIELD_WATER_TANK_VARIANT_SLOT_COUNT = 13 };

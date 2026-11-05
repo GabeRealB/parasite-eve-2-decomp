@@ -149,7 +149,7 @@ enum { STALKER_ZEBRA_IVORY_SOUND_BANK = 0x40050000 };
 
 #include "common.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "gameplay/message.h"
 

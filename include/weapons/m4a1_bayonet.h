@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Player animation bank for the equipped M4A1 Bayonet (asset weapons/m4a1_bayonet/bank).
 ///

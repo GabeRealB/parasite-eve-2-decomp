@@ -25,7 +25,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "../actor/actor_messages.h"
 

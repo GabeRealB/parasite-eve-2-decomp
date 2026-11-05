@@ -76,8 +76,8 @@
 #include "weapons/unused_85.h"
 #include "weapons/unused_86.h"
 
-#include "main/areas.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/task_types.h"
 
 /// Inclusive lower packed-ID bound for the distinct PE cast action stimulus.
 ///
@@ -173,18 +173,18 @@ typedef struct {
 } _PlayerActorWeaponAttacks;
 STATIC_ASSERT_SIZEOF(_PlayerActorWeaponAttacks, sizeof(TaskFunc) * PLAYER_ACTOR_WEAPON_COUNT);
 
-#include "main/display.h"
-#include "main/random.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/random.h"
+#include "engine/gfx.h"
+#include "engine/mc.h"
+#include "engine/mem.h"
+#include "engine/pad.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/tmd.h"
+#include "engine/wipsys.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 

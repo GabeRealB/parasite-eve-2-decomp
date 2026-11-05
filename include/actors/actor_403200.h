@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Task descriptor for the Shelter B3 dumping-hole Glutton host.
 ///

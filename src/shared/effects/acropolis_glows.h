@@ -12,6 +12,6 @@
 #define SRC_SHARED_ACROPOLIS_GLOWS_H
 
 #include "common.h"
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #endif /* SRC_SHARED_ACROPOLIS_GLOWS_H */

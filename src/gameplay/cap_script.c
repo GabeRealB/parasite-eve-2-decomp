@@ -7,9 +7,9 @@
 #include "gameplay/item_menu.h"
 #include "gameplay/message.h"
 
-#include "main/session.h"
-#include "main/stage.h"
-#include "main/task.h"
+#include "engine/session.h"
+#include "engine/stage.h"
+#include "engine/task.h"
 
 void capPlaybackTask(Task* task)
 {

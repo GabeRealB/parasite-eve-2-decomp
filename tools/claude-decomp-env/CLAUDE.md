@@ -31,7 +31,7 @@ and archive its evidence even when the mechanism remains unresolved. Preserve
 the matching candidate while investigating; include supported reusable findings
 with the match. A partial permuter gain gets the same investigation and archival.
 
-1. Integrate into the host C file (replace `INCLUDE_ASM`). Types for this overlay live in **that overlay's** `include/` tree (`include/main/`, `include/gameplay/`, `include/<overlay>/`, …). Do not add named types to `include/main/unknown_syms.h`.
+1. Integrate into the host C file (replace `INCLUDE_ASM`). Types for this overlay live in **that overlay's** `include/` tree (`include/engine/`, `include/gameplay/`, `include/<overlay>/`, …). Do not add named types to `include/engine/unknown_syms.h`.
 2. From the project root run `./tools/build-and-verify.sh` until `build/USA/out/SLUS_010.42: OK` (and the overlay checksum if this unit has one).
 3. Commit `matched $functionName <attempts>`.
 

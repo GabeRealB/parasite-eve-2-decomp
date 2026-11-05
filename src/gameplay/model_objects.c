@@ -17,12 +17,12 @@
 #include "tmd_stream_types.h"
 #include "gameplay/room_effects.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mem.h"
-#include "main/task.h"
-#include "main/tmd.h"
-#include "main/tmd_stream_types.h"
+#include "engine/display.h"
+#include "engine/gfx.h"
+#include "engine/mem.h"
+#include "engine/task.h"
+#include "engine/tmd.h"
+#include "engine/tmd_stream_types.h"
 
 // Bank-0 descriptor that refreshes coordinates and draws the active model list.
 

@@ -15,15 +15,15 @@
 #include "items.h"
 #include "weapon_data.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/mem.h"
+#include "engine/pad.h"
+#include "engine/sound.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 /// Catalog domains and comparison graphics used by the equipment choices.
 enum {

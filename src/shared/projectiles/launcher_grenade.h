@@ -23,7 +23,7 @@
 #ifndef SRC_SHARED_PROJECTILES_LAUNCHER_GRENADE_H
 #define SRC_SHARED_PROJECTILES_LAUNCHER_GRENADE_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 static void _launcherGrenadeFly(Task* task);
 static void _launcherGrenadeBlast(Task* task);

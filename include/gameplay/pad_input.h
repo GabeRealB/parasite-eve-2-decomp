@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/pad.h"
+#include "engine/pad.h"
 
 /// Eligible automatic-menu updates remaining before Select/Start unlock.
 ///

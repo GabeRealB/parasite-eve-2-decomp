@@ -1,7 +1,7 @@
 /* Shared by two units of mist_parking. */
 
-#include "main/stage.h"
-#include "main/task.h"
+#include "engine/stage.h"
+#include "engine/task.h"
 
 static inline void _mistParkingDelayDisplayModeExit(Task* task)
 {

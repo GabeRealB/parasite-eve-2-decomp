@@ -8,8 +8,8 @@
 
 #include "gameplay/world_collision_types.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
 
 /// Probe sweep step in angle units and clearance-distance sentinels.
 enum {

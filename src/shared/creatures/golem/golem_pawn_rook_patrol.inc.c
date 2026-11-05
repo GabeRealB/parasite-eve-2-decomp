@@ -148,7 +148,7 @@ static void _golemPawnRookCheckPlayerNoise(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
@@ -328,7 +328,7 @@ static void _golemPawnRookKnockdownState(Task* actor)
 #undef GOLEM_PAWN_ROOK_PLAY_KNOCKDOWN_CUE
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
@@ -681,7 +681,7 @@ static void _golemPawnRookPlayAnimCues(Task* actor)
 #undef GOLEM_PAWN_ROOK_PLAY_ANIM_CUE
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 

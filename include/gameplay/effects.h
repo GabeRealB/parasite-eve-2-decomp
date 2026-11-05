@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 struct GfxCoord;
 struct Task;

@@ -14,15 +14,15 @@
 #include "scene_runtime.h"
 #include "world_targets.h"
 
-#include "main/areas.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/stage.h"
-#include "main/task.h"
-#include "main/ui.h"
+#include "engine/areas.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/stage.h"
+#include "engine/task.h"
+#include "engine/ui.h"
 
 Task* gPlayerActorTasks[PLAYER_ACTOR_TASK_COUNT];
 

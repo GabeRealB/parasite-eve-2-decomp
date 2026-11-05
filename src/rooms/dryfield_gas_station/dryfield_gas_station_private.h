@@ -1,7 +1,7 @@
 #ifndef SRC_ROOMS_DRYFIELD_GAS_STATION_DRYFIELD_GAS_STATION_PRIVATE_H
 #define SRC_ROOMS_DRYFIELD_GAS_STATION_DRYFIELD_GAS_STATION_PRIVATE_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "rooms/room.h"
 

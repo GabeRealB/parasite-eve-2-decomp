@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ENDING_H
 #define GAMEPLAY_ENDING_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Starts the post-credits replay-award and cleared-save screen sequence.
 ///

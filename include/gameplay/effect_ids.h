@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "main/task_ids.h"
+#include "engine/task_ids.h"
 
 /// Effect-id bit that bypasses the ordinary limit of 129 live counted effects.
 ///

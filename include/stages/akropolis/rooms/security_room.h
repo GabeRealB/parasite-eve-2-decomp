@@ -9,8 +9,8 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Number of identity-mapped camera and sprite slots in the security room.
 enum { AKROPOLIS_SECURITY_ROOM_VIEW_COUNT = 16 };

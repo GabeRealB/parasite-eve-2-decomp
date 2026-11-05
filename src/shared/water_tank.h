@@ -10,7 +10,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Accumulated tank yaw in 1/256 of a 4096th-turn angle, without angle wrapping.
 ///

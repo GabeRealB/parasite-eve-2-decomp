@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_PLASMA_H
 #define INCLUDE_PE_PLASMA_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Expands and fades the Plasma cast with three textured bands and stacked halos.
 ///

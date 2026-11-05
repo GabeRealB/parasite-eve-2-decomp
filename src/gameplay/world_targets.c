@@ -29,16 +29,16 @@
 #include "world_coords.h"
 #include "gameplay/world_state.h"
 
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/game_debug.h"
-#include "main/pad.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/text.h"
-#include "main/ui.h"
+#include "engine/display.h"
+#include "engine/gfx.h"
+#include "engine/mc.h"
+#include "engine/game_debug.h"
+#include "engine/pad.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/text.h"
+#include "engine/ui.h"
 
 /// Scratch-stack block holding the line-of-sight segment of one lock-on scan.
 ///

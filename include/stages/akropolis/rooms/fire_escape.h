@@ -13,7 +13,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Writable Q12 normals of the fire-escape collision mesh.
 extern SVECTOR gAkropolisFireEscapeCollisionGridNormals[10];

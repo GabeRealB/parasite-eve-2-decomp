@@ -108,7 +108,7 @@ class YamlInfo:
 # Each entry is a splat config under configs/<version>/. main first; overlays after.
 # These are hand-maintained: each has quirks (a PS-X EXE header, rodata ordering
 # fixes, hasm segments) that the overlay template cannot express.
-YAML_EXECUTABLE = ["main.yaml", "gameplay.yaml"]
+YAML_EXECUTABLE = ["engine.yaml", "gameplay.yaml"]
 
 # The rest of the overlays are flat .pe2pkg files with the same shape, so their
 # configs are generated from configs/<version>/overlays.toml rather than written
@@ -894,7 +894,7 @@ def ninja_setup_list_add_source(
             )
 
         if os.path.exists(source_target_path):
-            if re.search("^asm.(USA|JAP).main.*", source_path):
+            if re.search("^asm.(USA|JAP).engine.*", source_path):
                 objdiff_file.build(
                     outputs=f"{expected_path}.o",
                     rule="objdiff-as",
@@ -929,7 +929,7 @@ def ninja_setup_list_add_source(
         },
     )
 
-    if re.search("^src.main.*", source_path):
+    if re.search("^src.engine.*", source_path):
         ninja_file.build(
             outputs=f"{target_path}.c.s",
             rule="cc",
@@ -951,7 +951,7 @@ def ninja_setup_list_add_source(
     # TUs: no-op when there is no div/rem, and required for matching where
     # there is. (Previously limited to tmd/sndbank/textdraw/ui/sndevt/cdaudio/cdstream.)
     expand_div = "--expand-div"
-    if re.search("^src.main.*", source_path):
+    if re.search("^src.engine.*", source_path):
         ninja_file.build(
             outputs=f"{target_path}.c.o",
             rule="maspsx",
@@ -987,32 +987,32 @@ def align_main_bss() -> None:
     main all start on one; splat's SUBALIGN(4) would override that and pack
     each run against the last.
     """
-    dest = Path("linkers/USA/main.ld")
+    dest = Path("linkers/USA/engine.ld")
     if not dest.is_file():
         return
     text = dest.read_text(encoding="utf-8")
-    wrong = ".main_bss (NOLOAD) : SUBALIGN(4)"
+    wrong = ".engine_bss (NOLOAD) : SUBALIGN(4)"
     if wrong in text:
-        dest.write_text(text.replace(wrong, ".main_bss (NOLOAD) : SUBALIGN(8)", 1), encoding="utf-8")
+        dest.write_text(text.replace(wrong, ".engine_bss (NOLOAD) : SUBALIGN(8)", 1), encoding="utf-8")
 
 
 # What psylink computes for libsn's start-up (lib/libsn/snmain.s) and an ELF relocation cannot hold, from what
 # splat's script for main defines: each a section's start, end, size or count, as SNMAIN.obj's expressions have it.
 # Its .ctors and .dtors are empty, at the image's start.
 MAIN_START_SYMBOLS = """
-__SN_SBSS_START = main_SBSS_START;
-__SN_BSS_END = main_BSS_END;
+__SN_SBSS_START = engine_SBSS_START;
+__SN_BSS_END = engine_BSS_END;
 __SN_SDATA_START = _gp;
-__SN_CTORS_START = main_RODATA_START;
+__SN_CTORS_START = engine_RODATA_START;
 __SN_CTORS_COUNT = 0;
-__SN_DTORS_START = main_RODATA_START;
+__SN_DTORS_START = engine_RODATA_START;
 __SN_DTORS_COUNT = 0;
-__SN_TEXT_START = main_TEXT_START;
-__SN_TEXT_SIZE = main_TEXT_END - main_TEXT_START;
-__SN_DATA_START = main_DATA_START;
-__SN_DATA_SIZE = main_DATA_END - main_DATA_START;
-__SN_BSS_START = main_BSS_START;
-__SN_BSS_SIZE = main_BSS_END - main_BSS_START;
+__SN_TEXT_START = engine_TEXT_START;
+__SN_TEXT_SIZE = engine_TEXT_END - engine_TEXT_START;
+__SN_DATA_START = engine_DATA_START;
+__SN_DATA_SIZE = engine_DATA_END - engine_DATA_START;
+__SN_BSS_START = engine_BSS_START;
+__SN_BSS_SIZE = engine_BSS_END - engine_BSS_START;
 """
 
 
@@ -1028,7 +1028,7 @@ def package_compiled(object_path: str, game_version_idx: int) -> str:
 
 def define_main_start_symbols() -> None:
     """Give libsn's start-up the section bounds psylink would have: appended to main's script once."""
-    dest = Path("linkers/USA/main.ld")
+    dest = Path("linkers/USA/engine.ld")
     if not dest.is_file():
         return
     text = dest.read_text(encoding="utf-8")
@@ -1043,12 +1043,12 @@ def define_main_start_symbols() -> None:
 def append_main_overlay_imports() -> None:
     """Main TUs call overlay APIs; splat 0.50 omits some as undef funcs.
 
-    Append configs/USA/sym.main.imports.txt onto main's undef scripts and
+    Append configs/USA/sym.engine.imports.txt onto main's undef scripts and
     rewrite leftover func_800* overlay entries to the named Gp_/Title_ symbols.
     """
-    imports = Path("configs/USA/sym.main.imports.txt")
-    fun = Path("linkers/USA/undefined_funcs_auto.main.txt")
-    sym = Path("linkers/USA/undefined_syms_auto.main.txt")
+    imports = Path("configs/USA/sym.engine.imports.txt")
+    fun = Path("linkers/USA/undefined_funcs_auto.engine.txt")
+    sym = Path("linkers/USA/undefined_syms_auto.engine.txt")
     if not imports.is_file() or not fun.is_file():
         return
     mapping: dict[int, str] = {}
@@ -1204,7 +1204,7 @@ def write_scoped_checksum(version_dir: str, names: list[str], exe_name: str) -> 
     is translated the same way the link step does before matching.
     """
     full = Path(f"{CONFIG_DIR}/{version_dir}/checksum.sha")
-    wanted = {exe_name if n == "main" else n for n in names}
+    wanted = {exe_name if n == "engine" else n for n in names}
     lines = []
     for line in full.read_text(encoding="utf-8").splitlines():
         parts = line.split()
@@ -1268,7 +1268,7 @@ def ninja_packages(
         library = path.parts[1]
         # A scoped build has no edge for an image it left out: the last whole build's symbols stand.
         if scoped_names is None or library in scoped_names:
-            elf = GAME_VERSIONS[game_version_idx].metadata.exe_disk1 if library == "main" else library
+            elf = GAME_VERSIONS[game_version_idx].metadata.exe_disk1 if library == "engine" else library
             ninja_file.build(
                 outputs=path.as_posix(),
                 rule="package-symbols",
@@ -1604,7 +1604,7 @@ def ninja_build(
     # Images whose file is longer than what the linker lays out, by the length
     # the file has to reach. The executable is one: a PS-X EXE is padded to a
     # whole number of 2048-byte sectors, and the padding is not a section.
-    padded_sizes = {"main": (project_dir(version) / "main.exe").stat().st_size}
+    padded_sizes = {"engine": (project_dir(version) / "main.exe").stat().st_size}
     overlay_manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     for spec in overlay_manifest.values():
         for package, slot, entry in slot_packages(spec):
@@ -1825,7 +1825,7 @@ def ninja_build(
                         | "rodatabin"
                         | "textbin"
                     ):
-                        if re.search("^asm.(USA|JAP).main.*", source_path):
+                        if re.search("^asm.(USA|JAP).engine.*", source_path):
                             ninja_file.build(
                                 outputs=target_path,
                                 rule="as",
@@ -1892,7 +1892,7 @@ def ninja_build(
                 if not seg.is_lib:
                     elf_build_requirements += [package_compiled(str(entry.object_path), game_version_idx)]
 
-        if split_config.split_basename == "main":
+        if split_config.split_basename == "engine":
             output = f"{BUILD_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}/out/{GAME_VERSIONS[game_version_idx].metadata.exe_disk1}"
         else:
             output = f"{BUILD_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}/out/{split_config.split_basename}"
@@ -2158,7 +2158,7 @@ def split_one(job: tuple) -> YamlInfo:
         str(entry.src_paths[0]) for entry in split.linker_writer.entries
         if entry.segment.type in C_SEGMENT_TYPES and entry.src_paths
     })
-    if yaml == "main.yaml":
+    if yaml == "engine.yaml":
         align_main_bss()
         define_main_start_symbols()
     elif yaml == "gameplay.yaml":

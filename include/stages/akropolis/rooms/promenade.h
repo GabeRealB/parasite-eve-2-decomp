@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Promenade placement/resource pairs indexed directly by placement variant.
 extern AreaVariant gAkropolisPromenadeAreaVariants[17];

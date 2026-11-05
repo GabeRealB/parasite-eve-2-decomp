@@ -36,7 +36,7 @@
 
 #include "actors/actor.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #ifndef SCRIPTED_WALK_WORK
 /// Selects the task-owned work block published for this walker instance.

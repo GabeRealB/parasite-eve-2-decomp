@@ -24,16 +24,16 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene_runtime.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/event_flags.h"
-#include "main/gameflag.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/event_flags.h"
+#include "engine/gameflag.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 /// The reflection's scale is in this room's rodata, before the shared implementation.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0

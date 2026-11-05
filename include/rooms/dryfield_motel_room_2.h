@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Dryfield motel room 2 placement/resource directory indexed by `GameLocationKey.variant` 0..11.
 ///

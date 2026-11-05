@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_120400_H
 #define INCLUDE_ACTORS_ACTOR_120400_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Kyle Madigan spawn recipes: 0 walker body, 1 left hand, 2 right hand.
 ///

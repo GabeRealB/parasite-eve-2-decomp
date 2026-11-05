@@ -8,7 +8,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Collision of the hall's one room state.
 extern WorldCollisionRoomResources gAkropolisWestElevatorHallCollisionRoomResources[1];

@@ -1,6 +1,6 @@
 /* Part of the room cutscene library; see room_cutscene.h. */
 
-#include "main/event_flags.h"
+#include "engine/event_flags.h"
 
 /// Only companion family 1 participates in this runner's scripted-control hold.
 enum { ROOM_CUTSCENE_COMPANION_FAMILY = 1 };

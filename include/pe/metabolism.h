@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_METABOLISM_H
 #define INCLUDE_PE_METABOLISM_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Animates one short-lived sparkle emitted by the metabolism cast.
 ///

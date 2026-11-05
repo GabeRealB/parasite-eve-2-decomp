@@ -22,10 +22,10 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/areas.h"
-#include "main/coord.h"
-#include "main/sound_types.h"
-#include "main/task_types.h"
+#include "engine/areas.h"
+#include "engine/coord.h"
+#include "engine/sound_types.h"
+#include "engine/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
 #include "../../shared/effects/glow_draw.h"

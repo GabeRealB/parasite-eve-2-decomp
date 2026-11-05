@@ -9,8 +9,8 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Sanctuary layouts indexed by the saved placement variant (0..11).
 extern AreaVariant gAkropolisSanctuaryAreaVariants[12];

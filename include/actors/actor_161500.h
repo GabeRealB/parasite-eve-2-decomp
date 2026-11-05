@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_161500_H
 #define INCLUDE_ACTORS_ACTOR_161500_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Bodyless one-shot task recipe for completing the companion's heliport item request.
 ///

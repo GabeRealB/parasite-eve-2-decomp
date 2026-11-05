@@ -12,7 +12,7 @@
 
 #include "types.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 static s32 _actorRenderTransformPointToWorld(const GfxCoord* startCoord, SVECTOR* point);
 

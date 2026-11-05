@@ -14,9 +14,9 @@
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
 
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/task.h"
 
 #include "stages/akropolis/rooms/bridge.h"
 

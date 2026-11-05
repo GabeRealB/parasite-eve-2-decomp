@@ -13,10 +13,10 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 #include "actors/actor_450900.h"
 

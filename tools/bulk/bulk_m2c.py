@@ -315,9 +315,9 @@ def candidate_headers(overlay: str) -> list[str]:
     the greedy filter drops gameplay and keeps the overlay's own view.
     """
     heads = list(PSYQ_HEADERS)
-    d = REPO_ROOT / "include" / "main"
+    d = REPO_ROOT / "include" / "engine"
     if d.is_dir():
-        heads += sorted(f"main/{p.name}" for p in d.glob("*.h"))
+        heads += sorted(f"engine/{p.name}" for p in d.glob("*.h"))
     for family in ("actors", "weapons", "rooms", "aya", "kyle", "pe"):
         own = REPO_ROOT / "include" / family / f"{overlay}.h"
         if own.is_file():

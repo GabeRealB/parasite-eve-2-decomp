@@ -10,10 +10,10 @@
 #include "gameplay/area.h"
 #include "gameplay/enemy.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Consumes one scene-image sector from the CD stream's gap-sector path.
 ///

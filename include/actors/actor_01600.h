@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_01600_H
 #define INCLUDE_ACTORS_ACTOR_01600_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Slot export of `gActor01600ScavengerTaskDesc` from actor_101600, with the same descriptor contract.
 extern TaskDesc gActor101600ScavengerTaskDesc;

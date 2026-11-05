@@ -21,16 +21,16 @@
 #include "world_targets.h"
 
 #include "gameplay/damage.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/gfxgte.h"
-#include "main/mc.h"
-#include "main/game_debug.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/gfx.h"
+#include "engine/gfxgte.h"
+#include "engine/mc.h"
+#include "engine/game_debug.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys.h"
 
 /// Scratch-stack workspace for drawing the wireframe of a Parasite Energy area.
 ///

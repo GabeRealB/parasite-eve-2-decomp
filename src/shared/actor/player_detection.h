@@ -14,8 +14,8 @@
 
 #include "common.h"
 
-#include "main/coord.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_types.h"
 
 /// Scratch-stack block of the line-of-sight test between an actor and the
 /// player.

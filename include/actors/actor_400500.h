@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_400500_H
 #define INCLUDE_ACTORS_ACTOR_400500_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Gray Stalker body-task spawn recipe exported to Dryfield underpass resources.
 ///

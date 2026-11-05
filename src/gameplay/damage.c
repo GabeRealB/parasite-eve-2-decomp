@@ -20,12 +20,12 @@
 #include "gameplay/scene_combat.h"
 #include "weapon_data.h"
 
-#include "main/random.h"
-#include "main/mc.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task_types.h"
-#include "main/wipsys.h"
+#include "engine/random.h"
+#include "engine/mc.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
+#include "engine/wipsys.h"
 
 /// Player attack keys select a weapon row or an attachment-level row.
 ///

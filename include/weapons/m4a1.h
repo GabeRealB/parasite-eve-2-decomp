@@ -5,8 +5,8 @@
 
 #include "gameplay/animation.h"
 
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 /// Native player animation bank shared by the M4A1 and both upgrade packages (asset weapons/m4a1/bank).
 ///

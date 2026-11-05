@@ -35,14 +35,14 @@ static s32 _gActor143000TerminalCorrectAnswers;
 #include "gameplay/player_actor.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound_ids.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/sound_ids.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 #include "rooms/shelter_b2_laboratory.h"
 

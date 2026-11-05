@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_05600_H
 #define INCLUDE_ACTORS_ACTOR_05600_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Slot export of `gActor05600PawnGolemTasks` from actor_105600, with the same descriptor contract.
 extern TaskDesc gActor105600PawnGolemTasks[3];

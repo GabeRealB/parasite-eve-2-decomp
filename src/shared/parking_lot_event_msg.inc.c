@@ -1,6 +1,6 @@
 /* Part of the parking lot library; see parking_lot.h. */
 
-#include "main/event_flags.h"
+#include "engine/event_flags.h"
 
 s32 parkingLotResolveMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {

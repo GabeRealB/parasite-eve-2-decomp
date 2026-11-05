@@ -13,13 +13,13 @@
 #include "player_actor.h"
 #include "gameplay/player_state.h"
 
-#include "main/display.h"
-#include "main/mem.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
-#include "main/wipsys_types.h"
+#include "engine/display.h"
+#include "engine/mem.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/text.h"
+#include "engine/ui.h"
+#include "engine/wipsys_types.h"
 
 UiObjectTaskFunc gItemMenuUseHandlers[96] = {
     NULL,

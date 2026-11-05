@@ -358,7 +358,7 @@ share one work struct that nothing declares, which is why the mechanical
 seeding pass matches only ~4% of them. Work that struct out once and it pays
 across the whole overlay.
 
-`arg0` is usually a `Task*` (`include/main/task_types.h`, 0x48); 0x1C/0x2C/0x30 are
+`arg0` is usually a `Task*` (`include/engine/task_types.h`, 0x48); 0x1C/0x2C/0x30 are
 `work`/`extra`/`state`. Actors park their own work block in `work` and its
 size is pinned by a literal `memCalloc`/`memMalloc`/`memSet` argument —
 `grep -B14 -iE 'jal.*mem' ` over the overlay's `.s` (the tree is mid-rename

@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_800100_H
 #define INCLUDE_ACTORS_ACTOR_800100_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Runs the armed companion task's initialization, frame update or teardown.
 ///

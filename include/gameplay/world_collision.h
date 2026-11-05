@@ -12,7 +12,7 @@ struct Task;
 #include "gameplay/collision.h"
 #include "gameplay/geometry.h"
 
-#include "main/session_types.h"
+#include "engine/session_types.h"
 
 // Collision lists, contact records, room grids and collision updates.
 

@@ -8,7 +8,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Number of logical views and mapped camera/sprite slots authored for the elevator.
 enum { NEO_ARK_EVE_ELEVATOR_VIEW_COUNT = 4 };

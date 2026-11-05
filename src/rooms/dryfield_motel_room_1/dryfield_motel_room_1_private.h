@@ -1,7 +1,7 @@
 #ifndef SRC_ROOMS_DRYFIELD_MOTEL_ROOM_1_DRYFIELD_MOTEL_ROOM_1_PRIVATE_H
 #define SRC_ROOMS_DRYFIELD_MOTEL_ROOM_1_DRYFIELD_MOTEL_ROOM_1_PRIVATE_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Bodyless task recipe for the one-time opening Bone Suckler encounter.
 ///

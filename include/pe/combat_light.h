@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PE_COMBAT_LIGHT_H
 #define INCLUDE_PE_COMBAT_LIGHT_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Runs the nine-frame Combat Light flash and beam effect.
 ///

@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 #include "gameplay/action_prompt.h"
 

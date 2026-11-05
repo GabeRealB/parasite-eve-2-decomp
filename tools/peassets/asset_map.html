@@ -259,7 +259,7 @@ function renderRoom(name, want) {
 }
 // A list that may be long: the first rows, and a button for the rest.
 function capped(rows, limit, wrap) { if (rows.length <= limit) return wrap(rows); const box = h("div", {}), more = h("button", { text: `show all ${rows.length}`, onclick: () => box.replaceChildren(wrap(rows)) }); box.append(wrap(rows.slice(0, limit)), more); return box; }
-// Where an upload lands under a load's offsets, as src/main/fs.c moves it.
+// Where an upload lands under a load's offsets, as src/engine/fs.c moves it.
 function landed(kind, part, x, y, page, row, relocate) {
   if (kind === "c") y += (y >= 245 && y <= 255 ? row : 0) + (relocate ? 1 : 0);
   else { if (relocate || y >= 256) x += page * 64; if (relocate && (part === "" || part === "column 0")) y += 128; }
@@ -267,7 +267,7 @@ function landed(kind, part, x, y, page, row, relocate) {
 }
 // Video memory as a list of loads leaves it: the words, and which asset put each there.
 // An entry is [file, page offset, row offset, relocate, label, only]: `only` lists the assets a partial load took. The
-// entry ["movie"] is a movie's workspace backup, (320,0)-(479,511) copied over (704,0)-(1023,255) (src/main/stream.c).
+// entry ["movie"] is a movie's workspace backup, (320,0)-(479,511) copied over (704,0)-(1023,255) (src/engine/stream.c).
 // Given the memory of an earlier call, the loads are added to it.
 function compose(ups, mem) {
   const vram = mem ? mem.vram : new Uint16Array(1024 * 512), owner = mem ? mem.owner : new Uint16Array(1024 * 512), names = mem ? mem.names : [""], ids = mem ? mem.ids : new Map(), idOf = n => ids.get(n) || (ids.set(n, names.push(n) - 1), ids.get(n));

@@ -5,7 +5,7 @@
 
 #include "gameplay/area_flags.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Two bodyless priority-192 recipes for altar movie launch and playback.
 ///

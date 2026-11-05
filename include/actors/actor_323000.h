@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_323000_H
 #define INCLUDE_ACTORS_ACTOR_323000_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Desert Chaser spawn recipe for the main-street scripted encounter.
 ///

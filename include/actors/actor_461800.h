@@ -3,7 +3,7 @@
 
 #include "gameplay/evs.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Neo Ark room-31 scene with the player, Kyle walker and Aya walker.
 ///

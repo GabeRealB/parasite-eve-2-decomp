@@ -94,7 +94,7 @@ def footprints(assets: dict, node: dict) -> list[tuple]:
 
 
 def moved(rect: tuple, page: int, row: int, mode: str = "") -> tuple[int, int]:
-    """Where a rectangle lands when its file is loaded with these offsets (src/main/fs.c).
+    """Where a rectangle lands when its file is loaded with these offsets (src/engine/fs.c).
 
     The row offset moves only a CLUT whose header is at rows 245..255. The
     page offset moves an image at or below row 256, or every image when the

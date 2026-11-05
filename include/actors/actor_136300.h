@@ -4,7 +4,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Indices in the night-garage scene package's fixed task table.
 enum {

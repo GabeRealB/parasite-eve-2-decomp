@@ -32,7 +32,7 @@
 #include "actors/actor.h"
 #include "gameplay/message.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// What a twenty-part play request needs of the work block at `Task::work`:
 /// the rig it binds and seeds, and the model state recording what the rig

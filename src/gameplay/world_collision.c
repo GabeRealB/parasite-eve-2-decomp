@@ -13,9 +13,9 @@
 #include "player_actor.h"
 #include "world_collision.h"
 
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/task_types.h"
+#include "engine/scratch.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
 
 /// Word and pointer readings of a body's encoded reciprocal-contact address.
 ///

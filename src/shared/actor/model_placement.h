@@ -15,7 +15,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Axis choices for root scaling; the s32 selector treats every nonzero value as uniform.
 enum {

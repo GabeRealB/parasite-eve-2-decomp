@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Number of unsigned byte entries in `gViewIdentityMap`.
 ///

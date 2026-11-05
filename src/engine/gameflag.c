@@ -1,0 +1,75 @@
+#include "engine/gameflag.h"
+
+#include "types.h"
+
+#include "engine/pad.h"
+#include "engine/task.h"
+#include "task.h"
+#include "engine/task_types.h"
+
+#include "gameplay/captions.h"
+#include "gameplay/evs_scripts.h"
+#include "gameplay/object_task.h"
+
+/// Bit layout of the two game flags stored in each payload byte.
+enum {
+    GAME_FLAG_BITS_PER_NIBBLE  = 4,
+    GAME_FLAG_NIBBLE_MASK      = (1 << GAME_FLAG_BITS_PER_NIBBLE) - 1,
+    GAME_FLAG_HIGH_NIBBLE_MASK = GAME_FLAG_NIBBLE_MASK << GAME_FLAG_BITS_PER_NIBBLE
+};
+
+TaskDesc gEventTaskDescs[TASK_EVENT_SLOT_COUNT] = {
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, taskKill },
+    [TASK_EVENT_CAP_CONTROL]   = { { { TASK_BODY_NONE, 0x80 } }, capControlTask },
+    [TASK_EVENT_INTERPRETER]   = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsInterpreterTask },
+    [TASK_EVENT_CAP_HUD_SLIDE] = { { { TASK_BODY_NONE, 0x80 } }, capHudSlideTask },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, taskKill },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, taskKill },
+    [TASK_EVENT_CAP_ACTION_PROMPT_EXIT] = { { { TASK_BODY_NONE, 0x80 } }, capActionPromptExitTask },
+    [TASK_EVENT_SCREEN_SHAKE]           = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsScreenShakeTask },
+    [TASK_EVENT_MUSIC_VOLUME_FADE]      = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsMusicVolumeFadeTask },
+    [TASK_EVENT_SOUND_ATTENUATION_FADE] = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, evsSoundAttenuationFadeTask },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL },
+    { { { TASK_BODY_NONE, TASK_PRIORITY_CONTROL } }, NULL },
+    [TASK_EVENT_OBJECT_TASK_ROOM] = { { { TASK_BODY_NONE, TASK_PRIORITY_SCENE } }, objectTaskRoomTask },
+    { { { TASK_DESC_END, 0x20 } }, NULL },
+};
+
+void gameFlagSetNibble(s32 flagId, s32 value)
+{
+    s32 byteIndex = flagId / 2;
+
+    // Preserve the neighboring flag in the same saved byte.
+    if (flagId & 1) {
+        GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        liveBank->payload.packedFlags[byteIndex] =
+            (liveBank->payload.packedFlags[byteIndex] & GAME_FLAG_HIGH_NIBBLE_MASK) | (value & GAME_FLAG_NIBBLE_MASK);
+    } else {
+        GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        liveBank->payload.packedFlags[byteIndex] =
+            (liveBank->payload.packedFlags[byteIndex] & GAME_FLAG_NIBBLE_MASK) | (value << GAME_FLAG_BITS_PER_NIBBLE);
+    }
+}
+
+s32 gameFlagGetNibble(s32 flagId)
+{
+    s32 byteIndex = flagId / 2;
+
+    if (flagId & 1) {
+        const GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        return liveBank->payload.packedFlags[byteIndex] & GAME_FLAG_NIBBLE_MASK;
+    } else {
+        const GameFlagNibbleBank* liveBank = &gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_LIVE];
+        return liveBank->payload.packedFlags[byteIndex] >> GAME_FLAG_BITS_PER_NIBBLE;
+    }
+}
+
+s32 padIsStartPressed(void)
+{
+    return padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START);
+}

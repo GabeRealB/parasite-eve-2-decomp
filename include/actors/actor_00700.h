@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_00700_H
 #define INCLUDE_ACTORS_ACTOR_00700_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Rat TMD spawn descriptor shared by actor_100700 and actor_200700; priority 96.
 ///

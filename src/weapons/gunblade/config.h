@@ -3,7 +3,7 @@
 
 // Configuration of the Gunblade.
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 #include "weapons/sounds.h"
 #include "weapons/weapon_index.h"
 

@@ -6,11 +6,11 @@
 #include "gameplay/direction_input.h"
 #include "pad_script.h"
 
-#include "main/display.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/wipsys.h"
 
 /// Last automatic menu-lock decision (0 unlocked, 1 locked), frozen by explicit hold.
 static u8 _gPadInputMenuLocked;

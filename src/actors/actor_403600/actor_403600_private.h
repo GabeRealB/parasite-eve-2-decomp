@@ -15,10 +15,10 @@
 #include "gameplay/enemy.h"
 #include "gameplay/enemy_params.h"
 
-#include "main/coord.h"
-#include "main/session_types.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
+#include "engine/coord.h"
+#include "engine/session_types.h"
+#include "engine/task_types.h"
+#include "engine/tmd_types.h"
 
 struct Enemy;
 

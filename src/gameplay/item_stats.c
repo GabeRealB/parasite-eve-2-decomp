@@ -20,16 +20,16 @@
 #include "gameplay/room_effects.h"
 #include "weapon_data.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/mc.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/ui.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/gameflag.h"
+#include "engine/mc.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/text.h"
+#include "engine/ui.h"
 
 /// Pixel size of the item preview picture, laid out as a GTE short vector so
 /// `gte_gpf12` can scale both dimensions in one pass.

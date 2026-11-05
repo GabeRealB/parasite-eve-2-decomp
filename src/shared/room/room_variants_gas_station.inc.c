@@ -1,6 +1,6 @@
 /* Part of the room variants library; see room_variants.h. */
 
-#include "main/event_flags.h"
+#include "engine/event_flags.h"
 
 /// Resolves the gas station's main-street departure and checks its two exits.
 ///

@@ -13,12 +13,12 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/coord.h"
-#include "main/session.h"
-#include "main/sound_ids.h"
-#include "main/sound_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/session.h"
+#include "engine/sound_ids.h"
+#include "engine/sound_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 
 static s32 _dryfieldMotelRoom4RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldMotelRoom4ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);

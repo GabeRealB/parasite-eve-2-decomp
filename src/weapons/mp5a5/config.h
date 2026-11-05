@@ -4,7 +4,7 @@
 // Configuration of the MP5A5 and its upgrades.
 
 #include "gameplay/world_collision_types.h"
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 #include "weapons/sounds.h"
 
 // ---------------------------------------------------------------------------

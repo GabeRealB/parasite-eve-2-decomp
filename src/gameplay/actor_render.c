@@ -13,8 +13,8 @@
 #include "gameplay/model_objects.h"
 #include "model_objects.h"
 
-#include "main/gfx.h"
-#include "main/tmd.h"
+#include "engine/gfx.h"
+#include "engine/tmd.h"
 
 static inline void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 

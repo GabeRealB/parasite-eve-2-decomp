@@ -46,20 +46,20 @@
 /// Evaluates `primitive` once and captures no caller variables.
 #define MODEL_LIGHTING_UV1_TPAGE_WORD(primitive) (*(u32*)&((primitive)->u1))
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/gamemain.h"
-#include "main/gameflag_types.h"
-#include "main/mc.h"
-#include "main/mem.h"
-#include "main/game_debug.h"
-#include "main/pad.h"
-#include "main/random.h"
-#include "main/session.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/gamemain.h"
+#include "engine/gameflag_types.h"
+#include "engine/mc.h"
+#include "engine/mem.h"
+#include "engine/game_debug.h"
+#include "engine/pad.h"
+#include "engine/random.h"
+#include "engine/session.h"
+#include "engine/sound.h"
+#include "engine/task.h"
+#include "engine/text.h"
+#include "engine/wipsys.h"
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 

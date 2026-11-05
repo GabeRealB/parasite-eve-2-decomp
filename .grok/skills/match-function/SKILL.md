@@ -15,7 +15,7 @@ If it does not exist, from the repo root:
 ./tools/match/claude --bootstrap-only <func>
 ```
 
-That command resolves **any** overlay (`asm/<ver>/<overlay>/…`, including nested future units like `stage1/101`). Never search only `asm/USA/main/`. If `tools/giveups/<func>/base.c` exists, bootstrap copies that seed into `base.c` instead of m2c — start from it.
+That command resolves **any** overlay (`asm/<ver>/<overlay>/…`, including nested future units like `stage1/101`). Never search only `asm/USA/engine/`. If `tools/giveups/<func>/base.c` exists, bootstrap copies that seed into `base.c` instead of m2c — start from it.
 
 ## This session
 
@@ -29,7 +29,7 @@ That command resolves **any** overlay (`asm/<ver>/<overlay>/…`, including nest
 
 ## Finish
 
-- **100%:** replace `INCLUDE_ASM` in the host C file. New types go in **this overlay's** `include/` (`include/main/`, `include/gameplay/`, `include/<overlay>/`). Not `include/main/unknown_syms.h`. Run `./tools/build-and-verify.sh` and wait for `✅ BUILD SUCCEEDED`. Commit `matched <func> <attempts>`.
+- **100%:** replace `INCLUDE_ASM` in the host C file. New types go in **this overlay's** `include/` (`include/engine/`, `include/gameplay/`, `include/<overlay>/`). Not `include/engine/unknown_syms.h`. Run `./tools/build-and-verify.sh` and wait for `✅ BUILD SUCCEEDED`. Commit `matched <func> <attempts>`.
 - **Give up:** append `tools/match/difficult_functions` as `<func> <attempts> <best%>`. Revert host C.
 - If vacuum launched you, **leave the scratch dir** (best unpinned `base_N.c` included). Vacuum archives it to `tools/giveups/<func>/` then cleans the scratch. Otherwise delete the scratch after commit/give-up.
 - If the vacuum prompt says this is a disposable worktree (`pe2-wt-<func>`), commit **only on this worktree**. Do not `git merge` onto trunk and do not append `tools/match/difficult_functions` there; a later port agent on the original tree lands the result.

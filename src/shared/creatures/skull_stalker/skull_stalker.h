@@ -24,7 +24,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/enemy.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Values of `SkullStalkerWork::state`, the behaviour the per-frame dispatch runs.
 enum {

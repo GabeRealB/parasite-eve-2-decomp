@@ -3,9 +3,9 @@
 
 // Configuration of the Akropolis west elevator hall.
 
-#include "main/areas.h"
-#include "main/sound_ids.h"
-#include "main/sound_types.h"
+#include "engine/areas.h"
+#include "engine/sound_ids.h"
+#include "engine/sound_types.h"
 #include "../../room_ids.h"
 
 // ---------------------------------------------------------------------------

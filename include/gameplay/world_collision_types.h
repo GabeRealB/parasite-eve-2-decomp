@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "main/coord.h"
+#include "engine/coord.h"
 
 /// Contact-table flags and packed-key categories; LAST also marks an empty final element.
 enum {

@@ -5,7 +5,7 @@
 #include <psyq/libgte.h>
 #include <psyq/inline_c.h>
 
-#include "main/gfx.h"
+#include "engine/gfx.h"
 
 /// Seeds the Odd Stranger's two patrol waypoints along its horizontal forward axis.
 ///

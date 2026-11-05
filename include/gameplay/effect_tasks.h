@@ -10,9 +10,9 @@
 #include "gameplay/effects.h"
 #include "gameplay/room_effects.h"
 
-#include "main/coord.h"
-#include "main/task_ids.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/task_ids.h"
+#include "engine/task_types.h"
 
 // Effect task entry points and shared drawing data.
 

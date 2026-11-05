@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_123200_H
 #define INCLUDE_ACTORS_ACTOR_123200_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Spawn recipe for the staged Bone Suckler used by the motel-room event.
 ///

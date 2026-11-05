@@ -4,7 +4,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Last sampled positions of player model parts 15 and 18 for water emission.
 ///

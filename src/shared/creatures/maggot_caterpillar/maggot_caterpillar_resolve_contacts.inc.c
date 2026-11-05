@@ -649,7 +649,7 @@ static void _maggotCaterpillarSprayState(Task* actor)
     }
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
@@ -798,7 +798,7 @@ static void _maggotCaterpillarPounceState(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
@@ -1287,7 +1287,7 @@ static void _maggotCaterpillarDyingState(Enemy* enemy, Task* actor)
 #undef MAGGOT_CATERPILLAR_ANIMATE_AND_LIGHT_CORPSE
 }
 
-#include "main/random.h"
+#include "engine/random.h"
 
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 

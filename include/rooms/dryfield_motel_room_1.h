@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Actor layouts and loading recipes for daytime motel room 1 (Dryfield area 11).
 ///

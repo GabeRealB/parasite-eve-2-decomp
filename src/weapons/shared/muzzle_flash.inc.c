@@ -18,12 +18,12 @@
 #include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/random.h"
-#include "main/scratch.h"
-#include "main/task_types.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/random.h"
+#include "engine/scratch.h"
+#include "engine/task_types.h"
 
 #include "overlay.h"
 

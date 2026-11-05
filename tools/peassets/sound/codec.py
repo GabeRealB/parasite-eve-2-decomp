@@ -3,8 +3,8 @@
     bank = decode(blob)     programs and their layers, the effect scripts, the sample pool
     blob = encode(bank)     identical for every bank on the disc (472)
 
-A bank is, in file order (src/main/sound_types.h `SndBankPayload`, `SndBankGroup`, `SndBankLayer`; the script image
-src/main/sndscript.c):
+A bank is, in file order (src/engine/sound_types.h `SndBankPayload`, `SndBankGroup`, `SndBankLayer`; the script image
+src/engine/sndscript.c):
 
     0x000  header (0x14), the program table (4 bytes each), the layer table (0x14 each); zeros to 0x800
     0x800  the script image: `hONE`, bank id, slot count, the slot table (padded to 4 bytes), then its chunks
@@ -67,7 +67,7 @@ CHUNK_SIZE = {b"oneC": 0x10, b"oneV": 0x18, b"Loop": 0x08, b"Wait": 0x08, b"endL
               b"oneA": 0x08, b"oneE": 0x1C}
 CONTROLS = ("unknown_4", "volume", "pan", "max_instances", "retrigger", "priority", "flags")
 VOICE = ("bank", "program", "layer", "delay", "gate", "pan", "volume", "reverb", "priority", "adsr", "pitch", "envelope")
-# The authored envelope; `_SndPitchEnvelope` (src/main/sndscript.c) holds the slopes, and the disc's chunk (28 bytes,
+# The authored envelope; `_SndPitchEnvelope` (src/engine/sndscript.c) holds the slopes, and the disc's chunk (28 bytes,
 # the struct 24) adds the release updates and a zero halfword.
 ENVELOPE = ("delay", "attack_level", "attack_updates", "hold", "decay_updates", "sustain_level", "release_level",
             "release_updates")

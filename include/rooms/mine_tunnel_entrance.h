@@ -9,7 +9,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Mine/Shelter area 3's encounter layouts, indexed by placement variant 0..11.
 ///

@@ -3,7 +3,7 @@
 
 // Configuration of the Grenade Pistol and the MM1.
 
-#include "main/sound_ids.h"
+#include "engine/sound_ids.h"
 #include "weapons/weapon_index.h"
 
 // ---------------------------------------------------------------------------

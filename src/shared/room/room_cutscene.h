@@ -35,7 +35,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 // The cutscene task applies the square's post-cutscene area updates when it runs in the square.
 #include "stages/akropolis/rooms/square.h"

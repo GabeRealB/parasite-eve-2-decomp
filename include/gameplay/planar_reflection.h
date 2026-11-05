@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PLANAR_REFLECTION_H
 #define GAMEPLAY_PLANAR_REFLECTION_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Dispatches a player-reflection task to the callback of its captured room.
 ///

@@ -3,8 +3,8 @@
 
 // Configuration of the Akropolis cafeteria.
 
-#include "main/areas.h"
-#include "main/sound_ids.h"
+#include "engine/areas.h"
+#include "engine/sound_ids.h"
 #include "../../room_ids.h"
 
 // ---------------------------------------------------------------------------

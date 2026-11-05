@@ -13,11 +13,11 @@
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gfx.h"
-#include "main/scratch.h"
+#include "engine/coord.h"
+#include "engine/display.h"
+#include "engine/display_types.h"
+#include "engine/gfx.h"
+#include "engine/scratch.h"
 
 #include "ground_glow.h"
 

@@ -8,10 +8,10 @@
 #include "gameplay/loading.h"
 #include "scene_runtime.h"
 
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/session.h"
-#include "main/stream.h"
+#include "engine/display.h"
+#include "engine/fs.h"
+#include "engine/session.h"
+#include "engine/stream.h"
 
 s16 gLoadingViewMovieSlot;
 

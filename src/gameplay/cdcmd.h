@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_PRIVATE_CDCMD_H
 #define GAMEPLAY_PRIVATE_CDCMD_H
 
-#include "main/fs.h"
+#include "engine/fs.h"
 
 /// Appends a copy of a saved CD request and returns its ring slot (0..7).
 ///

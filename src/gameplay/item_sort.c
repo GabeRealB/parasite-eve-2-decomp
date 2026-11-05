@@ -10,10 +10,10 @@
 
 #include "debug/nmc_names.h"
 
-#include "main/mc.h"
-#include "main/session.h"
-#include "main/task_types.h"
-#include "main/wipsys.h"
+#include "engine/mc.h"
+#include "engine/session.h"
+#include "engine/task_types.h"
+#include "engine/wipsys.h"
 
 #include "stages/akropolis/rooms/fire_escape.h"
 

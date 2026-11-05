@@ -17,12 +17,12 @@
 #include "gameplay/world_targets.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/fs.h"
-#include "main/gameflag.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/task.h"
-#include "main/task_types.h"
+#include "engine/fs.h"
+#include "engine/gameflag.h"
+#include "engine/session.h"
+#include "engine/session_types.h"
+#include "engine/task.h"
+#include "engine/task_types.h"
 #include "../../shared/room/room_variants.h"
 static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 

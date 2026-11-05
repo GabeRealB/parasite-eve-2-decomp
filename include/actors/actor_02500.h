@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ACTORS_ACTOR_02500_H
 #define INCLUDE_ACTORS_ACTOR_02500_H
 
-#include "main/task_types.h"
+#include "engine/task_types.h"
 
 /// Slot export of `gActor02500Tasks` from actor_102500, with the same descriptor contract.
 extern TaskDesc gActor102500Tasks[2];

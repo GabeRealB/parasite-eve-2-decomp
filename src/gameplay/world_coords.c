@@ -31,15 +31,15 @@
 #include "weapon_data.h"
 
 #include "gameplay/damage.h"
-#include "main/display.h"
-#include "main/gfx.h"
-#include "main/gfxgte.h"
-#include "main/game_debug.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/task.h"
-#include "main/text.h"
-#include "main/wipsys.h"
+#include "engine/display.h"
+#include "engine/gfx.h"
+#include "engine/gfxgte.h"
+#include "engine/game_debug.h"
+#include "engine/pad.h"
+#include "engine/session.h"
+#include "engine/task.h"
+#include "engine/text.h"
+#include "engine/wipsys.h"
 
 /// Initial countdown of eligible colour-blend updates after an actor mode change.
 ///

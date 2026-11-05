@@ -9,7 +9,7 @@
 #include "gameplay/player_state.h"
 #include "gameplay/scene_combat.h"
 
-#include "main/wipsys.h"
+#include "engine/wipsys.h"
 
 /// Low-nibble mask for the stack count in the packed attachment combo byte.
 ///
