@@ -28,8 +28,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 #include "../../shared/room/room_variants.h"
 
 s32     rcos(s32);
@@ -74,7 +73,7 @@ static TaskMessageEntry _gNeoArkBridgeRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "../../shared/effects/water.inc.c"
+#include "effects/water/water.inc.c"
 
 /// Refuses every key-item use request without consuming the selected item.
 ///

@@ -44,10 +44,9 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "screen/fade/fade.h"
 
 #include "rooms/dryfield_night_main_street.h"
-#include "../../shared/screen/screen_fade_step_up.inc.c"
 
 #include "assets/engine/animation/player_schema.h"
 
@@ -55,10 +54,10 @@ static void _screenFadeInTask(Task* task);
 /// Binds the shared fade-in declaration and definition to this file's private task.
 ///
 /// Requires the bare identifier of the preceding static `void (Task*)` callback.
-/// Keep defined from `screen_fade.h` through `screen_fade_in.inc.c`, then undefine.
+/// Keep defined from `screen/fade/fade.h` through `screen/fade/in.inc.c`, then undefine.
 /// This object-like binding has no arguments, captures or token construction.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen/screen_fade.h"
+#include "screen/fade/fade.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// Player placements at the two ends of a scripted street-scene entrance.
@@ -2033,7 +2032,7 @@ static void _actor136100SceneTask(Task* task)
     actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], ACTOR_136100_SCENE_SHADOW_HALF_SIZE, &message.floorOffset);
 }
 
-#include "../../shared/screen/screen_fade_in.inc.c"
+#include "screen/fade/in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
 /// Darkens the street scene and blanks the display when the ramp completes.

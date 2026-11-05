@@ -49,7 +49,7 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static WorldCollisionGrid _gDryfieldNightDilapidatedHouseCollisionGrid;
 
@@ -3170,7 +3170,7 @@ static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task)
 /// element indices 0, 8 and 16. The fragment only reads these corners while
 /// this overlay is loaded and undefines the binding after its inclusion.
 #define GLOW_PRISM_CORNERS _gDryfieldNightDilapidatedHouseLightPrismCorners
-#include "../../shared/effects/glow_draw_prism.inc.c"
+#include "effects/glow/prism.inc.c"
 
 void dryfieldNightDilapidatedHouseDrawLightPrismsTask(Task* task)
 {

@@ -71,8 +71,6 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
@@ -89,7 +87,7 @@
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #include "../../shared/room/action_prompt.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_events.h"
 #include "../../shared/room/room_cutscene.h"
 #include "../../shared/room/room_variants.h"
@@ -3127,9 +3125,11 @@ void shelterB1UndergroundParkingDrawGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/effects/glow_draw_beam.inc.c"
+#include "effects/glow/beam.inc.c"
 
-#include "../../shared/effects/glow_draw_bit_disc.inc.c"
+#define GLOW_FACTOR_DISC_FUNC _glowDrawBitDisc
+#define GLOW_FACTOR_DISC_BITS 1
+#include "effects/glow/factor_disc.inc.c"
 
 /// Draws a flickering additive glow in the selector panel's pixel coordinates.
 ///
@@ -3177,7 +3177,7 @@ static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, 
     do {
         sweepAngle = 0;
         do {
-            prim          = _glowAllocateBitDiscWedge(red, green, blue);
+            prim          = _glowAllocateFactorDiscWedge(red, green, blue);
             prim->x0      = screenX + ((pixelRadius * rsin(sweepAngle)) >> GLOW_TRIG_SHIFT);
             halfStepAngle = sweepAngle + GLOW_SIXTEENTH_TURN;
             prim->y0      = screenY + ((pixelRadius * rcos(sweepAngle)) >> GLOW_TRIG_SHIFT);
@@ -3201,9 +3201,9 @@ static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, 
     } while (layerIndex < SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_LAYER_COUNT);
 }
 
-#include "../../shared/effects/glow_draw_diamond.inc.c"
+#include "effects/glow/diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"
 
 /// Selects the cyan room light's pulse speed (0 slow, nonzero fast).
 ///

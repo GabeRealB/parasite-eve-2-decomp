@@ -34,7 +34,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_events.h"
 
 static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSeen);

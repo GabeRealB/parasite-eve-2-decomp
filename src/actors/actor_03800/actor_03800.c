@@ -43,8 +43,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 /// Values of `_Actor03800Work::mode`: how the actor stands in the room.
 ///
 /// The spawn takes it from the tens digit of the placement's mode. The two

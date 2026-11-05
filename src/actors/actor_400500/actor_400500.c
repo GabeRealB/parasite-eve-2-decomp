@@ -58,10 +58,9 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
-#include "../../shared/screen/frame_capture.h"
+#include "screen/frame_capture/frame_capture.h"
 #include "../../shared/actor/coord_math.h"
 
 /// Values of `_Actor400500GrayStalkerWork::state` while the Stalker is alive.
@@ -2119,7 +2118,7 @@ static void _actor400500SpawnDeathFragments(Task* task)
     effectSpawn(EFFECT_030, &task->extra.tmd->coords[ACTOR_400500_PART_BODY], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
 }
 
-#include "../../shared/screen/frame_capture.inc.c"
+#include "screen/frame_capture/frame_capture.inc.c"
 
 /// Requests hiding when no matching fade is running and the cooldown is zero.
 ///

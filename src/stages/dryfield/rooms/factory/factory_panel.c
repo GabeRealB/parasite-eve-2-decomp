@@ -36,7 +36,7 @@ static void _factoryPanelPrompt(Task* task);
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #include "../../../../shared/room/action_prompt.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 #include "../../../../shared/room/room_events.h"
 
@@ -545,7 +545,7 @@ void FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE(s32 visible)
 
 #include "../../../../shared/room/action_prompt_reset.inc.c"
 
-#include "../../../../shared/effects/glow_draw_tinted_disc.inc.c"
+#include "effects/glow/tinted_disc.inc.c"
 
 void FACTORY_DRAW_GLOWS_TASK(Task* task)
 {

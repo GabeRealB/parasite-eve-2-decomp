@@ -41,7 +41,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 
 #include "rooms/shelter_b6_corridor.h"
 

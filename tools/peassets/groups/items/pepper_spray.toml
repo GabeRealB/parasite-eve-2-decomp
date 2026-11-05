@@ -44,7 +44,6 @@ sha1 = "5e22ad8d0584fb779da0561b2348f85fd6520d01"
 [package]
 type = "pe2pkg"
 package_name = "pepper_spray"
-required = true
 sha1 = "b87a490a7cd76ad205b84691b9a418ac3f96168d"
 
 [texture]

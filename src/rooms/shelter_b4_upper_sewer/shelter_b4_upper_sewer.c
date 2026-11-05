@@ -64,14 +64,12 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
 
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/effects/water_effects.h"
+#include "effects/glow/glow.h"
+#include "effects/water/water.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
@@ -1759,25 +1757,25 @@ void shelterB4UpperSewerDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void shelterB4UpperSewerWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_drift_task.inc.c"
+#include "effects/water/drift_task.inc.c"
 
 void shelterB4UpperSewerWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin.inc.c"
+#include "effects/water/spin.inc.c"
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

@@ -55,10 +55,8 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/shelter_b6_training_room.h"
-#include "../../shared/effects/fireball.h"
+#include "effects/fireball/fireball.h"
 #include "../../shared/actor/model_placement.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
@@ -525,7 +523,7 @@ static SVECTOR _gActor105100FireballStartOffsets[7] = {
 
 static inline void _actor105100AnimUpdate(Task* task);
 
-#include "../../shared/effects/fireball.inc.c"
+#include "effects/fireball/fireball.inc.c"
 
 /// Initializes the enemy's model, animation rig and combat bodies.
 ///
@@ -2316,7 +2314,7 @@ static void _actor105100BeamSeekPlayer(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-#include "../../shared/effects/fireball_ember.inc.c"
+#include "effects/fireball/ember.inc.c"
 
 /// Dispatches the enemy's spawn, per-frame update or teardown handler.
 ///

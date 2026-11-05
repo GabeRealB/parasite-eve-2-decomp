@@ -60,7 +60,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_events.h"
 #include "../../shared/room/room_variants.h"
 #include "../../shared/room/follow_collision.h"
@@ -2437,7 +2437,7 @@ static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 ou
     }
 }
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
 void neoArkObservatorySetLightBeamIntensity(s32 intensity)
 {

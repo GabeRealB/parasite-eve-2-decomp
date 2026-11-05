@@ -4,7 +4,7 @@
 [pe]
 type = "memory_slot"
 at = 0x8012EF30
-families = ["pe", "mappic"]
+families = ["mappic"]
 
 [aya]
 type = "memory_slot"
@@ -24,7 +24,6 @@ families = ["rooms"]
 [debug]
 type = "memory_slot"
 at = 0x801D6000
-families = ["debug"]
 
 [stage]
 type = "memory_slot"
@@ -54,7 +53,6 @@ families = ["actors.3"]
 [options]
 type = "memory_slot"
 at = 0x801D4000
-families = ["options"]
 
 [gameplay]
 type = "memory_slot"

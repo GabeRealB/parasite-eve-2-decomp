@@ -46,9 +46,9 @@
 #include "types.h"
 /// Signed effect-age argument whose low bit selects one of the two flame cells.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/effects/sprite_quad.h"
-#include "../../shared/effects/jet_cone.h"
-#include "../../shared/effects/ground_glow.h"
+#include "effects/sprite_quad/sprite_quad.h"
+#include "effects/jet_cone/jet_cone.h"
+#include "effects/ground_glow/ground_glow.h"
 #include "../shared/attack.h"
 
 /// Scratch-stack workspace for the recoil that pushes the player back after a
@@ -542,7 +542,7 @@ void hypervelocityRoundTask(Task* task)
 /// values. See `jet_cone.h` for the extent and value contract. The fragment
 /// undefines this binding after use.
 #define JET_CONE_TEXTURE_FRAME_OFFSETS _gHypervelocityConeTextureFrameOffsets
-#include "../../shared/effects/jet_cone_draw.inc.c"
+#include "effects/jet_cone/draw.inc.c"
 
 /// Packed additive beam-flame page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.
 #define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 576, 0)
@@ -571,7 +571,7 @@ void hypervelocityRoundTask(Task* task)
 ///
 /// Uses the cell's inclusive 55-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 
 /// Red texture modulation for Hypervelocity's additive floor glow.
 ///
@@ -597,7 +597,7 @@ void hypervelocityRoundTask(Task* task)
 /// coordinates into an integer constant stored in `POLY_FT4::clut`.
 /// Configures the next ground-glow drawer inclusion, which undefines it.
 #define GROUND_GLOW_CLUT getClut(176, 266)
-#include "../../shared/effects/ground_glow_draw.inc.c"
+#include "effects/ground_glow/draw.inc.c"
 
 #include "assets/engine/animation/player_schema.h"
 

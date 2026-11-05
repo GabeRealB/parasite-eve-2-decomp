@@ -43,8 +43,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 /// Task-table indices entered by spawn and lost-actor retirement.
 enum {
     ACTOR_01500_TASK_ACTIVE = 1,

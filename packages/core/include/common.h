@@ -66,6 +66,16 @@
 #define STATIC_ASSERT_SIZEOF(type, size) \
     typedef char static_assertion_sizeof_##type[(sizeof(type) == (size)) ? 1 : -1]
 
+/// A color word's channels, red in the low byte as the GPU and the engine's drawing take it (0xBBGGRR), and whether a
+/// value is one: a color option is written as such a word and read through these.
+#define COLOR_RED(color)   ((color) & 0xFF)
+#define COLOR_GREEN(color) (((color) >> 8) & 0xFF)
+#define COLOR_BLUE(color)  (((color) >> 16) & 0xFF)
+#define IS_COLOR(value)    ((value) >= 0 && (value) <= 0xFFFFFF)
+
+/// Whether a value is a power of two, as an option standing for a mask (a range, odds) must be.
+#define POWER_OF_TWO(value) ((value) > 0 && ((value) & ((value) - 1)) == 0)
+
 /*
  * Matching helpers: empty GNU C statement-asm that emit no MIPS. Each use is a
  * matching carrier, not reconstructed source.

@@ -5,7 +5,7 @@
 #include <psyq/libgte.h>
 
 #include "common.h"
-#include "overlay.h"
+#include "../../src/shared/room/encounter.h"
 
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
@@ -22,7 +22,7 @@
 /// Commands select indices 0..11 in their high byte. XYZ are signed world units;
 /// heading uses 4096 units per turn. All spots lie at Y -3950; rows 0..5 and
 /// 6..11 face opposite ways. Actor overlays borrow the table while this room is loaded.
-extern OverlayEncounterSpot gShelterB3DumpingHoleEncounterSpots[12];
+extern EncounterSpot gShelterB3DumpingHoleEncounterSpots[12];
 
 extern TmdSource gShelterB3DumpingHoleItemBoxModel;
 

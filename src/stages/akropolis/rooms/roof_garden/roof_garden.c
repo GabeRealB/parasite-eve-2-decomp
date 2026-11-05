@@ -51,12 +51,10 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
-#include "../../../../shared/effects/falling_leaves.h"
+#include "effects/falling_leaves/falling_leaves.h"
 #include "../../../../shared/actor/actor_contacts.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 #include "assets/stages/akropolis/rooms/roof_garden/declarations.inc"
 
@@ -106,6 +104,7 @@ static void _akropolisRoofGardenCutsceneOpeningSoundTask(Task* task);
 static void _akropolisRoofGardenCutsceneClosingSoundTask(Task* task);
 
 #include "assets/stages/akropolis/rooms/roof_garden/clips_1.inc"
+#include "effects/acropolis_glows/acropolis_glows.h"
 
 /// Messages of the room task.
 static TaskMessageEntry _gAkropolisRoofGardenRoomMessages[6] = {
@@ -495,8 +494,6 @@ void akropolisRoofGardenAmbientEffectsTask(Task* task)
     }
 }
 
-#include "../../../../shared/effects/acropolis_glow_sprite_bounds.inc.c"
-
 void akropolisRoofGardenLightGlowTask(Task* task)
 {
     enum {
@@ -584,18 +581,18 @@ void akropolisRoofGardenLightGlowTask(Task* task)
 #define PULSING_FLARE_BLUE(level)                  0 // The second color is green
 #define PULSING_FLARE_OUTER_RADIUS(scale, options) ((scale) << 10)
 #define PULSING_FLARE_INNER_RADIUS(scale, options) ((scale) << 7)
-#include "../../../../shared/effects/pulsing_flare.inc.c"
+#include "effects/glow/pulsing_flare.inc.c"
 
 #undef AKROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD
 
-#include "../../../../shared/effects/falling_leaves_task.inc.c"
+#include "effects/falling_leaves/task.inc.c"
 
 void akropolisRoofGardenLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../../../shared/effects/falling_leaves_draw.inc.c"
+#include "effects/falling_leaves/draw.inc.c"
 
 #include "../../../../shared/actor/actor_contacts_push_contact.inc.c"
 

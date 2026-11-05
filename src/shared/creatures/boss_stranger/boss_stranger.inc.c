@@ -1,5 +1,7 @@
 /* Part of the Boss Stranger library; see boss_stranger.h. */
 
+#include "../../actor/actor_contacts.h"
+
 /// Tests whether the walker has reached its current navigation node on the XZ plane.
 ///
 /// Returns 1 strictly inside either a 300-unit radius or the signed-halfword

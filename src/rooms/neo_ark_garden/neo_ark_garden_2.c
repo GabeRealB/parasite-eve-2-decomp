@@ -43,8 +43,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/water_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/water/water.h"
+#include "effects/glow/glow.h"
 
 static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre);
 
@@ -660,7 +660,7 @@ void neoArkGardenAmbienceTask(Task* task)
     task->spawnArg1.value = viewGetMappedIndex() & NEO_ARK_GARDEN_AMBIENCE_VIEW_MASK;
 }
 
-#include "../../shared/effects/glow_draw_pulsing_star.inc.c"
+#include "effects/glow/pulsing_star.inc.c"
 
 /// Projects four world corners through the current view in GPU quad strip order.
 ///

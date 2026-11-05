@@ -52,7 +52,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "actors/actor.h"
 #include "../../shared/actor/player_detection.h"
 static s32 _actorMsgPlaceRecordYaw(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 

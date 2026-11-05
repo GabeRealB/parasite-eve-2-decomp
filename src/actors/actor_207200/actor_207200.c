@@ -37,7 +37,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 #include "../../shared/creatures/skull_stalker/skull_stalker.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);

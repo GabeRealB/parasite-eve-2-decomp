@@ -43,8 +43,8 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-#include "../../shared/screen/screen_fade.h"
+#include "screen/fade/fade.h"
+#include "screen/fade/fade.h"
 #include "../../shared/actor/actor_messages.h"
 
 #include "assets/engine/animation/player_schema.h"
@@ -1134,8 +1134,6 @@ static void _actor341900EventTask(Task* task)
             return;
     }
 }
-
-#include "../../shared/screen/screen_fade_step_down.inc.c"
 
 /// Reveals the scene by decreasing a subtractive full-screen overlay each tick.
 ///

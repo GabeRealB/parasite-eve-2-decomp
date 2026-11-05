@@ -63,10 +63,8 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_visual_effects.h"
 #include "../../shared/room/action_prompt.h"
 

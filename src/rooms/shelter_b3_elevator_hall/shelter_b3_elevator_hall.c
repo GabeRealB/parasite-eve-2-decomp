@@ -48,14 +48,14 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
+#include "effects/glow/glow.h"
 
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
 
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
@@ -401,7 +401,7 @@ void shelterB3ElevatorHallRoomTask(Task* task)
 /// on even animation frames and 40 on odd frames, fading to a black rim.
 ///
 /// Requires the composed view matrix, scratch-stack room for
-/// `OverlayPointPairScratch`, and the current frame's arena and ordering table.
+/// `GlowFlaggedPointPairScratch`, and the current frame's arena and ordering table.
 /// Queues up to 24 `POLY_G4` packets and 24 additive blend commands; packets
 /// remain in the frame arena until GPU drawing completes.
 static inline void _shelterB3ElevatorHallDrawGlowStrips(const SVECTOR stripEndpoints[8])
@@ -447,7 +447,7 @@ void shelterB3ElevatorHallDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

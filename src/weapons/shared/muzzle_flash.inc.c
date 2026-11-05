@@ -25,7 +25,7 @@
 #include "engine/scratch.h"
 #include "engine/task_types.h"
 
-#include "overlay.h"
+#include "effects/sprite_quad/sprite_quad.h"
 
 #include "muzzle_flash.h"
 
@@ -163,7 +163,7 @@ static void _muzzleFlashTask(Task* task)
 /// right. The caller adds/subtracts `cornerDx` along X and subtracts/adds
 /// `cornerDy` along screen Y, then repeats a quarter turn later for the other
 /// pair. Only those two scratch words are written; no address is retained.
-static inline void _muzzleFlashSetCoreCornerOffsets(OverlaySpriteScratch* spriteScratch, s16 worldSize, s32 cornerAngle)
+static inline void _muzzleFlashSetCoreCornerOffsets(SpriteQuadScratch* spriteScratch, s16 worldSize, s32 cornerAngle)
 {
     enum { MUZZLE_FLASH_CORE_PROJECTION_SCALE = 55 };
     spriteScratch->cornerDx = (((worldSize * MUZZLE_FLASH_CORE_PROJECTION_SCALE) / spriteScratch->otz) * rsin(cornerAngle)) >> MUZZLE_FLASH_TRIG_FRACTION_BITS;
@@ -189,12 +189,12 @@ static void _muzzleFlashDrawCore(const GfxCoord* muzzleCoord, s16 worldSize, s16
         MUZZLE_FLASH_CORE_SEMI_TRANSPARENT = 0x02,
         MUZZLE_FLASH_CORE_RAW_TEXTURE      = 0x01
     };
-    OverlaySpriteScratch* block;
-    POLY_FT4*             quad;
-    s32                   cornerAngle;
+    SpriteQuadScratch* block;
+    POLY_FT4*          quad;
+    s32                cornerAngle;
 
     // Project the composed muzzle centre; the quad itself stays in screen space.
-    block              = SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
+    block              = SCRATCH_STACK_RESERVE_BLOCK(SpriteQuadScratch);
     block->worldPos.vx = muzzleCoord->workm.t[0];
     block->worldPos.vy = muzzleCoord->workm.t[1];
     block->worldPos.vz = muzzleCoord->workm.t[2];
@@ -232,7 +232,7 @@ static void _muzzleFlashDrawCore(const GfxCoord* muzzleCoord, s16 worldSize, s16
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
                 quad);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(SpriteQuadScratch);
 }
 
 /// Draws one additive blue-white streak in the muzzle's coordinate frame.

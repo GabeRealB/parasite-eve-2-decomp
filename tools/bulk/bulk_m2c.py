@@ -287,14 +287,14 @@ def dup_groups(names: set[str]) -> tuple[dict[str, tuple[str, int]], set[str]]:
 # to type an imported symbol against and falls back to raw offsets:
 #
 #     M2C_FIELD(Game_Session, s8 *, 5) = arg0;      /* common.h alone */
-#     Game_Session->field_5 = arg0;                 /* + main/session.h */
+#     Game_Session->field_5 = arg0;                 /* + engine/session.h */
 #
 # The first is unlandable pointer arithmetic; the second is the finished line.
 # So the pass builds a context out of every header that declares an imported
 # symbol, and the candidate includes that same list so it still compiles.
 #
 # psyq first: the game headers use its types without including it themselves
-# (main/session.h names VECTOR, which only libgte.h defines), so a context
+# (engine/session.h names VECTOR, which only libgte.h defines), so a context
 # missing them dies with "Syntax error when parsing C context" and every
 # function in the family silently falls back to untyped output.
 PSYQ_HEADERS = [
@@ -319,7 +319,7 @@ def candidate_headers(overlay: str) -> list[str]:
     d = REPO_ROOT / "packages" / "engine" / "include"
     if d.is_dir():
         heads += sorted(f"engine/{p.name}" for p in d.glob("*.h"))
-    for family in ("actors", "weapons", "rooms", "aya", "kyle", "pe"):
+    for family in ("actors", "weapons", "rooms", "aya", "kyle"):
         own = REPO_ROOT / "include" / family / f"{overlay}.h"
         if own.is_file():
             heads.append(f"{family}/{overlay}.h")

@@ -44,16 +44,14 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 static void _screenFadeInTask(Task* task);
 /// Binds the shared fade-in declaration and definition to this file's private task.
 ///
 /// Requires the bare identifier of the preceding static `void (Task*)` callback.
-/// Keep defined from `screen_fade.h` through `screen_fade_in.inc.c`, then undefine.
+/// Keep defined from `screen/fade/fade.h` through `screen/fade/in.inc.c`, then undefine.
 /// This object-like binding has no arguments, captures or token construction.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen/screen_fade.h"
+#include "screen/fade/fade.h"
 #include "../../shared/actor/actor_messages.h"
 
 static void _screenFadeOutTask(Task* task);
@@ -681,10 +679,10 @@ static void _actor120500SceneTask(Task* task)
     }
 }
 
-#include "../../shared/screen/screen_fade_in.inc.c"
+#include "screen/fade/in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
-#include "../../shared/screen/screen_fade_out.inc.c"
+#include "screen/fade/out.inc.c"
 
 /// Posts a player-choreography request for the motel room 6 scene.
 ///

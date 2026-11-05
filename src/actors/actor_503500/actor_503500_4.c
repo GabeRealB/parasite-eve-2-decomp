@@ -52,7 +52,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 #include "../../shared/actor/bezier_curve.h"
 
 /// What an arm is doing, as held in `_Actor503500ArmWork::state`.

@@ -49,7 +49,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "actors/actor.h"
 #include "../../shared/actor/player_detection.h"
 #include "../../shared/actor/actor_messages.h"
 

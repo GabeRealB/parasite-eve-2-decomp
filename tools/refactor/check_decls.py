@@ -27,7 +27,7 @@ Symbols are compared within each linked image, from the linker scripts, since
 that is the only place a name has to mean one thing: placeholder and shared
 names are reused for different bodies in different overlays. A conflict found
 in several images is reported once. PATH_PREFIX restricts which translation
-units are scanned (`src/pe`). --strict exits non-zero on anything in
+units are scanned (`src/rooms`). --strict exits non-zero on anything in
 the first two classes. With --across-images, an external spelling that one
 image defines and another only declares is also compared across the build, so
 an imported interface cannot disagree with its definition. A name that every
@@ -113,13 +113,18 @@ def _scan(rel: str):
 
 
 def _images(root: str) -> dict[str, set[str]]:
-    """image -> the C sources its linker script links."""
+    """image -> the C sources it links: a split image's, as its linker script names them, and a package's, as its
+    declaration does."""
     out = {}
     lddir = os.path.join(root, "linkers", cref.DEFAULT_VERSION)
     for name in os.listdir(lddir):
         if name.endswith(".ld"):
             text = open(os.path.join(lddir, name)).read()
             out[name[:-3]] = set(re.findall(r"build/[^/]+/(src/\S+?\.c)\.o\(", text))
+    sys.path.insert(0, os.path.join(root, "tools", "buildsteps"))
+    from declarations import Declarations
+    for package in Declarations().packages():
+        out[package.name.replace("/", "_")] = {unit.as_posix() for unit in package.units() if unit.suffix == ".c"}
     return out
 
 
@@ -136,7 +141,7 @@ def main() -> int:
 
     root = os.path.abspath(args.root)
     db = cref.load_db(root)
-    tus = sorted(f for f in db if f.startswith("src/") and
+    tus = sorted(f for f in db if f.startswith(("src/", "packages/")) and not f.startswith("packages/psyq/") and
                  (not args.prefixes or any(f.startswith(p.rstrip("/")) for p in args.prefixes)))
 
     images = _images(root)

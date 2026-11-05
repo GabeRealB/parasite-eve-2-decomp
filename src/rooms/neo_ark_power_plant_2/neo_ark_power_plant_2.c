@@ -66,10 +66,10 @@
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
 /// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
-/// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
+/// GTE flag word. Defined before `effects/glow/glow.h`, which otherwise selects
 /// `GlowCentreScratch`.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static WorldCollisionOccluder           _gNeoArkPowerPlant2Occluders[1];
 static const WorldCoordRoomAmbientEntry _gNeoArkPowerPlant2AmbientTable[10];
@@ -1304,7 +1304,7 @@ void neoArkPowerPlant2UpdateViewLightingTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

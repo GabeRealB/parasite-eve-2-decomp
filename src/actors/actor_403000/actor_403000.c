@@ -54,7 +54,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "actors/actor.h"
 #include "../../shared/actor/actor_contacts.h"
 
 /// One collision sphere of the actor: a body and the contact table it records

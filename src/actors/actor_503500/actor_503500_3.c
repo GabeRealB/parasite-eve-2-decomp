@@ -53,8 +53,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/shelter_r48.h"
 #include "../../shared/actor/bezier_curve.h"
 

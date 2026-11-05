@@ -48,7 +48,7 @@
 #include "engine/wipsys_types.h"
 
 #include "rooms/room_common.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 #include "assets/stages/akropolis/rooms/west_elevator_hall/declarations.inc"
 
@@ -65,7 +65,7 @@ static Task* _gAkropolisWestElevatorHallDoorLeafTasks[2];
 #include "../../../../shared/room/planar_reflection.h"
 /// The shared red beacon, as this room's task.
 #define RED_BEACON_TASK akropolisWestElevatorHallRedBeaconTask
-#include "../../../../shared/effects/red_beacon.h"
+#include "effects/red_beacon/red_beacon.h"
 
 static void _akropolisWestElevatorHallUpdateArrivalEvent(Task* unusedTask);
 static void _akropolisWestElevatorHallInitializeRoomTask(Task* task);
@@ -453,7 +453,7 @@ void akropolisWestElevatorHallBayLightingTask(Task* task)
 #undef UPLOAD_BAY_PALETTE
 }
 
-#include "../../../../shared/effects/red_beacon_task.inc.c"
+#include "effects/red_beacon/task.inc.c"
 #undef RED_BEACON_TASK
 
 /// Queues one displaced framebuffer row at the distortion strip's fixed X origin.

@@ -38,7 +38,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 
 /// Night motel room 2's mutable cone light and the opaque bytes following it.
@@ -1408,7 +1408,7 @@ void dryfieldNightMotelRoom2RoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
+#include "effects/glow/flare_clipped.inc.c"
 
 void dryfieldNightMotelRoom2DrawFlaresTask(Task* unusedTask)
 {

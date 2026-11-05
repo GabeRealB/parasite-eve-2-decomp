@@ -49,7 +49,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "effects/sprite_quad/sprite_quad.h"
 
 #include "rooms/room_common.h"
 
@@ -426,13 +426,13 @@ void akropolisCafeteriaPuffTask(Task* task)
         PUFF_TRIG_FRACTION_BITS = 12,
         PUFF_DRIFT_Z_LIMIT      = 0xB00
     };
-    EffectWork*           work;
-    GfxCoord*             coord;
-    OverlaySpriteScratch* scratchEnd;
-    OverlaySpriteScratch* scratch;
-    POLY_FT4*             quad;
-    u8                    view;
-    u8                    shade;
+    EffectWork*        work;
+    GfxCoord*          coord;
+    SpriteQuadScratch* scratchEnd;
+    SpriteQuadScratch* scratch;
+    POLY_FT4*          quad;
+    u8                 view;
+    u8                 shade;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
@@ -441,9 +441,9 @@ void akropolisCafeteriaPuffTask(Task* task)
         if (view == PUFF_ACTIVE_VIEW) {
             // Project the centre once; the billboard's rotation is in screen space.
             actorRenderComposeCoord(coord);
-            scratchEnd = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
-            SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
-            scratch              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+            scratchEnd = SCRATCH_STACK_CURSOR(SpriteQuadScratch);
+            SCRATCH_STACK_RESERVE_BLOCK(SpriteQuadScratch);
+            scratch              = SCRATCH_STACK_CURSOR(SpriteQuadScratch);
             scratch->worldPos.vx = coord->workm.t[0];
             scratch->worldPos.vy = coord->workm.t[1];
             scratch->worldPos.vz = coord->workm.t[2];
@@ -497,7 +497,7 @@ void akropolisCafeteriaPuffTask(Task* task)
             quad->y2          = scratch->screenPos.vy + scratch->cornerDy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(scratch->otz),
                     quad);
-            SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
+            SCRATCH_STACK_RELEASE_BLOCK(SpriteQuadScratch);
             // Move toward the Z boundary first, then descend along positive Y.
             if (coord->coord.t[2] > PUFF_DRIFT_Z_LIMIT) {
                 coord->coord.t[2] += work->move.vz;

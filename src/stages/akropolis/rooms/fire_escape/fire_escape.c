@@ -60,7 +60,7 @@
 
 #include "rooms/room_common.h"
 #include "../../../../shared/room/room_cutscene.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 #include "assets/stages/akropolis/rooms/fire_escape/declarations.inc"
 

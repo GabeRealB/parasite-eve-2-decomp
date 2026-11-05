@@ -2,7 +2,7 @@
 
 #include "engine/task_types.h"
 #include "../../shared/room/action_prompt.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
@@ -63,8 +63,6 @@ u8 _gDryfieldNightMotelLobbyCashRegisterDigits[DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_R
 #include "engine/session_types.h"
 #include "engine/sound.h"
 #include "engine/task.h"
-
-#include "overlay.h"
 
 #include "rooms/room.h"
 
@@ -1303,9 +1301,9 @@ void dryfieldNightMotelLobbyDrawGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_diamond.inc.c"
+#include "effects/glow/diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"
 
 /// Sets a lobby flare quad's square around its projected light centre.
 ///

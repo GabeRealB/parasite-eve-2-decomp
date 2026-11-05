@@ -59,14 +59,12 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 
 #include "rooms/rooms_shared_8018055c.h"
 /// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the GTE flag word.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../../../shared/room/jukebox.h"
 
 #include "assets/stages/akropolis/rooms/mist_shooting_gallery/declarations_mist_shooting_gallery.inc"
@@ -2083,6 +2081,6 @@ void mistShootingGalleryDrawLightGlowsTask(Task* unused)
     }
 }
 
-#include "../../../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"

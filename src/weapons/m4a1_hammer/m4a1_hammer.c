@@ -46,8 +46,8 @@
 
 /// Signed texture-frame counter for the six-cell sprite's forward declaration.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/effects/sprite_quad.h"
-#include "../../shared/effects/beam_strip.h"
+#include "effects/sprite_quad/sprite_quad.h"
+#include "effects/beam_strip/beam_strip.h"
 #include "../shared/attack.h"
 
 /// Charge-flare instance of `spriteQuadDraw`.
@@ -283,7 +283,7 @@ void m4a1HammerGlowTask(Task* task)
 ///
 /// Uses the cell's inclusive 23-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
 #undef SPRITE_QUAD_TRANSLATION_COMPONENT
 #undef SPRITE_QUAD_FRAME_T
@@ -367,9 +367,9 @@ void m4a1HammerImpactFlashTask(Task* task)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 /// Repeating-strip palette: VRAM X=304 words, Y=266 scanlines.
 #define SPRITE_QUAD_CLUT getClut(304, 266)
-#include "../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 
-#include "../../shared/effects/beam_strip_draw.inc.c"
+#include "effects/beam_strip/draw.inc.c"
 
 void m4a1HammerAttackState(Task* playerTask)
 {

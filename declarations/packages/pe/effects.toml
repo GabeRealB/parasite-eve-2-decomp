@@ -1,0 +1,30 @@
+# The modules of pe/effects: one library each, the effect drawing only the Parasite Energies share.
+
+# Pyrokinetic flames: pyrokinesis and combustion draw them.
+[pyro_flame]
+uid = "uid://1k4y31vpnn0ne"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# Rising sparks: healing and life drain draw them.
+[rising_spark]
+uid = "uid://ecqdneak01ny"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# Strips between two points: antibody and apobiosis draw them.
+[strip]
+uid = "uid://1wgc1w2tsxlku"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]

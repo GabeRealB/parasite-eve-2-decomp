@@ -44,7 +44,6 @@ sha1 = "8bb881eb352f81f0a3b68db660fd9423330c4a15"
 [package]
 type = "pe2pkg"
 package_name = "combat_light"
-required = true
 sha1 = "26a0d0f40b00f3b3331d71d09ca546ebb3505d89"
 
 [texture]

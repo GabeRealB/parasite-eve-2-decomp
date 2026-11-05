@@ -26,7 +26,7 @@
 
 .section .text, "ax"
 
-/* Assembly encodings of the markers declared in main/tmd_types.h. */
+/* Assembly encodings of the markers declared in engine/tmd_types.h. */
 .equ TMD_STREAM_END, -1
 .equ TMD_STREAM_GROUP_END, -2
 /* sizeof(GfxCoord): advance a slot even when its command group is empty. */

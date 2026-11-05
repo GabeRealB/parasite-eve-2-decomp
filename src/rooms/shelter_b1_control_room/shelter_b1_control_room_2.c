@@ -38,11 +38,9 @@
 #include "engine/task.h"
 #include "engine/task_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/streamed_scene.h"
 
 static void _shelterB1ControlRoomStartMovieTask(Task* task);
@@ -180,6 +178,6 @@ void shelterB1ControlRoomDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"

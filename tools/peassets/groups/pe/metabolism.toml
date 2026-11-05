@@ -28,7 +28,6 @@ sha1 = "a6a7367bc152f1700b2e630e9de815eef9e83b73"
 [package]
 type = "pe2pkg"
 package_name = "metabolism"
-required = true
 sha1 = "8f407d94065fd29560e022a6826fe1fb25c8a3b2"
 
 [level1_item]

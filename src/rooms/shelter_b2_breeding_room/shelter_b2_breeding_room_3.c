@@ -32,8 +32,6 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/shelter_b2_breeding_room.h"
 
 #include "shelter_b2_breeding_room_private.h"

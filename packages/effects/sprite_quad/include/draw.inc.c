@@ -1,0 +1,198 @@
+/* Part of the sprite quad library; see sprite_quad.h. */
+
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include <core/pe2.h>
+#include <math/gte.h>
+
+#include <gameplay/effects.h>
+
+#include <engine/coord.h>
+#include <engine/display.h>
+#include <engine/display_types.h>
+#include <engine/scratch.h>
+
+#include "sprite_quad.h"
+
+#ifndef SPRITE_QUAD_TRANSLATION_COMPONENT
+#error Define SPRITE_QUAD_TRANSLATION_COMPONENT for the configured sprite position source type
+#endif
+
+#ifndef SPRITE_QUAD_CELL_WIDTH
+#error Define SPRITE_QUAD_CELL_WIDTH before including the sprite quad drawer
+#endif
+
+#ifndef SPRITE_QUAD_SCALE
+#error Define SPRITE_QUAD_SCALE before including the sprite quad drawer
+#endif
+
+#ifndef SPRITE_QUAD_CLUT
+#error Define SPRITE_QUAD_CLUT before including the sprite quad drawer
+#endif
+
+#if !defined(SPRITE_QUAD_UV_TABLE)
+#ifndef SPRITE_QUAD_TOP_V
+#error Define SPRITE_QUAD_TOP_V before including the arithmetic sprite quad drawer
+#endif
+#ifndef SPRITE_QUAD_BOTTOM_V
+#error Define SPRITE_QUAD_BOTTOM_V before including the arithmetic sprite quad drawer
+#endif
+#if defined(SPRITE_QUAD_CELLS_PER_ROW)
+#if (SPRITE_QUAD_CELLS_PER_ROW) <= 0
+#error SPRITE_QUAD_CELLS_PER_ROW must be a positive integer constant
+#endif
+#elif defined(SPRITE_QUAD_CELL_HEIGHT)
+#error A sprite cell grid requires SPRITE_QUAD_CELLS_PER_ROW
+#endif
+#endif
+
+/// Name of the drawer this inclusion defines; `spriteQuadDraw` by default.
+#ifndef SPRITE_QUAD_FUNC
+#define SPRITE_QUAD_FUNC spriteQuadDraw
+#endif
+#ifndef SPRITE_QUAD_TEXTURE_PAGE
+/// Texture page: 4-bit texels at VRAM (640, 0), blended additively, by default.
+#define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 640, 0)
+#endif
+#ifndef SPRITE_QUAD_INCREMENT_DEPTH
+/// Nonzero (the default) adds one to the projected depth before the depth test, sizing and sorting. `#if` reads it,
+/// so it must be a preprocessor constant, not an enum.
+#define SPRITE_QUAD_INCREMENT_DEPTH 1
+#endif
+
+/// This inclusion's drawer, documented at `spriteQuadDraw`.
+static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle)
+{
+    EffectShapeScratch* head;
+    EffectShapeScratch* block;
+    POLY_FT4*           prim;
+    SVECTOR*            vec;
+    s32                 u0;
+    s32                 u1;
+#ifdef SPRITE_QUAD_UV_TABLE
+    const EffectSpriteTextureFrame* textureFrame;
+#endif
+#ifdef SPRITE_QUAD_CELL_HEIGHT
+    s32 v0;
+#endif
+    s32 ang2;
+    u16 vz;
+
+    // Check in C so bindings may refer to enum constants as well as literals.
+    STATIC_ASSERT(SPRITE_QUAD_CELL_WIDTH >= 1 && SPRITE_QUAD_CELL_WIDTH <= 256, sprite_quad_cell_width_fits_uv_byte);
+    STATIC_ASSERT(SPRITE_QUAD_TEXTURE_PAGE >= 0 && SPRITE_QUAD_TEXTURE_PAGE <= 0xFFFF, sprite_quad_texture_page_fits_packet);
+    STATIC_ASSERT((SPRITE_QUAD_SCALE) > 0, sprite_quad_scale_is_positive);
+#if defined(SPRITE_QUAD_COLUMN_MASK) && !defined(SPRITE_QUAD_UV_TABLE) && !defined(SPRITE_QUAD_CELLS_PER_ROW)
+    STATIC_ASSERT((SPRITE_QUAD_COLUMN_MASK) >= 0 && (SPRITE_QUAD_COLUMN_MASK) <= 0xFFFF &&
+                      ((SPRITE_QUAD_COLUMN_MASK) & ((SPRITE_QUAD_COLUMN_MASK) + 1)) == 0,
+                  sprite_quad_column_mask_is_contiguous_low_bits);
+#endif
+
+    // Project the source translation's low 16 bits without changing its coordinate cache.
+    head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
+    (head - 1)->worldPoint.vx                = (u16)SPRITE_QUAD_TRANSLATION_COMPONENT(pos, 0);
+    block                                    = head - 1;
+    block->worldPoint.vy                     = (u16)SPRITE_QUAD_TRANSLATION_COMPONENT(pos, 1);
+    vz                                       = (u16)SPRITE_QUAD_TRANSLATION_COMPONENT(pos, 2);
+    block->worldPoint.vz                     = vz;
+    SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
+    vec                                      = &block->worldPoint;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(vec);
+    gte_rtps();
+    gte_stsxy(&(head - 1)->screenX);
+    gte_stflg(&(head - 1)->projectionFlags);
+    if (block->projectionFlags >= 0) {
+        gte_stszotz(&(head - 1)->depth);
+#if SPRITE_QUAD_INCREMENT_DEPTH
+        block->depth++;
+#endif
+#ifdef SPRITE_QUAD_MIN_OTZ
+        /* nearer than this the sprite is not drawn */
+        if (block->depth >= SPRITE_QUAD_MIN_OTZ)
+#endif
+        {
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyFT4(prim);
+            setSemiTrans(prim, 1);
+            setShadeTex(prim, 1);
+            prim->tpage = SPRITE_QUAD_TEXTURE_PAGE;
+            prim->clut  = SPRITE_QUAD_CLUT;
+#if defined(SPRITE_QUAD_UV_TABLE)
+            // Cell widths count texels; both square-cell endpoints are inclusive.
+            textureFrame = &(SPRITE_QUAD_UV_TABLE)[frame];
+            setUV4(prim, textureFrame->u, textureFrame->v, textureFrame->u + (SPRITE_QUAD_CELL_WIDTH - 1), textureFrame->v,
+                   textureFrame->u, textureFrame->v + (SPRITE_QUAD_CELL_WIDTH - 1),
+                   textureFrame->u + (SPRITE_QUAD_CELL_WIDTH - 1), textureFrame->v + (SPRITE_QUAD_CELL_WIDTH - 1));
+#else
+#if defined(SPRITE_QUAD_CELLS_PER_ROW)
+#ifdef SPRITE_QUAD_CELL_HEIGHT
+            u0 = (s16)(frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_WIDTH;
+#else
+            // Repeat the strip's column while keeping its texel rows fixed.
+            u0 = (frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_WIDTH;
+#endif
+#elif defined(SPRITE_QUAD_COLUMN_MASK)
+            // Wrap the column with low frame bits, including for signed negative frames.
+            u0 = (frame & (SPRITE_QUAD_COLUMN_MASK)) * SPRITE_QUAD_CELL_WIDTH;
+#else
+            u0 = frame * SPRITE_QUAD_CELL_WIDTH;
+#endif
+#ifdef SPRITE_QUAD_U_BASE
+            // Sign-extend the first cell's right endpoint; GPU U fields retain its low byte.
+            u1 = u0 + (s8)(SPRITE_QUAD_U_BASE + SPRITE_QUAD_CELL_WIDTH - 1);
+            u0 = u0 + SPRITE_QUAD_U_BASE;
+#else
+            u1 = u0 + (SPRITE_QUAD_CELL_WIDTH - 1);
+#endif
+#ifdef SPRITE_QUAD_CELL_HEIGHT
+            // Advance through grid rows; the column count is not a frame limit.
+            v0 = (s16)(frame / (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_HEIGHT;
+            // Add the signed first-row origin before the GPU V bytes wrap modulo 256.
+            setUV4(prim, u0, v0 + (SPRITE_QUAD_TOP_V), u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + (SPRITE_QUAD_TOP_V), u0, v0 + (SPRITE_QUAD_BOTTOM_V),
+                   u0 + (SPRITE_QUAD_CELL_WIDTH - 1), v0 + (SPRITE_QUAD_BOTTOM_V));
+#else
+            setUV4(prim, u0, (SPRITE_QUAD_TOP_V), u1, (SPRITE_QUAD_TOP_V), u0, (SPRITE_QUAD_BOTTOM_V), u1, (SPRITE_QUAD_BOTTOM_V));
+#endif
+#endif
+            // Rotate the perspective-scaled half-diagonal into two pairs of opposite corners.
+            block->extent.corner.x = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rsin(angle)) >> 12;
+            block->extent.corner.y = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rcos(angle)) >> 12;
+            prim->x0               = block->screenX + (u16)block->extent.corner.x;
+            prim->x3               = block->screenX - (u16)block->extent.corner.x;
+            prim->y0               = block->screenY - (u16)block->extent.corner.y;
+            prim->y3               = block->screenY + (u16)block->extent.corner.y;
+            ang2                   = angle + 0x400;
+            block->extent.corner.x = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rsin(ang2)) >> 12;
+            block->extent.corner.y = (((size * (SPRITE_QUAD_SCALE)) / block->depth) * rcos(ang2)) >> 12;
+            prim->x1               = block->screenX + (u16)block->extent.corner.x;
+            prim->x2               = block->screenX - (u16)block->extent.corner.x;
+            prim->y1               = block->screenY - (u16)block->extent.corner.y;
+            prim->y2               = block->screenY + (u16)block->extent.corner.y;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->depth),
+                    prim);
+        }
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
+}
+
+#undef SPRITE_QUAD_FUNC
+#undef SPRITE_QUAD_TEXTURE_PAGE
+#undef SPRITE_QUAD_CLUT
+#undef SPRITE_QUAD_CELL_WIDTH
+#undef SPRITE_QUAD_CELLS_PER_ROW
+#undef SPRITE_QUAD_TOP_V
+#undef SPRITE_QUAD_BOTTOM_V
+#undef SPRITE_QUAD_SCALE
+#undef SPRITE_QUAD_INCREMENT_DEPTH
+#undef SPRITE_QUAD_COLUMN_MASK
+#undef SPRITE_QUAD_U_BASE
+#undef SPRITE_QUAD_MIN_OTZ
+#undef SPRITE_QUAD_CELL_HEIGHT
+#undef SPRITE_QUAD_UV_TABLE

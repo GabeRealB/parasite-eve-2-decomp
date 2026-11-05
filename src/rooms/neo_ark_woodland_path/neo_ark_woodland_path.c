@@ -38,8 +38,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -905,7 +904,7 @@ WorldCollisionSurfaceProperties* gNeoArkWoodlandPathSurfaceProperties[8] = {
 static void _neoArkWoodlandPathInitRoomTask(Task* task);
 static void _neoArkWoodlandPathRoomIdleState(Task* task);
 
-#include "../../shared/effects/water.inc.c"
+#include "effects/water/water.inc.c"
 
 /// Refuses every key-item use with the item menu's cannot-use reply.
 ///

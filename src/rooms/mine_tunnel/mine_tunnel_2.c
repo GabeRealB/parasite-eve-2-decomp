@@ -36,7 +36,7 @@
 #include "engine/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static WorldCollisionGrid         _gMineTunnelCollisionGrid;
 static WorldCollisionOccluder     _gMineTunnelSightOccluders[3];
@@ -783,4 +783,4 @@ void mineTunnelDrawViewFlaresTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"

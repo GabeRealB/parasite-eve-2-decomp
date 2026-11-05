@@ -49,8 +49,6 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/dryfield_night_junk_yard.h"
 
 /// Selects the Zebra policy for this package's shared Stalker helpers.

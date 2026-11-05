@@ -1,3 +1,5 @@
+
+#include "actors/actor.h"
 #include "engine/random.h"
 
 /* Part of the Glutton library; see glutton.h. */
@@ -78,11 +80,11 @@ static void _gluttonSpinnerSpawn(Enemy* enemy, Task* task)
 /// its final read, with no intervening reservation or call that can reuse it.
 static inline s32 _gluttonSpinnerOutsideArrivalRadius(const SVECTOR* offset, const GluttonSpinnerWork* work)
 {
-    OverlayRangeScratch* rangeSquares;
-    OverlayRangeScratch* scratchEnd;
-    s16                  speed;
+    ActorRangeScratch* rangeSquares;
+    ActorRangeScratch* scratchEnd;
+    s16                speed;
 
-    scratchEnd   = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
+    scratchEnd   = SCRATCH_STACK_CURSOR(ActorRangeScratch);
     rangeSquares = scratchEnd - 1;
     _scratchStackSetCursor(rangeSquares);
     speed                 = work->chaseSpeed;

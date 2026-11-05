@@ -32,8 +32,6 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "../../shared/actor/actor_messages.h"
 #include "../../shared/walk/footstep_walk.h"
 

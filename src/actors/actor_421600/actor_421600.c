@@ -52,7 +52,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "actors/actor.h"
 
 #include "rooms/dryfield_water_tower.h"
 #include "../../shared/actor/limb_shadows.h"
@@ -737,7 +737,7 @@ static s32 _actor421600PushOutsideArenaCenter(GfxCoord* coord)
 /// radius 720. Its normalized direction is scaled to 700 and stored about
 /// (1000, 0), preserving the one-unit center difference. Y and rotation stay
 /// intact; a correction marks composition dirty. Requires scratch-stack room
-/// for one OverlayRangeScratch and changes GTE state.
+/// for one ActorRangeScratch and changes GTE state.
 static void _actor421600SnapToSouthArenaArc(GfxCoord* coord)
 {
     enum { ACTOR421600_SOUTH_ARC_X_MIN       = 501,

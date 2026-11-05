@@ -13,7 +13,6 @@ sha1 = "38907bf834ad9868165fe3ebdce7d50a36c14f98"
 [package]
 type = "pe2pkg"
 package_name = "energyball"
-required = true
 sha1 = "9070c875af873f2a65a2d11a45c68bb4bbc19c28"
 
 [impact_1]

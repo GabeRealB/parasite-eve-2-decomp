@@ -37,7 +37,7 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
+#include "screen/fade/fade.h"
 
 /// Work block of the package's cutscene controller, the task that starts the
 /// cutscene's event script and carries out the cues that script posts.

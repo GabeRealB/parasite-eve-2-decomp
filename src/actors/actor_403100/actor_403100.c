@@ -65,8 +65,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/dryfield_night_motel_balcony.h"
 #include "../../shared/actor/coord_math.h"
 

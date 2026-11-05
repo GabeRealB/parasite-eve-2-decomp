@@ -70,7 +70,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
@@ -154,7 +154,7 @@ GfxCoord _gShelterB6NurseryAmbienceOrigin;
 _ShelterB6NurseryEffectCues _gShelterB6NurseryEffectCues;
 
 #include "../../shared/room/telephone.h"
-#include "../../shared/effects/sprite_quad.h"
+#include "effects/sprite_quad/sprite_quad.h"
 
 static void _shelterB6NurseryInitializeRoomTask(Task* task);
 static void _shelterB6NurseryMessageIdle(Task* task);
@@ -1402,9 +1402,9 @@ void shelterB6NurseryViewEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_diamond.inc.c"
+#include "effects/glow/diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"
 
 void shelterB6NurseryDebrisChunkTask(Task* task)
 {
@@ -1827,7 +1827,7 @@ static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animat
 /// is the projected depth itself. Undefined omits the depth test. The next
 /// sprite-quad fragment clears the binding.
 #define SPRITE_QUAD_MIN_OTZ 0x41
-#include "../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 
 void shelterB6NurserySparkShowerShardTask(Task* task)
 {

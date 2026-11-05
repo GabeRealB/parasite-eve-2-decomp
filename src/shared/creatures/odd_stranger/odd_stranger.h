@@ -174,7 +174,7 @@
 
 #include "gameplay/message.h"
 #include "gameplay/player_actor.h"
-#include "overlay.h"
+#include "actors/actor.h"
 
 /// Uniform model-root scale for yaw rebuilds in both variants, with 12 fractional bits.
 enum { ODD_STRANGER_ROOT_SCALE = 0x1194 };
@@ -455,26 +455,26 @@ static void _oddStrangerPatrol(Task* task);
 ///
 /// `offset` and `radius` use the same model-coordinate units; Y is ignored.
 /// Signed halfwords are squared in s32, so a negative radius has the same
-/// result as its magnitude. Requires one free `OverlayRangeScratch` on the
+/// result as its magnitude. Requires one free `ActorRangeScratch` on the
 /// initialized scratch stack, restored before returning 0 or 1. The sum of
 /// the squared offsets must fit s32 (the two -32768 extremes together do not).
 static inline s32 _oddStrangerOutOfRange(const SVECTOR* offset, s16 radius)
 {
-    OverlayRangeScratch* savedCursor;
-    OverlayRangeScratch* scratch;
-    s32                  outside;
+    ActorRangeScratch* savedCursor;
+    ActorRangeScratch* scratch;
+    s32                outside;
 
-    savedCursor                               = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    scratch                                   = savedCursor - 1;
-    scratch->dx                               = offset->vx;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
-    scratch->dz                               = offset->vz;
-    scratch->radius                           = radius;
-    scratch->dx                              *= scratch->dx;
-    scratch->dz                              *= scratch->dz;
-    scratch->radius                          *= scratch->radius;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = savedCursor;
-    outside                                   = scratch->dx + scratch->dz >= scratch->radius;
+    savedCursor                             = SCRATCH_STACK_CURSOR(ActorRangeScratch);
+    scratch                                 = savedCursor - 1;
+    scratch->dx                             = offset->vx;
+    SCRATCH_STACK_CURSOR(ActorRangeScratch) = scratch;
+    scratch->dz                             = offset->vz;
+    scratch->radius                         = radius;
+    scratch->dx                            *= scratch->dx;
+    scratch->dz                            *= scratch->dz;
+    scratch->radius                        *= scratch->radius;
+    SCRATCH_STACK_CURSOR(ActorRangeScratch) = savedCursor;
+    outside                                 = scratch->dx + scratch->dz >= scratch->radius;
     return outside;
 }
 

@@ -1,0 +1,231 @@
+# The Parasite Energies: what each source builds and where it loads.
+
+
+# The effect drawing only the Parasite Energies share: no files of its own, its modules under it
+# (declarations/packages/pe/effects.toml).
+[effects]
+uid = "uid://1dy6aogmszlzl"
+template = "library"
+
+[pyrokinesis]
+uid = "uid://1op3jrqe78nmg"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+    { uid = "uid://18pegqpw6yd4j", path = "res://packages/effects/jet_cone.node" },
+    { uid = "uid://1k4y31vpnn0ne", path = "res://packages/pe/effects/pyro_flame.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+[pyrokinesis.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[combustion]
+uid = "uid://4cxnia2t2i36"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1k4y31vpnn0ne", path = "res://packages/pe/effects/pyro_flame.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+[combustion.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[inferno]
+uid = "uid://h83ua2bzfrjs"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+[inferno.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[necrosis]
+uid = "uid://8t0blcbgsaqt"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+[necrosis.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[plasma]
+uid = "uid://rxeii8cqsyl5"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+]
+
+[plasma.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[apobiosis]
+uid = "uid://1hy8mx4howi8t"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+    { uid = "uid://1wgc1w2tsxlku", path = "res://packages/pe/effects/strip.node" },
+]
+
+[apobiosis.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[metabolism]
+uid = "uid://1gj5vbbviifl"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+[metabolism.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[healing]
+uid = "uid://isuxu31glku3"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ecqdneak01ny", path = "res://packages/pe/effects/rising_spark.node" },
+]
+
+[healing.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[lifedrain]
+uid = "uid://zeo5kki4ygpp"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+    { uid = "uid://ecqdneak01ny", path = "res://packages/pe/effects/rising_spark.node" },
+]
+
+[lifedrain.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[antibody]
+uid = "uid://19xxnrl47qua6"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+    { uid = "uid://1wgc1w2tsxlku", path = "res://packages/pe/effects/strip.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+[antibody.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[energyshot]
+uid = "uid://pygs4vrcw7aw"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+]
+
+[energyshot.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[energyball]
+uid = "uid://1amlkgsa1czuu"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1cvvl3dl69thi", path = "res://packages/effects/ground_glow.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+[energyball.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"

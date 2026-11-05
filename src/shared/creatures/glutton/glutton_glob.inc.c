@@ -1,3 +1,5 @@
+
+#include "actors/actor.h"
 #include "engine/sound_ids.h"
 
 /* Part of the Glutton library; see glutton.h. */

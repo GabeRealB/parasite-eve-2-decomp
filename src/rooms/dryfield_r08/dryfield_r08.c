@@ -41,11 +41,11 @@
 
 #include "rooms/room_common.h"
 /// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
-/// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
+/// GTE flag word. Defined before `effects/glow/glow.h`, which otherwise selects
 /// `GlowCentreScratch`.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/effects/effect_sprite.h"
+#include "effects/glow/glow.h"
+#include "effects/effect_sprite/effect_sprite.h"
 
 static WorldCoordRoomLights _gDryfieldR08DefaultRoomLights;
 static WorldCoordRoomLights _gDryfieldR08AlternateRoomLights;
@@ -859,7 +859,7 @@ static inline void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* project
 #define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _dryfieldR08DrawAlternateDriftSprite
 /// Uses the banked drawer without the saved palette selector while sprite updates are suspended.
 ///
-/// Define as 1 before including `effect_sprite_drift.inc.c`; 0 or undefined
+/// Define as 1 before including `effects/effect_sprite/drift.inc.c`; 0 or undefined
 /// retains the usual drawer and palette selection. Dryfield R08 enables this
 /// override for every non-running effect-control value, including the final
 /// redraw before cancellation, regardless of the task's drawer state. The cell
@@ -867,7 +867,7 @@ static inline void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* project
 /// This takes precedence over `EFFECT_SPRITE_DRIFT_SIGN_BANK` for suspended draws
 /// and is undefined at the end of the fragment.
 #define EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED 1
-#include "../../shared/effects/effect_sprite_drift.inc.c"
+#include "effects/effect_sprite/drift.inc.c"
 
 /// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
 ///
@@ -1063,7 +1063,7 @@ static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 fram
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
 /// Initializes the colour gradient of a lamp-glow disc wedge or ray.
 ///

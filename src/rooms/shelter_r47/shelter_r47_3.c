@@ -43,13 +43,11 @@
 #include "engine/task_types.h"
 #include "engine/ui_types.h"
 
-#include "overlay.h"
-
 #include "rooms/shelter_b1_pod_service_gantry_light_types.h"
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 #include "../../shared/room/action_prompt.h"
 
@@ -2812,8 +2810,8 @@ void shelterR47DrawViewGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
-#include "../../shared/effects/glow_draw_diamond.inc.c"
+#include "effects/glow/diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"

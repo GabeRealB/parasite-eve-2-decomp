@@ -61,7 +61,7 @@
 #include "engine/wipsys_types.h"
 #include "engine/sound_ids.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 // The wave task and its persistent storage occupy separate translation units.
 /// Binds the heat-haze renderer to this overlay's writable borrowed-context slot.
 ///
@@ -90,9 +90,9 @@
 /// Keep this binding through the grid fragment and the overlay loaded through
 /// the final drawing tick. Only one wave may use this storage at a time.
 #define SCREEN_WAVE_ROW_OSCILLATORS (gScreenWaveRowWaves)
-#include "../../shared/screen/screen_wave.h"
+#include "screen/wave/wave.h"
 #include "../../shared/actor/actor_messages.h"
-#include "../../shared/effects/incinerator_blaze.h"
+#include "effects/incinerator_blaze/incinerator_blaze.h"
 
 /// Lift task state selected by the actor event to begin the carried move.
 enum { SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_CARRY_ACTOR = 5 };
@@ -1255,9 +1255,9 @@ static s32 _shelterB3GarbageIncineratorHandleLiftActorEvent(Task* task, s32 unus
     // The binary falls through without defining a return value.
 }
 
-#include "../../shared/screen/screen_wave_grid.inc.c"
+#include "screen/wave/grid.inc.c"
 
-#include "../../shared/effects/incinerator_blaze_fade.inc.c"
+#include "effects/incinerator_blaze/fade.inc.c"
 
 /// Sends a blended, collision-disabled animation to the burn controller's player.
 ///
@@ -1314,7 +1314,7 @@ static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task)
     goto idleReturn;
 }
 
-#include "../../shared/effects/incinerator_blaze_body_fire.inc.c"
+#include "effects/incinerator_blaze/body_fire.inc.c"
 
 /// Copies the terminated scene-clip table into the player's writable extension bank.
 ///

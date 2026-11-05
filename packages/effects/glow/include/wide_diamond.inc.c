@@ -1,0 +1,103 @@
+/* Part of the glow drawing library; see glow.h. */
+
+/// Takes one half of a diamond from the packet arena, cyan at its center and black at the rim.
+static inline POLY_G4* _glowAllocateWideDiamondHalf(s32 cyanIntensity)
+{
+    POLY_G4* diamondHalf;
+
+    diamondHalf    = gGpuPrimCursor;
+    gGpuPrimCursor = diamondHalf + 1;
+    setPolyG4(diamondHalf);
+    setRGB0(diamondHalf, 0, 0, 0);
+    setRGB1(diamondHalf, 0, 0, 0);
+    setRGB2(diamondHalf, 0, cyanIntensity, cyanIntensity);
+    setRGB3(diamondHalf, 0, 0, 0);
+    return diamondHalf;
+}
+
+/// Draws a pulsing cyan diamond around a world point with two diagonal streaks, as `_glowDrawDiamond` but half again as
+/// large.
+static void _glowDrawWideDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale)
+{
+    enum {
+        GLOW_WIDE_DIAMOND_PULSE_DIVISOR = 34,
+        GLOW_WIDE_DIAMOND_CYAN_BASE     = 120,
+        GLOW_WIDE_DIAMOND_RADIUS_SCALE  = 48,
+    };
+
+    GlowCentreScratch* previousTop;
+    GlowCentreScratch* block;
+    POLY_G4*           prim;
+    LINE_G3*           line;
+    s32                pulseSine;
+    s32                cyanIntensity;
+    s32                screenRadius;
+    s32                partIndex;
+    s32                xRadiusMultiple;
+    s32                yRadiusMultiple;
+    s32                verticalSide;
+    u16                screenX;
+    u16                screenY;
+
+    previousTop = SCRATCH_STACK_CURSOR(GlowCentreScratch);
+    block       = (SCRATCH_STACK_CURSOR(GlowCentreScratch) = previousTop - 1);
+
+    // Project once; all four packets share the resulting centre and depth.
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_ldv0(worldPoint);
+    gte_rtps();
+    gte_stsxy(&previousTop[-1].sx);
+    gte_stflg(&previousTop[-1].flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        pulseSine     = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        screenRadius  = ((s16)radiusScale * GLOW_WIDE_DIAMOND_RADIUS_SCALE) / previousTop[-1].otz;
+        partIndex     = 0;
+        cyanIntensity = pulseSine / GLOW_WIDE_DIAMOND_PULSE_DIVISOR + GLOW_WIDE_DIAMOND_CYAN_BASE;
+        block->radius = screenRadius;
+        // Fill the diamond with two centre-lit halves.
+        do {
+            prim         = _glowAllocateWideDiamondHalf(cyanIntensity);
+            prim->x0     = block->sx - (u16)block->radius;
+            screenX      = block->sx;
+            prim->x2     = screenX;
+            prim->x1     = screenX;
+            prim->x3     = block->sx + (u16)block->radius;
+            screenY      = block->sy;
+            prim->y3     = screenY;
+            prim->y2     = screenY;
+            prim->y0     = screenY;
+            verticalSide = partIndex * 2;
+            prim->y1     = (block->sy - (u16)block->radius) + (block->radius * verticalSide);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
+                    prim);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+            partIndex++;
+        } while (partIndex < 2);
+
+        // Overlay two diagonal rays through the same lit centre.
+        partIndex = 0;
+        do {
+            line           = gGpuPrimCursor;
+            gGpuPrimCursor = line + 1;
+            setLineG3(line);
+            setRGB0(line, 0, 0, 0);
+            setRGB1(line, 0, cyanIntensity, cyanIntensity);
+            setRGB2(line, 0, 0, 0);
+            xRadiusMultiple = partIndex * 3 - 1;
+            yRadiusMultiple = partIndex + 1;
+            line->x0        = block->sx + (block->radius * xRadiusMultiple);
+            line->y0        = block->sy - (block->radius * yRadiusMultiple);
+            line->x1        = block->sx;
+            line->y1        = block->sy;
+            line->x2        = block->sx - (block->radius * xRadiusMultiple);
+            line->y2        = block->sy + (block->radius * yRadiusMultiple);
+            addPrim((&gGpuCurrentOt[((u32)block->otz << gDisplayState.otDepthShift) >> 4 & (GPU_ORDERING_TABLE_DEPTH_BYTE_MASK >> 2)]),
+                    line);
+            gpuSetPrimitiveBlendMode(line, GPU_BLEND_ADD, block->otz);
+            partIndex = yRadiusMultiple;
+        } while (partIndex < 2);
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
+}

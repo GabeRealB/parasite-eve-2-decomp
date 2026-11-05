@@ -60,8 +60,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 
 #include "assets/engine/animation/player_schema.h"
@@ -78,7 +76,7 @@
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #include "../../shared/room/action_prompt.h"
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// Motion, fade and texture units of the breezeway's bouncing sprite particle.
 enum {
@@ -1549,7 +1547,7 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
 /// `halfIntensity` is already halved, normally 0..120; stores retain its low
 /// byte. Arguments must have no side effects: `primitive` is evaluated three
 /// times and `halfIntensity` once. Use as a statement. Requires `setRGB2` from
-/// `psyq/libgpu.h`. Define before including `glow_draw_ray_star.inc.c`, which
+/// `psyq/libgpu.h`. Define before including `effects/glow/ray_star.inc.c`, which
 /// undefines this binding afterwards.
 #define GLOW_DRAW_RAY_STAR_OUTER(primitive, halfIntensity) (setRGB2((primitive), (halfIntensity), 0, 0))
 /// Sets the inner ray-star disc's centre to pulsing red.
@@ -1559,7 +1557,7 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
 /// side effects: `primitive` is evaluated three times, `intensity` once,
 /// and `halfIntensity` is unused and unevaluated. Use as a statement.
 /// Requires `setRGB2` from `psyq/libgpu.h`. Define before including
-/// `glow_draw_ray_star.inc.c`, which undefines this binding afterwards.
+/// `effects/glow/ray_star.inc.c`, which undefines this binding afterwards.
 #define GLOW_DRAW_RAY_STAR_INNER(primitive, intensity, halfIntensity) (setRGB2((primitive), (intensity), 0, 0))
 /// Sets the ray-star rays' centres to half-intensity red.
 ///
@@ -1568,7 +1566,7 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
 /// blue are zero. Stores retain the intensity's low byte. Arguments must have
 /// no side effects: `primitive` is evaluated three times and `halfIntensity`
 /// once. Use as a statement. Requires `setRGB2` from `psyq/libgpu.h`.
-/// Define before including `glow_draw_ray_star.inc.c`, which undefines this
+/// Define before including `effects/glow/ray_star.inc.c`, which undefines this
 /// binding afterwards.
 #define GLOW_DRAW_RAY_STAR_RAY(primitive, halfIntensity) (setRGB2((primitive), (halfIntensity), 0, 0))
 /// Uses the unsigned low halfword of the disc's half intensity for red rays.
@@ -1576,7 +1574,7 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
 /// Bind 0 or 1 before the ray-star fragment; undefined means 0. This branch
 /// applies only without early signed halving. The fragment clears the binding.
 #define GLOW_DRAW_RAY_STAR_UNSIGNED_RAY_INTENSITY 1
-#include "../../shared/effects/glow_draw_ray_star.inc.c"
+#include "effects/glow/ray_star.inc.c"
 
 void dryfieldBreezewayBouncingParticleTask(Task* task)
 {

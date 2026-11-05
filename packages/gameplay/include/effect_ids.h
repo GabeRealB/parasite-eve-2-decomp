@@ -706,7 +706,7 @@ enum {
     /// _waterDrawSplash; stored in gRoomEffectWaterRippleId, which wading actors (companion, enemies)
     /// spawn at the water surface.
     EFFECT_DRYFIELD_WATER_HOLE_WATER_RIPPLE = TASK_ID(TASK_BANK_EFFECT, 0x0FD),
-    /// The dryfield_water_hole instance of the water library's `_waterDriftTaskU16`:
+    /// The dryfield_water_hole instance of the water library's `_waterDriftTask` with `WATER_DRIFT_U16`:
     /// a water-library drift particle: a fixed-angle rotated (or upright)
     /// animated sprite thrown by the kind in spawnArg bits 24-27, falling under
     /// gravity, released after frame 7; the room stores it in slot gRoomEffectWaterSprayId, read
@@ -720,7 +720,7 @@ enum {
     /// water-dwelling actors (actor_01100, actor_400600, actor_401300, actor_800100)
     /// spawn.
     EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_RIPPLE = TASK_ID(TASK_BANK_EFFECT, 0x0FF),
-    /// Water particle (`_waterDriftTaskU16`) drawn at a fixed random angle or upright, thrown
+    /// Water particle (`_waterDriftTask` with `WATER_DRIFT_U16`) drawn at a fixed random angle or upright, thrown
     /// with a velocity under gravity; stored in gRoomEffectWaterSprayId, which several actors spawn
     /// as splash drops.
     EFFECT_DRYFIELD_NIGHT_WATER_HOLE_WATER_SPRAY = TASK_ID(TASK_BANK_EFFECT, 0x11F),
@@ -747,7 +747,7 @@ enum {
     /// water ripples.
     EFFECT_SHELTER_B4_LOWER_SEWER_WATER_RIPPLE = TASK_ID(TASK_BANK_EFFECT, 0x16E),
     /// shelter_b4_lower_sewer's copy of the shared water droplet sprite particle
-    /// (`_waterDriftTaskU16`): fixed-angle rotated or upright sprite thrown by a velocity kind,
+    /// (`_waterDriftTask` with `WATER_DRIFT_U16`): fixed-angle rotated or upright sprite thrown by a velocity kind,
     /// pulled down by gravity; the room stores it in gRoomEffectWaterSprayId (water-spray slot).
     EFFECT_SHELTER_B4_LOWER_SEWER_WATER_SPRAY = TASK_ID(TASK_BANK_EFFECT, 0x16F),
     /// shelter_b4_upper_sewer's water ripple: a growing, fading quad drawn by
@@ -859,7 +859,7 @@ enum {
     /// screen fade flash and the 0x6018F ring wall; spawned by actor_503500's enemy
     /// spawn handler.
     EFFECT_SHELTER_R48_RING_FLASH_YELLOW = TASK_ID(TASK_BANK_EFFECT, 0x18A),
-    /// Water-library drift particle (`_waterDriftTaskU16`: fixed-angle rotated/upright animated
+    /// Water-library drift particle (`_waterDriftTask` with `WATER_DRIFT_U16`: fixed-angle rotated/upright animated
     /// sprite thrown by kind bits, falling under gravity) used by the R48 burst
     /// controller 0x60189 in its staged bursts.
     EFFECT_SHELTER_R48_SPRAY = TASK_ID(TASK_BANK_EFFECT, 0x18B),
@@ -889,7 +889,7 @@ enum {
     /// water ripples.
     EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_RIPPLE = TASK_ID(TASK_BANK_EFFECT, 0x193),
     /// neo_ark_submarine_gallery's copy of the shared water droplet sprite particle
-    /// (`_waterDriftTaskU16`): fixed-angle rotated or upright sprite thrown by a velocity kind,
+    /// (`_waterDriftTask` with `WATER_DRIFT_U16`): fixed-angle rotated or upright sprite thrown by a velocity kind,
     /// pulled down by gravity; the room stores it in gRoomEffectWaterSprayId (water-spray slot).
     EFFECT_NEO_ARK_SUBMARINE_GALLERY_WATER_SPRAY = TASK_ID(TASK_BANK_EFFECT, 0x194),
     /// Shelter r48 pink/red charge: rings and two arcs for 30 ticks, then a screen fade
@@ -1002,7 +1002,7 @@ enum {
     /// Mist shooting gallery muzzle-flash/tracer beam with glow toward a random
     /// endpoint, fading out; spawned when a gallery target attacks.
     EFFECT_MIST_GALLERY_TRACER = TASK_ID(TASK_BANK_EFFECT, 0x1BD),
-    /// The shelter_b1_pod_service_gantry instance of the water library's `_waterDriftTaskU16`:
+    /// The shelter_b1_pod_service_gantry instance of the water library's `_waterDriftTask` with `WATER_DRIFT_U16`:
     /// a water-library drift particle: a fixed-angle rotated (or upright)
     /// animated sprite thrown by the kind in spawnArg bits 24-27, falling under
     /// gravity, released after frame 7; the room stores it in slot gRoomEffectWaterSprayId, read

@@ -56,8 +56,6 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/actor/actor_messages.h"

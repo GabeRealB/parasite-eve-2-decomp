@@ -43,8 +43,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "stages/akropolis/rooms/fire_escape.h"
 
 #include "assets/enemies/stranger/lesser/schema.h"

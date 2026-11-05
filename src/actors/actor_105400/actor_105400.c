@@ -43,8 +43,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/neo_ark_power_plant_1.h"
 
 #include "rooms/neo_ark_power_plant_2.h"

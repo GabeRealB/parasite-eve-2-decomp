@@ -65,7 +65,7 @@
 #define ROOM_EVENT_FADE gRoomEventFade
 #include "../../shared/room/room_events.h"
 #include "../../shared/room/room_variants.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/streamed_scene.h"
 
 extern ScreenFade       gRoomEventFade;
@@ -766,7 +766,7 @@ static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_factor_disc.inc.c"
+#include "effects/glow/factor_disc.inc.c"
 
 void shelter1fBulwarkDrawGlowsTask(Task* task)
 {

@@ -1,0 +1,53 @@
+# The items cast like a Parasite Energy - the flare, the pepper spray and the combat light: what each source builds and
+# where it loads, the Parasite Energies' slot.
+
+[flare]
+uid = "uid://19rsccrsbnj46"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+[flare.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[pepper_spray]
+uid = "uid://52hf1ey699bj"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+[pepper_spray.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"
+
+[combat_light]
+uid = "uid://1282tn2n9bdoe"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ek1hbppku3fb", path = "res://packages/effects/flagged_quad.node" },
+]
+
+[combat_light.target.psx]
+slot = "overlay"
+link_script = "psx/link.ld"

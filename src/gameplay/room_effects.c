@@ -39,35 +39,35 @@
 #include "engine/task.h"
 #include "engine/wipsys.h"
 
-#include "pe/antibody.h"
+#include "pe/antibody/antibody.h"
 
-#include "pe/apobiosis.h"
+#include "pe/apobiosis/apobiosis.h"
 
-#include "pe/combat_light.h"
+#include "combat_light/combat_light.h"
 
-#include "pe/combustion.h"
+#include "pe/combustion/combustion.h"
 
-#include "pe/energyball.h"
+#include "pe/energyball/energyball.h"
 
-#include "pe/energyshot.h"
+#include "pe/energyshot/energyshot.h"
 
-#include "pe/flare.h"
+#include "flare/flare.h"
 
-#include "pe/healing.h"
+#include "pe/healing/healing.h"
 
-#include "pe/inferno.h"
+#include "pe/inferno/inferno.h"
 
-#include "pe/lifedrain.h"
+#include "pe/lifedrain/lifedrain.h"
 
-#include "pe/metabolism.h"
+#include "pe/metabolism/metabolism.h"
 
-#include "pe/necrosis.h"
+#include "pe/necrosis/necrosis.h"
 
-#include "pe/pepper_spray.h"
+#include "pepper_spray/pepper_spray.h"
 
-#include "pe/plasma.h"
+#include "pe/plasma/plasma.h"
 
-#include "pe/pyrokinesis.h"
+#include "pe/pyrokinesis/pyrokinesis.h"
 
 #include "stages/akropolis/rooms/bridge.h"
 

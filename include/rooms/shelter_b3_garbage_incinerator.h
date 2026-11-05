@@ -2,7 +2,7 @@
 #define INCLUDE_ROOMS_SHELTER_B3_GARBAGE_INCINERATOR_H
 
 #include "types.h"
-#include "overlay.h"
+#include "../../src/shared/room/encounter.h"
 
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
@@ -18,7 +18,7 @@
 /// Command spot indices must be 0..15: Mad Chaser reads bits 8..11, while Slouch
 /// and Sucklerceph use the full high byte. XYZ use world game units; headings
 /// use 4096 units per turn. The table is borrowed while this room overlay is loaded.
-extern OverlayEncounterSpot gShelterB3GarbageIncineratorEncounterSpots[16];
+extern EncounterSpot gShelterB3GarbageIncineratorEncounterSpots[16];
 
 /// Values stored in the room-owned door-event suspension latch.
 enum {

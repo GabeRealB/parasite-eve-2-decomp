@@ -118,7 +118,7 @@ enum {
 /// The player's scripted half turn: its length in ticks.
 enum { AKROPOLIS_PATIO_PLAYER_TURN_TICKS = 16 };
 
-/// The light glows: the spawn argument's fields (anchor, sheet cell, size), and the sheet (glow_draw.h's flare page).
+/// The light glows: the spawn argument's fields (anchor, sheet cell, size), and the sheet (effects/glow/glow.h's flare page).
 enum {
     AKROPOLIS_PATIO_LIGHT_GLOW_ANCHOR_MASK   = 0xF,
     AKROPOLIS_PATIO_LIGHT_GLOW_CELL_SHIFT    = 8,

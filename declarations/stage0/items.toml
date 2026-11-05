@@ -4,7 +4,7 @@
 uid = "uid://ppi9n3iftdf8"
 template = "file"
 slots = [
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://ii1p2nhzy6k9", path = "res://packages/options.node" } },
 ]
 
 [options.from.USA]
@@ -836,7 +836,7 @@ chunks = { font_image = "be2e0e8b8369be9d2a7889b0335a6ee579de630c", dialogue_pal
 uid = "uid://n04zmney194w"
 template = "file"
 slots = [
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1gpmnmo23072s", path = "res://packages/stub_20200.node" } },
 ]
 
 [stub_20200.from.USA]
@@ -4618,7 +4618,7 @@ chunks = { palette = "05199d5d78699cb95c851f3090e8fa7a334a1614", image = "f9b1c8
 uid = "uid://gahlbypbge93"
 template = "file"
 slots = [
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://4my69ltzmimt", path = "res://packages/debug/enemy_names.node" } },
 ]
 
 [nmc_names.from.USA]

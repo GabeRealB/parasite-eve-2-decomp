@@ -24,7 +24,7 @@
 #include "engine/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 
 static s32 _dryfieldNightMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
@@ -107,4 +107,4 @@ void dryfieldNightMotelRoom1RoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
+#include "effects/glow/flare_clipped.inc.c"

@@ -45,13 +45,13 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "screen/fade/fade.h"
+#include "screen/wave/wave.h"
 
 #include "rooms/dryfield_r08.h"
-#include "../../shared/screen/screen_wave.h"
+#include "screen/wave/wave.h"
 #include "../../shared/actor/actor_messages.h"
-#include "../../shared/screen/screen_fade.h"
-#include "../../shared/screen/screen_fade_step_up.inc.c"
+#include "screen/fade/fade.h"
 
 #include "assets/engine/animation/player_schema.h"
 
@@ -726,9 +726,7 @@ static inline void _actor121300SetDebrisSpeed(s32 speedPercent);
 static void        _actor121300RunSceneStep(Task* task);
 static void        _actor121300InitBody(Task* task);
 
-#include "../../shared/screen/screen_wave.inc.c"
-
-#include "../../shared/screen/screen_fade_step_down.inc.c"
+#include "screen/wave/wave.inc.c"
 
 /// Reveals the streamed scene after three black updates, enabling output on the third.
 ///

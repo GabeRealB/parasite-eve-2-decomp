@@ -56,7 +56,7 @@
 /// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
@@ -1036,7 +1036,7 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_flare_local.inc.c"
+#include "effects/glow/flare_local.inc.c"
 
 /// Selects the day saloon's local shaft roots and guides for glow drawing.
 ///
@@ -1046,9 +1046,9 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
 /// of the drawer's `coord`. Tips extend each root-to-guide offset fourfold.
 /// The expression is expanded repeatedly and must be stable and free of side
 /// effects. Drawing leaves the table unchanged; it must stay live for each call.
-/// Bind around `glow_draw_twin_shafts.inc.c` and undefine after inclusion.
+/// Bind around `effects/glow/twin_shafts.inc.c` and undefine after inclusion.
 #define GLOW_TWIN_SHAFT_POINTS (_gDryfieldSaloonGREffectPoints)
-#include "../../shared/effects/glow_draw_twin_shafts.inc.c"
+#include "effects/glow/twin_shafts.inc.c"
 #undef GLOW_TWIN_SHAFT_POINTS
 
-#include "../../shared/effects/glow_draw_tapered_beam.inc.c"
+#include "effects/glow/tapered_beam.inc.c"

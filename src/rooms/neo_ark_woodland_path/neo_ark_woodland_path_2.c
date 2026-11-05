@@ -42,11 +42,11 @@
 #include "engine/task.h"
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
-/// Empty presence flag so `water_effects.h` declares the shared
+/// Empty presence flag so `effects/water/water.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/effects/water_effects.h"
-#include "../../shared/effects/falling_leaves.h"
+#include "effects/water/water.h"
+#include "effects/falling_leaves/falling_leaves.h"
 #include "../../shared/room/roaming_enemies.h"
 
 static void _roamerArmPoolB(Task* task);
@@ -370,32 +370,33 @@ void neoArkWoodlandPathPlayerWaterSplashTask(Task* task)
 #undef ABS_DIFF
 }
 
-#include "../../shared/effects/falling_leaves_task.inc.c"
+#include "effects/falling_leaves/task.inc.c"
 
 void neoArkWoodlandPathLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../shared/effects/falling_leaves_draw_neo_ark.inc.c"
+#include "effects/falling_leaves/draw_neo_ark.inc.c"
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void neoArkWoodlandPathWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_drift_task_u16.inc.c"
+#define WATER_DRIFT_U16
+#include "effects/water/drift_task.inc.c"
 
 void neoArkWoodlandPathWaterDriftTaskU16(Task* task)
 {
-    _waterDriftTaskU16(task);
+    _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin_u16.inc.c"
+#include "effects/water/spin_u16.inc.c"
 
 #include "../../shared/room/roaming_enemies_bank_retreat.inc.c"
 

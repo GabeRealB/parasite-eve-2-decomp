@@ -59,7 +59,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
@@ -947,7 +947,7 @@ void mineRefugeRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 /// Initializes the packet header and centre-to-rim colors of a Gouraud glow quad.
 ///

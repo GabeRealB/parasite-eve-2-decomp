@@ -44,8 +44,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 /// Values of `_Actor207200CreepingStrangerWork::state`.
 enum {
     ACTOR_207200_STATE_DORMANT     = 0, // idles until the player comes near or the room alerts its enemies; a headless body only rests here between recoils

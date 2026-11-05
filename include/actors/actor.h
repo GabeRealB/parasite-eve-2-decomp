@@ -36,7 +36,49 @@
 #include "engine/tmd_types.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+/// Scratch-stack block of a radius test on the XZ plane.
+///
+/// A test stages a horizontal offset and the radius it is measured against,
+/// squares all three members in place, and reports whether `dx + dz` has
+/// reached `radius`, so the distance itself is never computed. The offset
+/// comes from `SVECTOR` components, so each square fits the member it
+/// replaces. The block is released before the comparison reads it back;
+/// nothing else may reserve scratch between the two.
+typedef struct {
+    s32 dx;     // X offset, then its square
+    s32 dz;     // Z offset, then its square
+    s32 radius; // Radius the offset is tested against, then its square
+} ActorRangeScratch;
+STATIC_ASSERT_SIZEOF(ActorRangeScratch, 0xC);
+
+/// Returns 1 when the horizontal offset reaches or exceeds the radius, else 0.
+///
+/// `offset` and `radius` use the same game-coordinate units; Y and `pad` are
+/// ignored, and the offset is unchanged. The signed 16-bit radius is squared,
+/// so its sign does not affect the result. The squared X/Z sum must fit s32;
+/// the pair (-32768, -32768) is outside that contract.
+///
+/// Requires an initialized scratch-stack cursor and one free, word-aligned
+/// `ActorRangeScratch` below it, separate from `offset`. Restores the cursor
+/// before returning; the temporary block's contents remain until reused.
+static inline s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius)
+{
+    ActorRangeScratch* savedCursor;
+    ActorRangeScratch* scratch;
+
+    savedCursor                             = SCRATCH_STACK_CURSOR(ActorRangeScratch);
+    scratch                                 = savedCursor - 1;
+    scratch->dx                             = offset->vx;
+    scratch->dz                             = offset->vz;
+    scratch->radius                         = radius;
+    scratch->dx                            *= scratch->dx;
+    SCRATCH_STACK_CURSOR(ActorRangeScratch) = scratch;
+    scratch->dz                            *= scratch->dz;
+    scratch->radius                        *= scratch->radius;
+    SCRATCH_STACK_CURSOR(ActorRangeScratch) = savedCursor;
+    // Read the released block before any other reservation can reuse it.
+    return scratch->dx + scratch->dz >= scratch->radius;
+}
 
 /// Scratch-stack block of an actor's push out of its world contacts.
 ///
@@ -1743,18 +1785,18 @@ static inline s16 _actorContactSelectAxisPushback(s16 gridPushback, s16 objectPu
 /// scratch block pushed and popped around the test.
 static inline s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 {
-    OverlayRangeScratch* head;
-    OverlayRangeScratch* scratch;
-    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    scratch                                   = head - 1;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
-    scratch->dx                               = pos->vx;
-    scratch->dz                               = pos->vz;
-    scratch->radius                           = radius;
-    scratch->dx                              *= scratch->dx;
-    scratch->dz                              *= scratch->dz;
-    scratch->radius                          *= scratch->radius;
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayRangeScratch);
+    ActorRangeScratch* head;
+    ActorRangeScratch* scratch;
+    head                                    = SCRATCH_STACK_CURSOR(ActorRangeScratch);
+    scratch                                 = head - 1;
+    SCRATCH_STACK_CURSOR(ActorRangeScratch) = scratch;
+    scratch->dx                             = pos->vx;
+    scratch->dz                             = pos->vz;
+    scratch->radius                         = radius;
+    scratch->dx                            *= scratch->dx;
+    scratch->dz                            *= scratch->dz;
+    scratch->radius                        *= scratch->radius;
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRangeScratch);
     return scratch->dx + scratch->dz >= scratch->radius;
 }
 

@@ -40,8 +40,6 @@
 #include "engine/ui.h"
 #include "engine/ui_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"

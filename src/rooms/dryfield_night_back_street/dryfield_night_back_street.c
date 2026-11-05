@@ -51,11 +51,9 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/back_street.h"
 
 // World-radius inputs to the flare and shaft projection formulas.
@@ -710,9 +708,9 @@ void dryfieldNightBackStreetDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_shaft.inc.c"
+#include "effects/glow/shaft.inc.c"
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

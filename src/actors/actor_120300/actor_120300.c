@@ -44,10 +44,8 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/dryfield_garage.h"
-#include "../../shared/screen/screen_fade.h"
+#include "screen/fade/fade.h"
 #include "../../shared/actor/actor_messages.h"
 
 #include "assets/engine/animation/player_schema.h"
@@ -1506,7 +1504,7 @@ static void _actor120300BodyTask(Task* task)
     ScaleMatrix(model->colorMtx, &scratch.draw.lightSample);
 }
 
-#include "../../shared/screen/screen_fade_out.inc.c"
+#include "screen/fade/out.inc.c"
 
 /// Enables or suppresses active drawing of the receiving body, head or rifle model.
 ///

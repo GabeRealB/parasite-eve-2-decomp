@@ -42,7 +42,7 @@
 #include "weapons/weapon.h"
 #include "weapons/sounds.h"
 
-#include "overlay.h"
+#include "effects/glow/glow.h"
 #include "types.h"
 
 /// Read-only XYZ translation words from the launch sprite's `GfxCoord::workm.t`.
@@ -58,7 +58,7 @@
 #define SPRITE_QUAD_TRANSLATION_COMPONENT(source, componentIndex) ((source)[(componentIndex)])
 /// Signed texture-frame index for the eight-frame launch sprite.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/effects/sprite_quad.h"
+#include "effects/sprite_quad/sprite_quad.h"
 #include "../shared/attack.h"
 
 /// Scratch-stack block for projecting the two ends of one flare line.
@@ -415,21 +415,21 @@ void m4a1JavelinGuideBeamTask(Task* task)
 /// remain in the current primitive heap and ordering table until GPU completion.
 static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444)
 {
-    OverlayPointPairScratch* scratch;
-    LINE_F2*                 line;
-    POLY_G4*                 quad;
-    s32                      wedgeAngle;
-    s32                      farCornerAngle;
-    s32                      nearCornerAngle;
-    s32                      stripAngle;
-    s32                      flickerBias;
-    u32                      expandedRgb444;
-    u8                       red;
-    u8                       green;
-    u8                       blue;
-    u16                      beamAngle;
+    GlowFlaggedPointPairScratch* scratch;
+    LINE_F2*                     line;
+    POLY_G4*                     quad;
+    s32                          wedgeAngle;
+    s32                          farCornerAngle;
+    s32                          nearCornerAngle;
+    s32                          stripAngle;
+    s32                          flickerBias;
+    u32                          expandedRgb444;
+    u8                           red;
+    u8                           green;
+    u8                           blue;
+    u16                          beamAngle;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(GlowFlaggedPointPairScratch);
 
     // Project both endpoints before emitting GPU packets.
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -535,7 +535,7 @@ static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR*
     } else {
         _gM4a1JavelinBeamAngleRefreshPending = true;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GlowFlaggedPointPairScratch));
 }
 
 /// Draws the additive ground glow between adjacent beam collision points.
@@ -548,18 +548,18 @@ static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR*
 /// Reserves/releases one scratch block and appends packets to the current heap.
 static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444)
 {
-    OverlayPointPairScratch* scratch;
-    LINE_F2*                 line;
-    POLY_G4*                 quad;
-    u32                      flickerBias;
-    u32                      expandedRgb444;
-    u8                       red;
-    u8                       green;
-    u8                       blue;
-    u16                      beamAngle;
-    s32                      wedgeAngle;
+    GlowFlaggedPointPairScratch* scratch;
+    LINE_F2*                     line;
+    POLY_G4*                     quad;
+    u32                          flickerBias;
+    u32                          expandedRgb444;
+    u8                           red;
+    u8                           green;
+    u8                           blue;
+    u16                          beamAngle;
+    s32                          wedgeAngle;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(GlowFlaggedPointPairScratch);
 
     // Project both endpoints before emitting GPU packets.
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -655,7 +655,7 @@ static void _m4a1JavelinDrawGroundBeamSegment(const SVECTOR* nearPoint, const SV
     } else {
         _gM4a1JavelinGroundBeamAngleRefreshPending = true;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(OverlayPointPairScratch));
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GlowFlaggedPointPairScratch));
 }
 
 #undef M4A1_JAVELIN_ALLOCATE_BEAM_QUAD
@@ -722,7 +722,7 @@ static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SV
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 
 #include "assets/engine/animation/player_schema.h"
 

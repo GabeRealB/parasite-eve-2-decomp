@@ -42,7 +42,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static void _dryfieldNightWarehouseInitRoomTask(Task* task);
 static void _dryfieldNightWarehouseRoomIdle(Task* task);
@@ -587,7 +587,7 @@ void dryfieldNightWarehouseRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_prism.inc.c"
+#include "effects/glow/prism.inc.c"
 
 /// Draws a rotating, pulsing light beam between two circular local-space rings.
 ///

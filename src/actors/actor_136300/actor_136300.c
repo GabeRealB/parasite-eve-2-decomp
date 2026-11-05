@@ -37,10 +37,10 @@
 #include "engine/task.h"
 #include "engine/task_types.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 
 #include "rooms/dryfield_night_garage.h"
-#include "../../shared/screen/screen_wave.h"
+#include "screen/wave/wave.h"
 
 static s32 _gScreenWaveAmplitude;
 
@@ -1035,7 +1035,7 @@ static ScreenWaveOscillator _gScreenWaveRowWaves[32] = { 0 };
 /// borrow the context at a time, and it is reused for subsequent starts.
 static ScreenWaveCtx _gActor136300ScreenWaveSpawnContext = { 0 };
 
-#include "../../shared/screen/screen_wave.inc.c"
+#include "screen/wave/wave.inc.c"
 
 /// Runs the garage departure dialogue, movie and handoff to Mine Mesa.
 ///

@@ -34,7 +34,7 @@
 #include "engine/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
@@ -794,8 +794,10 @@ void shelterB1ArmoryDrawGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_beam.inc.c"
+#include "effects/glow/beam.inc.c"
 
-#include "../../shared/effects/glow_draw_bit_disc.inc.c"
+#define GLOW_FACTOR_DISC_FUNC _glowDrawBitDisc
+#define GLOW_FACTOR_DISC_BITS 1
+#include "effects/glow/factor_disc.inc.c"
 
-#include "../../shared/effects/glow_draw_tinted_disc.inc.c"
+#include "effects/glow/tinted_disc.inc.c"

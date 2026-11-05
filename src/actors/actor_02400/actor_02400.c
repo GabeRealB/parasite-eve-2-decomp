@@ -56,8 +56,7 @@
 
 #include "rooms/room_visual_effects.h"
 
-#include "overlay.h"
-#include "../../shared/effects/fireball.h"
+#include "effects/fireball/fireball.h"
 
 /// Behaviours of the main body, in `_Actor02400Work::mode`.
 enum {
@@ -385,7 +384,7 @@ static void _actor02400ResolveBodyContacts(Task* task);
 static void _actor02400UpdateCrawl(Task* task);
 static void _actor02400UpdateCast(Task* task);
 
-#include "../../shared/effects/fireball.inc.c"
+#include "effects/fireball/fireball.inc.c"
 
 /// Amoeba body task callbacks, indexed by task state (0 spawn, 1 active, 2 death).
 ///
@@ -1586,7 +1585,7 @@ static void _actor02400FlyFireball(Enemy* unusedEnemy, Task* task)
     }
 }
 
-#include "../../shared/effects/fireball_ember.inc.c"
+#include "effects/fireball/ember.inc.c"
 
 /// Dispatches the amoeba body's spawn, active or death handler.
 ///

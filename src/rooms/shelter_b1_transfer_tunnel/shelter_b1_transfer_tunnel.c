@@ -55,7 +55,7 @@
 #include "rooms/room_common.h"
 
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static void _shelterB1TransferTunnelInitializeRoom(Task* task);
 static void _shelterB1TransferTunnelIdle(Task* task);
@@ -495,9 +495,9 @@ void shelterB1TransferTunnelDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_cone.inc.c"
+#include "effects/glow/cone.inc.c"
 
-#include "../../shared/effects/glow_draw_red_disc.inc.c"
+#include "effects/glow/red_disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

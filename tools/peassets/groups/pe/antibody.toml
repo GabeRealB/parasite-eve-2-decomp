@@ -28,7 +28,6 @@ sha1 = "9e0ee7c64801247db35326ac148d7803f620538e"
 [package]
 type = "pe2pkg"
 package_name = "antibody"
-required = true
 sha1 = "dbc60279b3bb43536fe5f3f540a451f6ab8c4273"
 
 [level1_item]

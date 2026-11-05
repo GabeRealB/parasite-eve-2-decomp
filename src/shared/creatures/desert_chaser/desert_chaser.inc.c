@@ -1,5 +1,7 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
+#include "actors/actor.h"
+
 /// Patrols two waypoints and switches to alert roaming or pursuit on detection.
 ///
 /// Requires the armed build's live work, enemy, model and contact arrays. The

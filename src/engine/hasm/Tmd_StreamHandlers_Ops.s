@@ -340,7 +340,7 @@ endlabel tmdDrawStreamPrimG4CornerNormals
 .purgem TMD_DRAW_STREAM_G4_CORNER_NORMALS_LIGHT_AND_LINK_PACKET
 /* Outside the unsigned 16-bit vertex byte-offset domain. */
 .equ TMD_XFORM_STREAM_VERTS_ELEM_COLOR_NO_PREVIOUS_VERTEX, 0x0FFE0000
-/* Assembly equivalent of the depth-cache rejection bit in main/tmd_types.h. */
+/* Assembly equivalent of the depth-cache rejection bit in engine/tmd_types.h. */
 .equ TMD_XFORM_STREAM_VERTS_ELEM_COLOR_DEPTH_INVALID, 0x80000000
 
 /*
@@ -440,7 +440,7 @@ alabel tmdDrawStreamGt3SemiTrans
     /* 1700 80010F00 */  j           .L80010F20
     /* 1704 80010F04 */  nop
 
-/* Assembly equivalents of the object-flag masks in main/tmd_types.h. */
+/* Assembly equivalents of the object-flag masks in engine/tmd_types.h. */
 .equ TMD_OBJECT_SEMI_TRANS, 0x02
 .equ TMD_OBJECT_REVERSE_CULLING, 0x10
 /* POLY_GT3 storage includes its DMA tag; the length excludes that tag. */
@@ -778,7 +778,7 @@ glabel tmdDrawStreamGt4
 .equ TMD_XFORM_STREAM_VERTS_COLOR, 0x00808080
 /* Outside the unsigned 16-bit vertex byte-offset domain. */
 .equ TMD_XFORM_STREAM_VERTS_NO_PREVIOUS_VERTEX, 0x0FFE0000
-/* Assembly equivalent of the depth-cache rejection bit in main/tmd_types.h. */
+/* Assembly equivalent of the depth-cache rejection bit in engine/tmd_types.h. */
 .equ TMD_XFORM_STREAM_VERTS_DEPTH_INVALID, 0x80000000
 
 /*

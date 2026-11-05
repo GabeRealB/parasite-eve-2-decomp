@@ -59,14 +59,12 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
 
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
@@ -982,9 +980,9 @@ void shelterB2ElevatorHallDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_tinted_disc.inc.c"
+#include "effects/glow/tinted_disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

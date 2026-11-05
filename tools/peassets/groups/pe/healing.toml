@@ -26,7 +26,6 @@ sha1 = "5eace65bb8af0e96dd75cb66f3d77e8c743757fe"
 [package]
 type = "pe2pkg"
 package_name = "healing"
-required = true
 sha1 = "051573dd62587d0b99b0a279e586bfc6f70955c4"
 
 [level1_item]

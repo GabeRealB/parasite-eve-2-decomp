@@ -62,8 +62,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/effects/water_effects.h"
+#include "effects/glow/glow.h"
+#include "effects/water/water.h"
 #include "../../shared/room/room_events.h"
 #include "../../shared/room/room_variants.h"
 
@@ -1310,10 +1310,10 @@ static s32 _shelterB4WaterSupplyResolveWaterHoleVariant(RoomEventMsg* request, R
 #define WATER_WAVE_STRIPS_PACKET_CURSOR _gShelterB4WaterSupplyWaterPacketCursor
 /// Scales the seam's sine displacement to -64..64 world-coordinate Y units.
 ///
-/// Integer shift count for `water_wave_strips.inc.c`; see its configuration
+/// Integer shift count for `effects/water/wave_strips.inc.c`; see its configuration
 /// contract. The include consumes and undefines this binding.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 6
-#include "../../shared/effects/water_wave_strips.inc.c"
+#include "effects/water/wave_strips.inc.c"
 
 /// Draws the X-running water rectangle as two strips sharing a moving wave crest.
 ///
@@ -1650,25 +1650,25 @@ void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void shelterB4WaterSupplyWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_drift_task.inc.c"
+#include "effects/water/drift_task.inc.c"
 
 void shelterB4WaterSupplyWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin.inc.c"
+#include "effects/water/spin.inc.c"
 
-#include "../../shared/effects/glow_draw_cone.inc.c"
+#include "effects/glow/cone.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

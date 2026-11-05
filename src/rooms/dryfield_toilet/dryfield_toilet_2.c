@@ -51,7 +51,8 @@
 
 #include "mapui/map_dryfield.h"
 
-#include "overlay.h"
+#include "effects/sprite_quad/sprite_quad.h"
+#include "../../shared/actor/model_morph.h"
 #include "../../shared/room/room_visual_effects.h"
 
 static WorldCollisionOccluder _gDryfieldToiletSightOccluders[1];
@@ -836,7 +837,7 @@ void dryfieldToiletSprayEmitterTask(Task* task)
 /// Each component rereads the sources and truncates the signed division before
 /// its Q12 trig product. The second diagonal leaves its offsets in `projection`;
 /// screen coordinates narrow to packet halfwords. No pointers are retained.
-static inline void _dryfieldToiletSetJetPuffCorners(POLY_FT4* quad, OverlaySpriteScratch* projection, const s16* sizeSource, const s16* angleSource)
+static inline void _dryfieldToiletSetJetPuffCorners(POLY_FT4* quad, SpriteQuadScratch* projection, const s16* sizeSource, const s16* angleSource)
 {
     enum { PUFF_SIZE_PROJECTION_SCALE = 31 }; // UV span of the 32-texel puff cell
 
@@ -879,24 +880,24 @@ void dryfieldToiletJetPuffTask(Task* task)
         PUFF_RAW_TEXTURE_BLEND_FLAGS = 3
     };
 
-    EffectWork*           work;
-    GfxCoord*             coord;
-    OverlaySpriteScratch* scratchEnd;
-    OverlaySpriteScratch* projection;
-    POLY_FT4*             quad;
-    s32                   randomBits;
-    s16                   framePeriod;
-    SVECTOR*              velocity;
-    u16                   worldX;
+    EffectWork*        work;
+    GfxCoord*          coord;
+    SpriteQuadScratch* scratchEnd;
+    SpriteQuadScratch* projection;
+    POLY_FT4*          quad;
+    s32                randomBits;
+    s16                framePeriod;
+    SVECTOR*           velocity;
+    u16                worldX;
 
     coord = task->extra.coordBody->coord;
     work  = task->spawnArg2.pointer;
     // Project the centre and reserve its packet before advancing the effect.
     actorRenderComposeCoord(coord);
-    scratchEnd = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+    scratchEnd = SCRATCH_STACK_CURSOR(SpriteQuadScratch);
     worldX     = coord->workm.t[0];
-    SCRATCH_STACK_RESERVE_BLOCK(OverlaySpriteScratch);
-    projection              = SCRATCH_STACK_CURSOR(OverlaySpriteScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(SpriteQuadScratch);
+    projection              = SCRATCH_STACK_CURSOR(SpriteQuadScratch);
     projection->worldPos.vx = worldX;
     projection->worldPos.vy = coord->workm.t[1];
     projection->worldPos.vz = coord->workm.t[2];
@@ -952,7 +953,7 @@ void dryfieldToiletJetPuffTask(Task* task)
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(projection->otz),
                 quad);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlaySpriteScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(SpriteQuadScratch);
     // Pausing freezes age and drift after drawing; cancellation also draws once.
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {

@@ -54,8 +54,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 /// Spawns a detached part and applies its source actor's texture offsets.
 ///
 /// Actor, model source and coordinate index must be stable, side-effect-free

@@ -21,12 +21,10 @@
 #include "engine/scratch.h"
 #include "engine/session.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../../../shared/room/room_cutscene.h"
 
 #include "assets/stages/akropolis/rooms/mist_parking/declarations_mist_parking_glows.inc"
@@ -186,8 +184,8 @@ void mistParkingDrawGlowsTask(Task* unused)
     }
 }
 
-#include "../../../../shared/effects/glow_draw_diamond.inc.c"
+#include "effects/glow/diamond.inc.c"
 
-#include "../../../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"
 
-#include "../../../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"

@@ -60,10 +60,10 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 
 #include "rooms/neo_ark_submarine_gallery.h"
-#include "../../shared/screen/screen_wave.h"
+#include "screen/wave/wave.h"
 #include "../../shared/actor/coord_math.h"
 #include "../../shared/creatures/diver/diver.h"
 
@@ -585,7 +585,7 @@ static void        _actor206100Spawn(Task* task);
 static void        _actor206100EntranceRelocateTick(Task* task);
 static inline s16  _actor206100ConsumeHitReaction(Task* task);
 
-#include "../../shared/screen/screen_wave.inc.c"
+#include "screen/wave/wave.inc.c"
 
 #include "../../shared/creatures/diver/diver.inc.c"
 

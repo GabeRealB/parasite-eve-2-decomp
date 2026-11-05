@@ -70,8 +70,7 @@ static Task* _gDryfieldWaterTankPropSceneTask;
 
 #include "mapui/map_dryfield.h"
 
-#include "overlay.h"
-#include "../../shared/screen/screen_fade.h"
+#include "screen/fade/fade.h"
 
 static WorldCoordRoomAmbientEntry _gDryfieldWaterTankViewAmbientColors[11];
 
@@ -2022,4 +2021,4 @@ void dryfieldWaterTankSkipPropScene(void)
     sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_SOUND_ENTRY), DRYFIELD_WATER_TANK_PROP_SCENE_SKIP_FADE_TICKS);
 }
 
-#include "../../shared/screen/screen_fade_in_tile.inc.c"
+#include "screen/fade/in_tile.inc.c"

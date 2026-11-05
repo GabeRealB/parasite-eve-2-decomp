@@ -14,7 +14,7 @@
 /// A sound of the security room's area bank.
 #define AKROPOLIS_SECURITY_ROOM_SOUND(cue) SOUND_AREA(GAME_STAGE_AKROPOLIS, AKROPOLIS_ROOM_ID_SECURITY_ROOM, (cue))
 
-/// Entries of the area bank the room's code plays; the others are named in main/sound_ids.h.
+/// Entries of the area bank the room's code plays; the others are named in engine/sound_ids.h.
 enum {
     AKROPOLIS_SECURITY_ROOM_SOUND_UNLOCK_FADE = 2, // The screen fades out after a lock is released
 };

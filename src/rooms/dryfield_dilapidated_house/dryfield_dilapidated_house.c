@@ -71,14 +71,16 @@
 
 #include "mapui/map_dryfield.h"
 
-#include "overlay.h"
+#include "effects/flagged_quad/flagged_quad.h"
+#include "screen/wave/wave.h"
+#include "../../shared/actor/model_morph.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/screen/screen_wave.h"
+#include "screen/wave/wave.h"
 #include "../../shared/actor/bezier_curve.h"
-#include "../../shared/screen/screen_negative.h"
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/effects/sprite_quad.h"
+#include "screen/negative/negative.h"
+#include "effects/glow/glow.h"
+#include "effects/sprite_quad/sprite_quad.h"
 #include "../../shared/actor/model_morph.h"
 
 /// Work block of the morphing model a script command attaches to one of the
@@ -3389,9 +3391,9 @@ static GfxCoord _gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[8];
 static GfxCoord _gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory)];
 STATIC_ASSERT((ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) & (ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) - 1)) == 0, dryfieldDilapidatedHouseTrailHistoryPowerOfTwo);
 
-#include "../../shared/screen/screen_wave.inc.c"
+#include "screen/wave/wave.inc.c"
 
-#include "../../shared/screen/screen_negative_capture.inc.c"
+#include "screen/negative/capture.inc.c"
 
 /// Captures the room's frame as a grayscale negative and holds scene drawing.
 ///
@@ -3623,7 +3625,7 @@ static void _dryfieldDilapidatedHouseEncounterFinishTask(Task* task)
     }
 }
 
-#include "../../shared/screen/screen_negative_filter.inc.c"
+#include "screen/negative/filter.inc.c"
 
 /// Refuses key-item use in this room by returning zero without changing anything.
 static s32 _dryfieldDilapidatedHouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg)
@@ -4184,12 +4186,12 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 /// Returns the stored s32 beam level, the controller's morph progress (0..4096).
 /// The drawer interprets its signed low halfword as Q12 (4096 is unit brightness),
 /// then narrows RGB without saturation. Define before including
-/// `glow_draw_ring_beam.inc.c`, which undefines it.
+/// `effects/glow/ring_beam.inc.c`, which undefines it.
 #define GLOW_CAPPED_BEAM_BRIGHTNESS(beamTask) \
     (((const _DryfieldDilapidatedHouseMorphWork*)((const Task*)(beamTask)->spawnArg2.pointer)->work)->beamLevel)
 /// Halo angle increment for the morph's capped beam, in 4096 units/turn per draw.
 ///
-/// Optional integer configuration for `glow_draw_ring_beam.inc.c`; only this
+/// Optional integer configuration for `effects/glow/ring_beam.inc.c`; only this
 /// carrier supplies it. The drawer adds it to signed-halfword killCountdown
 /// after geometry is built, then resets angles at or above a half turn.
 /// The fragment undefines the binding; an absent binding leaves phase unchanged
@@ -4197,7 +4199,7 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 #define GLOW_CAPPED_BEAM_PHASE_STEP 0x40
 /// Ordering-table tag bias for the morph attachment's capped-beam core and halo.
 ///
-/// Required signed integer constant configuration for `glow_draw_ring_beam.inc.c`.
+/// Required signed integer constant configuration for `effects/glow/ring_beam.inc.c`.
 /// Adds three tags to the quantized depth entry for every quad and draw-mode
 /// packet. Applied after byte-offset conversion to `u_long*`, so each unit is
 /// one four-byte DMA tag. The selected table must contain the resulting entry;
@@ -4207,15 +4209,15 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 #define GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS 3
 /// Complete quarter-additive GPU draw-mode word for the capped beam's halo.
 ///
-/// Required 32-bit constant configuration for `glow_draw_ring_beam.inc.c`:
+/// Required 32-bit constant configuration for `effects/glow/ring_beam.inc.c`:
 /// 0xE1000465, stored in `DR_TPAGE::code[0]` before each semitransparent halo
 /// quad. Enables drawing in the display area, disables dithering and selects
 /// B + F/4 blending. The encoded 4-bit page at VRAM word X=320, Y=0 is unused
 /// by these untextured quads. Requires Psy-Q `libgpu.h` and
-/// `main/display_types.h`; define before the fragment, which undefines it.
+/// `engine/display_types.h`; define before the fragment, which undefines it.
 /// Has no arguments, captured locals or side effects.
 #define GLOW_CAPPED_BEAM_HALO_DRAW_MODE _get_mode(true, false, getTPage(0, GPU_BLEND_ADD_QUARTER, 320, 0))
-#include "../../shared/effects/glow_draw_ring_beam.inc.c"
+#include "effects/glow/ring_beam.inc.c"
 
 /// Builds the morph attachment's projected core and halo beam caps.
 ///
@@ -5158,20 +5160,20 @@ static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMult
         TRAIL_COLOR_CHANNEL_MASK = 3,
     };
 
-    OverlayFlaggedQuadScratch* scratch;
-    GfxCoord*                  firstEndpointFrame;
-    GfxCoord*                  secondEndpointFrame;
-    POLY_G4*                   quad;
-    s32                        segmentIndex;
-    s32                        frameIndex;
-    s32                        newerSlot;
-    s32                        olderSlot;
-    s32                        newerIntensity;
-    s32                        olderIntensity;
-    s32                        segmentIntensity;
+    FlaggedQuadScratch* scratch;
+    GfxCoord*           firstEndpointFrame;
+    GfxCoord*           secondEndpointFrame;
+    POLY_G4*            quad;
+    s32                 segmentIndex;
+    s32                 frameIndex;
+    s32                 newerSlot;
+    s32                 olderSlot;
+    s32                 newerIntensity;
+    s32                 olderIntensity;
+    s32                 segmentIntensity;
 
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
-    scratch = SCRATCH_STACK_CURSOR(OverlayFlaggedQuadScratch);
+    SCRATCH_STACK_RESERVE_BLOCK(FlaggedQuadScratch);
+    scratch = SCRATCH_STACK_CURSOR(FlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     // Newer endpoint pairs form the bright edge; older pairs form the dim edge.
@@ -5218,7 +5220,7 @@ static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMult
             gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->otz);
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(FlaggedQuadScratch);
 }
 
 void dryfieldDilapidatedHouseFireBlastTask(Task* task)
@@ -5337,7 +5339,7 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
 
 #undef DRYFIELD_DILAPIDATED_HOUSE_SEED_FIRE_BLAST_LIGHT
 
-#include "../../shared/effects/glow_draw_flame.inc.c"
+#include "effects/glow/flame.inc.c"
 
 /// Perspective-sizing multiplier for the dilapidated house's fire-blast billboard.
 ///
@@ -5382,9 +5384,9 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
         setSemiTrans((quad), 1);                        \
         setShadeTex((quad), 1);                         \
     }
-#include "../../shared/effects/sprite_quad_draw_flicker.inc.c"
+#include "effects/sprite_quad/draw_flicker.inc.c"
 
-#include "../../shared/effects/glow_draw_flame_ring.inc.c"
+#include "effects/glow/flame_ring.inc.c"
 
 void dryfieldDilapidatedHouseLightPrismTask(Task* task)
 {

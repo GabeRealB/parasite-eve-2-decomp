@@ -46,8 +46,6 @@
 
 #include "../../shared/room/room_variants.h"
 
-#include "overlay.h"
-
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
@@ -178,7 +176,7 @@ static const AreaApplyRec _gNeoArkGardenCommand4AreaUpdates[3] SECTION(".data") 
 static void _neoArkGardenInitializeRoom(Task* task);
 static void _neoArkGardenRoomIdleState(Task* unusedTask);
 
-#include "../../shared/effects/water.inc.c"
+#include "effects/water/water.inc.c"
 
 s32 neoArkGardenRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {

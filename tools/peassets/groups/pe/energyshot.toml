@@ -34,7 +34,6 @@ sha1 = "c4fb9095e006f27371d03f63067070109e33a92f"
 [package]
 type = "pe2pkg"
 package_name = "energyshot"
-required = true
 sha1 = "32fd4993c32a57fcb446740a2d29c7832bc77eea"
 
 [level1_item]

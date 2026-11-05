@@ -1,5 +1,7 @@
 /* Part of the Mad Chaser library: a scripted encounter step; see mad_chaser.h. */
 
+#include "../../room/encounter.h"
+
 /// Reveals a spawned Slouch after the encounter's sixty-update delay.
 ///
 /// Requires single-enemy work with a live enemy/model and a zero-based update
@@ -7,30 +9,30 @@
 /// work, sends the low spawn halfword as the emerge command in the synthetic
 /// stage-0/area-0x2A context, and advances the wave task. Dispatch borrows the
 /// stack request only for the call; the wave task does not own the enemy.
-static void _overlayEncounterRevealSlouch(Task* waveTask)
+static void _encounterRevealSlouch(Task* waveTask)
 {
     enum {
-        OVERLAY_ENCOUNTER_SLOUCH_REVEAL_DELAY        = 60,
-        OVERLAY_ENCOUNTER_SLOUCH_TEXTURE_PAGE_OFFSET = 2,
-        OVERLAY_ENCOUNTER_SLOUCH_CLUT_ROW_OFFSET     = 4,
-        OVERLAY_ENCOUNTER_SLOUCH_COMMAND_STAGE       = 0,
-        OVERLAY_ENCOUNTER_SLOUCH_COMMAND_AREA        = 0x2A
+        ENCOUNTER_SLOUCH_REVEAL_DELAY        = 60,
+        ENCOUNTER_SLOUCH_TEXTURE_PAGE_OFFSET = 2,
+        ENCOUNTER_SLOUCH_CLUT_ROW_OFFSET     = 4,
+        ENCOUNTER_SLOUCH_COMMAND_STAGE       = 0,
+        ENCOUNTER_SLOUCH_COMMAND_AREA        = 0x2A
     };
-    OverlayEncounterSingleWork* work = waveTask->work;
-    Enemy*                      enemy;
-    Task*                       enemyTask;
-    TmdObject*                  model;
-    ActorCommand                request;
+    EncounterSingleWork* work = waveTask->work;
+    Enemy*               enemy;
+    Task*                enemyTask;
+    TmdObject*           model;
+    ActorCommand         request;
 
     enemy     = work->enemy;
     enemyTask = enemy->task;
-    if (++work->frames > OVERLAY_ENCOUNTER_SLOUCH_REVEAL_DELAY) {
+    if (++work->frames > ENCOUNTER_SLOUCH_REVEAL_DELAY) {
         model                     = enemyTask->extra.tmd;
-        model->texturePageOffset  = OVERLAY_ENCOUNTER_SLOUCH_TEXTURE_PAGE_OFFSET;
-        model->clutRowOffset      = OVERLAY_ENCOUNTER_SLOUCH_CLUT_ROW_OFFSET;
+        model->texturePageOffset  = ENCOUNTER_SLOUCH_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset      = ENCOUNTER_SLOUCH_CLUT_ROW_OFFSET;
         enemy->workType           = ENEMY_WORK_ACTOR;
-        request.context.loc.stage = OVERLAY_ENCOUNTER_SLOUCH_COMMAND_STAGE;
-        request.context.loc.area  = OVERLAY_ENCOUNTER_SLOUCH_COMMAND_AREA;
+        request.context.loc.stage = ENCOUNTER_SLOUCH_COMMAND_STAGE;
+        request.context.loc.area  = ENCOUNTER_SLOUCH_COMMAND_AREA;
         request.command           = waveTask->spawnArg1.value;
         TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
         waveTask->state++;

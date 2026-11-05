@@ -285,7 +285,7 @@ MOVIES: dict[str, tuple[int, int]] = {}
 
 
 def _image_slot_decode(raw: dict):
-    """An image slot: the bytes below the resident image workspace its region covers (main/gfx_types.h), 0 for an
+    """An image slot: the bytes below the resident image workspace its region covers (engine/gfx_types.h), 0 for an
     empty slot."""
     if raw["regionBase"] == 0 and raw["byteExtent"] == 0:
         return 0
@@ -524,7 +524,7 @@ LAYOUTS.update({
     "SpriteAreaTable": ("SpriteAreaTable", [("areaViews", ("ptr", "AreaTableSpriteView"))]),
     "AreaObjectRoom": ("AreaObjectRoom", [("places", ("word", "sentinel", "list", "AreaObjectPlace")),
                                           ("spawns", ("ptr", "AreaObjectSpawn"))]),
-    # How a room spawns its placed objects of one kind: the kind, and the task it spawns (main/task_types.h). A task's
+    # How a room spawns its placed objects of one kind: the kind, and the task it spawns (engine/task_types.h). A task's
     # callback is a function, its data a model or a number.
     "TaskDescFields": ("", [("flags", ("bits", "H", [("body", 0, 8, {0: "TASK_BODY_NONE", 1: "TASK_BODY_TMD", 2: "TASK_BODY_COORD"}),
                                                     ("skipModelBuffer", 8, 1, None)])),

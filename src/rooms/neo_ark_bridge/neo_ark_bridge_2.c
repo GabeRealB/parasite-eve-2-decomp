@@ -46,7 +46,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
@@ -1238,23 +1238,23 @@ static void _neoArkBridgeDrawPulsingRedStar(const SVECTOR* worldPoint, s16 pulse
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiusScratch);
 }
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void neoArkBridgeWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_drift_task.inc.c"
+#include "effects/water/drift_task.inc.c"
 
 void neoArkBridgeWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin.inc.c"
+#include "effects/water/spin.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

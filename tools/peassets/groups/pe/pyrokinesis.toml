@@ -26,7 +26,6 @@ sha1 = "769b74d35ef11c2c2224e110ad7be194276e9066"
 [package]
 type = "pe2pkg"
 package_name = "pyrokinesis"
-required = true
 sha1 = "a74327b69e3c2e964a76f9e810afb43c23ed765d"
 
 [level1_item]

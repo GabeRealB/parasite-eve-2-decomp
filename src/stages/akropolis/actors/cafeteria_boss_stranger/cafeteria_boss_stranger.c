@@ -49,7 +49,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "../../../../shared/creatures/boss_stranger/boss_stranger.h"
 #include "../../../../shared/actor/player_detection.h"
 #include "../../../../shared/actor/actor_contacts.h"
 #include "../../../../shared/creatures/boss_stranger/boss_stranger.h"

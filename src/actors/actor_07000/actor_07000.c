@@ -46,7 +46,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "../../shared/room/encounter.h"
 
 #include "rooms/shelter_b3_dumping_hole.h"
 
@@ -1923,7 +1923,7 @@ static s32 _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorC
     work         = task->work;
     commandValue = commandWord & 0xFFFF;
     coord        = model->coords;
-    if (commandValue == OVERLAY_ENCOUNTER_COMMAND_STOP) {
+    if (commandValue == ENCOUNTER_COMMAND_STOP) {
         _actor07000SlouchStartPuffing(work, coord, false);
         return 0;
     }
@@ -1931,7 +1931,7 @@ static s32 _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorC
         _actor07000SlouchStartPuffing(work, coord, true);
         return 0;
     }
-    if ((commandWord & 0xFF) == OVERLAY_ENCOUNTER_COMMAND_APPEAR) {
+    if ((commandWord & 0xFF) == ENCOUNTER_COMMAND_APPEAR) {
         if ((u32)(task->state - ACTOR_07000_SLOUCH_TASK_ACTIVE_FIRST) >= (u32)ACTOR_07000_SLOUCH_TASK_ACTIVE_COUNT) {
             if (gGameSession->location.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
                 placementRotation.vx = 0;

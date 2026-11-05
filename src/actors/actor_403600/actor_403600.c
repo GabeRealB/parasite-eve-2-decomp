@@ -47,7 +47,7 @@
 #include "engine/tmd.h"
 #include "engine/tmd_stream_types.h"
 #include "engine/tmd_types.h"
-#include "../../shared/screen/frame_capture.h"
+#include "screen/frame_capture/frame_capture.h"
 
 /// Position and texture coordinate of one vertex of a grid quad, laid out as
 /// every vertex of a POLY_FT4 is.
@@ -1113,7 +1113,7 @@ static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
     ((packet)->tag = ((packet)->tag & GPU_DMA_PACKET_LENGTH_MASK) | (*(otEntry) & GPU_DMA_LINK_ADDRESS_MASK), \
      *(otEntry)    = (*(otEntry) & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)(packet) & GPU_DMA_LINK_ADDRESS_MASK))
 
-#include "../../shared/screen/frame_capture.inc.c"
+#include "screen/frame_capture/frame_capture.inc.c"
 
 /// Gives a captured-frame quad one texture page and rebases all four U bytes.
 ///

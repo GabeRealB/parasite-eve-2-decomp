@@ -60,7 +60,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
@@ -637,9 +637,9 @@ void shelter1fVehicularAirlockDrawLightsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_angled_capsule.inc.c"
+#include "effects/glow/angled_capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_factor_disc.inc.c"
+#include "effects/glow/factor_disc.inc.c"
 
 /// Initializes a Gouraud light diagonal with a coloured centre and black ends.
 ///

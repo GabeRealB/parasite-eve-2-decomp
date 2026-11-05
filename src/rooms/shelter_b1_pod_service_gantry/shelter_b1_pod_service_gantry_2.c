@@ -35,23 +35,23 @@
 /// Empty presence flag: this room supplies `_waterDrawSpinU16` and
 /// `_waterDrawTileU16`.
 ///
-/// Defined, with no replacement list, immediately before `water_effects.h`.
+/// Defined, with no replacement list, immediately before `effects/water/water.h`.
 /// `defined()` is the only test. That header prototypes the shared drawers
 /// only when `WATER_SHARED_U16_DRAWERS` is set
 /// and this flag is not. This file prototypes and defines both drawers and
-/// includes `water_drift_task_u16.inc.c` instead of the shared bodies. The
+/// includes `effects/water/drift_task.inc.c` with `WATER_DRIFT_U16` instead of the shared bodies. The
 /// spin sprite uses texture page 0x2C. The tile grid starts at v 0 with clut
 /// 0x4393. Both drawers take a `u16` index and an `s16` scale; the spin
 /// drawer also takes an `s16` angle.
 #define WATER_OWN_U16_DRAWERS
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 /// Binds the gantry's exported `void (Task*)` callback for the rising-sprite instance.
 ///
 /// Supply a function identifier before the first inclusion of `effect_sprite.h`.
-/// Keep it defined through `effect_sprite_rise.inc.c`, which undefines it.
+/// Keep it defined through `effects/effect_sprite/rise.inc.c`, which undefines it.
 /// Gameplay imports this package's compiled callback for effect slot 0x1C6.
 #define EFFECT_SPRITE_RISE_TASK shelterB1PodServiceGantryEffectSpriteRiseTask
-#include "../../shared/effects/effect_sprite.h"
+#include "effects/effect_sprite/effect_sprite.h"
 
 static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radiusScale);
@@ -196,7 +196,7 @@ static inline void _shelterB1PodServiceGantryRotateDriftCorner(EffectShapeScratc
 /// Arguments are evaluated once; the coordinate is borrowed, size is a perspective
 /// numerator, and angle uses 4096 units per turn. No captures or constructed tokens.
 #define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _shelterB1PodServiceGantryDrawAlternateDriftSprite
-#include "../../shared/effects/effect_sprite_drift.inc.c"
+#include "effects/effect_sprite/drift.inc.c"
 
 /// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
 ///
@@ -388,11 +388,12 @@ static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* c
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-#include "../../shared/effects/water_drift_task_u16.inc.c"
+#define WATER_DRIFT_U16
+#include "effects/water/drift_task.inc.c"
 
 void shelterB1PodServiceGantryWaterDriftTaskU16(Task* task)
 {
-    _waterDriftTaskU16(task);
+    _waterDriftTask(task);
 }
 
 /// Writes the signed screen offset from a water sprite's centre to one corner.
@@ -512,8 +513,6 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
     }
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, _ShelterB1PodServiceGantrySpinScratch);
 }
-
-#include "../../shared/effects/water_tile_u16_corners.inc.c"
 
 /// Draws one upright, camera-facing cell of the eight-frame water-spray grid.
 ///
@@ -707,7 +706,7 @@ void shelterB1PodServiceGantryDrawChainGlow(const GfxCoord* coord, s32 chainNumb
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-#include "../../shared/effects/effect_sprite_rise.inc.c"
+#include "effects/effect_sprite/rise.inc.c"
 
 /// Initializes a persistent alternating-glow phase for each of the room's eight chains.
 ///

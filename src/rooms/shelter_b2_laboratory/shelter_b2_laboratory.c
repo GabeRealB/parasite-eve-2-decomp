@@ -60,12 +60,10 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
@@ -1748,7 +1746,7 @@ void shelterB2LaboratoryGlowTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
 /// Initializes one Gouraud half of the laboratory's cyan glow diamond.
 ///
@@ -1873,7 +1871,7 @@ static void _shelterB2LaboratoryDrawGlowDiamond(const SVECTOR* worldPoint, s32 p
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB2LaboratoryGlowDiamondScratch);
 }
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"
 
 /// Selects slow (zero) or fast (nonzero) pulsing for the laboratory's cyan glow.
 ///

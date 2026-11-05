@@ -30,8 +30,6 @@
 #include "engine/task.h"
 #include "engine/task_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 #include "../../shared/room/action_prompt.h"
 

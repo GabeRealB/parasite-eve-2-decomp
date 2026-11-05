@@ -47,7 +47,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 #include "../../shared/creatures/rat/rat.h"
 #include "../../shared/creatures/moth/moth.h"
 

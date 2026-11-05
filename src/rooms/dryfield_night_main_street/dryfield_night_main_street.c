@@ -58,14 +58,12 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
 
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
@@ -2089,9 +2087,9 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
 
 #undef DRYFIELD_NIGHT_MAIN_STREET_RAND
 
-#include "../../shared/effects/glow_draw_shaft.inc.c"
+#include "effects/glow/shaft.inc.c"
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 #include "../../shared/main_street_puff_task.inc.c"
 

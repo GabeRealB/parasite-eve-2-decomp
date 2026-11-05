@@ -53,12 +53,10 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_events.h"
 #include "../../shared/dryfield_driveway.h"
 
@@ -1547,7 +1545,7 @@ void dryfieldNightDrivewayRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_shaft.inc.c"
+#include "effects/glow/shaft.inc.c"
 
 void dryfieldNightDrivewayDrawLightShaftsTask(Task* unusedTask)
 {

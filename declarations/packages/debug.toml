@@ -1,0 +1,16 @@
+# Packages left from the game's development: what each source's slots hold.
+
+# The enemies' names in Shift-JIS, which gameplay's item text lookup (itemGetText) returns for text ids 0x500..0x53E.
+# It has no package id: its first word is the table's first entry.
+[enemy_names]
+uid = "uid://4my69ltzmimt"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+]
+
+[enemy_names.target.psx]
+slot = "debug"
+link_script = "psx/link.ld"

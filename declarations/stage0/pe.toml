@@ -5,7 +5,7 @@ uid = "uid://l71symd8zngc"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1op3jrqe78nmg", path = "res://packages/pe/pyrokinesis.node" } },
 ]
 
 [pyrokinesis_level_0.from.USA]
@@ -16,7 +16,7 @@ uid = "uid://mu03b3n6b8up"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1op3jrqe78nmg", path = "res://packages/pe/pyrokinesis.node" } },
 ]
 
 [pyrokinesis_level_2.from.USA]
@@ -27,7 +27,7 @@ uid = "uid://lwjhtniflf7b"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1op3jrqe78nmg", path = "res://packages/pe/pyrokinesis.node" } },
 ]
 
 [pyrokinesis_level_3.from.USA]
@@ -38,7 +38,7 @@ uid = "uid://1ejnr6wxkcx7n"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://4cxnia2t2i36", path = "res://packages/pe/combustion.node" } },
 ]
 
 [combustion_level_1.from.USA]
@@ -49,7 +49,7 @@ uid = "uid://8q3n426v7joe"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://4cxnia2t2i36", path = "res://packages/pe/combustion.node" } },
 ]
 
 [combustion_level_2.from.USA]
@@ -60,7 +60,7 @@ uid = "uid://7hus7o8nqg5y"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://4cxnia2t2i36", path = "res://packages/pe/combustion.node" } },
 ]
 
 [combustion_level_3.from.USA]
@@ -71,7 +71,7 @@ uid = "uid://u7tcmttsief6"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://h83ua2bzfrjs", path = "res://packages/pe/inferno.node" } },
 ]
 
 [inferno_level_1.from.USA]
@@ -82,7 +82,7 @@ uid = "uid://1nd2mz0taqmg2"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://h83ua2bzfrjs", path = "res://packages/pe/inferno.node" } },
 ]
 
 [inferno_level_2.from.USA]
@@ -93,7 +93,7 @@ uid = "uid://1fhks362e166p"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://h83ua2bzfrjs", path = "res://packages/pe/inferno.node" } },
 ]
 
 [inferno_level_3.from.USA]
@@ -104,7 +104,7 @@ uid = "uid://fdlegz0qqkgn"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://8t0blcbgsaqt", path = "res://packages/pe/necrosis.node" } },
 ]
 
 [necrosis_level_1.from.USA]
@@ -115,7 +115,7 @@ uid = "uid://f20f5cils9pb"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://8t0blcbgsaqt", path = "res://packages/pe/necrosis.node" } },
 ]
 
 [necrosis_level_2.from.USA]
@@ -126,7 +126,7 @@ uid = "uid://1ph4tqvar4jdw"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://8t0blcbgsaqt", path = "res://packages/pe/necrosis.node" } },
 ]
 
 [necrosis_level_3.from.USA]
@@ -137,7 +137,7 @@ uid = "uid://19cbsk0pi1jcu"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://rxeii8cqsyl5", path = "res://packages/pe/plasma.node" } },
 ]
 
 [plasma_level_1.from.USA]
@@ -148,7 +148,7 @@ uid = "uid://zbmsy7lt29if"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://rxeii8cqsyl5", path = "res://packages/pe/plasma.node" } },
 ]
 
 [plasma_level_2.from.USA]
@@ -159,7 +159,7 @@ uid = "uid://rlxboulb8zq9"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://rxeii8cqsyl5", path = "res://packages/pe/plasma.node" } },
 ]
 
 [plasma_level_3.from.USA]
@@ -170,7 +170,7 @@ uid = "uid://3bobnp8t3pr9"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1hy8mx4howi8t", path = "res://packages/pe/apobiosis.node" } },
 ]
 
 [apobiosis_level_1.from.USA]
@@ -181,7 +181,7 @@ uid = "uid://7fokt8d12ya5"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1hy8mx4howi8t", path = "res://packages/pe/apobiosis.node" } },
 ]
 
 [apobiosis_level_2.from.USA]
@@ -192,7 +192,7 @@ uid = "uid://1h24c5hs2csp0"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1hy8mx4howi8t", path = "res://packages/pe/apobiosis.node" } },
 ]
 
 [apobiosis_level_3.from.USA]
@@ -203,7 +203,7 @@ uid = "uid://nalgsj8te3e8"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1gj5vbbviifl", path = "res://packages/pe/metabolism.node" } },
 ]
 
 [metabolism_level_1.from.USA]
@@ -214,7 +214,7 @@ uid = "uid://b2vw8mo2hh5i"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1gj5vbbviifl", path = "res://packages/pe/metabolism.node" } },
 ]
 
 [metabolism_level_2.from.USA]
@@ -225,7 +225,7 @@ uid = "uid://1vwqyvljoll9z"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1gj5vbbviifl", path = "res://packages/pe/metabolism.node" } },
 ]
 
 [metabolism_level_3.from.USA]
@@ -236,7 +236,7 @@ uid = "uid://qn3gxgjh7kf6"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://isuxu31glku3", path = "res://packages/pe/healing.node" } },
 ]
 
 [healing_level_1.from.USA]
@@ -247,7 +247,7 @@ uid = "uid://1ju32qbxjwq5m"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://isuxu31glku3", path = "res://packages/pe/healing.node" } },
 ]
 
 [healing_level_2.from.USA]
@@ -258,7 +258,7 @@ uid = "uid://1eeyn1t4kv2bp"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://isuxu31glku3", path = "res://packages/pe/healing.node" } },
 ]
 
 [healing_level_3.from.USA]
@@ -269,7 +269,7 @@ uid = "uid://8f4a0trdykb2"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://zeo5kki4ygpp", path = "res://packages/pe/lifedrain.node" } },
 ]
 
 [lifedrain_level_1.from.USA]
@@ -280,7 +280,7 @@ uid = "uid://14ir87hurcvrd"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://zeo5kki4ygpp", path = "res://packages/pe/lifedrain.node" } },
 ]
 
 [lifedrain_level_2.from.USA]
@@ -291,7 +291,7 @@ uid = "uid://thnrw5f2da9d"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://zeo5kki4ygpp", path = "res://packages/pe/lifedrain.node" } },
 ]
 
 [lifedrain_level_3.from.USA]
@@ -302,7 +302,7 @@ uid = "uid://10ekh2xl2y0rf"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://19xxnrl47qua6", path = "res://packages/pe/antibody.node" } },
 ]
 
 [antibody_level_1.from.USA]
@@ -313,7 +313,7 @@ uid = "uid://1rn4fji1mlzg"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://19xxnrl47qua6", path = "res://packages/pe/antibody.node" } },
 ]
 
 [antibody_level_2.from.USA]
@@ -324,7 +324,7 @@ uid = "uid://vmldqr5chwev"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://19xxnrl47qua6", path = "res://packages/pe/antibody.node" } },
 ]
 
 [antibody_level_3.from.USA]
@@ -335,7 +335,7 @@ uid = "uid://1uejq8h38lulk"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://pygs4vrcw7aw", path = "res://packages/pe/energyshot.node" } },
 ]
 
 [energyshot_level_1.from.USA]
@@ -346,7 +346,7 @@ uid = "uid://zck6e2x3ht3u"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://pygs4vrcw7aw", path = "res://packages/pe/energyshot.node" } },
 ]
 
 [energyshot_level_2.from.USA]
@@ -357,7 +357,7 @@ uid = "uid://zyw1oewe61wx"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://pygs4vrcw7aw", path = "res://packages/pe/energyshot.node" } },
 ]
 
 [energyshot_level_3.from.USA]
@@ -368,7 +368,7 @@ uid = "uid://17aum36nx9dtf"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1amlkgsa1czuu", path = "res://packages/pe/energyball.node" } },
 ]
 
 [energyball_level_1.from.USA]
@@ -379,7 +379,7 @@ uid = "uid://17dze8y0eqcir"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1amlkgsa1czuu", path = "res://packages/pe/energyball.node" } },
 ]
 
 [energyball_level_2.from.USA]
@@ -390,7 +390,7 @@ uid = "uid://1b0h97dp0g6qi"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1amlkgsa1czuu", path = "res://packages/pe/energyball.node" } },
 ]
 
 [energyball_level_3.from.USA]
@@ -401,7 +401,7 @@ uid = "uid://ehp7qbj1sr9v"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://19rsccrsbnj46", path = "res://packages/items/flare.node" } },
 ]
 
 [flare_effect.from.USA]
@@ -412,7 +412,7 @@ uid = "uid://1r3qy9rql37o0"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://52hf1ey699bj", path = "res://packages/items/pepper_spray.node" } },
 ]
 
 [pepper_spray_effect.from.USA]
@@ -423,7 +423,7 @@ uid = "uid://1pmjx4oujek8r"
 template = "file"
 slots = [
     { name = "sounds", type = "sound_bank" },
-    { name = "package", type = "package" },
+    { name = "package", type = "package", package = { uid = "uid://1282tn2n9bdoe", path = "res://packages/items/combat_light.node" } },
 ]
 
 [combat_light_effect.from.USA]

@@ -40,8 +40,6 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 
 s32     rcos(s32);
@@ -89,7 +87,7 @@ enum {
     NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_STEP = 16,
 };
 
-#include "../../shared/effects/water.inc.c"
+#include "effects/water/water.inc.c"
 
 /// Gallery room states: 0 initialize messages/red disc, 1 idle, 2 release.
 ///

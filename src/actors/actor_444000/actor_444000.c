@@ -64,8 +64,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/actor/actor_contacts.h"
 #include "../../shared/creatures/mad_chaser/mad_chaser.h"

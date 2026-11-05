@@ -10,8 +10,8 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 
 - `src/<overlay>` decompiled C (`src/engine`, `src/gameplay`) and
   `src/<family>/<overlay>` for the generated overlay families (`src/weapons/m93r`, …)
-- `packages/` overlays migrated out of splat: `packages/title` and the four
-  `packages/aya/*` are source, written by hand (see "Packages" below)
+- `packages/` overlays migrated out of splat, and the libraries they share, written by hand (see "Packages"
+  below)
 - `include/<overlay>` headers for that unit (`include/weapons`, `include/rooms`, …); a package's public headers are
   its own `include/` (`packages/engine/include`, `packages/gameplay/include`), which split units include by the
   package's name (`engine/fs.h`)
@@ -22,8 +22,18 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 
 ### Packages
 
-A fully decompiled overlay leaves splat and becomes a package: `packages/title`
-and Aya's costumes, `packages/aya/{mist,dryfield,akropolis,range}`, so far. Its folder is its
+A fully decompiled overlay leaves splat and becomes a package. So far: the title
+(`packages/title`), Aya's costumes (`packages/aya/{mist,dryfield,akropolis,range}`),
+the options menu and the package after it (`packages/options`,
+`packages/stub_20200`), the enemy name table (`packages/debug/enemy_names`), the
+Parasite Energies (`pe/pyrokinesis`, ..., under the umbrella `pe`) and the items cast like them
+(`packages/items/*`). Code the overlays share is a library per module, which a
+package depends on alone: the fragments it includes where its copy sits, with the
+types they use, under the umbrellas `effects` (`effects/glow`,
+`effects/sprite_quad`, ...) and `screen` (`screen/fade`, ...), which have no files
+of their own. A module lives at the lowest level holding all its users: what
+only the Parasite Energies share is `pe/effects/*`, and a module shared within
+one stage says so, to go under that stage once it is a package. Its folder is its
 source, and its declaration (`declarations/packages/`, the path being the
 folder) says what of it is built and what fills its slots. The same files are
 compiled by two builds that know nothing of each other: this repository's
@@ -395,7 +405,7 @@ follows from it (a weapon's item is always its index + 0x7F, `WEAPON_ITEM_ID` in
 declared one when the original did not follow the pattern.
 
 **Every overlay starts with its own id: a `u16` at offset 0, in a `u32` slot.**
-Every package but `nmc_names`, whose word 0 is its first datum, carries a
+Every package but `enemy_names`, whose word 0 is its first datum, carries a
 distinct value there, a running count by family: gameplay 4, title 5, weapons
 8-39, the other stage-0 packages 40-46 (options 40, game over 43, ending 45, and
 Aya's costumes 7, 41, 44 and 46 among them), pe 48-62, map pages 63-79, actors

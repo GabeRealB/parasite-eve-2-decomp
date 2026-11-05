@@ -58,7 +58,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static WorldCollisionGrid         _gDryfieldNightGarageLateRoomCollisionGrid;
 static WorldCollisionTrigger      _gDryfieldNightGarageEarlyRoomViewBoundaries[14];
@@ -1677,7 +1677,7 @@ static void _dryfieldNightGarageStartMovieTask(Task* task)
     taskKill(task);
 }
 
-#include "../../shared/effects/glow_draw_grey_capsule.inc.c"
+#include "effects/glow/grey_capsule.inc.c"
 
 void dryfieldNightGarageDrawGlowsTask(Task* unusedTask)
 {

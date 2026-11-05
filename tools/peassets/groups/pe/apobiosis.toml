@@ -30,7 +30,6 @@ sha1 = "cb9dec0f27845a539ba14f06fae64cb551580b92"
 [package]
 type = "pe2pkg"
 package_name = "apobiosis"
-required = true
 sha1 = "a004867a25fb41bf9a15a5d7dcccc266044467b0"
 
 [level1_item]

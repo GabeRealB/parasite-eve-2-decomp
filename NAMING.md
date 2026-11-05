@@ -531,7 +531,7 @@ own subsystems.
 
 `actorRange` owns the shared horizontal offset-versus-radius predicates used
 by actor awareness, attack reach, waypoint arrival and target eligibility.
-Its inline interface is `include/overlay.h`; each translation unit keeps a
+Its inline interface is `include/actors/actor.h`; each translation unit keeps a
 static instance marked `_`. Offsets and radii use the same game-coordinate
 units, Y is ignored, and equality meets the radius. The scratch stack supplies
 temporary arithmetic storage rather than owning the test's inputs.
@@ -559,7 +559,7 @@ half-turn endpoints and narrows the input to 16 bits before wrapping. The player
 turn also writes the translation offset in signed 16-bit game coordinates and
 requires both roots in the same parent coordinate frame; it does not compose or
 rotate them.
-The XZ and XY point-bearing helpers in `include/overlay.h` also belong to
+The XZ and XY point-bearing helpers in `include/actors/actor.h` also belong to
 `actorAngle`, with static instances marked `_` in each carrier. They measure
 from signed 16-bit positions in their common coordinate frame, using +Z or
 +Y respectively as zero and +X as the positive quarter-turn direction,
@@ -574,11 +574,12 @@ offset through the transpose of the reference's composed basis, then measures
 its X/Z yaw. Both caches must already describe the same composition frame;
 the helper borrows caller-owned scratch storage and does not refresh them.
 
-Shared implementation interfaces live beside their source in `src/shared/`,
-including `actor_contacts.h`, `cap_captions.h`, `planar_reflection.h`,
-`room_visual_effects.h`, `screen_wave.h`, `shop.h`, `telephone.h`,
-`water_effects.h`, `glow_draw.h` and `jukebox.h`. Use their subsystem prefixes with static
-per-instance linkage as described above. `water_effects.h` uses the prefix
+Shared implementation interfaces live beside their source: in `src/shared/`
+for what only split overlays carry (`actor_contacts.h`, `cap_captions.h`,
+`planar_reflection.h`, `room_visual_effects.h`, `shop.h`, `telephone.h`,
+`jukebox.h`), and in their module's library where packages carry them too
+(`effects/water/water.h`, `effects/glow/glow.h`, `screen/wave/wave.h`). Use their subsystem prefixes with static
+per-instance linkage as described above. `effects/water/water.h` uses the prefix
 `water`; its configuration macros use `WATER_`. It is the included splash,
 drift, distortion and refraction code. Gameplay `roomEffect` remains the
 resident room-effect state. `room_visual_effects.h` uses the prefix
@@ -586,15 +587,16 @@ resident room-effect state. `room_visual_effects.h` uses the prefix
 use `ROOM_VISUAL_EFFECTS_`. The
 remaining `RoomFx_…` functions and `ROOM_FX_` configuration bindings are legacy
 spellings. It owns the included halo, flash, trail and flying-effect drawing,
-separate from the resident `roomEffect` state API. `glow_draw.h` uses the
+separate from the resident `roomEffect` state API. `effects/glow/glow.h` uses the
 prefix `glow`; its
 configuration macros use `GLOW_`. It is the included projected glow, flare and
-light-beam drawing. `screen_wave.h` uses the prefix `screenWave`; its
+light-beam drawing. `screen/wave/wave.h` uses the prefix `screenWave`; its
 ramp-phase and texture-modulation constants use `SCREEN_WAVE_`. It redraws the
 captured frame as a grid of textured quads whose corners sine waves displace.
 `ScreenWaveCtx`, the ramp context packages embed and pass as the task's spawn
-argument, is declared in `include/overlay.h`. Scratch records that several overlays share, such as the
-one-centre projection block, are declared in `include/rooms/room_common.h`. If a shared implementation and a gameplay
+argument, is declared with it. The glow drawers' scratch records, such as the
+one-centre projection block, are declared in `effects/glow/glow.h`, and each
+other shared type with the code that owns it. If a shared implementation and a gameplay
 subsystem have similar names, distinguish actual ownership and linkage before
 introducing a qualifier; do not assume that they are one API.
 
@@ -648,7 +650,7 @@ bytes they never read, then the heat-haze `ScreenWaveCtx` the fade finishes.
 Each package extends that prefix with its own tasks and scene state.
 
 `screenFade` owns the included subtractive full-screen fade tasks, with
-`src/shared/screen/screen_fade.h` as their private implementation interface. The
+`packages/screen/fade/include/fade.h` as their private implementation interface. The
 resident `fade` API draws their overlay; each included task owns its ramp
 state and lifetime. Configuration bindings and task constants use
 `SCREEN_FADE_`. A carrier with a second fade-in instance binds
@@ -657,7 +659,7 @@ the subsystem prefix and the `_` marker.
 
 `screenNegative` owns the included grayscale-negative conversion of the
 resident RGB555 image workspace and the capture task that holds that frame.
-Its private implementation interface is `src/shared/screen/screen_negative.h`;
+Its private implementation interface is `packages/screen/negative/include/negative.h`;
 configuration bindings and packed-channel masks use `SCREEN_NEGATIVE_`.
 `SCREEN_NEGATIVE_FILTER` selects each static `void (void)` filter instance.
 Carriers bind a further instance around its fragment inclusion after declaring
@@ -674,7 +676,7 @@ drawer for its own VRAM layout.
 
 `frameCapture` owns the included depth-sorted copy of the current draw buffer
 into off-screen VRAM for textured scene effects. Its implementation interface
-is `src/shared/screen/frame_capture.h`; geometry and packet constants use
+is `packages/screen/include/frame_capture.h`; geometry and packet constants use
 `FRAME_CAPTURE_`. The ordering-table argument counts tags after projection
 quantization and any caller bias. A carrier keeps its instance static unless
 another translation unit in that package calls it. `FRAME_CAPTURE_QUEUE`
@@ -803,7 +805,7 @@ keeps static setup and room-specific visibility states. The interface names
 the rooms carrying the plane; its further visual role remains unproven.
 
 `fireball` owns the included flying-fireball glow drawers in
-`src/shared/effects/fireball.h`. The ground drawer constructs a world-ground quad
+`packages/effects/include/fireball.h`. The ground drawer constructs a world-ground quad
 around a composed view-space point and uses an additive two-cell texture;
 its instances are static. Rendering constants use `FIREBALL_`.
 
@@ -825,34 +827,34 @@ before signed 19/20 damping. Room task recipes and collision templates retain
 their package identities.
 
 `effectSprite` owns the included animated sprite and debris tasks and their
-textured quad drawers. Its interface is `src/shared/effects/effect_sprite.h`; its
+textured quad drawers. Its interface is `packages/effects/include/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each
 carrier's drawer signatures.
 
 `spriteQuad` owns the included camera-facing textured quads with carrier-selected
-textures. Its interface is `src/shared/effects/sprite_quad.h`; its configuration macros
+textures. Its interface is `packages/effects/include/sprite_quad.h`; its configuration macros
 use `SPRITE_QUAD_`. The frame-type binding selects each static instance's 16-bit
 texture-frame argument, including its signedness.
 
 `pyroFlame` owns the included eight-frame additive flame billboard shared by
-Pyrokinesis and Combustion. Its interface is `src/shared/effects/pyro_flame.h`; each
+Pyrokinesis and Combustion. Its interface is `packages/effects/include/pyro_flame.h`; each
 carrier keeps a static drawer. `PYRO_FLAME_` constants describe its animation
 strip, perspective sizing and screen-space rotation.
 
 `beamStrip` owns the included additive textured parallelogram between a cached
 world translation and a world-space endpoint, used by Hammer's shock trails and
-the M.I.S.T. shooting-gallery tracer. Its interface is `src/shared/effects/beam_strip.h`;
+the M.I.S.T. shooting-gallery tracer. Its interface is `packages/effects/include/beam_strip.h`;
 each carrier's drawer is static. `BEAM_STRIP_` constants describe the four-cell
 texture layout and perspective sizing.
 
 `groundGlow` owns the included two-frame floor quad used by Energy Ball and
-Hypervelocity. Its private interface is `src/shared/effects/ground_glow.h`; each
+Hypervelocity. Its private interface is `packages/effects/include/ground_glow.h`; each
 carrier keeps a static drawer. It rotates world-ground axes into the composed
 centre's view frame before projection. Constants and carrier tint/palette
 bindings use `GROUND_GLOW_`.
 
 `jetCone` owns the included sixteen-segment textured jet shared by Pyrokinesis
-and Hypervelocity. Its private interface is `src/shared/effects/jet_cone.h`; each
+and Hypervelocity. Its private interface is `packages/effects/include/jet_cone.h`; each
 carrier keeps a static drawer and supplies its rim radii, palette and frame
 offsets through `JET_CONE_` bindings. Both tail-growth modes share the same
 local XY rings and negative-Z axis.
@@ -864,14 +866,14 @@ Constants use `NO9_GOLEM_`.
 
 `overlayEncounter` owns the scripted encounter bookkeeping in
 `actor_342400` and the Mad Chaser library, shared with the encounter records in
-`include/overlay.h`. Pair bookkeeping borrows enemy pointers and records
+`include/actors/actor.h`. Pair bookkeeping borrows enemy pointers and records
 completion without owning their tasks. Carrier-local helpers keep static
-linkage; encounter constants use `OVERLAY_ENCOUNTER_`.
+linkage; encounter constants use `ENCOUNTER_`.
 
 `modelMorph` owns the included deformation of a TMD model by a ramp: scaled
 vertex deltas added to a snapshot of the rest shape, and normals interpolated
 toward a target set. Its interface is `src/shared/actor/model_morph.h`. The record
-describing one morph is `ModelMorph` in `include/overlay.h`, public because a
+describing one morph is `ModelMorph` in `include/actors/actor.h`, public because a
 package can morph its model with a record another package defines.
 
 The included Dryfield factory room code shares the lift, hatch, operator panel,
@@ -898,7 +900,7 @@ body-model coordinate it attaches to. Each scene package owns its attachment tab
 `src/shared/creatures/boss_stranger/boss_stranger.h`. Each carrier keeps private static
 instances marked `_bossStranger`; neither exports this movement interface.
 The movement record is `BossStrangerWalker` in
-`include/overlay.h`, with `BossStrangerNode`, `BossStrangerNav` and
+`include/actors/actor.h`, with `BossStrangerNode`, `BossStrangerNav` and
 `BossStrangerRoute` beside it. State values use `BOSS_STRANGER_WALKER_`.
 The blocks of the two nearest-node scans are
 `BossStrangerNodeNearestSelfScratch`, measured from the walker, and
@@ -933,8 +935,8 @@ limb shadow quad: both parts' world transforms and positions, the four corners,
 their projection, and the half span the quad overhangs each end by, which this
 drawer keeps in the block. The scripted waves that spawn the enemy are in
 `src/actors/actor_342400/actor_342400.c`.
-The place a wave's enemy enters the room is an `OverlayEncounterSpot`, declared in
-`include/overlay.h` beside `OverlayEncounterSlot`: the two Shelter B3 rooms define
+The place a wave's enemy enters the room is an `EncounterSpot`, declared in
+`include/actors/actor.h` beside `EncounterSlot`: the two Shelter B3 rooms define
 the tables, and both the Mad Chaser and the Sucklerceph read them.
 
 `limbShadow` owns the included limb shadow drawer, `src/shared/actor/limb_shadows.h`:
@@ -1057,7 +1059,7 @@ display after normal completion. The resident `stream` and `cdCmd` APIs own
 decoding and CD requests; these tasks own the room's playback sequence.
 
 `grenadeShell` owns the included grenade-projectile spawn, flight, blast and
-teardown fragments in `src/shared/effects/grenade_shell.h`. Each weapon or actor carrier
+teardown fragments in `packages/effects/include/grenade_shell.h`. Each weapon or actor carrier
 retains its own collision bodies and task lifecycle; helpers reached only
 inside a carrier keep static linkage and the private marker.
 
@@ -1254,7 +1256,7 @@ also uses for its text request.
 
 `pykeFlame` owns the included nozzle sprite and flying flame of the M4A1 Pyke
 attachment, also carried by `actor_800100`. Its interface is
-`src/shared/effects/pyke_flame.h`. Each package names the effect-table task itself and
+`packages/effects/include/pyke_flame.h`. Each package names the effect-table task itself and
 includes the shared body; `PYKE_FLAME_` bindings select the collision key,
 transform-cache refresh for redraws while simulation is stopped, and the order
 of the splash depth increment. `PykeFlameBody`
@@ -1265,7 +1267,7 @@ corners and their projected screen positions, with ordering depth and the GTE
 FLAG word left on the call stack.
 
 `bladeTrail` owns the included swoosh the Gunblade, M4A1 bayonet and tonfa
-baton leave behind a swing. Its interface is `src/shared/effects/blade_trail.h`.
+baton leave behind a swing. Its interface is `packages/effects/include/blade_trail.h`.
 Each weapon keeps eight paired samples of two ribbon endpoints and includes
 `_bladeTrailDraw`, which joins seven adjacent pairs into fading gouraud quads.
 `BladeTrailScratch` is one quad's scratch block: four endpoint corners, the
@@ -1273,18 +1275,18 @@ ordering depth and the GTE FLAG word, plus one word the drawer never touches.
 
 `muzzleFlash` owns the included textured core, Gouraud streaks and short-lived
 flash task shared by the P229 and MP5A5 variants. Its interface is
-`src/shared/effects/muzzle_flash.h`; constants use `MUZZLE_FLASH_`. Each carrier exports
+`packages/effects/include/muzzle_flash.h`; constants use `MUZZLE_FLASH_`. Each carrier exports
 its own effect-table wrapper and keeps the shared functions private. Carriers
 supply the muzzle offset and four retained streak angles.
 
 `risingSpark` owns the included short-lived additive spark billboard task
 shared by Healing and Life Drain. Its implementation interface is
-`src/shared/effects/rising_spark.h`; task constants use `RISING_SPARK_`. Each carrier
+`packages/effects/include/rising_spark.h`; task constants use `RISING_SPARK_`. Each carrier
 exports its own effect-table wrapper and keeps the shared inline body private.
 
 `leaf` owns the included falling-leaf task and textured-square drawers shared
 by the Acropolis gardens and Neo Ark woodland rooms. Its implementation
-interface is `src/shared/effects/falling_leaves.h`; `LEAF_` constants describe its
+interface is `packages/effects/include/falling_leaves.h`; `LEAF_` constants describe its
 rendering and task phases. Each carrier exports its own effect-table wrapper
 and keeps the shared task and selected drawer private.
 
@@ -1335,7 +1337,7 @@ shared definition to that export; rendering constants use `FACTORY_GLOW_`.
 
 `redBeacon` owns the included one-frame pulsing red diamond drawer shared by the
 Acropolis elevator halls. Its private implementation interface is
-`src/shared/effects/red_beacon.h`; `RED_BEACON_` constants describe pulse and projection
+`packages/effects/include/red_beacon.h`; `RED_BEACON_` constants describe pulse and projection
 units. Each carrier binds `RED_BEACON_TASK` to its public package-prefixed
 task callback, which gameplay's counted room-effect table imports.
 

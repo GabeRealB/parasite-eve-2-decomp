@@ -5,7 +5,7 @@
 #include "actors/actor_00100.h"
 
 #include "engine/task_types.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 Task* gRoomCutsceneSoundTask;
@@ -66,12 +66,10 @@ Task* _gDryfieldGasStationArrivalCutsceneTask;
 
 #include "mapui/map_dryfield.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/screen/screen_fade.h"
+#include "screen/fade/fade.h"
 
 /// Commands the gas-station cutscene script leaves for the cutscene task.
 ///
@@ -1105,7 +1103,7 @@ static void _dryfieldGasStationSuppressPlayerEquipment(void)
 #undef SCREEN_FADE_IN_TASK
 /// Binds the fade-in fragment to the cutscene table's private task callback.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen/screen_fade_in.inc.c"
+#include "screen/fade/in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
 /// Restores the player at the arrival cutscene's final placement and shows the display.
@@ -1150,7 +1148,7 @@ static void _dryfieldGasStationSetCutsceneCommand(s16 command)
     work->commandStep = 0;
 }
 
-#include "../../shared/effects/glow_draw_star_local.inc.c"
+#include "effects/glow/star_local.inc.c"
 
 /// Sets the outer ray-star disc's centre to half-intensity cyan.
 ///
@@ -1159,7 +1157,7 @@ static void _dryfieldGasStationSetCutsceneCommand(s16 command)
 /// stores retain its low byte. Arguments must have no side effects:
 /// `primitive` is evaluated three times and `halfIntensity` twice. Use as a
 /// statement. Requires `setRGB2` from `psyq/libgpu.h`. Define before including
-/// `glow_draw_ray_star.inc.c`, which undefines this binding afterwards.
+/// `effects/glow/ray_star.inc.c`, which undefines this binding afterwards.
 #define GLOW_DRAW_RAY_STAR_OUTER(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
 /// Sets the inner ray-star disc's centre to pulsing cyan.
 ///
@@ -1168,7 +1166,7 @@ static void _dryfieldGasStationSetCutsceneCommand(s16 command)
 /// must have no side effects: `primitive` is evaluated three times,
 /// `intensity` twice, and `halfIntensity` is unused and unevaluated.
 /// Use as a statement. Requires `setRGB2` from `psyq/libgpu.h`. Define before
-/// including `glow_draw_ray_star.inc.c`, which undefines this binding afterwards.
+/// including `effects/glow/ray_star.inc.c`, which undefines this binding afterwards.
 #define GLOW_DRAW_RAY_STAR_INNER(primitive, intensity, halfIntensity) (setRGB2((primitive), 0, (intensity), (intensity)))
 /// Sets the ray-star rays' centres to half-intensity cyan.
 ///
@@ -1177,10 +1175,10 @@ static void _dryfieldGasStationSetCutsceneCommand(s16 command)
 /// is zero. Stores retain the intensity's low byte. Arguments must have no
 /// side effects: `primitive` is evaluated three times and `halfIntensity`
 /// twice. Use as a statement. Requires `setRGB2` from `psyq/libgpu.h`.
-/// Define before including `glow_draw_ray_star.inc.c`, which undefines this
+/// Define before including `effects/glow/ray_star.inc.c`, which undefines this
 /// binding afterwards.
 #define GLOW_DRAW_RAY_STAR_RAY(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
-#include "../../shared/effects/glow_draw_ray_star.inc.c"
+#include "effects/glow/ray_star.inc.c"
 
 void dryfieldGasStationCyanGlowTask(Task* task)
 {

@@ -56,7 +56,7 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
+#include "effects/water/water.h"
 
 #include "rooms/room.h"
 
@@ -64,17 +64,17 @@
 /// Empty presence flag: this room supplies `_waterDrawSpinU16` and
 /// `_waterDrawTileU16`.
 ///
-/// Defined, with no replacement list, immediately before `water_effects.h`.
+/// Defined, with no replacement list, immediately before `effects/water/water.h`.
 /// `defined()` is the only test. That header prototypes the shared drawers
 /// only when `WATER_SHARED_U16_DRAWERS` is set
 /// and this flag is not. This file prototypes and defines both drawers and
-/// includes `water_drift_task_u16.inc.c` instead of the shared bodies. The
+/// includes `effects/water/drift_task.inc.c` with `WATER_DRIFT_U16` instead of the shared bodies. The
 /// spin drawer takes a `u16` index and an `s16` scale and angle. The tile
 /// drawer keeps `s32` parameters, uses texture page 0x2C and clut 0x4393,
 /// and starts its cell grid at v 0.
 #define WATER_OWN_U16_DRAWERS
-#include "../../shared/effects/water_effects.h"
-#include "../../shared/effects/effect_sprite.h"
+#include "effects/water/water.h"
+#include "effects/effect_sprite/effect_sprite.h"
 
 static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTileU16(const GfxCoord* coord, s32 textureCell, s32 radiusScale);
@@ -3099,14 +3099,13 @@ static void _shelterR48DrawRingBand(const EffectWork* work, const GfxCoord* coor
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-#include "../../shared/effects/water_drift_task_u16.inc.c"
+#define WATER_DRIFT_U16
+#include "effects/water/drift_task.inc.c"
 
 void shelterR48WaterDriftTaskU16(Task* task)
 {
-    _waterDriftTaskU16(task);
+    _waterDriftTask(task);
 }
-
-#include "../../shared/effects/water_spin_u16_corner.inc.c"
 
 /// Draws one rotated, camera-facing cell of the eight-frame water-drift strip.
 ///
@@ -3194,8 +3193,6 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
     }
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, EffectShapeScratch);
 }
-
-#include "../../shared/effects/water_tile_u16_corners.inc.c"
 
 /// Draws one upright, camera-facing cell of the eight-frame water-spray grid.
 ///
@@ -3325,7 +3322,7 @@ static inline void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, 
 #define EFFECT_SPRITE_DRIFT_DRAW_ALTERNATE _shelterR48DrawAlternateDriftSprite
 /// Selects the drift sprite's palette bank from the spawn argument's sign bit.
 ///
-/// Define as integer 1 before including `effect_sprite_drift.inc.c`, as Shelter
+/// Define as integer 1 before including `effects/effect_sprite/drift.inc.c`, as Shelter
 /// R48 does; 0 or undefined selects the default encoding (bit 31 chooses the
 /// drawer, bits 28..30 choose the palette bank). With 1, initialization chooses
 /// the banked drawer when bits 28..31 are all zero, otherwise the alternate drawer. Bit 31 alone
@@ -3342,7 +3339,7 @@ static inline void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, 
 #define EFFECT_SPRITE_DRIFT_SIGN_BANK 1
 /// Applies fixed negative-Y acceleration to every moving drift sprite.
 ///
-/// Define as integer 1 before including `effect_sprite_drift.inc.c`, as Shelter
+/// Define as integer 1 before including `effects/effect_sprite/drift.inc.c`, as Shelter
 /// R48 does; 0 or undefined retains movement kind 7's age-dependent positive-Y
 /// acceleration. Kind is bits 24..27 of `Task::spawnArg1.value`. With 1, both
 /// drawer states ignore kind: state 1 subtracts 2 from Y velocity per moving
@@ -3352,7 +3349,7 @@ static inline void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, 
 /// zero do not accelerate. The fragment tests this switch with #if and undefines
 /// it after inclusion.
 #define EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION 1
-#include "../../shared/effects/effect_sprite_drift.inc.c"
+#include "effects/effect_sprite/drift.inc.c"
 
 /// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
 ///

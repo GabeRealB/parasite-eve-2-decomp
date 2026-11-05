@@ -49,16 +49,14 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 /// Signed texture-frame index for the drifting effect's five-column sprite grid.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/effects/sprite_quad.h"
+#include "effects/sprite_quad/sprite_quad.h"
 
 static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale);
 
@@ -1922,13 +1920,13 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
 /// Zero disables the unit increment in the next sprite-quad drawer inclusion;
 /// the fragment consumes and undefines this preprocessor switch.
 #define SPRITE_QUAD_INCREMENT_DEPTH 0
-#include "../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
-#include "../../shared/effects/glow_draw_diamond.inc.c"
+#include "effects/glow/diamond.inc.c"
 
 /// Initializes a cyan-centred Gouraud wedge with a black rim.
 ///

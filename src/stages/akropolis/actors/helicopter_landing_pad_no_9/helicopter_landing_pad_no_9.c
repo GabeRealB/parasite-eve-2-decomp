@@ -42,7 +42,7 @@
 #include "engine/task.h"
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
-#include "../../../../shared/effects/sprite_quad.h"
+#include "effects/sprite_quad/sprite_quad.h"
 
 /// The landing pad's `sparks` page the flames draw from, at VRAM (704, 0), and its cells: the golem flame's `flame_*` at
 /// the top, the tongues' `tongue_*`, the flame sprite's `burning_*` over two rows and the gunfire smudges' `smudge_*`.
@@ -1182,7 +1182,7 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gHelicopterLanding
 #define SPRITE_QUAD_CELL_WIDTH EFFECT_SPRITE_ATLAS_CELL_SIZE
 /// Perspective-sizing multiplier for the shared atlas sprite.
 #define SPRITE_QUAD_SCALE EFFECT_SPRITE_ATLAS_UV_SPAN
-#include "../../../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 
 void helicopterLandingPadNo9InitBody(Enemy* enemy, Task* task)
 {

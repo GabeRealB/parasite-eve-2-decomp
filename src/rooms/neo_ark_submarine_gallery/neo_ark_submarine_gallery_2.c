@@ -44,16 +44,16 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
+#include "effects/glow/glow.h"
 
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-/// Empty presence flag so `water_effects.h` declares the shared
+/// Empty presence flag so `effects/water/water.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/effects/water_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/water/water.h"
+#include "effects/glow/glow.h"
 
 enum { NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX = 32 };
 
@@ -1110,7 +1110,7 @@ WorldCollisionSurfaceProperties* gNeoArkSubmarineGallerySurfacePropertiesByClass
 /// Both capsules share the radius scale and colour.
 ///
 /// Requires the composed view and projection settings, an initialized scratch
-/// stack with room for one `OverlayPointPairScratch`, and the current ordering
+/// stack with room for one `GlowFlaggedPointPairScratch`, and the current ordering
 /// table and frame arena with room for up to twelve Gouraud quads and their
 /// additive blend commands. Releases scratch between capsules; queued packets
 /// remain live until GPU drawing completes. Does not restore GTE state.
@@ -1181,23 +1181,24 @@ void neoArkSubmarineGalleryDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void neoArkSubmarineGalleryWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_drift_task_u16.inc.c"
+#define WATER_DRIFT_U16
+#include "effects/water/drift_task.inc.c"
 
 void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 {
-    _waterDriftTaskU16(task);
+    _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin_u16.inc.c"
+#include "effects/water/spin_u16.inc.c"
 
 /// Depth subtracted from each capsule endpoint above camera Z / 4 = 80.
 ///
@@ -1206,7 +1207,7 @@ void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 /// which clears it. An undefined binding leaves depth unchanged; 0 still
 /// selects the pull branch. Valid nonnegative pulls are at most 80.
 #define GLOW_DRAW_CAPSULE_DEPTH_PULL 0x40
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
 /// Depth subtracted from a disc centre above camera Z / 4 = 80.
 ///
@@ -1215,7 +1216,7 @@ void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 /// which clears it. An undefined binding leaves depth unchanged; 0 still
 /// selects the pull branch. Valid nonnegative pulls are at most 80.
 #define GLOW_DRAW_DISC_DEPTH_PULL 0x40
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
 /// Projects one face of the gallery's light prism into screen pixels.
 ///

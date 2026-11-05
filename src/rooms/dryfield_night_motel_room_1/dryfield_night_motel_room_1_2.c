@@ -28,7 +28,7 @@
 #include "engine/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// The night motel room 1 cone-light array and adjacent data of unproven purpose.
 ///

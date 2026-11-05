@@ -26,6 +26,32 @@ bind.file = { uid = "uid://swvvgzpql4fk", path = "res://stage0/system/title.node
 slot = "resident"
 link_script = "psx/link.ld"
 
+# The Option / Key Configuration menu, which the engine's UI runs once it has loaded (uiUpdateOptionsAfterLoadTask).
+[options]
+uid = "uid://ii1p2nhzy6k9"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+[options.target.psx]
+slot = "options"
+link_script = "psx/link.ld"
+
+# A package of nothing but its id, in the file after the options menu's; nothing loads it.
+[stub_20200]
+uid = "uid://1gpmnmo23072s"
+template = "package"
+sources.private = ["src/package.s"]
+
+[stub_20200.target.psx]
+slot = "options"
+link_script = "psx/link.ld"
+
 # Packages with nothing of their own to build: what others include, and what they publish to link against.
 
 [core]
@@ -91,6 +117,24 @@ dependencies = [
     { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
     { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
 ]
+
+# The Parasite Energies: no files of its own, its packages under it (declarations/packages/pe.toml), and the code only they
+# share (pe/effects).
+[pe]
+uid = "uid://pcgx887q8684"
+template = "library"
+
+# The overlays' copies of full-screen code - fades, negative, frame capture, screen waves: no files of its own, the
+# modules under it (declarations/packages/screen.toml) one library each.
+[screen]
+uid = "uid://1kwwfpbkqh84r"
+template = "library"
+
+# The overlays' copies of effect drawing - glows, sprite quads, flames, water, beams: no files of its own, the modules
+# under it (declarations/packages/effects.toml) one library each, as fragments a package includes where its copy sits.
+[effects]
+uid = "uid://1upb7tm54phai"
+template = "library"
 
 # What a language server reads: every package that compiles, for the config in use.
 

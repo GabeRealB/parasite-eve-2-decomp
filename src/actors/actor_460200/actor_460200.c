@@ -43,7 +43,7 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "../../shared/screen/screen_negative.h"
+#include "screen/negative/negative.h"
 #include "../../shared/walk/paced_walk.h"
 #include "../../shared/walk/walker.h"
 #include "../../shared/walk/stride_walk.h"
@@ -1085,7 +1085,7 @@ TaskDesc gActor460200SoldierCTaskDesc = { { { TASK_BODY_TMD, TASK_PRIORITY_ACTOR
 /// scripted play handler requires a nonnegative, nonzero index below the extent.
 #include "assets/rooms/shelter/1f_tent/soldier_c_bank.inc"
 
-#include "../../shared/screen/screen_negative_capture.inc.c"
+#include "screen/negative/capture.inc.c"
 
 /// Captures the scene as a grayscale negative and holds drawing until release.
 ///
@@ -1099,7 +1099,7 @@ static void _actor460200NegativeCaptureTask(Task* task)
     _screenNegativeCaptureTask(task);
 }
 
-#include "../../shared/screen/screen_negative_filter.inc.c"
+#include "screen/negative/filter.inc.c"
 
 /// Requests mode teardown after the signed task countdown becomes negative.
 ///
@@ -1147,7 +1147,7 @@ static void _actor460200SelectCaptionFile(s32 dataResourceOrdinal)
 // Select the cutscene callback's separate private filter instance.
 #undef SCREEN_NEGATIVE_FILTER
 #define SCREEN_NEGATIVE_FILTER _screenNegativeFilterCutscene
-#include "../../shared/screen/screen_negative_filter.inc.c"
+#include "screen/negative/filter.inc.c"
 #undef SCREEN_NEGATIVE_FILTER
 #define SCREEN_NEGATIVE_FILTER _screenNegativeFilter
 

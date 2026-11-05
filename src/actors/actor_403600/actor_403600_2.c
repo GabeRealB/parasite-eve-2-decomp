@@ -64,7 +64,7 @@
 #include "engine/wipsys_types.h"
 
 #include "rooms/shelter_b2_pod_bottom.h"
-#include "../../shared/screen/frame_capture.h"
+#include "screen/frame_capture/frame_capture.h"
 
 /// Queues a spatial sound for the actor's placed-enemy instance.
 ///

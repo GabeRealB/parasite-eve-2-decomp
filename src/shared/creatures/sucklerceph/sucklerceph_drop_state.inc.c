@@ -1,5 +1,7 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
+#include "../../room/encounter.h"
+
 /// Advances an armed Sucklerceph drop until it lands and enters crawling.
 ///
 /// Requires live enemy/work/model and coordinate 1's lighting cache. Paused
@@ -178,7 +180,7 @@ static s32 _sucklercephMessage(Task* task, s32 unusedMessageId, const ActorComma
     rootCoord = model->coords;
     if (taskState == SUCKLERCEPH_MESSAGE_ACTIVE_TASK) {
         commandWord = request->command;
-        if (commandWord == OVERLAY_ENCOUNTER_COMMAND_STOP) {
+        if (commandWord == ENCOUNTER_COMMAND_STOP) {
             _sucklercephStartCommandPuff(task, work, rootCoord);
             work->animFrames = 0;
             work->state      = SUCKLERCEPH_STATE_PUFFING;
@@ -193,7 +195,7 @@ static s32 _sucklercephMessage(Task* task, s32 unusedMessageId, const ActorComma
         }
     }
     actionByte = request->command & SUCKLERCEPH_COMMAND_ACTION_MASK;
-    if ((actionByte & SUCKLERCEPH_COMMAND_ACTION_MASK) == OVERLAY_ENCOUNTER_COMMAND_APPEAR) {
+    if ((actionByte & SUCKLERCEPH_COMMAND_ACTION_MASK) == ENCOUNTER_COMMAND_APPEAR) {
         if ((u32)(task->state - SUCKLERCEPH_MESSAGE_ACTIVE_TASK) >= 2U) {
             // Callers supply an in-bounds full high byte for the live room table.
             if (gGameSession->location.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {

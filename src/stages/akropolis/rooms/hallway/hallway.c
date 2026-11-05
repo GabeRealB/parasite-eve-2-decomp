@@ -33,7 +33,6 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
 #include "../../../../shared/actor/actor_contacts.h"
 
 #include "assets/stages/akropolis/rooms/hallway/declarations.inc"

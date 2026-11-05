@@ -81,7 +81,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/streamed_scene.h"
 
 // Script arguments shared by the room's head-aim tasks and their controllers.
@@ -4528,7 +4528,7 @@ void mineMesaDrawViewFlaresTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

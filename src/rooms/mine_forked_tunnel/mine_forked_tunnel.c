@@ -58,7 +58,7 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// Work block of the room's area object, the model the switch event sends
@@ -1975,7 +1975,7 @@ static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden)
     view5Batches[3].hidden = true;
 }
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 void mineForkedTunnelDrawViewFlaresTask(Task* unusedTask)
 {

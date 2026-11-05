@@ -37,7 +37,6 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// Values of `_Actor210600Work::animRequest` and `_Actor210600Work::blendRequest`.

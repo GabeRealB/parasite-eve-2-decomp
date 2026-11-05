@@ -53,7 +53,7 @@
 
 #include "rooms/room_common.h"
 #include "../../../../shared/room/room_visual_effects.h"
-#include "../../../../shared/effects/falling_leaves.h"
+#include "effects/falling_leaves/falling_leaves.h"
 
 #include "assets/stages/akropolis/rooms/forked_road/declarations.inc"
 #include "assets/engine/animation/player_schema.h"
@@ -96,6 +96,7 @@ static SVECTOR _gAkropolisForkedRoadMoviePlayerPositions[300] = {
 #include "assets/stages/akropolis/rooms/forked_road/sprites.inc"
 #include "assets/stages/akropolis/rooms/forked_road/lights.inc"
 #include "assets/stages/akropolis/rooms/forked_road/cameras.inc"
+#include "effects/acropolis_glows/acropolis_glows.h"
 #include "assets/stages/akropolis/rooms/forked_road/vibrations.inc"
 #include "assets/stages/akropolis/rooms/forked_road/surfaces.inc"
 
@@ -394,8 +395,6 @@ void akropolisForkedRoadInitializeRoomEffectsTask(Task* task)
     }
 }
 
-#include "../../../../shared/effects/acropolis_glow_sprite_bounds.inc.c"
-
 void akropolisForkedRoadWallLampTask(Task* task)
 {
     enum {
@@ -481,14 +480,14 @@ void akropolisForkedRoadWallLampTask(Task* task)
     }
 }
 
-#include "../../../../shared/effects/falling_leaves_task.inc.c"
+#include "effects/falling_leaves/task.inc.c"
 
 void akropolisForkedRoadLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../../../shared/effects/falling_leaves_draw.inc.c"
+#include "effects/falling_leaves/draw.inc.c"
 
 #include "../../../../shared/room/room_visual_effects.inc.c"
 

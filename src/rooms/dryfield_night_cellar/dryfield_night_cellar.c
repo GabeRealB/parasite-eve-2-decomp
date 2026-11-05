@@ -40,7 +40,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/cellar.h"
 
 static s32  _dryfieldNightCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -1183,7 +1183,7 @@ void dryfieldNightCellarRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 /// Draws the nighttime cellar's pair of flickering textured flares in array order.
 ///

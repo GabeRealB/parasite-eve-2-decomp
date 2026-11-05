@@ -4,7 +4,6 @@
 [package]
 type = "pe2pkg"
 package_name = "combustion"
-required = true
 sha1 = "cc464b5d816857e49e5177238bf69b0b56483d78"
 
 [ignition_1]

@@ -38,7 +38,7 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
+#include "../../shared/actor/model_morph.h"
 
 #include "rooms/dryfield_toilet.h"
 #include "../../shared/actor/actor_motion.h"

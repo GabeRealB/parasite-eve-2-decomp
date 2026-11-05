@@ -70,8 +70,8 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/effects/water_effects.h"
+#include "effects/glow/glow.h"
+#include "effects/water/water.h"
 #include "../../shared/room/room_events.h"
 
 /// World-space beam endpoint pairs and indicator positions for the septic tank.
@@ -1607,7 +1607,7 @@ void shelterB2SepticTankRoomTask(Task* task)
 #define WATER_WAVE_STRIPS_PACKET_CURSOR _gShelterB2SepticTankWaterPacketCursor
 /// Scales the seam's sine displacement to -128..128 world-coordinate Y units.
 ///
-/// Integer shift count for `water_wave_strips.inc.c`; see its configuration
+/// Integer shift count for `effects/water/wave_strips.inc.c`; see its configuration
 /// contract. The include consumes and undefines this binding.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 5
 /// Sets the first X strip's blue vertex colours for subtractive blending.
@@ -1629,7 +1629,7 @@ static inline void _shelterB2SepticTankSetFirstWaterStripColours(POLY_G4* quad)
 /// 0/1) is (0, 0x40, 0x80); the waving seam (vertices 2/3) is (0, 0x10, 0x20),
 /// in unsigned RGB bytes. Other packet fields are preserved; no caller locals
 /// are captured and no packet pointer is retained. Psy-Q's `POLY_G4` and
-/// `setRGB0` through `setRGB3` must be visible. `water_wave_strips.inc.c`
+/// `setRGB0` through `setRGB3` must be visible. `effects/water/wave_strips.inc.c`
 /// consumes and undefines this override.
 #define WATER_WAVE_STRIPS_SET_FIRST_STRIP_COLOURS(quad) _shelterB2SepticTankSetFirstWaterStripColours(quad)
 /// Sets the second X strip's blue vertex colours for subtractive blending.
@@ -1652,9 +1652,9 @@ static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 /// (0, 0x40, 0x80); the outer edge (vertices 2/3) is (0, 0x10, 0x20), in
 /// unsigned RGB bytes. Other packet fields are preserved; no caller locals
 /// are captured. Psy-Q's `POLY_G4` and `setRGB0` through `setRGB3` must be
-/// visible. `water_wave_strips.inc.c` consumes and undefines this override.
+/// visible. `effects/water/wave_strips.inc.c` consumes and undefines this override.
 #define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
-#include "../../shared/effects/water_wave_strips.inc.c"
+#include "effects/water/wave_strips.inc.c"
 
 /// Emits the second private water drawer with the task-compatible `void (Task*)` signature.
 ///
@@ -1681,7 +1681,7 @@ static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 /// Has the same `POLY_G4*`, single-evaluation and packet-preservation contract
 /// as the first instance; the preceding include has undefined that binding.
 #define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
-#include "../../shared/effects/water_wave_strips.inc.c"
+#include "effects/water/wave_strips.inc.c"
 
 /// Initializes and draws the room's water, publishing its height each tick.
 ///
@@ -1865,27 +1865,29 @@ void shelterB2SepticTankGlowTask(Task* task)
     }
 }
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void shelterB2SepticTankWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_drift_task.inc.c"
+#include "effects/water/drift_task.inc.c"
 
 void shelterB2SepticTankWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin.inc.c"
+#include "effects/water/spin.inc.c"
 
-#include "../../shared/effects/glow_draw_beam.inc.c"
+#include "effects/glow/beam.inc.c"
 
-#include "../../shared/effects/glow_draw_bit_disc.inc.c"
+#define GLOW_FACTOR_DISC_FUNC _glowDrawBitDisc
+#define GLOW_FACTOR_DISC_BITS 1
+#include "effects/glow/factor_disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

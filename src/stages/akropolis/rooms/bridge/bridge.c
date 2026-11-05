@@ -76,7 +76,8 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "effects/flagged_quad/flagged_quad.h"
+#include "../../../../shared/creatures/boss_stranger/boss_stranger.h"
 
 #include "rooms/room_common.h"
 
@@ -88,18 +89,18 @@
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #include "../../../../shared/room/action_prompt.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// Selects the bridge billboard's `u16` frame and `s16` size arguments.
 #define EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
 /// Binds the shared debris task to the bridge's exported `void (Task*)` callback.
 #define EFFECT_SPRITE_DEBRIS_TASK akropolisBridgeEffectSpriteDebrisTask
-#include "../../../../shared/effects/effect_sprite.h"
+#include "effects/effect_sprite/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
 
 #include "../../../../shared/creatures/boss_stranger/boss_stranger.h"
 #include "../../../../shared/room/bridge_model.h"
-#include "../../../../shared/effects/acropolis_glows.h"
+#include "effects/acropolis_glows/acropolis_glows.h"
 
 /// Keypad hotspot ID that clears all entered digits.
 #define KEYPAD_KEY_CLEAR 0xA
@@ -2199,7 +2200,7 @@ void akropolisBridgeParticleStreakTask(Task* task)
 
 /// Binds the shared star glow to the bridge's exported `void (Task*)` callback.
 #define GLOW_STAR_TASK akropolisBridgeGlowStarTask
-#include "../../../../shared/effects/acropolis_glows_star.inc.c"
+#include "effects/acropolis_glows/star.inc.c"
 
 void akropolisBridgeGroundGlowTask(Task* task)
 {
@@ -2283,7 +2284,7 @@ void akropolisBridgeGroundGlowTask(Task* task)
 
 /// Binds the included lamp glow to the bridge's exported `void (Task*)` callback.
 #define GLOW_LAMP_TASK akropolisBridgeGlowLampTask
-#include "../../../../shared/effects/acropolis_glows_lamp.inc.c"
+#include "effects/acropolis_glows/lamp.inc.c"
 
 /// Seeds the arrival scene's dust plane with 96 edge motes and eight interior motes.
 static s32 _akropolisBridgeSpawnArrivalDust(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
@@ -2471,19 +2472,19 @@ static void _akropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize,
         TEXTURE_SPAN        = 55,
         MODULATED_QUAD_CODE = 0x2C
     };
-    OverlayFlaggedQuadScratch* quadScratch;
-    POLY_FT4*                  quad;
-    SVECTOR*                   corner;
-    s32                        cornerIndex;
+    FlaggedQuadScratch* quadScratch;
+    POLY_FT4*           quad;
+    SVECTOR*            corner;
+    s32                 cornerIndex;
 
-    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(OverlayFlaggedQuadScratch);
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(FlaggedQuadScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
         quadScratch->corners[cornerIndex].vx = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis0Sign * halfSize;
         /* Spelled as an offset rather than `&quadScratch->corners[cornerIndex]`, which is the same
            address: the member form lets CSE share one register with the GTE
            macros' `&quadScratch->corners[cornerIndex]`, and the original keeps two. */
-        corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(OverlayFlaggedQuadScratch, corners));
+        corner     = (SVECTOR*)((u8*)quadScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(FlaggedQuadScratch, corners));
         corner->vy = 0;
         corner->vz = (u16)((EffectUnitQuadCorner*)gEffectUnitQuadCorners)[cornerIndex].axis1Sign * halfSize;
         gte_SetRotMatrix(&coord->workm);
@@ -2518,10 +2519,10 @@ static void _akropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize,
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->otz),
                 quad);
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(FlaggedQuadScratch);
 }
 
-#include "../../../../shared/effects/effect_sprite_debris.inc.c"
+#include "effects/effect_sprite/debris.inc.c"
 
 /// Draws a spinning raw-texture debris cell at a composed coordinate's translation.
 static void _effectSpriteDrawChip(const GfxCoord* coord, u16 frame, s16 size, s16 angle)
@@ -2679,7 +2680,7 @@ static const EnemyTaskFuncTable3 _gAkropolisBridgeEnemyTaskStates = {
     { _akropolisBridgeEnemySetup, _akropolisBridgeEnemyFrame, enemyDestroy }
 };
 
-#include "../../../../shared/effects/glow_draw_tinted_disc_no_bias.inc.c"
+#include "effects/glow/tinted_disc_no_bias.inc.c"
 
 #include "../../../../shared/creatures/boss_stranger/boss_stranger.inc.c"
 

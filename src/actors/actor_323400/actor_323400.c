@@ -39,7 +39,6 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// Selects the scripted, noncombat Desert Chaser implementation for actor_323400.

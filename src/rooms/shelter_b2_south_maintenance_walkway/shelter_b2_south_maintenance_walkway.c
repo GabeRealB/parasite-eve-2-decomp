@@ -67,7 +67,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
@@ -827,9 +827,9 @@ void shelterB2SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_cone.inc.c"
+#include "effects/glow/cone.inc.c"
 
-#include "../../shared/effects/glow_draw_red_disc.inc.c"
+#include "effects/glow/red_disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

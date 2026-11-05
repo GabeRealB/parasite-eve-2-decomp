@@ -7,7 +7,7 @@
 
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 
 extern TmdSource gEveMaskedBody;
 

@@ -1,7 +1,7 @@
 #ifndef ENGINE_GAMEFLAG_IDS_H
 #define ENGINE_GAMEFLAG_IDS_H
 
-// Being emptied into `main/event_flags.h`, to be deleted when nothing is left.
+// Being emptied into `engine/event_flags.h`, to be deleted when nothing is left.
 // A flag moves there - and is removed from here in the same change - once its
 // meaning has been checked against the code, one room at a time. Do not add
 // new flags here.

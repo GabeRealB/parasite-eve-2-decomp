@@ -22,7 +22,6 @@ sha1 = "16fd0fc3efbb59906cbf12d92a0537a58d2e8054"
 [package]
 type = "pe2pkg"
 package_name = "plasma"
-required = true
 sha1 = "ff0336504cd31f9a3cc768e4d2308cb2382a990c"
 
 [level1_item]

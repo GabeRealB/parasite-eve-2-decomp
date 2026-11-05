@@ -23,16 +23,17 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-/// Empty presence flag so `water_effects.h` declares the shared
+/// Empty presence flag so `effects/water/water.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 
-#include "../../shared/effects/water_drift_task_u16.inc.c"
+#define WATER_DRIFT_U16
+#include "effects/water/drift_task.inc.c"
 
 void dryfieldWaterHoleWaterDriftTaskU16(Task* task)
 {
-    _waterDriftTaskU16(task);
+    _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin_u16.inc.c"
+#include "effects/water/spin_u16.inc.c"

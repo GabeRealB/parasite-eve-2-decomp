@@ -2403,7 +2403,7 @@ That asymmetry is what makes the m2c typing look plausible — the store needs a
 byte, so the byte type seems right, and the shift reads as load-related.
 
 Declaring the local `s32` and removing the `s8` return type from the seed's
-own `extern` (take `main/gameflag.h` instead — if the extern still returns
+own `extern` (take `engine/gameflag.h` instead — if the extern still returns
 `s8`, the *assignment* sign-extends and nothing changes) gives `blez s0`
 directly and 100.000% with every penalty zero:
 
@@ -2705,14 +2705,14 @@ search can come back `PERMUTER_MISS` with the real cause three lines up in
 `PERMUTER.txt`. Retype the seed to real struct fields (usually wanted anyway,
 see the aliasing entry) before asking the router to search it.
 
-## A candidate needing a coordinate includes `main/coord.h`, not `<psyq/libgs.h>`
+## A candidate needing a coordinate includes `engine/coord.h`, not `<psyq/libgs.h>`
 
 The game's coordinate node is `GfxCoord` (`packages/engine/include/coord.h`); libgs's
 `GsCOORDINATE2` is not used by game code. `include/psyq/libgs.h` is vendored
 without its own includes, so adding it directly dies on a wall of parse errors
 (`VECTOR` / `MATRIX` / `SVECTOR` from `libgte.h`, `POLY_*` / `CVECTOR` /
-`GsDRAWENV` from `libgpu.h`). `main/coord.h` pulls those in itself, and
-`main/tmd.h` includes it, which is what a `TmdObject::coords` candidate wants
+`GsDRAWENV` from `libgpu.h`). `engine/coord.h` pulls those in itself, and
+`engine/tmd.h` includes it, which is what a `TmdObject::coords` candidate wants
 anyway.
 ## A temp local for a value re-read across stores collapses the reloads
 
@@ -5544,13 +5544,13 @@ t += (u16)arg1[0];
 explicit `addu` does not recolor the long-lived source. Non-volatile `addu`
 lets the copy float and wrecks coloring again. Related to "Earlyclobber empty
 asm copies an SI value": use that when the source is short-lived; use the
-emitting form when it is not. `_apobiosisDrawShardStrip` is the example.
+emitting form when it is not. `apobiosis:_drawShardStrip` is the example.
 
 ## A 16-segment `POLY_FT4` tube with `arg3` picking fat/thin radii is `func_hypervelocity_8011DF34`
 
 `func_pyrokinesis_80131784` is that function with three constants swapped:
 rim 0x200/0x480 instead of 0x600/0x800, clut 0x4282 instead of 0x42C1, and
-the jitter table `_gPyrokinesisConeFrameOffsets`. Geometry, the `rimSize`/`hubSize`
+the jitter table `pyrokinesis:_gConeFrameOffsets`. Geometry, the `rimSize`/`hubSize`
 latch into `rimRad`/`hubRad`, `rot = &coord->workm`, and
 `op = &topRing[i] + EFFECT_BAND_SEGMENT_COUNT` copy verbatim.
 
@@ -5581,8 +5581,8 @@ join-store first is what matches:
 ```c
 work->period = work->period + 0xC0; /* first → j delay + join sh */
 work->step = work->step + 0x18; /* second → completed in the case */
-_infernoDrawRisingFanBand(work, coord, INFERNO_FAN_RISING_BAND, texturePhase);
-_infernoDrawConstantLiftFanBand(work, coord, INFERNO_FAN_CONSTANT_LIFT_BAND, texturePhase);
+inferno:_drawRisingFanBand(work, coord, inferno:FAN_RISING_BAND, texturePhase);
+inferno:_drawConstantLiftFanBand(work, coord, inferno:FAN_CONSTANT_LIFT_BAND, texturePhase);
 ```
 
 Empty `asm` / `SOFT_COMPILER_BARRIER` between them forces the in-case order
@@ -5633,7 +5633,7 @@ this hoist.
 ```c
 collision->damageBody.key    = long_div_expr;
 collision->damageBody.flags  = 1;
-collision->damageBody.radius = _gNecrosisLevelTuning[effect->index].startRadius;
+collision->damageBody.radius = necrosis:_gLevelTuning[effect->index].startRadius;
 worldCollisionLinkBody(1, &collision->damageBody);
 ```
 
@@ -5648,7 +5648,7 @@ delay:
 
 ```c
 collision->damageBody.key    = long_div_expr;
-collision->damageBody.radius = _gNecrosisLevelTuning[effect->index].startRadius;
+collision->damageBody.radius = necrosis:_gLevelTuning[effect->index].startRadius;
 collision->damageBody.flags  = 1;
 worldCollisionLinkBody(1, &collision->damageBody);
 ```
@@ -5863,7 +5863,7 @@ u8* title;
 SCHED_BARRIER();
 a0tmp = (s32)arg1;
 TOUCH_REG(a0tmp);
-title = _gOptionsCursorLabel;
+title = options:_gCursorLabel;
 TOUCH_REG(title);
 i = 0;
 p = labels;
@@ -5873,7 +5873,7 @@ textDrawUiLine((UiObject*)a0tmp, arg1->field_1C + 6, arg0->rowTextY.signedValue,
 
 Field loads stay through `value` (`lh 0x1C(s6)`), not the `$a0` copy. Without
 the touches, `title` CSEs into the call and the `lui a3` sinks back next to
-the `jal`. `_optionsUpdateCursorRow` is the example.
+the `jal`. `options:_updateCursorRow` is the example.
 
 ## Pre-loop `n2 = 2; two = n2` so a signed `/ 2` keeps `div $t0` not `$a1`
 
@@ -5906,7 +5906,7 @@ does not. Same function as the previous entry.
 
 ## A `saved` copy live across the loop blocks `n2` rematerialising as `$t0`
 
-The stereo/mono options prompt (`_optionsUpdateSoundRow`) is the 2-choice
+The stereo/mono options prompt (`options:_updateSoundRow`) is the 2-choice
 sibling plus a stack copy of the old selection so it can call
 `sndOutputSetStereo` only on change. That extra allocno is enough to stop the
 `n2 = 2; two = n2` rematerialise-as-`$t0` trick above: `n2` steals `$s7`,
@@ -5945,7 +5945,7 @@ The mix-mode call itself is three `sndOutputSetStereo` sites
 cross-jumping produces `beqz` / `li a0,1` / `li v0,1` / `bne` / `move a0,0`
 into one `jal`. A `mix` local if-converts to `xor`/`sltu`.
 
-`_optionsUpdateMusicVolumeRow` is the 4-choice sibling of the same shape.
+`options:_updateMusicVolumeRow` is the 4-choice sibling of the same shape.
 
 ## Compute the UV column into `$a0` before the row so `cell` stays in `$v1`
 
@@ -17593,7 +17593,7 @@ actor_135600_2.i:622: parse error before `*'
 ```
 
 GCC 2.8.1 is C89, so an unknown type name is an undeclared *identifier*, and
-the message never mentions a header. `GfxCoord` comes from `main/coord.h`.
+the message never mentions a header. `GfxCoord` comes from `engine/coord.h`.
 
 ## Do not include `libgs.h` for `GsF_LIGHT`
 
@@ -42091,10 +42091,10 @@ errors, not warnings. Measured on one shared record that had to move:
 |---|---|---|
 | the unit header that owned the type | 99, over 32 symbols | 13 |
 | the gameplay module's shared header | 3, over 3 symbols | 31 |
-| `main/session.h` | 0 | 0 |
+| `engine/session.h` | 0 | 0 |
 
 So a record shared between gameplay, main and the overlays belongs in
-`main/session.h`, which every overlay header already reaches and which declares
+`engine/session.h`, which every overlay header already reaches and which declares
 no gameplay prototypes. That is where the earlier merges of the same kind put
 theirs, and its own comments say why: the record is restated main-side so
 `session.h` does not depend on a gameplay header.
@@ -49386,7 +49386,7 @@ The tell is that **nothing writes `$a0` before the `jal`**. `task` is copied to
 a callee-saved register at the function head because it is live across the call,
 and that copy leaves `$a0` untouched, so a call whose first argument *is* `task`
 needs no argument setup at all: GCC reuses the incoming register. Restore the
-prototype from the shared header (`main/session.h` here) and pass the pointer:
+prototype from the shared header (`engine/session.h` here) and pass the pointer:
 
 ```c
 static void _dryfieldWarehouseInitializeRoomTask(Task* task)
@@ -51721,7 +51721,7 @@ whose argument was that same value. `_mistShootingGalleryResultPanelTask`.
 
 `parse error before 'SVECTOR'` from a *new* `.c` that includes only headers
 existing files already include is an include-order bug in the project header,
-not in your file. `include/rooms/room_common.h` pulled `main/ui.h` (which
+not in your file. `include/rooms/room_common.h` pulled `engine/ui.h` (which
 includes `psyq/libgpu.h`, and `libgpu.h`'s `TMD_PRIM` uses `SVECTOR`) *before*
 `psyq/libgte.h`, which is where `SVECTOR` is typedef'd. Every existing consumer
 happened to include `libgte.h` first through some other header — a room `.c`
@@ -51737,14 +51737,14 @@ include above the project includes) rather than papering over it with an extra
 
 A second carrier, and the one that reaches the *landing* step: the
 `include/actors/actors_shared_*.h` work-block headers use `MATRIX` with only
-`common.h` and `main/task.h` included. Every consumer under `src/actors/lib/`
-listed `main/task.h` / `main/tmd.h` *before* the actors header, so the omission
+`common.h` and `engine/task.h` included. Every consumer under `src/actors/lib/`
+listed `engine/task.h` / `engine/tmd.h` *before* the actors header, so the omission
 never showed. A scratch `base_N.c` that happens to put the actors header last
 compiles and scores 100%, and the landed file — where the same includes sort
 alphabetically, actors first — dies with `parse error before 'MATRIX'` and
 `parse error before '}'` inside the struct, reported against the function that
 merely preceded them in the TU. Fix the header (`actors_shared_80135a24.h` now
-includes `<psyq/libgte.h>` above `main/task.h`, matching
+includes `<psyq/libgte.h>` above `engine/task.h`, matching
 `actors_shared_80133a68.h`), not the include order in your `.c`:
 `func_actor_102300_80135A70`.
 
@@ -52645,7 +52645,7 @@ whether the target has it.
 gameplay's matched `evsScreenShakeTask`. Pasting that body into the m2c scratch seed
 scored **68%**, below the 90% m2c baseline, with `regs=40 insert=15`. The
 object dump had `jal ABS` three times: the seed's include list (`common.h`,
-`gameplay/*.h`, `main/task.h`) does not pull in `psyq/abs.h`, so GCC 2.8.1
+`gameplay/*.h`, `engine/task.h`) does not pull in `psyq/abs.h`, so GCC 2.8.1
 treated `ABS(x)` as an implicit `int ABS()` call, and the extra calls forced
 `packedShake`/`halfDurationFrames` into `$s1`/`$s2` and grew the frame. Adding
 `#include <psyq/abs.h>` took the same text to 100%.
@@ -55325,7 +55325,7 @@ That is true of `p = block`, where both locals have the same type and value, but
 it is not true of the *member address* spelling:
 
 ```c
-block       = previousTop - 1;  /* OverlaySpriteScratch* */
+block       = previousTop - 1;  /* SpriteQuadScratch* */
 depthOutput = &block->otz;      /* own pseudo: emits `move $v1, $s6`   */
 ...
 gte_stszotz(depthOutput);
@@ -62067,8 +62067,8 @@ The final combustion tick check compiles from either spelling to
 `slt v0,<row>,<counter>`, but the operands are *loaded* in source order:
 
 ```c
-if (_gCombustionLevelTuning[mem->index].emitterFrames < mem->age)  /* lh row, then lh counter */
-if (mem->age > _gCombustionLevelTuning[mem->index].emitterFrames)  /* lh counter, then lh row */
+if (combustion:_gLevelTuning[mem->index].emitterFrames < mem->age)  /* lh row, then lh counter */
+if (mem->age > combustion:_gLevelTuning[mem->index].emitterFrames)  /* lh counter, then lh row */
 ```
 
 GCC canonicalises the comparison but not the two `lh`s feeding it, so when the
@@ -62185,7 +62185,7 @@ with a `move` between two registers you initialised independently.
 
 ## `SOFT_TOUCH_REG` in every branch to keep a narrow copy of a wide parameter
 
-An early `_apobiosisDrawScreenFlash` seed wrote a `POLY_F4`'s RGB from one `u32` parameter and
+An early `apobiosis:_drawScreenFlash` seed wrote a `POLY_F4`'s RGB from one `u32` parameter and
 the ROM keeps *two* copies of it alive:
 
 ```
@@ -62452,7 +62452,7 @@ intermediate value is that reference, so put it where it belongs:
 ```c
 rng2          = rng1 * 5 + 0x71357911;
 gRandomLcgState   = rng2;
-work->scale   = _gAntibodyLevelTuning[work->index].moteRerollSizeBase + (((u32)rng2 >> 16) & 0x1FF);
+work->scale   = antibody:_gLevelTuning[work->index].moteRerollSizeBase + (((u32)rng2 >> 16) & 0x1FF);
 rng3          = rng2 * 5 + 0x71357911;
 gRandomLcgState   = rng3;
 work->angle   = ((u32)rng3 >> 16) & 0xFFF;
@@ -62604,13 +62604,13 @@ regroup.
 
 ## `lui %hi` ahead of the index math means the table base is staged in its own local
 
-`_infernoDrawConstantLiftFanBand` opens by selecting a row of a 6-byte table:
+`inferno:_drawConstantLiftFanBand` opens by selecting a row of a 6-byte table:
 
 ```
 lui   a0, 0x1f80          # the scratch head address
 ori   a0, a0, 0x3fc
-lui   v0, %hi(_gInfernoFanBandShapes)
-addiu v0, v0, %lo(_gInfernoFanBandShapes)
+lui   v0, %hi(inferno:_gFanBandShapes)
+addiu v0, v0, %lo(inferno:_gFanBandShapes)
 sw    a2, 0x58(sp)
 sll   v1, a2, 0x1         # bandIndex * 6
 addu  v1, v1, a2
@@ -62618,7 +62618,7 @@ sll   v1, v1, 0x1
 addu  v1, v1, v0
 ```
 
-`shape = &_gInfernoFanBandShapes[bandIndex];` gets the final `addu` right but emits the
+`shape = &inferno:_gFanBandShapes[bandIndex];` gets the final `addu` right but emits the
 `lui`/`addiu` pair *after* the `sll`/`addu`/`sll` chain, because `fold` sorts a
 `PLUS_EXPR`'s operands by complexity and an `ADDR_EXPR` of a static is the
 simpler one, so it ends up as op1 and is expanded second. `sched2` then has no
@@ -62628,7 +62628,7 @@ the address stay put. That was the whole remaining diff at 99.67%.
 Staging the base in its own local first fixes the order:
 
 ```c
-shapes = _gInfernoFanBandShapes;
+shapes = inferno:_gFanBandShapes;
 shape = &shapes[bandIndex];
 ```
 
@@ -62698,7 +62698,7 @@ def load(p):
 difflib.unified_diff(load(nonmatching_s), load(matched_s), n=2)
 ```
 
-`_infernoDrawRisingFanBand` against the matched `_infernoDrawConstantLiftFanBand` came back
+`inferno:_drawRisingFanBand` against the matched `inferno:_drawConstantLiftFanBand` came back
 as a register-allocation shuffle in the prologue plus exactly one extra
 `lhu $a0, 0x28($a0)` / `addu` pair: the twin lifts the rim by `shape->lift`,
 this one by `work->period + shape->lift`. Every hunk after the prologue was
@@ -62814,9 +62814,9 @@ twice), so the only lever is the span. Hoisting the *second* element's index out
 of its subscript, into a plain local computed before the second LCG step,
 
 ```c
-secondaryAngleIndex = ringIndex + _gApobiosisLevelParams[work->index].radiusStep;
+secondaryAngleIndex = ringIndex + apobiosis:_gLevelParams[work->index].radiusStep;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-_gApobiosisStripAngles[secondaryAngleIndex] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
+apobiosis:_gStripAngles[secondaryAngleIndex] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
 ```
 
 moves seven insns of address arithmetic ahead of `rngB`'s definition. `rngB`'s
@@ -62916,7 +62916,7 @@ prim offsets `0x7` / `0xE` / `0x16` are the code byte, CLUT and tpage.
 
 ## A reloaded `prim->code` byte means the `setPolyFT4` is far from the `setSemiTrans`
 
-`_combatLightDrawOriginBillboard` sets up a `POLY_FT4` in two places: the tag length
+`combat_light:_drawOriginBillboard` sets up a `POLY_FT4` in two places: the tag length
 and code are written before the `gte_stflg` test, and the semi-transparent /
 raw-texture bits are only set inside the `if`, after the UVs. The object dump
 shows that split directly:
@@ -62948,7 +62948,7 @@ Write `prim->code |= 3;` when the ROM has one.
 
 ## Place a stranded `move $a0, $sN` with an `asm("a0")` local, not with a barrier
 
-`_necrosisDrawMistPuff` is the two-blend-mode twin of `func_necrosis_8012F6EC`, so the
+`necrosis:_drawMistPuff` is the two-blend-mode twin of `func_necrosis_8012F6EC`, so the
 body came straight from the sibling, but its `$a1` prologue needed the
 `func_apobiosis_8012F9D0` pin set (`register void** scratch asm("a1")`, the
 `register u16 vx asm("v0")` / `register u8* tmp asm("v0")` blocks, `USE_REG(head)`
@@ -62985,7 +62985,7 @@ assignment gives the copy an early home the scheduler will not move.
 ## Two function-scope `asm("a1")` locals can share the register when their ranges are disjoint
 
 Contrary to "Only one `register ... asm(\"rN\")` variable per hard register per
-function", `_necrosisDrawMistPuff` needs two, and GCC 2.8.1 honours both:
+function", `necrosis:_drawMistPuff` needs two, and GCC 2.8.1 honours both:
 
 ```c
 register void** scratch asm("a1");   /* lui/ori $a1, lw $t0, 0($a1), sw $s2, 0($a1) */
@@ -63009,7 +63009,7 @@ When you port a matched sibling's body onto a near-identical function, the
 sibling's `register T x asm("aN")` locals come along with it — and a pin that
 was load-bearing there can be the one thing that blocks the new match.
 
-`_necrosisDrawLargeMistPuff` is `_necrosisDrawMistPuff` with different constants;
+`necrosis:_drawLargeMistPuff` is `necrosis:_drawMistPuff` with different constants;
 the only real change is the texture cell width, `<< 5` (32) becoming `* 40`.
 The sibling needed `register s16 frame asm("a1")` to keep `value` in `$a1`, and
 the ported body scored 99.944% with `regs=3` on exactly the multiply:
@@ -63081,12 +63081,12 @@ do {
     s32  baseYaw;
     s32  yawRng;
 
-    wedgeYaws = _gAntibodyWedgeYaws;                       /* %hi movable first */
-    baseYaw  = wedgeIndex * (0x1000 / _gAntibodyLevelTuning[work->index].wedgeCount);
+    wedgeYaws = antibody:_gWedgeYaws;                       /* %hi movable first */
+    baseYaw  = wedgeIndex * (0x1000 / antibody:_gLevelTuning[work->index].wedgeCount);
     yawRng = gRandomLcgState * 5 + 0x71357911;              /* now the last movable */
     wedgeYaws[wedgeIndex]      = baseYaw + (((u32)yawRng >> 16) & 0x1FF);
     gRandomLcgState = yawRng;
-} while (++wedgeIndex < _gAntibodyLevelTuning[work->index].wedgeCount);
+} while (++wedgeIndex < antibody:_gLevelTuning[work->index].wedgeCount);
 ```
 
 This is not the walking dest pointer the `(&global)[i]` entry warns about:
@@ -63119,7 +63119,7 @@ lh    v1,0x20(s1)               sll   v1,a0,0x10
 nop                             sra   v1,v1,0x10
 ```
 
-**Fix.** Drop the locals and write `_gAntibodyLevelTuning[work->index]` at
+**Fix.** Drop the locals and write `antibody:_gLevelTuning[work->index]` at
 every use, including the `do { } while` condition. The store into the loop's
 own output array invalidates the CSE entry for the `work->index` load, so
 GCC reloads it once per iteration and the loop-carried copy disappears — which
@@ -63254,7 +63254,7 @@ the value is being reloaded, not held.
 
 ## Two empty `SCHED_BARRIER()`s keep `u1 = u0 + N` in `$a0` across the `u0` stores
 
-`_combustionDrawEmber` is the axis-aligned cousin of `effectSpriteTask8D`:
+`combustion:_drawEmber` is the axis-aligned cousin of `effectSpriteTask8D`:
 `(animationFrame & 7) * 0x18` is `u0`/`u2`, `u0 + 0x17` is `u1`/`u3`, and `0xA0` is `v0`/`v1`.
 The ROM does:
 
@@ -63458,7 +63458,7 @@ delay slot and fills it from the fall-through side, as the target does.
 
 ## `s16 % 12` shortens to `HImode`: a stray `sll 16 / sra 16` on the *remainder*
 
-`_combustionDrawLargeFlame(const GfxCoord*, s16 animationFrame, s16 sizeFactor)` picks a sprite
+`combustion:_drawLargeFlame(const GfxCoord*, s16 animationFrame, s16 sizeFactor)` picks a sprite
 cell with `animationFrame % 12`. Writing that literally emits one instruction pair more
 than the target:
 
@@ -63559,8 +63559,8 @@ lui   a2, %hi(gRandomLcgState)   ; movable
 lui   a3, 0x7135             ; movable
 ori   a3, a3, 0x7911         ;   (the LCG constant)
 move  t0, a1                 ; movable: the table address, used by the exit test
-lui   v0, %hi(_gLifedrainWedgeYaws)   ; giv init, emitted last
-addiu a1, v0, %lo(_gLifedrainWedgeYaws)
+lui   v0, %hi(lifedrain:_gWedgeYaws)   ; giv init, emitted last
+addiu a1, v0, %lo(lifedrain:_gWedgeYaws)
 ```
 
 so *both* the table copy and the walking pointer are compiler-derived, and the
@@ -63569,12 +63569,12 @@ source indexes the array and re-reads the global:
 ```c
 do {
     rng                     = gRandomLcgState * 5 + 0x71357911;
-    _gLifedrainWedgeYaws[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
+    lifedrain:_gWedgeYaws[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
     gRandomLcgState             = rng;
-} while (++i < _gLifedrainLevelTuning[work->index].wedgeCount);
+} while (++i < lifedrain:_gLevelTuning[work->index].wedgeCount);
 ```
 
-Writing the idiomatic `tuning = _gLifedrainLevelTuning; wedgeYaw = _gLifedrainWedgeYaws;`
+Writing the idiomatic `tuning = lifedrain:_gLevelTuning; wedgeYaw = lifedrain:_gWedgeYaws;`
 pair instead puts both in the first band, ahead of the movables — 99.7% with
 `reorder=3` and every register already correct.
 
@@ -63587,7 +63587,7 @@ opposite answer: read the band, not the loop.
 
 ## Grep a distinctive data symbol before trusting `overlay_dup_index.py find`
 
-`overlay_dup_index.py find _pyrokinesisDrawGroundGlow` reported one copy — the
+`overlay_dup_index.py find pyrokinesis:_drawGroundGlow` reported one copy — the
 function itself — yet the body was already matched several times over, as
 `effectDrawGroundGlow` in gameplay, `Room_Draw16` in `src/rooms/lib`, and again
 in the `m4a1_pyke`, `hypervelocity` and `energyball` overlays. The index
@@ -63598,7 +63598,7 @@ is not a duplicate by its measure even though it is the same routine.
 When the target reads a named global that only a family of routines touches —
 `gEffectUnitQuadCorners`, the unit quad, is the example — grep `src/` for that symbol
 first. Every hit is a matched instance of the same shape, and the closest one
-is a finished seed. `_pyrokinesisDrawGroundGlow` matched 100% on the first
+is a finished seed. `pyrokinesis:_drawGroundGlow` matched 100% on the first
 attempt as `effectDrawGroundGlow`'s body with the tpage, `setcode` and UVs of the
 room-side sibling.
 
@@ -63631,7 +63631,7 @@ Two independent choices established the match:
 
 ## Two prims in one function: reassign the parameter, and interleave the stores
 
-`_healingDrawSparkle` links two `POLY_FT4`s from one `RTPS`, so every value
+`healing:_drawSparkle` links two `POLY_FT4`s from one `RTPS`, so every value
 the second quad needs is the first quad's value transformed: the tint is `brightness`
 then `brightness >> 1`, the half-size `sizeFactor * 23` then `(sizeFactor >> 1) * 55`. The
 seed that spells both out —
@@ -63686,11 +63686,11 @@ last 0.4%.
 
 ## Strip a give-up seed's barriers and volatile casts before reading its dumps
 
-`_infernoDrawScreenWash`'s archived seed scored 98.5% with `reorder=2`: the
+`inferno:_drawScreenWash`'s archived seed scored 98.5% with `reorder=2`: the
 target hoists the `lui a3, 0xFF` half of `0xFFFFFF` (`addPrim`'s address mask)
 to the second instruction of the function, and the seed emitted it right
 before the `ori`, twenty instructions down. The seed had fenced each
-`quad->yN = -INFERNO_SCREEN_HALF_HEIGHT - gDisplayState.vramYOffset` store with a
+`quad->yN = -inferno:SCREEN_HALF_HEIGHT - gDisplayState.vramYOffset` store with a
 `SOFT_COMPILER_BARRIER()` and read the offset through
 `(s8) * (volatile u8*)&display->vramYOffset`, presumably to stop the four `lbu`s
 from being CSE'd or the stores from floating.
@@ -63747,7 +63747,7 @@ deletes the second `lh` as a self-copy. Give the second read its own local
 
 ## An `s16` copy of an `s16` parameter survives cse; an `s32` one needs a dead store
 
-`_energyballDrawGlowDisc` (the energy ball's green-tinted `effectDrawGouraudDisc` variant)
+`energyball:_drawGlowDisc` (the energy ball's green-tinted `effectDrawGouraudDisc` variant)
 keeps a copy of its third argument in `$fp` for the loop's `sb` while the
 `(s16)brightness >> 1` before the loop still reads `$a2`:
 
@@ -63780,7 +63780,7 @@ pair re-extends an argument the prologue also copied.
 
 ## `(p + i)[col * 16]` puts the row term first; `arr[col][i]` puts it second
 
-`_plasmaDrawRingBand` reads jitter column `bandIndex`, entry `segmentIndex`, of a
+`plasma:_drawRingBand` reads jitter column `bandIndex`, entry `segmentIndex`, of a
 `s16 [3][16]` table. The target forms the address as
 
 ```
@@ -63798,7 +63798,7 @@ variable terms keep their *source* order. `arr[col][i]` is `base + col*32 + i*2`
 to get `i*2` first, add `i` to the base first and index the result by the row:
 
 ```c
-textureFrame = (_gPlasmaBandFrameOffsets[bandIndex][segmentIndex] + effect->age) % 6;
+textureFrame = (plasma:_gBandFrameOffsets[bandIndex][segmentIndex] + effect->age) % 6;
 ```
 
 Same instructions, same `addu` operands, 100%. This is the array-index cousin
@@ -63883,8 +63883,8 @@ registers. `_endingIsListedItem` is the example.
 
 ## `li t0, N` before a loop `div` reused by `addu p, p, t0` is two spilled constants, not one local
 
-`_optionsUpdateMusicVolumeRow` draws four labels the way its two-label sibling
-`_optionsUpdateCursorRow` does, but where the sibling advances the label pointer
+`options:_updateMusicVolumeRow` draws four labels the way its two-label sibling
+`options:_updateCursorRow` does, but where the sibling advances the label pointer
 with `addiu s5, s5, 4` the target reuses the divisor register:
 
 ```
@@ -63946,7 +63946,7 @@ doubled figure when you compute its priority from the dump.
 
 ## A per-iteration table copy: its `%hi` hoists on `threshold * lifetime >= loop insns`, and 2-D indexing buys the lifetime
 
-`_optionsUpdateKeyConfigurationTask` copies a 16-byte UV table onto the stack every
+`options:_updateKeyConfigurationTask` copies a 16-byte UV table onto the stack every
 iteration (`lwl/lwr` from `D_options_801D403C`, `swl/swr` to `0xE0($sp)`) and
 the target has `lui $t5, %hi(table)` hoisted out of the loop with the
 `addiu $t9, $t5, %lo(table)` left inside. The exact rule in `loop.c`'s
@@ -63970,17 +63970,17 @@ entry). Indexing the copy by row instead - a 2-D array, or as here an array of
 `(u, v)` structs, which compiles the same -
 
 ```c
-typedef struct { u8 u; u8 v; } _OptionsKeyIconUv;
-static const _OptionsKeyIconUv _gOptionsKeyIconUvs[8];
-typedef union { TextDrawReq labelRequest; _OptionsKeyIconUv iconUvs[ARRAY_SIZE(_gOptionsKeyIconUvs)]; } _OptionsKeyConfigStackSlot;
+typedef struct { u8 u; u8 v; } options:_KeyIconUv;
+static const options:_KeyIconUv options:_gKeyIconUvs[8];
+typedef union { TextDrawReq labelRequest; options:_KeyIconUv iconUvs[ARRAY_SIZE(options:_gKeyIconUvs)]; } options:_KeyConfigStackSlot;
 ...
 do {
-    __builtin_memcpy(&finalBattleLabelAndIconSlot.iconUvs, _gOptionsKeyIconUvs, sizeof(_gOptionsKeyIconUvs));   /* per-iteration copy: 1 insn + high */
+    __builtin_memcpy(&finalBattleLabelAndIconSlot.iconUvs, options:_gKeyIconUvs, sizeof(options:_gKeyIconUvs));   /* per-iteration copy: 1 insn + high */
     ...
     iconSprite->u0 = finalBattleLabelAndIconSlot.iconUvs[iconRowIndex].u;
     iconSprite->v0 = finalBattleLabelAndIconSlot.iconUvs[iconRowIndex].v;     /* +1 folds into the mem offset */
     ...
-} while (++iconRowIndex < OPTIONS_KEY_ASSIGNMENT_ROWS);
+} while (++iconRowIndex < options:KEY_ASSIGNMENT_ROWS);
 ```
 
 materialises the array base `(plus fp 0xE0)` as its own insn *between* the
@@ -70775,7 +70775,7 @@ Putting the assignment in the subscript expands the array base first and matches
 return _gActor342400EncounterSpotChoices[k][(gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16 & 3];
 ```
 
-`gRandomLcgState` is declared `u32` in `main/random.h` (`srl`, not `sra`).
+`gRandomLcgState` is declared `u32` in `engine/random.h` (`srl`, not `sra`).
 Include that common declaration instead of supplying a file-local extern with
 different signedness.
 
@@ -85105,7 +85105,7 @@ room's own code spawns from (`gShelterR49ObservatoryTransitionTasks`, via `displ
 Other actor overlays reach into the same region the same way (`func_8017D9B8`
 from `actor_400600`, `D_8017DC54` from `actor_461800`), and the project already
 calls one of these "map 0x427's spawn points"
-(`gShelterB3DumpingHoleEncounterSpots`, a table of `OverlayEncounterSpot`).
+(`gShelterB3DumpingHoleEncounterSpots`, a table of `EncounterSpot`).
 
 **Fix - establish the loaded room owner and use its public declaration.** A
 `taskSpawnFromTable` table argument points to `TaskDesc` elements. Shelter R49
@@ -88228,10 +88228,10 @@ still slides it (and the dependent stores) down next to the pop:
 
 ```c
 scratch->dx *= scratch->dx;
-SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;
+SCRATCH_STACK_CURSOR(ActorRangeScratch) = scratch;
 scratch->dz *= scratch->dz;
 scratch->radius *= scratch->radius;
-SCRATCH_STACK_CURSOR(OverlayRangeScratch) = savedCursor;
+SCRATCH_STACK_CURSOR(ActorRangeScratch) = savedCursor;
 return scratch->dx + scratch->dz >= scratch->radius;   /* after the pop: slt + xori */
 ```
 
@@ -88462,7 +88462,7 @@ side of the head store, move that statement ahead of the push rather than
 holding the carve in a local.
 
 The same reservation removes both pins inside the shared `_actorContactTransformPointToChainRoot`
-inline: write `(SCRATCH_STACK_CURSOR(OverlayCoordChainScratch))[-1].coord = startCoord`, then push
+inline: write `(SCRATCH_STACK_CURSOR(ActorContactCoordChainScratch))[-1].coord = startCoord`, then push
 and read the new head before copying the vector. In `Actor01900_Fn00FA4`,
 `.greg` naturally retains the carve in `$v0` and its copy into `$a2` (scratch
 `base_3`, UIDs 87 and 91). Substituting `_actorContactTransformStagedPointToChainRoot` instead loses that
@@ -92749,7 +92749,7 @@ single visible argument comes out as a one-parameter `extern`. The seed for
 `M2C_UNK gameSetTaskSlot(M2C_UNK)` and `gameSetTaskSlot(7)`, and the object
 matched the target everywhere except one line: `li a0,7` where the target has
 `li a1,7`. The real declaration is `void gameSetTaskSlot(struct Task* task, s32 slot)`
-(`main/session.h`), so the correct call is `gameSetTaskSlot(task, 7)` — the
+(`engine/session.h`), so the correct call is `gameSetTaskSlot(task, 7)` — the
 task in `$a0` (which the target never reloads, it is still entry's `index`) and
 the slot in `$a1`.
 
@@ -94534,7 +94534,7 @@ is not reachable by rearranging the *uses*. m2c types every session byte access
 off the base symbol and folds the displacement in (`lw $a1, gGameSession`, then
 `lbu $v1, 7($a1)`), and no rewrite of the field accesses brings the `addiu`
 back: the original computed the sub-object's address once and kept that in a
-register. `main/session.h` already models the sub-object as `GameSession.location`, a
+register. `engine/session.h` already models the sub-object as `GameSession.location`, a
 union at 0x4 whose `loc` is the place key, declared for exactly this shape:
 
 ```c
@@ -95081,7 +95081,7 @@ An m2c seed at 98.292% with `delete=1 branch=3 regs=4` is the reloc-fold shape o
 `M2C_FIELD(&gMcSaveData, u8 *, 8)` rides the offset inside the symbol reloc
 (`lui s0,%hi(gMcSaveData)` + `lbu v1,%lo(gMcSaveData+8)(s0)`), so the target's
 `addiu s0,v0,%lo(gMcSaveData)` is gone and every later branch lands a word
-early. `gMcSaveData.field_8` through `main/mc.h` fixes that and gives the
+early. `gMcSaveData.field_8` through `engine/mc.h` fixes that and gives the
 target's bare symbol with the displacement in the memory operand.
 
 That fix re-types the whole body, and the *tail* of this function then wants the
@@ -102552,7 +102552,7 @@ so the writes go through a hard register instead of `$at` - 15+ builds of
 reordering never converged.
 
 **Fix.** Reuse the matched `_actorRangeOutsideRadiusXZ` inline
-(`include/overlay.h`) verbatim, including its staged `scratch->dx` and
+(`include/actors/actor.h`) verbatim, including its staged `scratch->dx` and
 `scratch->dz` accesses, the head push placed
 between the `dx` and `dz` squares, and `return scratch->dx + scratch->dz >= scratch->radius`; call it as
 `if (!Inline(d, r))` with `d = &delta` written as in its caller. Statement order
@@ -108765,7 +108765,7 @@ re-materialise the two expressions feeding them.
 
 With the triplet duplicated the score was 99.779%: two instructions left, both
 the same store. The sibling's `_actorRangeOutsideRadiusXZ` helper writes
-`SCRATCH_STACK_CURSOR(OverlayRangeScratch) = scratch;` after `scratch->dz` / `scratch->radius`
+`SCRATCH_STACK_CURSOR(ActorRangeScratch) = scratch;` after `scratch->dz` / `scratch->radius`
 and after `dx *= dx`; the target has it immediately after the `dx` store, before
 `dz` and `radius`.
 
@@ -109140,7 +109140,7 @@ the head twice, once with a `-0xC` value.
 The fix is to write the helper back out as the twin has it, as its own
 `static inline` with the twin's statement order and its 3-field
 `...RangeScratch` struct (the shared helper is now `_actorRangeOutsideRadiusXZ` in
-`include/overlay.h`),
+`include/actors/actor.h`),
 and to read the predicate straight from it — the seed's `(a + b) < c` is
 already the helper's `a + b >= c` negated by the `if (!...)`, not an m2c
 inversion to work around. Transporting the 401300 twin's source with this
@@ -111192,16 +111192,16 @@ So keep the three addresses *unequal as values* until they fold. Each spelling
 must reach `0x1F8003FC` from a different value:
 
 ```c
-    OverlayRangeScratch* savedCursor;
+    ActorRangeScratch* savedCursor;
     u8* scratchBase;
     u8* scratchRestoreBase;
 
-    savedCursor = SCRATCH_STACK_CURSOR(OverlayRangeScratch); /* folded constant */
+    savedCursor = SCRATCH_STACK_CURSOR(ActorRangeScratch); /* folded constant */
     scratchBase = PLAYSTATION_SCRATCHPAD_BASE;            /* 0x1F800000 + 0x3FC */
-    *(OverlayRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
+    *(ActorRangeScratch**)(scratchBase + SCRATCH_STACK_HEAD_BYTE_OFFSET) = rangeScratch;
     scratchRestoreBase = PLAYSTATION_SCRATCHPAD_BASE +
         (SCRATCH_STACK_HEAD_BYTE_OFFSET - sizeof(void*)); /* 0x1F8003F8 + 0x4 */
-    *(OverlayRangeScratch**)(scratchRestoreBase + sizeof(void*)) = savedCursor;
+    *(ActorRangeScratch**)(scratchRestoreBase + sizeof(void*)) = savedCursor;
 ```
 
 Every pseudo now has two references, reload rematerialises each constant into
@@ -113089,7 +113089,7 @@ constant in `$v1`. That block was the *only* difference in the whole function.
 **Cause.** Both helpers that produce this block inline to byte-identical assembly
 in the functions they were written for — `Actor00100_OutsideRadius`
 (`include/actors/actor_400100_motion.h`) in the 400100 shared bodies, and
-`_actorRangeOutsideRadiusXZ` (`include/overlay.h`) in
+`_actorRangeOutsideRadiusXZ` (`include/actors/actor.h`) in
 `_actor401300StateDormant`. An inlined body cannot be recovered from its own
 output, so the two are interchangeable *as assembly* and not interchangeable *as
 RTL*: they differ in how many intermediate pseudos they create and in what order.
@@ -113104,7 +113104,7 @@ first.
 
 **Fix.** Give the overlay the 401300-shaped helper rather than reusing the 400100
 one. Using `_actorRangeOutsideRadiusXZ` from
-`include/overlay.h` and calling it scored 100.00% with all penalties
+`include/actors/actor.h` and calling it scored 100.00% with all penalties
 zero, first try; keeping `Actor00100_OutsideRadius` did not, across two attempts
 that fixed everything else. The two shared helpers are still untouched, so the
 matched 400100 callers are unaffected.
@@ -123935,7 +123935,7 @@ plus the one extra call scored 100.000% on the first attempt.
 Port the source, not the asm, but re-score after conforming it to the host TU.
 The scratch idiom differs between sibling overlays and compiles the same either
 way: `actor_800100` writes `scratch = SCRATCH_STACK_CURSOR_SLOT;` from
-`main/mem.h`, while `actor_800200` and this overlay's own
+`engine/mem.h`, while `actor_800200` and this overlay's own
 `_actor800300ApproachState` write `*(u8**)0x1F8003FC` directly. Rewriting the
 matching body into the local idiom reproduced the object byte for byte
 (`build.sh` reported "Reproduces base_1.c"), so the conformance is free - but
@@ -124073,7 +124073,7 @@ variable is *read*:
 
 The second form's destination is `SImode` — an explicit narrowing conversion —
 so the shift pair is emitted at the assignment. This is the codebase idiom for a
-byte value that must survive a call (`src/pe/pepper_spray/pepper_spray.c`,
+byte value that must survive a call (`packages/items/pepper_spray/src/package.c`,
 `src/gameplay/4CC.c`), and it is also what fixes the *load order* in a related
 block: with the truncation deferred, the two `lbu`s of a following field pair
 scheduled in source order instead of the target's order.
@@ -129421,7 +129421,7 @@ Adding a matrix-typed field to an overlay header fails to compile with
 actor_123200.h:33: parse error before `MATRIX'
 ```
 
-`common.h` and `main/task.h` do not pull libgte in, and `include/psyq/libgs.h`
+`common.h` and `engine/task.h` do not pull libgte in, and `include/psyq/libgs.h`
 uses `MATRIX` in `GfxCoord` without including `libgte.h` itself — it expects
 its caller to have included gte first. A header that only declares task and work
 types never notices; the first `MATRIX`/`VECTOR`/`SVECTOR` member is what brings
@@ -133292,8 +133292,8 @@ pointer; a tag is needed only while the complete typedef is unavailable.
 
 ## A record a main struct embeds by value is declared main-side, not cast at every use
 
-The two header trees point one way: overlay headers include `main/session.h`, so
-`main/session.h` cannot include one back. That leaves a main struct that
+The two header trees point one way: overlay headers include `engine/session.h`, so
+`engine/session.h` cannot include one back. That leaves a main struct that
 *embeds* an overlay record - by value, not through a pointer - unable to name
 it, and the usual response is to keep the member a byte run and cast at each
 use:
@@ -133310,7 +133310,7 @@ Those casts are the count of what this costs. The fix is not a restated
 duplicate, which only trades the casts for two declarations of one layout, but
 the declaration itself, exposed through a dependency-only public type header
 that both layers can include. `WorldCollisionContact` lives in
-`gameplay/world_collision_types.h`, which `main/session_types.h` includes for
+`gameplay/world_collision_types.h`, which `engine/session_types.h` includes for
 the records it embeds. It has no caller in `src/engine/`. A prototype that
 merely *names* an overlay type is the other case: there the include goes at the
 one call site that needs it.
@@ -133327,8 +133327,8 @@ remaining use is an error, including in files you never opened.
 An overlay function called from the main executable has its prototype in the
 bridge header for overlay symbols, which pulls in main headers only. That
 works while the signature is expressible in main types - the body types those
-prototypes take are declared in `main/tmd.h`, `main/task.h` and
-`main/session.h` - and stops working the moment the honest parameter type is
+prototypes take are declared in `engine/tmd.h`, `engine/task.h` and
+`engine/session.h` - and stops working the moment the honest parameter type is
 one the overlay owns: `modelObjectFreeCoordBody` releases the `ModelObjectCoordBody` body, and no main
 header declares that type.
 
@@ -141058,7 +141058,7 @@ insns.
 `.vx`/`.vy`. Each `y` is then a word load and a shift, which combine narrows
 back to `lhu 2(...)`. That adds four insns at loop time (140), and the emitted
 loads stay the same. Use `u32`: an `s32` word narrows to `lh`. The matched
-`pe/inferno` fan (`_InfernoFanScratch`) uses the same packed form. A `s16`
+`pe/inferno` fan (`inferno:_FanScratch`) uses the same packed form. A `s16`
 local for the UV base also adds insns (138), but its sign extension survives
 and changes the scheduling.
 
@@ -142796,7 +142796,7 @@ ordinary `jal helper` - the body is never inlined - and a matching attempt
 that "uses the helper" fails for reasons unrelated to the source shape. Three
 bearing functions carried a hand-written `move`, a hand-split scratch push, an
 asm `ldv0` of a stack copy and a `COMPILER_BARRIER` for exactly this: with
-`main/gfxgte.h` visible, `_gfxRotateSv` inlines and the plain body matches
+`engine/gfxgte.h` visible, `_gfxRotateSv` inlines and the plain body matches
 first try. When a helper swap mismatches, first check the object for a `jal`
 to the helper's name.
 ## Copy-pasted blocks share their function-scope locals, and that sharing is what ranks them (_actor403600TurnToAim, 2026-09-26)
@@ -143443,7 +143443,7 @@ effect->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
 `static inline` helper taking `u8* rgb` does *not* match (95%): the parameter
 is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
 addressed `n($s0)`.
-## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_STACK_RESERVE_BLOCK(T)` (_necrosisDrawMistPuff, 2026-09-26)
+## `sh -K(head)` then `addiu v0,head,-K` / `move sN,v0` in a GTE sprite is just `block = SCRATCH_STACK_RESERVE_BLOCK(T)` (necrosis:_drawMistPuff, 2026-09-26)
 
 Symptom: the `EffectShapeScratch` quad drawers (necrosis, apobiosis, energyball)
 store `worldPoint.vx` at `-0x1C(head)` before the block pointer exists, carve it into
@@ -145706,7 +145706,7 @@ Target: `lbu v1,4(s1); lw v0,0x10(s1); slt; bnez L; addiu v0,v1,-1; sw v0,0x10(s
 
 For `t = K - (s->x + s->w); if (t < 0) s->x += t;`, cse reuses the HImode `x` loaded for `t` inside the if, and combine splits it into an `lhu` that sched puts before the branch, with the `addu` in the delay slot. A store to another field of `s` between the two statements (`s->h += growth;`) makes cse reload `x` in the if body, which puts the store in the delay slot instead. The seed used a register pin and a `(u16)` pre-read to get the same shape. The fix was statement order: do the `h` update first, then compute `t`. sched still hoists the `x`/`w` loads above the `h` store.
 
-### A narrow parameter read in two registers is one condition written as nested ifs with a duplicated else (_apobiosisDrawScreenFlash, 2026-09-26)
+### A narrow parameter read in two registers is one condition written as nested ifs with a duplicated else (apobiosis:_drawScreenFlash, 2026-09-26)
 
 Target: `move a3,a0; ... bne kind,2,L; move a2,a3`, then the `(s16)x >> 1` shifts read `a2` while one `srl` reads `a3`. For an `s16` parameter GCC makes an SI pseudo for the incoming register and an HI pseudo that is its subreg. Written as `if (kind == 2) { rng...; if (roll) A; else B; } else B;`, the outer else is a single-predecessor block on cse's follow-jumps path, so cse rewrites `(subreg:SI hi)` in its sign-extend to the SI pseudo and the second register disappears. The seed kept it with a `u16 level` copy and `SOFT_TOUCH_REG`. The source was one condition, `if (kind == 2 && ((gRandomLcgState = gRandomLcgState * 5 + K) >> 16 & 3) == 0) A; else B;`: `B` is then a join block cse cannot reach with the equivalence, and the parameter keeps both registers without any cast.
 
@@ -145726,7 +145726,7 @@ no dependence at all. When a hack steers a primitive-building body, look for
 another function in the file that emits the same primitive with the same
 arithmetic; the shared part is likely a helper both called.
 
-## The `gEffectUnitQuadCorners` ground-quad loop is an indexed `for` over `SCRATCH_STACK_RESERVE_BLOCK`, not a pointer walk (_pyrokinesisDrawGroundGlow, 2026-09-26)
+## The `gEffectUnitQuadCorners` ground-quad loop is an indexed `for` over `SCRATCH_STACK_RESERVE_BLOCK`, not a pointer walk (pyrokinesis:_drawGroundGlow, 2026-09-26)
 
 Target: `addiu v1,v1,-0x38; move t1,v1; sw v1,0(v0)`, then `move a2,t1` as the
 loop's vector pointer with `sh zero,2(a2)` / `sh t2,0(a2)` - no strength-reduced
@@ -145773,7 +145773,7 @@ Dropping the local and naming the parameter `coord` matched on its own, with
 the head/block locals still in place: the copy's extra references were what
 raised its allocation priority. Try that before any other lever when a pinned
 local is only ever assigned from an argument.
-### A scratch push whose head store lands late: check that the other pointer arguments are really scalars (_apobiosisDrawShardStrip, 2026-09-26)
+### A scratch push whose head store lands late: check that the other pointer arguments are really scalars (apobiosis:_drawShardStrip, 2026-09-26)
 
 Target: the usual push pair `addiu v0,head,-K` / `move s2,v0`, but `sw s2,0(scratch)` only after the reads of `value[0..2]`, and `move v0,v1` in place of a reload of a field just stored from `$v1`. The seed used `SOFT_TOUCH_REG` on the carve plus a late `SCRATCH_STACK_CURSOR = scratch`, and `TOUCH_REG` on a copy of the first coordinate. `scratch = SCRATCH_STACK_RESERVE_BLOCK(T)` gives the copy but pins the head store early. That store is a scalar MEM, and so were the `s16* endOffset` reads, so sched1 kept them in order. The callers pass `&mem->pos`, so the parameter is a `const SVECTOR*`. With `endOffset->vx` the reads are in-struct MEMs, which cannot alias a scalar store, and sched1 sinks the store past them. With the store gone from between them, `scratch->worldEnd.vx += endOffset->vx` becomes `move v0,v1`: `reload_cse` sees `$v1` still holds the value stored at `8(s2)`. The other two fields are reloaded because their registers were reused.
 
@@ -147619,12 +147619,12 @@ the record was indexed from its start. Name the positions with an enum rather
 than forcing members onto it; the union that used to give this record both a
 member view and a `shorts[8]` view existed only for this.
 
-## A block-scoped aggregate takes a slot an inlined helper released, but two block-scoped aggregates never share (_optionsUpdateKeyConfigurationTask, 2026-10-04)
+## A block-scoped aggregate takes a slot an inlined helper released, but two block-scoped aggregates never share (options:_updateKeyConfigurationTask, 2026-10-04)
 
 **Symptom.** The key configuration screen builds twelve 16-byte `TextDrawReq`
 records and one 16-byte glyph table in a frame with room for twelve: the table
 and the last request both sit at `sp+0xE0`. It is matched with a union at
-function scope (`_OptionsKeyConfigStackSlot`).
+function scope (`options:_KeyConfigStackSlot`).
 
 **What the slots do.** Probed through the project's `cc1` with five small
 functions, then in the function itself:
@@ -148392,7 +148392,7 @@ that is both "set where the pinned one dies" and "assigned from a call"
 elsewhere, and split it by block. This corrects "Pin the child task to `$a0`
 for `lw a0,0x20(a0)`".
 
-### A two-insn priority tie: write the three-way mode test as a `switch` (_optionsUpdateSoundRow, 2026-10-05)
+### A two-insn priority tie: write the three-way mode test as a `switch` (options:_updateSoundRow, 2026-10-05)
 
 **Symptom.** `arg0` and `span` swapped `$s7`/`$fp`. `.lreg` gives `arg0` 8
 refs over 216 insns and `span` 3 over 27: both `floor_log2(refs)*refs/len`
@@ -149059,7 +149059,7 @@ a block boundary" at the end of this file.
   just left. A separate pointer local gets `$v1` (it crosses no call; cse sends
   later `*depth` reads to `-28(s4)`). Only the pseudo of `coord` itself lands
   in `$s0`, which in C is `coord = (const GfxCoord*)projection` and a cast back
-  at the store. Not taken. The room cannot include `water_spin_u16.inc.c`: its
+  at the store. Not taken. The room cannot include `effects/water/spin_u16.inc.c`: its
   drawer clears the block with `memFillBytes`, uses texture page 0x2C and a
   scratch block laid out depth-first.
   *Note 2026-10-06:* the pin is gone. The pointer was assigned before the
@@ -153432,7 +153432,7 @@ source name: the scoped build exits 1 with no output; name the packages.
 Replacing the identity word stores in the six `src/shared/factory_*.inc.c`
 fragments with `gfxSetRotIdentity` matched in `dryfield_factory` and failed in
 `dryfield_night_factory`, from identical source. The night TU did not include
-`main/gfx.h`: GCC 2.8.1 accepts the call as an implicit declaration without an
+`engine/gfx.h`: GCC 2.8.1 accepts the call as an implicit declaration without an
 error, so the object carries `jal gfxSetRotIdentity` (an `R_MIPS_26` against an
 undefined symbol) where the day object has the five inlined stores, and every
 later function in the object shifts. Symptom to look for: a fragment that
@@ -153525,7 +153525,7 @@ that step was inferred from the result, not read out of a dump.
   (`leftRotation`, `rightRotation`) and
   `_actor405800SpawnArmModels` (`leftRotation`, `rightRotation`). In the last two the copy that
   follows also reads through the pointer, so they are not the helper above.
-- A TU without `main/gfx.h` compiles the call as an implicit declaration:
+- A TU without `engine/gfx.h` compiles the call as an implicit declaration:
   `actor_342100`, `pe/apobiosis` and `pe/energyshot` needed the include.
 
 ## The steering macros named in older entries no longer exist (include/decomp/common.h, 2026-10-07)

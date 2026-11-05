@@ -23,7 +23,6 @@ sha1 = "a3a6f88b4ef3f9ba7a3be59e72c633ca4b9faf32"
 [package]
 type = "pe2pkg"
 package_name = "inferno"
-required = true
 sha1 = "0b3a6684bb6e60e5f2994ae8a9390bcf6c4c8964"
 
 [level1_item]

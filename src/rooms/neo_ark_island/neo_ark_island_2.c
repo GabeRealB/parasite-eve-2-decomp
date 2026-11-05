@@ -36,7 +36,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-/// Empty presence flag so `water_effects.h` declares the shared
+/// Empty presence flag so `effects/water/water.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
 /// Binds the shared water-spray definition to this package's public void (Task*)
@@ -45,8 +45,7 @@
 /// Binds the cached-coordinate ripple fragment to this package's public
 /// void (Task*) callback. Define before its fragment; the room header declares
 /// the export that gameplay's effect table imports. Takes no macro arguments.
-#define WATER_RIPPLE_CACHED_COORD_TASK neoArkIslandWaterRippleTask
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 
 TaskDesc gNeoArkIslandWaterRefractionTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = TASK_PRIORITY_CONTROL } },
@@ -127,13 +126,19 @@ DirectionWarpEntry gNeoArkIslandWarpEntries[2] = {
     },
 };
 
-#include "../../shared/effects/water_ripple_task_fixed_coord.inc.c"
+#define WATER_RIPPLE_CACHED_COORD
+#include "effects/water/ripple_task.inc.c"
 
-#include "../../shared/effects/water_splash.inc.c"
+void neoArkIslandWaterRippleTask(Task* task)
+{
+    _waterRippleTask(task);
+}
 
-#include "../../shared/effects/water_drift_task_u16_fixed_coord.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_spin_u16.inc.c"
+#include "effects/water/drift_task_u16_fixed_coord.inc.c"
+
+#include "effects/water/spin_u16.inc.c"
 
 void neoArkIslandInstallRoomEffectIdsTask(Task* task)
 {

@@ -15,7 +15,7 @@
 #include "engine/task_types.h"
 #include "engine/text.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 
 #include "../../shared/room/cap_captions_types.h"
 

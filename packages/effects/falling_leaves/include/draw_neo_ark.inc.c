@@ -1,0 +1,81 @@
+/* Part of the falling leaves library; see falling_leaves.h. */
+
+/// Places corner `cornerIndex` of a flat square `halfSize` across in the leaf's coordinate space.
+static inline void _leafTransformCorner(EffectQuadScratch* quadScratch, s32 cornerIndex, s32 halfSize, const GfxCoord* coord)
+{
+    quadScratch->vertices[cornerIndex].vx = (u16)gEffectUnitQuadCorners[cornerIndex].axis0Sign * halfSize;
+    quadScratch->vertices[cornerIndex].vy = 0;
+    quadScratch->vertices[cornerIndex].vz = (u16)gEffectUnitQuadCorners[cornerIndex].axis1Sign * halfSize;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&quadScratch->vertices[cornerIndex]);
+    gte_rtv0();
+    gte_stsv(&quadScratch->vertices[cornerIndex]);
+    quadScratch->vertices[cornerIndex].vx += coord->workm.t[0];
+    quadScratch->vertices[cornerIndex].vy += coord->workm.t[1];
+    quadScratch->vertices[cornerIndex].vz += coord->workm.t[2];
+}
+
+/// Draws a Neo Ark leaf, a textured square in the coordinate's XZ plane, skipping it when the projection fails; a
+/// nonzero `brightness` blends it additively at that brightness (128 neutral).
+static void _leafDraw(const GfxCoord* coord, s32 halfSize, s16 brightness)
+{
+    enum {
+        LEAF_TEXTURE_PAGE       = getTPage(0, GPU_BLEND_ADD, 704, 0),
+        LEAF_TEXTURE_CLUT       = getClut(256, 270),
+        LEAF_TEXTURE_V          = 40,
+        LEAF_TEXTURE_LAST_TEXEL = 7,
+    };
+    EffectQuadScratch* quadScratch;
+    s32                cornerIndex;
+    POLY_FT4*          primitive;
+
+    // Build the square in the leaf's frame, retaining 16-bit corner arithmetic.
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(gEffectUnitQuadCorners); cornerIndex++) {
+        _leafTransformCorner(quadScratch, cornerIndex, halfSize, coord);
+    }
+
+    // Keep projected corners in scratch until the GTE accepts the quad.
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&quadScratch->vertices[0]);
+    gte_rtps();
+    gte_stsxy(&quadScratch->screenCorners[0]);
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
+    gte_rtpt();
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
+    if (quadScratch->projectionFlags >= 0) {
+        gte_stszotz(&quadScratch->depth);
+        primitive      = gGpuPrimCursor;
+        gGpuPrimCursor = primitive + 1;
+        setPolyFT4(primitive);
+        if (brightness != LEAF_BRIGHTNESS_RAW_TEXTURE) {
+            setSemiTrans(primitive, 1);
+            setRGB0(primitive, brightness, brightness, brightness);
+        } else {
+            setShadeTex(primitive, 1);
+        }
+        primitive->tpage = LEAF_TEXTURE_PAGE;
+        primitive->clut  = LEAF_TEXTURE_CLUT;
+        primitive->v0    = LEAF_TEXTURE_V;
+        primitive->v1    = LEAF_TEXTURE_V;
+        primitive->u0    = 0;
+        primitive->u1    = LEAF_TEXTURE_LAST_TEXEL;
+        primitive->u2    = 0;
+        primitive->v2    = LEAF_TEXTURE_V + LEAF_TEXTURE_LAST_TEXEL;
+        primitive->u3    = LEAF_TEXTURE_LAST_TEXEL;
+        primitive->v3    = LEAF_TEXTURE_V + LEAF_TEXTURE_LAST_TEXEL;
+        primitive->x0    = quadScratch->screenCorners[0].vx;
+        primitive->y0    = quadScratch->screenCorners[0].vy;
+        primitive->x1    = quadScratch->screenCorners[1].vx;
+        primitive->y1    = quadScratch->screenCorners[1].vy;
+        primitive->x2    = quadScratch->screenCorners[2].vx;
+        primitive->y2    = quadScratch->screenCorners[2].vy;
+        primitive->x3    = quadScratch->screenCorners[3].vx;
+        primitive->y3    = quadScratch->screenCorners[3].vy;
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(quadScratch->depth),
+                primitive);
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
+}

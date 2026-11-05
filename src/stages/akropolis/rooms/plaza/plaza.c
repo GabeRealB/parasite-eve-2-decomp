@@ -61,12 +61,10 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "screen/fade/fade.h"
 #include "rooms/room_common.h"
-#include "../../../../shared/effects/glow_draw.h"
-#include "../../../../shared/screen/screen_fade.h"
-#include "../../../../shared/screen/screen_fade_step_up.inc.c"
-#include "../../../../shared/screen/screen_fade_tile_overlay.inc.c"
+#include "effects/glow/glow.h"
+#include "screen/fade/fade.h"
 
 #include "assets/engine/animation/player_schema.h"
 #include "assets/stages/akropolis/actors/police_officers/rookie_schema.h"
@@ -479,7 +477,7 @@ static void _akropolisPlazaFadeOutTask(Task* task)
     }
 }
 
-#include "../../../../shared/screen/screen_fade_in_tile.inc.c"
+#include "screen/fade/in_tile.inc.c"
 
 /// Plays the opening movie, which Start skips, then restores the game's graphics and display loop.
 static void _akropolisPlazaOpeningMovieTask(Task* task)

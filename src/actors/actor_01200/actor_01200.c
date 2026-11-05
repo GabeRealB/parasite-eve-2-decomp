@@ -48,7 +48,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "actors/actor.h"
 #include "../../shared/actor/actor_messages.h"
 #include "../../shared/actor/anim_driver.h"
 /// This file's `_actorContactApplyAvoidancePushback` returns `s16`.

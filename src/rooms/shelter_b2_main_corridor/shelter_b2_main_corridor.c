@@ -69,12 +69,12 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
-/// Empty presence flag so `water_effects.h` declares the shared
+/// Empty presence flag so `effects/water/water.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 // The departure symbol carries four unproven bytes after the record.
@@ -2240,10 +2240,10 @@ void shelterB2MainCorridorRoomTask(Task* task)
 #define WATER_WAVE_STRIPS_PACKET_CURSOR _gShelterB2MainCorridorWaterPacketCursor
 /// Scales the seam's sine displacement to -64..64 world-coordinate Y units.
 ///
-/// Integer shift count for `water_wave_strips.inc.c`; see its configuration
+/// Integer shift count for `effects/water/wave_strips.inc.c`; see its configuration
 /// contract. The include consumes and undefines this binding.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 6
-#include "../../shared/effects/water_wave_strips.inc.c"
+#include "effects/water/wave_strips.inc.c"
 
 /// Draws the corridor's wave surfaces and publishes their signed world Y each tick.
 ///
@@ -2372,21 +2372,21 @@ void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void shelterB2MainCorridorWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
 /// Selects this room's exported water-spray callback using the cached draw matrix.
 ///
 /// Expands to a single externally linked function identifier, declared as
 /// `void (Task*)` in the public room header before the fragment is included.
 /// The drift task below requires the `_waterDrawSpinU16` and
-/// `_waterDrawTileU16` declarations from `water_effects.h` and their bodies
+/// `_waterDrawTileU16` declarations from `effects/water/water.h` and their bodies
 /// in this translation unit. Their cell index is unsigned 16-bit; size scale
 /// and the spin drawer's angle are signed 16-bit.
 ///
@@ -2398,7 +2398,7 @@ void shelterB2MainCorridorWaterRippleTask(Task* task)
 
 #include "engine/random.h"
 
-/* Part of the water effects library; see water_effects.h. */
+/* Part of the water effects library; see effects/water/water.h. */
 
 #ifndef WATER_SPRAY_CACHED_COORD_TASK
 #error "Define WATER_SPRAY_CACHED_COORD_TASK to the package's declared void (Task*) callback"
@@ -2567,11 +2567,11 @@ void WATER_SPRAY_CACHED_COORD_TASK(Task* task)
 }
 #undef WATER_SPRAY_CACHED_COORD_TASK
 
-#include "../../shared/effects/water_spin_u16.inc.c"
+#include "effects/water/spin_u16.inc.c"
 
-#include "../../shared/effects/glow_draw_beam.inc.c"
+#include "effects/glow/beam.inc.c"
 
-#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
+#include "effects/glow/flare_clipped.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

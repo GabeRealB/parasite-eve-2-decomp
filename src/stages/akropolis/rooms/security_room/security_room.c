@@ -62,8 +62,6 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 
 #include "assets/stages/akropolis/rooms/security_room/declarations.inc"

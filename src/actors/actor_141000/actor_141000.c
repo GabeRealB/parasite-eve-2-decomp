@@ -40,7 +40,7 @@
 #include "engine/tmd_types.h"
 #include "../../shared/actor/actor_motion.h"
 #include "../../shared/actor/actor_messages.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// `_Actor141000EveWork::blinkStep`: the eye image the blink posts next.
 ///
@@ -485,12 +485,12 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
 /// `Actor141000CtrlWork` at `work`; both must outlive drawing. Returns the stored
 /// s32 beam level, fixed at 4095 here. The drawer interprets its signed low
 /// halfword as Q12 (4096 is unit brightness), then narrows RGB without saturation.
-/// Define before including `glow_draw_ring_beam.inc.c`, which undefines it.
+/// Define before including `effects/glow/ring_beam.inc.c`, which undefines it.
 #define GLOW_CAPPED_BEAM_BRIGHTNESS(beamTask) \
     (((const Actor141000CtrlWork*)((const Task*)(beamTask)->spawnArg2.pointer)->work)->beamLevel)
 /// Ordering-table tag bias for the flight controller's capped-beam core and halo.
 ///
-/// Required signed integer constant configuration for `glow_draw_ring_beam.inc.c`.
+/// Required signed integer constant configuration for `effects/glow/ring_beam.inc.c`.
 /// Subtracts 20 tags from the quantized depth entry for every quad and draw-mode
 /// packet. Applied after byte-offset conversion to `u_long*`, so each unit is
 /// one four-byte DMA tag. The selected table must contain the resulting entry;
@@ -500,15 +500,15 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
 #define GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS (-20)
 /// Complete additive GPU draw-mode word for the capped beam's halo.
 ///
-/// Required 32-bit constant configuration for `glow_draw_ring_beam.inc.c`:
+/// Required 32-bit constant configuration for `effects/glow/ring_beam.inc.c`:
 /// 0xE1000425, stored in `DR_TPAGE::code[0]` before each semitransparent halo
 /// quad. Enables drawing in the display area, disables dithering and selects
 /// B + F blending. The encoded 4-bit page at VRAM word X=320, Y=0 is unused
 /// by these untextured quads. Requires Psy-Q `libgpu.h` and
-/// `main/display_types.h`; define before the fragment, which undefines it.
+/// `engine/display_types.h`; define before the fragment, which undefines it.
 /// Has no arguments, captured locals or side effects.
 #define GLOW_CAPPED_BEAM_HALO_DRAW_MODE _get_mode(true, false, getTPage(0, GPU_BLEND_ADD, 320, 0))
-#include "../../shared/effects/glow_draw_ring_beam.inc.c"
+#include "effects/glow/ring_beam.inc.c"
 
 /// Builds the attached beam's four six-point screen rings for its core and halo.
 ///

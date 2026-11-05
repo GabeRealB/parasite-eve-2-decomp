@@ -56,8 +56,8 @@ s32 gMistShootingGalleryUnscaledBp;
 
 /// Signed texture-frame counter for the gallery's repeating six-cell sprite strip.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../../../shared/effects/sprite_quad.h"
-#include "../../../../shared/effects/beam_strip.h"
+#include "effects/sprite_quad/sprite_quad.h"
+#include "effects/beam_strip/beam_strip.h"
 
 #include "assets/stages/akropolis/rooms/mist_shooting_gallery/declarations_mist_shooting_gallery_courses.inc"
 
@@ -261,11 +261,11 @@ void mistShootingGalleryTracerTask(Task* task)
 #define SPRITE_QUAD_CLUT getClut(304, 266)
 /// Uses the gallery flash's unmodified projected depth for sizing and sorting.
 #define SPRITE_QUAD_INCREMENT_DEPTH 0
-#include "../../../../shared/effects/sprite_quad_draw.inc.c"
+#include "effects/sprite_quad/draw.inc.c"
 
 /// Uses the unmodified start depth for the gallery tracer's width and sorting.
 #define BEAM_STRIP_INCREMENT_DEPTH 0
-#include "../../../../shared/effects/beam_strip_draw.inc.c"
+#include "effects/beam_strip/draw.inc.c"
 
 /// Allocates and publishes one course's controller work and prepares player control.
 static void _mistShootingGalleryInitCourse(Task* controller)

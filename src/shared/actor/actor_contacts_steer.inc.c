@@ -1,5 +1,7 @@
 /* Part of the actor contacts library; see actor_contacts.h. */
 
+#include "actor_contacts.h"
+
 /// Applies one horizontal avoidance step and adds it to the running correction.
 ///
 /// `parentYaw` uses 4096 units per turn, from +Z toward +X in `coord`'s

@@ -55,7 +55,7 @@
 // This room's fade symbol is the ScreenFade itself, with no following word.
 #define ROOM_EVENT_FADE gRoomEventFade
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
@@ -740,9 +740,9 @@ void shelter1fParkingGarageDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_angled_capsule.inc.c"
+#include "effects/glow/angled_capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_factor_disc.inc.c"
+#include "effects/glow/factor_disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

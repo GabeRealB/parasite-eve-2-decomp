@@ -60,7 +60,7 @@
 #include "../../shared/room/room_visual_effects.h"
 #undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/falling_leaves.h"
+#include "effects/falling_leaves/falling_leaves.h"
 
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
@@ -278,14 +278,14 @@ void neoArkForestZoneRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/falling_leaves_task.inc.c"
+#include "effects/falling_leaves/task.inc.c"
 
 void neoArkForestZoneLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../shared/effects/falling_leaves_draw_neo_ark.inc.c"
+#include "effects/falling_leaves/draw_neo_ark.inc.c"
 
 void neoArkForestZoneConfigureEffectsTask(Task* task)
 {

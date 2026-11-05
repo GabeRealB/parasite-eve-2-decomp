@@ -48,11 +48,12 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
+#include "../../shared/room/encounter.h"
 
 #include "rooms/shelter_b3_dumping_hole.h"
-#include "../../shared/screen/screen_wave.h"
-#include "../../shared/effects/incinerator_blaze.h"
+#include "screen/wave/wave.h"
+#include "effects/incinerator_blaze/incinerator_blaze.h"
 
 /// Progress of the burn scene, held in `_Actor342100BlazeWork::sceneState`.
 enum {
@@ -337,9 +338,9 @@ POLY_FT4 gScreenWaveGrid[2][30][8] = { 0 };
 
 static s32 _actor342100UpdateBlazeScene(Task* controller);
 
-#include "../../shared/screen/screen_wave_grid.inc.c"
+#include "screen/wave/grid.inc.c"
 
-#include "../../shared/effects/incinerator_blaze_fade.inc.c"
+#include "effects/incinerator_blaze/fade.inc.c"
 
 /// Starts a burn clip's successor once the player's animation has settled.
 ///
@@ -530,7 +531,7 @@ static void _actor342100SpawnBlazeFireEmitters(void)
     }
 }
 
-#include "../../shared/effects/incinerator_blaze_body_fire.inc.c"
+#include "effects/incinerator_blaze/body_fire.inc.c"
 
 /// Installs the blaze's three clip pointers in the selected player bank's extension.
 ///
@@ -791,7 +792,7 @@ static void _actor342100SetBlazeBodyFireMode(s32 spreadToWholeBody)
         roomEffectRequestCancelAll();
         stopRequest.context.loc.area  = ACTOR_342100_BLAZE_STOP_COMMAND_AREA;
         stopRequest.context.loc.stage = ACTOR_342100_BLAZE_STOP_COMMAND_STAGE;
-        stopRequest.command           = OVERLAY_ENCOUNTER_COMMAND_STOP;
+        stopRequest.command           = ENCOUNTER_COMMAND_STOP;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &stopRequest, ACTOR_COMMAND_MESSAGE_APPLY);
         if (work->encounterTask != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(work->encounterTask, ACTOR_COMMAND_MESSAGE_APPLY, &stopRequest, 0);

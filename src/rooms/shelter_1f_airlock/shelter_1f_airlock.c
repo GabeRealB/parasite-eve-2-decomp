@@ -35,10 +35,8 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 
 /// World-space centres and endpoint pairs for the airlock's additive glows.
@@ -714,6 +712,6 @@ void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
 /// and wraps, with shift restricted to 0..7. Bind before the capsule fragment;
 /// it clears the binding. The airlock's cyan capsules use shift 1 (add 2).
 #define GLOW_DRAW_CAPSULE_SHIFTED_FLICKER 1
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_factor_disc.inc.c"
+#include "effects/glow/factor_disc.inc.c"

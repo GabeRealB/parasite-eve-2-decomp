@@ -51,10 +51,9 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
-#include "../../shared/screen/frame_capture.h"
+#include "screen/frame_capture/frame_capture.h"
 /// Selects Bishop identity and combat tuning for the shared GOLEM implementation.
 ///
 /// Bind to `GOLEM_KNIGHT_BISHOP_KIND_BISHOP` before the shared header and undefine
@@ -613,7 +612,7 @@ static const EnemyTaskFuncTable3 _gActor403900GolemTaskStates = {
 
 #include "../../shared/creatures/golem/golem_knight_bishop.inc.c"
 
-#include "../../shared/screen/frame_capture.inc.c"
+#include "screen/frame_capture/frame_capture.inc.c"
 
 #include "../../shared/creatures/golem/golem_knight_bishop_spawn.inc.c"
 

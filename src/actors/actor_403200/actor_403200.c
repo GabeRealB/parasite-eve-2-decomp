@@ -59,7 +59,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "../../shared/room/encounter.h"
 #include "../../shared/actor/actor_messages.h"
 #include "../../shared/actor/actor_contacts.h"
 
@@ -5813,7 +5813,7 @@ static inline void _actor403200CommandSummonOnCue(GluttonWork* work, GluttonSumm
         // Pack the selected spot and one of three emergence motions.
         _gActor403200GluttonMadChaserCommand.command <<= ACTOR_403200_SUMMON_SPOT_SHIFT;
         nextRandomState                                = RANDOM_LCG_NEXT(gRandomLcgState);
-        _gActor403200GluttonMadChaserCommand.command  |= (s16)OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, ((u32)nextRandomState >> 16) % ACTOR_403200_SUMMON_MOTION_COUNT);
+        _gActor403200GluttonMadChaserCommand.command  |= (s16)ENCOUNTER_APPEAR_COMMAND(0, ((u32)nextRandomState >> 16) % ACTOR_403200_SUMMON_MOTION_COUNT);
         gRandomLcgState                                = nextRandomState;
         TASK_MESSAGE_DISPATCH_POINTER(work->summons[scratch->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &_gActor403200GluttonMadChaserCommand, 0);
     }

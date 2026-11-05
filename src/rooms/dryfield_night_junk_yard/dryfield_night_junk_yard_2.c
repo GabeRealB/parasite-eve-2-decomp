@@ -47,7 +47,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// Perspective radius scales for the room's capsule and its two flare sizes.
 ///
@@ -1278,9 +1278,9 @@ void dryfieldNightJunkYardDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_grey_capsule.inc.c"
+#include "effects/glow/grey_capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
+#include "effects/glow/flare_clipped.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

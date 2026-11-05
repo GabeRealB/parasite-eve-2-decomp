@@ -17,7 +17,6 @@ sha1 = "3c3e11031b825dcd990a27d5e9bff99f462939a9"
 [package]
 type = "pe2pkg"
 package_name = "necrosis"
-required = true
 sha1 = "8ab1e708e3a3017113be87ba1d25ff14cd436f2c"
 
 [level1_item]

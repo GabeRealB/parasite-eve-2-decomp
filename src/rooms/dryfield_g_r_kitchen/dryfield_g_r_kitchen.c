@@ -54,7 +54,7 @@
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
 #include "../../shared/room/room_events.h"
 #include "../../shared/room/room_variants.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 /// Selects the daytime sound bank for the shared G & R kitchen door handler.
 ///
 /// Keep this binding through the door-handler implementation fragment.
@@ -457,7 +457,7 @@ void dryfieldGRKitchenRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_tapered_beam.inc.c"
+#include "effects/glow/tapered_beam.inc.c"
 
 /// Draws an additive dim grey beam between two local-space endpoints.
 ///

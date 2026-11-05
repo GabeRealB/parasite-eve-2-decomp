@@ -40,7 +40,7 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/cellar.h"
 
 static s32 _dryfieldCellarRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -1196,7 +1196,7 @@ void dryfieldCellarRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_flare_local.inc.c"
+#include "effects/glow/flare_local.inc.c"
 
 /// Draws the cellar's pair of local-point flares with a shared texture and size.
 ///

@@ -50,8 +50,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 /// Selects the Caterpillar collision identity, Caterpillar flag and behavior radii.
 ///
 /// The first inclusion of the guarded shared header consumes this build-only

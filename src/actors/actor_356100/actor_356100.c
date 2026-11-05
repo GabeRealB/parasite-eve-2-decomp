@@ -47,7 +47,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "actors/actor.h"
 #include "../../shared/actor/actor_messages.h"
 
 /// Uniform model-root scale for yaw rebuilds, with 12 fractional bits.

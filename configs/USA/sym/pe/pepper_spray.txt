@@ -1,5 +1,0 @@
-// Overlay-local symbols for pepper_spray.
-gPepperSprayId = 0x8012EF30;
-pepperSprayEffectTask = 0x8012EF34; // type:func
-pepperSpraySparkTask = 0x8012F0B8; // type:func
-spriteQuadDraw = 0x8012F304; // type:func

@@ -77,11 +77,12 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "screen/fade/fade.h"
+#include "../../shared/room/encounter.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/screen/screen_fade.h"
-#include "../../shared/effects/glow_draw.h"
+#include "screen/fade/fade.h"
+#include "effects/glow/glow.h"
 
 #include "assets/engine/animation/player_schema.h"
 
@@ -98,7 +99,7 @@
 /// the aimed drift fragment, which clears it. The two Shelter B3 carriers each
 /// supply their own export; no arguments, captured locals or tokens are built.
 #define EFFECT_SPRITE_DRIFT_AIMED_TASK shelterB3DumpingHoleEffectSpriteDriftTaskAimed
-#include "../../shared/effects/effect_sprite.h"
+#include "effects/effect_sprite/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
 
 #include "../../shared/actor/actor_messages.h"
@@ -491,10 +492,10 @@ enum {
 
 /// Palette and synthetic actor-command context of an encounter Sucklerceph pair.
 enum {
-    OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET = 3,
-    OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET     = 5,
-    OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE       = 0,
-    OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA        = 0x2E,
+    ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET = 3,
+    ENCOUNTER_PAIR_CLUT_ROW_OFFSET     = 5,
+    ENCOUNTER_PAIR_COMMAND_STAGE       = 0,
+    ENCOUNTER_PAIR_COMMAND_AREA        = 0x2E,
 };
 
 static void _shelterB3DumpingHoleCollapseEventSetViewSprites(u8 spriteMode);
@@ -522,13 +523,13 @@ static void _shelterB3DumpingHoleEncounterSpawnMadChaser(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterRevealMadChaser(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterWatchMadChaser(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterSpawnSlouch(Task* waveTask);
-static void _overlayEncounterRevealSlouch(Task* waveTask);
+static void _encounterRevealSlouch(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterWatchSlouch(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterPairWaitFrame(Task* waveTask);
-static void _overlayEncounterPairRevealFirst(Task* waveTask);
+static void _encounterPairRevealFirst(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterPairWatch(Task* waveTask);
-static void _overlayEncounterForgetDeadPairMembers(Task* task);
+static void _encounterForgetDeadPairMembers(Task* task);
 
 static void _shelterB3DumpingHoleDebrisSpriteTask(Task* task);
 static void _shelterB3DumpingHoleActorSpriteTask(Task* task);
@@ -1236,7 +1237,7 @@ DirectionWarpEntry gShelterB3DumpingHoleWarpEntries[3] = {
     { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-OverlayEncounterSpot gShelterB3DumpingHoleEncounterSpots[12] = {
+EncounterSpot gShelterB3DumpingHoleEncounterSpots[12] = {
     { 1500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
     { 4500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
     { 7500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
@@ -1253,7 +1254,7 @@ OverlayEncounterSpot gShelterB3DumpingHoleEncounterSpots[12] = {
 
 /// Encounter-controller stop-command handler followed by the message-table terminator.
 ///
-/// `ACTOR_COMMAND_MESSAGE_APPLY` latches command `OVERLAY_ENCOUNTER_COMMAND_STOP`;
+/// `ACTOR_COMMAND_MESSAGE_APPLY` latches command `ENCOUNTER_COMMAND_STOP`;
 /// other command values leave the controller running. The matched handler returns
 /// no defined result, so senders must ignore it. Unlisted message IDs return zero.
 static TaskMessageEntry _gShelterB3DumpingHoleEncounterMessageTable[2] = {
@@ -1266,23 +1267,23 @@ static TaskMessageEntry _gShelterB3DumpingHoleEncounterMessageTable[2] = {
 /// Commands select a spot and entry move. The controller resets statuses to
 /// waiting, spawners mark live, and watchers mark done; a pair occupies one
 /// slot. The controller and its child tasks borrow this loaded-overlay storage.
-static OverlayEncounterSlot _gShelterB3DumpingHoleEncounterSlots[16] = {
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(3, 2), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(9, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(2, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(4, 1), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(8, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(9, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(3, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(4, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(4, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, OVERLAY_ENCOUNTER_APPEAR_COMMAND(5, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(11, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, OVERLAY_ENCOUNTER_APPEAR_COMMAND(11, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
-    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(3, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
+static EncounterSlot _gShelterB3DumpingHoleEncounterSlots[16] = {
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, ENCOUNTER_APPEAR_COMMAND(3, 2), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, ENCOUNTER_APPEAR_COMMAND(9, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, ENCOUNTER_APPEAR_COMMAND(2, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, ENCOUNTER_APPEAR_COMMAND(4, 1), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, ENCOUNTER_APPEAR_COMMAND(8, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, ENCOUNTER_APPEAR_COMMAND(9, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, ENCOUNTER_APPEAR_COMMAND(3, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, ENCOUNTER_APPEAR_COMMAND(4, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, ENCOUNTER_APPEAR_COMMAND(4, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, ENCOUNTER_APPEAR_COMMAND(10, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR, ENCOUNTER_APPEAR_COMMAND(5, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, ENCOUNTER_APPEAR_COMMAND(11, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH, ENCOUNTER_APPEAR_COMMAND(11, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
+    { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, ENCOUNTER_APPEAR_COMMAND(3, 0), { 0, 0 }, ENCOUNTER_SLOT_WAITING },
 };
 
 enum {
@@ -4614,10 +4615,10 @@ static void _shelterB3DumpingHoleCollapseEventSetViewSprites(u8 spriteMode)
 /// may fail to spawn; no work or neither enemy kills the slot task.
 static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask)
 {
-    OverlayEncounterPairWork* work;
-    Enemy*                    enemy;
-    Task*                     enemyTask;
-    TmdObject*                model;
+    EncounterPairWork* work;
+    Enemy*             enemy;
+    Task*              enemyTask;
+    TmdObject*         model;
 
     work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
@@ -4637,8 +4638,8 @@ static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask)
         _gShelterB3DumpingHoleEncounterEnemyCount++;
         enemyTask                = enemy->task;
         model                    = enemyTask->extra.tmd;
-        model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
-        model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+        model->texturePageOffset = ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset     = ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
         enemy->hp                = 1;
     }
     if (work->enemy1 != NULL) {
@@ -4647,11 +4648,11 @@ static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask)
         _gShelterB3DumpingHoleEncounterEnemyCount++;
         enemyTask                = enemy->task;
         model                    = enemyTask->extra.tmd;
-        model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
-        model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+        model->texturePageOffset = ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset     = ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
         enemy->hp                = 1;
     }
-    _gShelterB3DumpingHoleEncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+    _gShelterB3DumpingHoleEncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = ENCOUNTER_SLOT_LIVE;
     waveTask->state++;
 }
 
@@ -4667,16 +4668,16 @@ static void _shelterB3DumpingHoleEncounterFeed(Task* controllerTask)
         SHELTER_B3_DUMPING_HOLE_ENCOUNTER_LIVE_SLOT_LIMIT      = 3,
         SHELTER_B3_DUMPING_HOLE_ENCOUNTER_FEED_MIN_SCENE_CLOCK = 61,
     };
-    OverlayEncounterControllerWork* work = controllerTask->work;
-    s16                             liveSlots;
-    s16                             slotIndex;
-    s16                             nextSlot;
-    s16                             kind;
-    s16                             appearCommand;
+    EncounterControllerWork* work = controllerTask->work;
+    s16                      liveSlots;
+    s16                      slotIndex;
+    s16                      nextSlot;
+    s16                      kind;
+    s16                      appearCommand;
 
     liveSlots = 0;
     for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(_gShelterB3DumpingHoleEncounterSlots); slotIndex++) {
-        if (_gShelterB3DumpingHoleEncounterSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_LIVE) {
+        if (_gShelterB3DumpingHoleEncounterSlots[slotIndex].status == ENCOUNTER_SLOT_LIVE) {
             liveSlots++;
         }
     }
@@ -4709,9 +4710,9 @@ static void _shelterB3DumpingHoleEncounterFeed(Task* controllerTask)
 /// `messageId` and the second payload word are unused.
 static s32 _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused)
 {
-    OverlayEncounterControllerWork* work = task->work;
+    EncounterControllerWork* work = task->work;
 
-    if (request->command == OVERLAY_ENCOUNTER_COMMAND_STOP) {
+    if (request->command == ENCOUNTER_COMMAND_STOP) {
         work->stop = request->command;
     }
     // No return statement: the handler falls off its end, as the binary does.
@@ -4748,7 +4749,7 @@ static const TaskFuncTable3 _gShelterB3DumpingHoleEncounterMadChaserStates = { {
 /// the immutable table is copied by value before dispatch.
 static const TaskFuncTable3 _gShelterB3DumpingHoleEncounterSlouchStates = { {
     _shelterB3DumpingHoleEncounterSpawnSlouch,
-    _overlayEncounterRevealSlouch,
+    _encounterRevealSlouch,
     _shelterB3DumpingHoleEncounterWatchSlouch,
 } };
 
@@ -4760,7 +4761,7 @@ static const TaskFuncTable3 _gShelterB3DumpingHoleEncounterSlouchStates = { {
 static const TaskFuncTable5 _gShelterB3DumpingHoleEncounterSucklercephPairStates = { {
     _shelterB3DumpingHoleEncounterPairSpawn,
     _shelterB3DumpingHoleEncounterPairWaitFrame,
-    _overlayEncounterPairRevealFirst,
+    _encounterPairRevealFirst,
     _shelterB3DumpingHoleEncounterPairRevealSecond,
     _shelterB3DumpingHoleEncounterPairWatch,
 } };
@@ -4828,8 +4829,8 @@ static void _shelterB3DumpingHoleEncounterPairTask(Task* task)
 /// message table and advances. Allocation failure kills the controller.
 static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask)
 {
-    OverlayEncounterControllerWork* work;
-    s32                             slotIndex;
+    EncounterControllerWork* work;
+    s32                      slotIndex;
 
     if (gGameSession->spawnPhase[0] == GAME_SESSION_SPAWN_COMPLETE) {
         taskKill(controllerTask);
@@ -4841,7 +4842,7 @@ static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask)
         return;
     }
     for (slotIndex = (s32)ARRAY_SIZE(_gShelterB3DumpingHoleEncounterSlots) - 1; slotIndex >= 0; slotIndex--) {
-        _gShelterB3DumpingHoleEncounterSlots[slotIndex].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
+        _gShelterB3DumpingHoleEncounterSlots[slotIndex].status = ENCOUNTER_SLOT_WAITING;
     }
     _gShelterB3DumpingHoleEncounterEnemyCount = 0;
     controllerTask->work                      = work;
@@ -4857,8 +4858,8 @@ static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask)
 static void _shelterB3DumpingHoleEncounterOpen(Task* controllerTask)
 {
     enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_OPEN_SLOT_COUNT = 3 };
-    OverlayEncounterControllerWork* work = controllerTask->work;
-    s32                             openingSlot;
+    EncounterControllerWork* work = controllerTask->work;
+    s32                      openingSlot;
 
     for (openingSlot = 0; openingSlot < SHELTER_B3_DUMPING_HOLE_ENCOUNTER_OPEN_SLOT_COUNT; openingSlot++) {
         s16 slotIndex = work->nextSlot;
@@ -4877,7 +4878,7 @@ static void _shelterB3DumpingHoleEncounterOpen(Task* controllerTask)
 static void _shelterB3DumpingHoleEncounterArmBattle(Task* controllerTask)
 {
     enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_ARM_DELAY_UPDATES = 15 };
-    OverlayEncounterControllerWork* work = controllerTask->work;
+    EncounterControllerWork* work = controllerTask->work;
 
     if (++work->frames == SHELTER_B3_DUMPING_HOLE_ENCOUNTER_ARM_DELAY_UPDATES) {
         sceneAcquireBattleRef(0);
@@ -4895,15 +4896,15 @@ static void _shelterB3DumpingHoleEncounterArmBattle(Task* controllerTask)
 /// records spawnPhase[0] complete and kills this task and its owned work.
 static void _shelterB3DumpingHoleEncounterRun(Task* controllerTask)
 {
-    OverlayEncounterControllerWork* work = controllerTask->work;
-    s16                             completedSlots;
-    s32                             slotIndex;
+    EncounterControllerWork* work = controllerTask->work;
+    s16                      completedSlots;
+    s32                      slotIndex;
 
     completedSlots = 0;
-    if (work->stop != OVERLAY_ENCOUNTER_COMMAND_STOP) {
+    if (work->stop != ENCOUNTER_COMMAND_STOP) {
         _shelterB3DumpingHoleEncounterFeed(controllerTask);
         for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(_gShelterB3DumpingHoleEncounterSlots); slotIndex++) {
-            if (_gShelterB3DumpingHoleEncounterSlots[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
+            if (_gShelterB3DumpingHoleEncounterSlots[slotIndex].status == ENCOUNTER_SLOT_DONE) {
                 completedSlots++;
             }
         }
@@ -4922,11 +4923,11 @@ static void _shelterB3DumpingHoleEncounterRun(Task* controllerTask)
 /// The unsigned halfword place counter increments with wraparound. Packing
 /// into the 16-bit enemy key retains its low four bits as the high nibble;
 /// stage and area bits are cleared. The room allocates sixteen encounter rows.
-static inline void _shelterB3DumpingHoleRegisterSingleEncounter(Task* waveTask, OverlayEncounterSingleWork* work, Enemy* enemy)
+static inline void _shelterB3DumpingHoleRegisterSingleEncounter(Task* waveTask, EncounterSingleWork* work, Enemy* enemy)
 {
     u16 placeIndex;
 
-    _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+    _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = ENCOUNTER_SLOT_LIVE;
     placeIndex                                                                   = _gShelterB3DumpingHoleEncounterEnemyCount;
     work->enemy                                                                  = enemy;
     enemy->placeKey                                                              = placeIndex << ENEMY_PLACE_INDEX_SHIFT;
@@ -4944,7 +4945,7 @@ static inline void _shelterB3DumpingHoleRegisterSingleEncounter(Task* waveTask, 
 static void _shelterB3DumpingHoleEncounterSpawnMadChaser(Task* waveTask)
 {
     enum { SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TASK_INDEX = ACTOR_04400_MAD_CHASER_TASK_SCRIPTED_NO_BUFFER };
-    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), false);
+    EncounterSingleWork* work = memCalloc(sizeof(*work), false);
     if (work != NULL) {
         Enemy* enemy;
         waveTask->work = work;
@@ -4973,10 +4974,10 @@ static void _shelterB3DumpingHoleEncounterRevealMadChaser(Task* waveTask)
         SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_STAGE        = 0,
         SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_AREA         = 0x2C,
     };
-    ActorCommand                request;
-    OverlayEncounterSingleWork* work      = waveTask->work;
-    Enemy*                      enemy     = work->enemy;
-    Task*                       enemyTask = enemy->task;
+    ActorCommand         request;
+    EncounterSingleWork* work      = waveTask->work;
+    Enemy*               enemy     = work->enemy;
+    Task*                enemyTask = enemy->task;
 
     if (++work->frames > SHELTER_B3_DUMPING_HOLE_MAD_CHASER_REVEAL_DELAY_UPDATES) {
         TmdObject* model          = enemyTask->extra.tmd;
@@ -4998,10 +4999,10 @@ static void _shelterB3DumpingHoleEncounterRevealMadChaser(Task* waveTask)
 /// kills only the spawner, releasing its owned work; enemy teardown is separate.
 static void _shelterB3DumpingHoleEncounterWatchMadChaser(Task* waveTask)
 {
-    OverlayEncounterSingleWork* work = waveTask->work;
+    EncounterSingleWork* work = waveTask->work;
 
     if (work->enemy->hp <= 0) {
-        _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
     }
 }
@@ -5016,7 +5017,7 @@ static void _shelterB3DumpingHoleEncounterWatchMadChaser(Task* waveTask)
 static void _shelterB3DumpingHoleEncounterSpawnSlouch(Task* waveTask)
 {
     enum { SHELTER_B3_DUMPING_HOLE_SLOUCH_TASK_INDEX = 2 };
-    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), false);
+    EncounterSingleWork* work = memCalloc(sizeof(*work), false);
     if (work != NULL) {
         Enemy* enemy;
         waveTask->work = work;
@@ -5038,10 +5039,10 @@ static void _shelterB3DumpingHoleEncounterSpawnSlouch(Task* waveTask)
 /// kills only the spawner, releasing its owned work; enemy teardown is separate.
 static void _shelterB3DumpingHoleEncounterWatchSlouch(Task* waveTask)
 {
-    OverlayEncounterSingleWork* work = waveTask->work;
+    EncounterSingleWork* work = waveTask->work;
 
     if (work->enemy->hp <= 0) {
-        _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
     }
 }
@@ -5066,10 +5067,10 @@ static void _shelterB3DumpingHoleEncounterPairWaitFrame(Task* waveTask)
 static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask)
 {
     enum { SHELTER_B3_DUMPING_HOLE_PAIR_REVEAL_DELAY_UPDATES = 60 };
-    OverlayEncounterPairWork* work  = waveTask->work;
-    Enemy*                    enemy = work->enemy1;
+    EncounterPairWork* work  = waveTask->work;
+    Enemy*             enemy = work->enemy1;
 
-    _overlayEncounterForgetDeadPairMembers(waveTask);
+    _encounterForgetDeadPairMembers(waveTask);
     if (work->enemy1 != NULL) {
         if (++work->frames <= SHELTER_B3_DUMPING_HOLE_PAIR_REVEAL_DELAY_UPDATES) {
             return;
@@ -5078,11 +5079,11 @@ static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask)
             Task*        enemyTask = work->enemy1->task;
             TmdObject*   model     = enemyTask->extra.tmd;
             ActorCommand request;
-            model->texturePageOffset  = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
-            model->clutRowOffset      = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+            model->texturePageOffset  = ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+            model->clutRowOffset      = ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
             enemy->workType           = ENEMY_WORK_ACTOR;
-            request.context.loc.stage = OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE;
-            request.context.loc.area  = OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA;
+            request.context.loc.stage = ENCOUNTER_PAIR_COMMAND_STAGE;
+            request.context.loc.area  = ENCOUNTER_PAIR_COMMAND_AREA;
             request.command           = waveTask->spawnArg1.halves.low;
             TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
         }
@@ -5099,11 +5100,11 @@ static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask)
 /// check. Marks the row done and kills the spawner, leaving enemy teardown separate.
 static void _shelterB3DumpingHoleEncounterPairWatch(Task* waveTask)
 {
-    OverlayEncounterPairWork* work = waveTask->work;
+    EncounterPairWork* work = waveTask->work;
 
-    _overlayEncounterForgetDeadPairMembers(waveTask);
-    if (work->goneMask == OVERLAY_ENCOUNTER_PAIR_GONE_BOTH) {
-        _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+    _encounterForgetDeadPairMembers(waveTask);
+    if (work->goneMask == ENCOUNTER_PAIR_GONE_BOTH) {
+        _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
     }
 }
@@ -5128,7 +5129,7 @@ static void _shelterB3DumpingHoleEncounterSpawnSlot(s16 slotIndex, s16 kind, s16
     }
 }
 
-#include "../../shared/creatures/mad_chaser/overlay_encounter_forget_dead_pair_members.inc.c"
+#include "../../shared/creatures/mad_chaser/encounter_forget_dead_pair_members.inc.c"
 
 void shelterB3DumpingHoleDrawViewGlowsTask(Task* task)
 {
@@ -5289,15 +5290,15 @@ void shelterB3DumpingHoleDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
-#include "../../shared/effects/effect_sprite_drift_aimed.inc.c"
+#include "effects/effect_sprite/drift_aimed.inc.c"
 
-#include "../../shared/effects/effect_sprite_draw_banked.inc.c"
+#include "effects/effect_sprite/draw_banked.inc.c"
 
-#include "../../shared/effects/effect_sprite_draw_rotated.inc.c"
+#include "effects/effect_sprite/draw_rotated.inc.c"
 
 void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
 {
@@ -5443,7 +5444,7 @@ void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
     }
 }
 
-#include "../../shared/effects/effect_sprite_draw.inc.c"
+#include "effects/effect_sprite/draw.inc.c"
 
 /// Attaches the rain effect at its projectile parent's origin and refreshes its cache.
 ///

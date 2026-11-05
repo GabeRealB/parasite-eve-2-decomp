@@ -68,7 +68,7 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 
 #include "rooms/room.h"
 
@@ -78,12 +78,12 @@
 ///
 /// The writable `ScreenWaveCtx` stays in this translation unit at its existing
 /// BSS position. Bind it before the shared header and retain the binding through
-/// screen_wave_run.inc.c, then undefine it. The wave borrows this same object;
+/// screen/wave/run.inc.c, then undefine it. The wave borrows this same object;
 /// keep the room loaded through its final drawing tick and do not overlap spawns.
 #define SCREEN_WAVE_SPAWN_CONTEXT (_gScreenWaveSpawnCtx)
-#include "../../shared/screen/screen_wave.h"
-#include "../../shared/effects/glow_draw.h"
-#include "../../shared/effects/water_effects.h"
+#include "screen/wave/wave.h"
+#include "effects/glow/glow.h"
+#include "effects/water/water.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
@@ -1403,7 +1403,7 @@ static _ShelterB4ReservoirBurstConfig _gShelterB4ReservoirBurstConfig = { 0, 0, 
 static void _shelterB4ReservoirUpdateWaterDriftSpawnArgs(void);
 static void _shelterB4ReservoirDrawWaterTask(Task* task);
 
-#include "../../shared/screen/screen_wave.inc.c"
+#include "screen/wave/wave.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -1787,7 +1787,7 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
     }
 }
 
-#include "../../shared/screen/screen_wave_run.inc.c"
+#include "screen/wave/run.inc.c"
 #undef SCREEN_WAVE_SPAWN_CONTEXT
 
 /// Stops the retained water-ramp task, if live, and clears its shared handle.
@@ -2488,23 +2488,23 @@ void shelterB4ReservoirAmbientEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void shelterB4ReservoirWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_drift_task.inc.c"
+#include "effects/water/drift_task.inc.c"
 
 void shelterB4ReservoirWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/effects/water_spin.inc.c"
+#include "effects/water/spin.inc.c"
 
 /// Sets a reservoir burst sprite's launch velocity along negative parent X.
 ///
@@ -2692,9 +2692,9 @@ static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_tinted_disc_no_bias.inc.c"
+#include "effects/glow/tinted_disc_no_bias.inc.c"
 
 /// Replaces the reservoir burst emitter's active point count, chance and size.
 ///

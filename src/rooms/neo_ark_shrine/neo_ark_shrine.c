@@ -33,8 +33,6 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 #include "../../shared/room/action_prompt.h"
 

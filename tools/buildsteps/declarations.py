@@ -474,6 +474,16 @@ class Declarations:
             if name in by_name:
                 found.append(f"{by_name[name]} and {path} are both named {name}, in the same package or none")
             by_name.setdefault(name, path)
+        # Every public file follows the include rules, whether or not a package reaches it yet.
+        for package in self.every_package():
+            if package.public is None or not package.public.is_dir():
+                continue
+            for file in sorted(path for path in package.public.rglob("*") if path.is_file()):
+                for spelled, angled, line in includes(file.read_text(encoding="latin-1")):
+                    try:
+                        package.resolved(self, file, spelled, angled, f"{file.as_posix()}:{line}")
+                    except SystemExit as problem:
+                        found.append(str(problem))
         public = self.public()
         for name in public:
             for outer in public:

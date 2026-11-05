@@ -8,7 +8,7 @@
 
 #include "engine/task_types.h"
 
-#include "overlay.h"
+#include "effects/glow/glow.h"
 
 /// Script record for a room's staged event.
 ///
@@ -207,9 +207,9 @@ STATIC_ASSERT_SIZEOF(RoomMoviePathWork, 0x14);
 /// to the first rotates that offset in place in `point1` before adding
 /// `point0` to it.
 typedef struct {
-    SVECTOR                 point0; // World position of the first end
-    SVECTOR                 point1; // World position of the second end; holds its local offset while that is rotated
-    OverlayPointPairScratch pair;   // Both ends' screen positions and depths, the GTE flag word and the on-screen radii
+    SVECTOR                     point0; // World position of the first end
+    SVECTOR                     point1; // World position of the second end; holds its local offset while that is rotated
+    GlowFlaggedPointPairScratch pair;   // Both ends' screen positions and depths, the GTE flag word and the on-screen radii
 } RoomBeamScratch;
 STATIC_ASSERT_SIZEOF(RoomBeamScratch, 0x2C);
 

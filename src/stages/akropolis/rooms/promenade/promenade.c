@@ -56,14 +56,12 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../../../shared/room/bridge_model.h"
-#include "../../../../shared/effects/acropolis_glows.h"
+#include "effects/acropolis_glows/acropolis_glows.h"
 
 #include "assets/stages/akropolis/rooms/promenade/declarations.inc"
 #include "assets/engine/animation/player_schema.h"
@@ -663,7 +661,7 @@ void akropolisPromenadeScreenDripTask(Task* task)
 #define GLOW_STAR_TASK akropolisPromenadeGlowStarTask
 /// Stores the star core's pixel half-height separately from its equal half-width.
 #define GLOW_STAR_STORE_HALF_HEIGHT 1
-#include "../../../../shared/effects/acropolis_glows_star.inc.c"
+#include "effects/acropolis_glows/star.inc.c"
 
 /// Places one corner of the ground glow in the task's composed coordinate space.
 static inline void _akropolisPromenadeTransformGroundGlowCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, const GfxCoord* coord)
@@ -757,6 +755,6 @@ void akropolisPromenadeGroundGlowTask(Task* task)
 
 /// Binds the included lamp glow to the promenade's exported `void (Task*)` callback.
 #define GLOW_LAMP_TASK akropolisPromenadeGlowLampTask
-#include "../../../../shared/effects/acropolis_glows_lamp.inc.c"
+#include "effects/acropolis_glows/lamp.inc.c"
 
-#include "../../../../shared/effects/glow_draw_tinted_disc_no_bias.inc.c"
+#include "effects/glow/tinted_disc_no_bias.inc.c"

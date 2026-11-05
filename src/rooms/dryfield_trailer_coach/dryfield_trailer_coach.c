@@ -72,7 +72,7 @@
 // Symbol is `RoomCutsceneSoundTaskStorage`; the runner reads `task`.
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
 #include "../../shared/room/room_cutscene.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 static void _roomCutsceneTask(Task* task);
 
 /// Selects the daytime trailer coach view that uses the finer depth shift.
@@ -2440,7 +2440,7 @@ void dryfieldTrailerCoachRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_star_local.inc.c"
+#include "effects/glow/star_local.inc.c"
 
 /// Computes the ray star's signed half intensity before its first disc packet.
 ///
@@ -2455,7 +2455,7 @@ void dryfieldTrailerCoachRoomTask(Task* task)
 /// stores retain its low byte. Arguments must have no side effects:
 /// `primitive` is evaluated three times and `halfIntensity` twice. Use as a
 /// statement. Requires `setRGB2` from `psyq/libgpu.h`. Define before including
-/// `glow_draw_ray_star.inc.c`, which undefines this binding afterwards.
+/// `effects/glow/ray_star.inc.c`, which undefines this binding afterwards.
 #define GLOW_DRAW_RAY_STAR_OUTER(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
 /// Sets the inner ray-star disc's centre to green with half-intensity blue.
 ///
@@ -2464,7 +2464,7 @@ void dryfieldTrailerCoachRoomTask(Task* task)
 /// normally 0..120. Stores retain each value's low byte.
 /// Arguments must have no side effects: `primitive` is evaluated three
 /// times and each intensity once. Use as a statement. Requires `setRGB2`
-/// from `psyq/libgpu.h`. Define before including `glow_draw_ray_star.inc.c`,
+/// from `psyq/libgpu.h`. Define before including `effects/glow/ray_star.inc.c`,
 /// which undefines this binding afterwards.
 #define GLOW_DRAW_RAY_STAR_INNER(primitive, intensity, halfIntensity) (setRGB2((primitive), 0, (intensity), (halfIntensity)))
 /// Sets the ray-star rays' centres to half-intensity cyan.
@@ -2474,10 +2474,10 @@ void dryfieldTrailerCoachRoomTask(Task* task)
 /// is zero. Stores retain the intensity's low byte. Arguments must have no
 /// side effects: `primitive` is evaluated three times and `halfIntensity`
 /// twice. Use as a statement. Requires `setRGB2` from `psyq/libgpu.h`.
-/// Define before including `glow_draw_ray_star.inc.c`, which undefines this
+/// Define before including `effects/glow/ray_star.inc.c`, which undefines this
 /// binding afterwards.
 #define GLOW_DRAW_RAY_STAR_RAY(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
-#include "../../shared/effects/glow_draw_ray_star.inc.c"
+#include "effects/glow/ray_star.inc.c"
 
 void dryfieldTrailerCoachDrawGlowsTask(Task* task)
 {

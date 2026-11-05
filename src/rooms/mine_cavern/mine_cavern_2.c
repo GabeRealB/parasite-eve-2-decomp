@@ -71,14 +71,14 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "actors/actor.h"
 
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
 
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// Work block of the cavern's two target tasks, parked at `Task::work`.
 ///
@@ -3080,9 +3080,9 @@ void mineCavernDrawRoomLightGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

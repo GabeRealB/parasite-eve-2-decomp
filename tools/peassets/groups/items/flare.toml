@@ -49,7 +49,6 @@ sha1 = "58ee1b88b0046e4696e2815d3ad0d75201aa3b9d"
 [package]
 type = "pe2pkg"
 package_name = "flare"
-required = true
 sha1 = "a8579b08123ab14835dd2bbae1334d256a53c2bb"
 
 [texture]

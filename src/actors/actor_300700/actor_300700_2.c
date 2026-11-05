@@ -37,7 +37,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 #include "../../shared/creatures/moth/moth.h"
 
 static void _ratDeath(Enemy* enemy, Task* actor);

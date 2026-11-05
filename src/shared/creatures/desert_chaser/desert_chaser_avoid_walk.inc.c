@@ -1,5 +1,7 @@
 /* Part of the Desert Chaser library; requires the armed DESERT_CHASER_BUILD. */
 
+#include "../../actor/actor_contacts.h"
+
 /// Builds and accumulates a signed horizontal push in the coordinate's parent frame.
 ///
 /// The caller lends its scratch block and initialized displacement; XYZ vectors

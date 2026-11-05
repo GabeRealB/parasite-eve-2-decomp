@@ -41,10 +41,8 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static void _dryfieldNightBreezewayInitRoomTask(Task* task);
 static void _dryfieldNightBreezewayIdleRoomTask(Task* task);
@@ -890,11 +888,11 @@ void dryfieldNightBreezewayRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_pulsing_star.inc.c"
+#include "effects/glow/pulsing_star.inc.c"
 
-#include "../../shared/effects/glow_draw_shaft.inc.c"
+#include "effects/glow/shaft.inc.c"
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 void dryfieldNightBreezewayDrawGlowsTask(Task* task)
 {

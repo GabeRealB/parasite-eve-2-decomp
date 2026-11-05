@@ -64,7 +64,7 @@
 
 #include "rooms/room_common.h"
 #include "../../../../shared/room/room_cutscene.h"
-#include "../../../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 #include "assets/stages/akropolis/rooms/square/declarations.inc"
 
@@ -733,7 +733,7 @@ void akropolisSquareRoomEffectTask(Task* task)
 #define PULSING_FLARE_BLUE(level)                  (level) // The second color is cyan
 #define PULSING_FLARE_OUTER_RADIUS(scale, options) ((scale) * 0x600)
 #define PULSING_FLARE_INNER_RADIUS(scale, options) ((scale) * 0xC0)
-#include "../../../../shared/effects/pulsing_flare.inc.c"
+#include "effects/glow/pulsing_flare.inc.c"
 
 /// Sets the telephone light's mode.
 static s32 _akropolisSquareSetTelephoneLightMode(Task* unusedTask, s32 unusedMessageId, s32 glowMode, s32 unusedSecondArg)

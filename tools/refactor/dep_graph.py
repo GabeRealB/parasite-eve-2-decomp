@@ -825,7 +825,7 @@ def _unit_of(root: str, where: str) -> str:
         return where
     if _LIBS is None:
         # Each library is its header and the fragments beside it, in a module
-        # folder (src/shared/effects/, src/shared/creatures/glutton/, ...).
+        # folder (packages/effects/include/, src/shared/creatures/glutton/, ...).
         _LIBS = []
         for d, _, fs in os.walk(os.path.join(root, "src/shared")):
             rel = os.path.relpath(d, root).replace(os.sep, "/")

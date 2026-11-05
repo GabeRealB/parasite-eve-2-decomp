@@ -78,11 +78,9 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 #include "../../shared/gas_station_sounds.h"
 
@@ -4222,9 +4220,9 @@ void dryfieldNightGasStationAmbientEffectsTask(Task* task)
 #undef DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_flare.inc.c"
+#include "effects/glow/flare.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

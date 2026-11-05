@@ -39,12 +39,12 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "overlay.h"
+#include "effects/glow/glow.h"
 
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 
 static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[2], s32 radiusScale);
@@ -1126,9 +1126,9 @@ void dryfieldNightTrailerCoachDrawGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_diamond.inc.c"
+#include "effects/glow/diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"
 
 /// Initializes a grey-to-black Gouraud wedge for a capsule end cap.
 ///
@@ -1156,29 +1156,29 @@ static inline void _dryfieldNightTrailerCoachInitGreyCapsuleWedge(POLY_G4* wedge
 /// and additive blend commands in the current frame's packet arena. The two
 /// joining quads sort at the mean depth; end caps sort at their own depths.
 /// Requires composed view matrices, an initialized scratch stack with one
-/// `OverlayPointPairScratch` available, and room in the current packet arena.
+/// `GlowFlaggedPointPairScratch` available, and room in the current packet arena.
 static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[2], s32 radiusScale)
 {
     enum { DRYFIELD_NIGHT_TRAILER_COACH_CAPSULE_BASE_INTENSITY = 16 };
 
-    const SVECTOR*           secondPoint;
-    OverlayPointPairScratch* block;
-    POLY_G4*                 quad;
-    const DisplayState*      display;
-    s32                      bearing;
-    s32                      sweepAngle;
-    s32                      halfTurnEnd;
-    s32                      sweepLimit;
-    s32                      baseAngle;
-    s32                      rimAngle;
-    s32                      nextSweepAngle;
-    s32                      farCapAngle;
-    s32                      sideAngle;
-    s32                      scaledRadius;
-    s32                      intensity;
+    const SVECTOR*               secondPoint;
+    GlowFlaggedPointPairScratch* block;
+    POLY_G4*                     quad;
+    const DisplayState*          display;
+    s32                          bearing;
+    s32                          sweepAngle;
+    s32                          halfTurnEnd;
+    s32                          sweepLimit;
+    s32                          baseAngle;
+    s32                          rimAngle;
+    s32                          nextSweepAngle;
+    s32                          farCapAngle;
+    s32                          sideAngle;
+    s32                          scaledRadius;
+    s32                          intensity;
 
     secondPoint = worldPoints + 1;
-    block       = SCRATCH_STACK_RESERVE_BLOCK(OverlayPointPairScratch);
+    block       = SCRATCH_STACK_RESERVE_BLOCK(GlowFlaggedPointPairScratch);
 
     // Project both endpoints before deriving radii and the screen-space bearing.
     gte_SetTransMatrix(&gGfxViewCoord.workm);
@@ -1268,5 +1268,5 @@ static void _dryfieldNightTrailerCoachDrawGlowCapsule(const SVECTOR worldPoints[
             }
         }
     }
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayPointPairScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(GlowFlaggedPointPairScratch);
 }

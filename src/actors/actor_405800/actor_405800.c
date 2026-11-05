@@ -53,10 +53,9 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
-#include "../../shared/screen/frame_capture.h"
+#include "screen/frame_capture/frame_capture.h"
 #include "../../shared/actor/limb_shadows.h"
 
 /// Selects the Ivory policy for this package's shared Stalker helpers.
@@ -667,7 +666,7 @@ static inline void _actor405800PlayStrikeSound(Task* task)
     _actor405800PlayMovementSound(task, ACTOR_405800_SOUND_STRIKE, ACTOR_405800_SOUND_WATER_STRIKE);
 }
 
-#include "../../shared/screen/frame_capture.inc.c"
+#include "screen/frame_capture/frame_capture.inc.c"
 
 /// Creates the Stalker's hit sphere, room sphere, wall probe and four arm spheres.
 ///

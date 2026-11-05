@@ -63,7 +63,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_events.h"
 
 /// Spawn payload of the task 0x31 the event task may start.
@@ -810,9 +810,9 @@ void shelterB1SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_cone.inc.c"
+#include "effects/glow/cone.inc.c"
 
-#include "../../shared/effects/glow_draw_red_disc.inc.c"
+#include "effects/glow/red_disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

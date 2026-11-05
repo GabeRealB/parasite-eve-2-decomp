@@ -35,10 +35,8 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static void _neoArkSubstationInitializeRoom(Task* task);
 static void _neoArkSubstationMessageTaskIdle(Task* unusedTask);
@@ -841,4 +839,4 @@ void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"

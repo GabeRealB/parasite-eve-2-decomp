@@ -22,7 +22,6 @@
 #include <psyq/memory.h>
 
 #include "math/gte.h"
-#include "overlay.h"
 #include "types.h"
 
 #include "actors/actor.h"
@@ -36,6 +35,114 @@
 #include "engine/scratch.h"
 #include "engine/session.h"
 #include "engine/session_types.h"
+
+/// Stages the full-width XYZ offset from `origin` to `point` for an angle query.
+///
+/// Borrows one word-aligned scratch `VECTOR` below the initialized cursor,
+/// writes XYZ without touching `pad`, and restores the cursor. Consume the
+/// returned block before anything reserves scratch again. Inputs use the
+/// SDK and packed signed-halfword layouts respectively and are only read.
+static inline VECTOR* _actorAngleStagePointOffset(const SVECTOR* point, const SVECTOR3* origin)
+{
+    VECTOR* scratchHead;
+    VECTOR* delta;
+
+    scratchHead                  = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = scratchHead - 1;
+    delta->vx                    = point->vx - origin->vx;
+    SCRATCH_STACK_CURSOR(VECTOR) = delta;
+    delta->vy                    = point->vy - origin->vy;
+    delta->vz                    = point->vz - origin->vz;
+    // Read the released block before anything can reserve scratch again.
+    SCRATCH_STACK_CURSOR(VECTOR) = scratchHead;
+    return delta;
+}
+
+/// Measures the XZ bearing from `origin` to `point` for actor steering.
+///
+/// Both inputs are signed 16-bit positions in the same coordinate frame and
+/// units. Returns a signed angle in 4096 units per turn: zero along +Z,
+/// positive toward +X, and zero when the XZ positions coincide. Subtraction
+/// retains the full 32-bit difference; the inputs are neither changed nor
+/// retained. `point` uses the SDK vector layout, while `origin` is packed.
+///
+/// Requires an initialized, word-aligned scratch cursor with room for one
+/// `VECTOR` (16 bytes). All three offsets are staged, although only X and Z
+/// determine the angle; the vector's `pad` is untouched.
+static inline s16 _actorAngleBearingXZ(const SVECTOR* point, const SVECTOR3* origin)
+{
+    VECTOR* delta;
+
+    delta = _actorAngleStagePointOffset(point, origin);
+    return ratan2(delta->vx, delta->vz);
+}
+
+/// Measures the XY bearing from `origin` to `point` for actor steering.
+///
+/// Both inputs are signed 16-bit positions in the same coordinate frame and
+/// units. Returns a signed angle in 4096 units per turn: zero along +Y,
+/// positive toward +X, and zero when the XY positions coincide. Subtraction
+/// retains the full 32-bit difference; the inputs are neither changed nor
+/// retained. `point` uses the SDK vector layout, while `origin` is packed.
+///
+/// Requires an initialized, word-aligned scratch cursor with room for one
+/// `VECTOR` (16 bytes). All three offsets are staged, although only X and Y
+/// determine the angle; the vector's `pad` is untouched.
+static inline s16 _actorAngleBearingXY(const SVECTOR* point, const SVECTOR3* origin)
+{
+    VECTOR* scratchHead;
+    VECTOR* delta;
+
+    scratchHead                  = SCRATCH_STACK_CURSOR(VECTOR);
+    delta                        = scratchHead - 1;
+    delta->vx                    = point->vx - origin->vx;
+    SCRATCH_STACK_CURSOR(VECTOR) = delta;
+    delta->vy                    = point->vy - origin->vy;
+    delta->vz                    = point->vz - origin->vz;
+    // Read the released block before anything can reserve scratch again.
+    SCRATCH_STACK_CURSOR(VECTOR) = scratchHead;
+    return ratan2(delta->vx, delta->vy);
+}
+
+/// Scratch-stack block of the contact steering walk, which nudges a coordinate
+/// away from the obstacles among its contact records.
+///
+/// The walk collects the bearing of each obstacle record from `origin`, drops
+/// every pair of bearings more than 0x400 apart, and steps the coordinate a
+/// short way away from each bearing that survives.
+typedef struct {
+    MATRIX   rot;        // Yaw rotation built for the current push, whose Z axis gives its direction
+    SVECTOR  dir;        // First the coordinate's normalised Y-axis column, then each push step
+    SVECTOR3 origin;     // Coordinate's world translation, the point bearings are taken from
+    s32      kind;       // High half of the current record's key (0x10000 also sets `blocked`)
+    s16      bearing[8]; // Bearings of the collected obstacle records
+    s8       kept[8];    // Per bearing: 1 until it falls more than 0x400 from another bearing
+    s16      heading;    // Coordinate's heading in the plane the bearings are measured in
+    s16      diff;       // Wrapped difference between two bearings, then the push's yaw
+    u8       i;          // Outer cursor over records, then over bearings
+    u8       j;          // Inner cursor over the bearings paired with `i`
+    u8       count;      // Number of bearings collected
+    u8       blocked;    // Set when a record of the blocking kind 0x10000 was seen
+} ActorContactSteerScratch;
+STATIC_ASSERT_SIZEOF(ActorContactSteerScratch, 0x54);
+
+/// Scratch-stack block of the walk that carries a vector up a coordinate's
+/// parent chain.
+///
+/// The walk applies the local matrix of the frame it stands on to the vector,
+/// then steps to `GfxCoord::parent`, until the chain runs out. The vector
+/// therefore ends in the space above the topmost frame, the one
+/// `GfxCoord::workm` maps into when nothing is excluded from its composition:
+/// for a node beneath `gGfxViewCoord` the view coordinates are part of the
+/// chain and are applied like any other frame. Each component is cut to 16
+/// bits after every frame.
+typedef struct {
+    GfxCoord* coord; // Frame the walk stands on; NULL once the chain has run out
+    SVECTOR   vec;   // Vector being carried, in the space of `coord`'s local matrix; `pad` is never written
+    VECTOR    out;   // The GTE's transform of `vec` by the current frame, which `vec` is refreshed from; `pad` is never written
+    s32       flag;  // GTE flag word of the latest transform; stored and never read
+} ActorContactCoordChainScratch;
+STATIC_ASSERT_SIZEOF(ActorContactCoordChainScratch, 0x20);
 
 /* Scratch blocks private to the library. */
 
@@ -90,17 +197,17 @@ STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 ///
 /// Requires a live, acyclic parent chain, separate writable point storage,
 /// and an initialized scratch-stack cursor with one free, word-aligned
-/// `OverlayCoordChainScratch` below it, disjoint from the inputs. Borrows the
+/// `ActorContactCoordChainScratch` below it, disjoint from the inputs. Borrows the
 /// pointers only for this call and leaves the nodes unchanged. Restores the
 /// scratch cursor on return; a nonempty chain changes GTE rotation/translation and working
 /// registers; transform flags are stored but do not gate the result.
 static inline void _actorContactTransformPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
 {
-    OverlayCoordChainScratch* scratch;
+    ActorContactCoordChainScratch* scratch;
 
-    (SCRATCH_STACK_CURSOR(OverlayCoordChainScratch))[-1].coord = startCoord;
-    SCRATCH_STACK_RESERVE_BLOCK(OverlayCoordChainScratch);
-    scratch         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch);
+    (SCRATCH_STACK_CURSOR(ActorContactCoordChainScratch))[-1].coord = startCoord;
+    SCRATCH_STACK_RESERVE_BLOCK(ActorContactCoordChainScratch);
+    scratch         = SCRATCH_STACK_CURSOR(ActorContactCoordChainScratch);
     scratch->vec.vx = point->vx;
     scratch->vec.vy = point->vy;
     scratch->vec.vz = point->vz;
@@ -122,7 +229,7 @@ static inline void _actorContactTransformPointToChainRoot(GfxCoord* startCoord, 
     point->vy = scratch->vec.vy;
     point->vz = scratch->vec.vz;
 
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactCoordChainScratch);
 }
 
 /// Carries a scratch point through its current node's local matrix and advances to its parent.
@@ -134,7 +241,7 @@ static inline void _actorContactTransformPointToChainRoot(GfxCoord* startCoord, 
 /// selects the parent (possibly NULL). Stores GTE flags without testing them.
 /// Clobbers GTE working state, retains no pointer and does not move the scratch
 /// cursor or refresh any coordinate's composed cache.
-static inline void _actorContactCarryPointToParent(OverlayCoordChainScratch* scratch)
+static inline void _actorContactCarryPointToParent(ActorContactCoordChainScratch* scratch)
 {
     gte_SetTransMatrix(&scratch->coord->coord);
     gte_SetRotMatrix(&scratch->coord->coord);
@@ -160,22 +267,22 @@ static inline void _actorContactCarryPointToParent(OverlayCoordChainScratch* scr
 ///
 /// Requires a live, acyclic parent chain, separate writable point storage,
 /// and an initialized scratch-stack cursor with one free, word-aligned
-/// `OverlayCoordChainScratch` below it, disjoint from the inputs. Stages the
+/// `ActorContactCoordChainScratch` below it, disjoint from the inputs. Stages the
 /// starting node and XYZ there before publishing the reservation. Borrows
 /// both pointers only for this call and leaves the nodes unchanged. Restores
 /// the cursor on return; a nonempty chain changes GTE rotation, translation
 /// and working registers.
 static inline void _actorContactTransformStagedPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
 {
-    OverlayCoordChainScratch* scratch;
+    ActorContactCoordChainScratch* scratch;
 
-    scratch         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) - 1;
+    scratch         = SCRATCH_STACK_CURSOR(ActorContactCoordChainScratch) - 1;
     scratch->coord  = startCoord;
     scratch->vec.vx = point->vx;
     scratch->vec.vy = point->vy;
     scratch->vec.vz = point->vz;
 
-    SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) = scratch;
+    SCRATCH_STACK_CURSOR(ActorContactCoordChainScratch) = scratch;
     // Include the topmost node and retain the per-node halfword narrowing.
     while (scratch->coord != NULL) {
         _actorContactCarryPointToParent(scratch);
@@ -184,7 +291,7 @@ static inline void _actorContactTransformStagedPointToChainRoot(GfxCoord* startC
     point->vy = scratch->vec.vy;
     point->vz = scratch->vec.vz;
 
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorContactCoordChainScratch);
 }
 
 /// Returns the first attack key in a contact-table prefix and copies its point.

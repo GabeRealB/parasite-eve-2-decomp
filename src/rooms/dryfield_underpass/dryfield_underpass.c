@@ -46,7 +46,7 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 
 static void _underpassSwitchTask(Task* task);
@@ -1324,7 +1324,7 @@ void dryfieldUnderpassRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_flare_local.inc.c"
+#include "effects/glow/flare_local.inc.c"
 
 void dryfieldUnderpassDrawFlaresTask(Task* task)
 {

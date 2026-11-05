@@ -43,8 +43,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 /// Task-state indices of the scorpion's spawn, active and death handlers.
 enum {
     ACTOR_02500_TASK_STATE_SPAWN  = 0,

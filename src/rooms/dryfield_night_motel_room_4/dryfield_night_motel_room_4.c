@@ -37,7 +37,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_variants.h"
 
 static s32  _dryfieldNightMotelRoom4RejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
@@ -816,7 +816,7 @@ void dryfieldNightMotelRoom4RoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
+#include "effects/glow/flare_clipped.inc.c"
 
 void dryfieldNightMotelRoom4DrawFlaresTask(Task* unusedTask)
 {

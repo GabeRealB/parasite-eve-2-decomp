@@ -44,9 +44,9 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/screen/screen_wave.h"
+#include "screen/wave/wave.h"
 
 static WorldCollisionGrid     _gNeoArkSubmarineTunnelCollisionGrid;
 static WorldCollisionOccluder _gNeoArkSubmarineTunnelSightOccluders[3];

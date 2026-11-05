@@ -62,8 +62,7 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-#include "../../shared/effects/fireball.h"
+#include "effects/fireball/fireball.h"
 #include "../../shared/actor/player_detection.h"
 #include "../../shared/actor/actor_messages.h"
 
@@ -819,7 +818,7 @@ static void        _actor00300DrainModelActive(Enemy* enemy, Task* task);
 static void        _actor00300InitFireball(Enemy* enemy, Task* task);
 static void        _actor00300FlyFireball(Enemy* enemy, Task* task);
 
-#include "../../shared/effects/fireball.inc.c"
+#include "effects/fireball/fireball.inc.c"
 
 /// Binds the drain model's texture offsets from the current area's enemy placement.
 ///
@@ -2946,7 +2945,7 @@ static void _actor00300TurnFireballTowardPlayer(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-#include "../../shared/effects/fireball_ember.inc.c"
+#include "effects/fireball/ember.inc.c"
 
 /// Dispatches the enemy's initialization, active update and death state.
 ///

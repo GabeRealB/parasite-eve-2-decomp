@@ -57,13 +57,11 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-/// Empty presence flag so `water_effects.h` declares the shared
+/// Empty presence flag so `effects/water/water.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
 /// Binds the shared water-spray definition to this package's public void (Task*)
@@ -72,8 +70,7 @@
 /// Binds the cached-coordinate ripple fragment to this package's public
 /// void (Task*) callback. Define before its fragment; the room header declares
 /// the export that gameplay's effect table imports. Takes no macro arguments.
-#define WATER_RIPPLE_CACHED_COORD_TASK neoArkPavilionWaterRippleTask
-#include "../../shared/effects/water_effects.h"
+#include "effects/water/water.h"
 #include "../../shared/room/room_events.h"
 
 s32     rcos(s32);
@@ -1350,7 +1347,7 @@ RoomLatchedEvent gRoomEventLatched;
 static void _neoArkPavilionInitializeRoom(Task* task);
 static void _neoArkPavilionRoomIdleState(Task* task);
 
-#include "../../shared/effects/water.inc.c"
+#include "effects/water/water.inc.c"
 
 #include "../../shared/room/room_event_staged_task.inc.c"
 
@@ -1483,13 +1480,19 @@ void neoArkPavilionRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/water_ripple_task_fixed_coord.inc.c"
+#define WATER_RIPPLE_CACHED_COORD
+#include "effects/water/ripple_task.inc.c"
 
-#include "../../shared/effects/water_splash.inc.c"
+void neoArkPavilionWaterRippleTask(Task* task)
+{
+    _waterRippleTask(task);
+}
 
-#include "../../shared/effects/water_drift_task_u16_fixed_coord.inc.c"
+#include "effects/water/splash.inc.c"
 
-#include "../../shared/effects/water_spin_u16.inc.c"
+#include "effects/water/drift_task_u16_fixed_coord.inc.c"
+
+#include "effects/water/spin_u16.inc.c"
 
 void neoArkPavilionInstallRoomEffectsTask(Task* task)
 {

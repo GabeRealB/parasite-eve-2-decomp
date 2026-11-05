@@ -49,10 +49,10 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
+#include "screen/fade/fade.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/screen/screen_fade.h"
+#include "screen/fade/fade.h"
 #include "../../shared/actor/actor_messages.h"
 
 #include "assets/engine/animation/player_schema.h"
@@ -1452,8 +1452,6 @@ static void _actor342000IncineratorEventTask(Task* task)
         _actor342000UpdateSceneStaging(task);
     }
 }
-
-#include "../../shared/screen/screen_fade_step_down.inc.c"
 
 /// Reveals the screen by reducing a subtractive full-screen overlay each tick.
 ///

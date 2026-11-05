@@ -43,7 +43,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 // The wave task and its persistent storage occupy separate translation units.
 /// Binds the scripted-wave renderer to this overlay's writable borrowed-context slot.
 ///
@@ -70,8 +70,8 @@
 /// Keep this binding through the per-frame fragment and the overlay loaded
 /// through the final drawing tick. Only one wave may use this storage at a time.
 #define SCREEN_WAVE_ROW_OSCILLATORS (gScreenWaveRowWaves)
-#include "../../shared/screen/screen_wave.h"
-#include "../../shared/effects/water_effects.h"
+#include "screen/wave/wave.h"
+#include "effects/water/water.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -318,7 +318,7 @@ static EvsCommand _gNeoArkSubmarineTunnelDiverEncounterScript[32] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-#include "../../shared/effects/water.inc.c"
+#include "effects/water/water.inc.c"
 
 /// Room-controller states 0 initialize, 1 idle, 2 teardown.
 ///
@@ -328,7 +328,7 @@ static const TaskFuncTable3 _gNeoArkSubmarineTunnelRoomStateHandlers = {
     { _neoArkSubmarineTunnelInitializeRoom, _neoArkSubmarineTunnelMessageTaskIdle, taskKill }
 };
 
-#include "../../shared/screen/screen_wave.inc.c"
+#include "screen/wave/wave.inc.c"
 
 /// Handles trigger-driven tunnel scenes and arrival-control release.
 ///
@@ -441,7 +441,7 @@ static s32 _neoArkSubmarineTunnelHandleCapCommand(Task* unusedTask, s32 unusedMe
     return 0;
 }
 
-#include "../../shared/screen/screen_wave_run.inc.c"
+#include "screen/wave/run.inc.c"
 
 /// Stores the tunnel event's seen value in the live save's game-flag nibble.
 ///

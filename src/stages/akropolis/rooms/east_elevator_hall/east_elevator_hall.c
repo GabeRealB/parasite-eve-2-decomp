@@ -41,7 +41,7 @@
 
 /// The shared red beacon, as this room's task.
 #define RED_BEACON_TASK akropolisEastElevatorHallRedBeaconTask
-#include "../../../../shared/effects/red_beacon.h"
+#include "effects/red_beacon/red_beacon.h"
 
 #include "assets/stages/akropolis/rooms/east_elevator_hall/declarations.inc"
 
@@ -248,7 +248,7 @@ void akropolisEastElevatorHallReflectionsAndBeaconsTask(Task* task)
     }
 }
 
-#include "../../../../shared/effects/red_beacon_task.inc.c"
+#include "effects/red_beacon/task.inc.c"
 #undef RED_BEACON_TASK
 
 /// Projects the coordinate's position and draws it as one additive gray pixel.

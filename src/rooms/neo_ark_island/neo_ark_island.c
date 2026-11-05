@@ -46,8 +46,6 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
@@ -661,7 +659,7 @@ WorldCollisionSurfaceProperties* gNeoArkIslandSurfaceProperties[NEO_ARK_ISLAND_S
 /// retains its eight-byte storage and original two-byte alignment.
 static GameLocationKey _gNeoArkIslandGalleryDestination __attribute__((aligned(2)));
 
-#include "../../shared/effects/water.inc.c"
+#include "effects/water/water.inc.c"
 
 /// Island room-controller states: 0 register/start ambience, 1 idle, 2 kill.
 ///

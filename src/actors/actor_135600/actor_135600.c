@@ -32,7 +32,6 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
 #include "../../shared/actor/actor_motion.h"
 #include "../../shared/actor/actor_messages.h"
 

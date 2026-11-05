@@ -18,11 +18,144 @@
 
 #include "actors/actor.h"
 
-#include "overlay.h"
-
 #include "gameplay/geometry.h"
 
 #include "engine/wipsys_types.h"
+
+/// One node of the Boss Stranger's patrol table: a world position the walker
+/// steers toward.
+///
+/// The coordinates are signed game coordinates. Code that copies a live
+/// translation keeps its low halfword, and the arrival and nearest-node tests
+/// subtract that same halfword. The trailing bytes are never read; they make
+/// each node eight bytes.
+typedef struct {
+    s16  x;          // World X, in signed game-coordinate units
+    s16  y;          // World Y, in signed game-coordinate units
+    s16  z;          // World Z, in signed game-coordinate units
+    byte pad_6[0x2]; // Unread; makes each node eight bytes
+} BossStrangerNode;
+STATIC_ASSERT_SIZEOF(BossStrangerNode, 0x8);
+
+/// Nav record of a Boss Stranger patrol walker: the positions it can steer
+/// toward, and the order of node indices the close-in state walks.
+///
+/// `nodeCount` is how many leading entries of `nodes` the nearest-node scans
+/// walk. It is not the allocated length of that table: a patrol route may
+/// name a later entry. `nodeOrder` is a second index list, distinct from the
+/// route. It holds `orderCount` node indices and has no end marker. The
+/// walker's `cursor` indexes it, and the re-plan searches it for the steps
+/// that name two nodes.
+typedef struct {
+    BossStrangerNode* nodes;      // Positions the walker steers toward
+    u8*               nodeOrder;  // Node index at each step. The walker's cursor indexes this
+    u8                nodeCount;  // Leading nodes the nearest-node scans walk
+    u8                orderCount; // Live entries in nodeOrder
+    byte              pad_A[0x2]; // Unread. Keeps the record twelve bytes
+} BossStrangerNav;
+STATIC_ASSERT_SIZEOF(BossStrangerNav, 0xC);
+
+/// Byte sentinel that wraps a Boss Stranger patrol route to its first node.
+///
+/// Reserved from navigation-node indices. A nonempty route starts with a real
+/// index; arrival advances its byte cursor and tests the following entry for
+/// this value before reading a node. The marker repeats the route, not a stop.
+#define BOSS_STRANGER_ROUTE_END 0xFF
+
+/// One Boss Stranger patrol route: the order of nav-node indices the walker
+/// follows, and the cursor into that order.
+///
+/// `nodeIndices` runs until `BOSS_STRANGER_ROUTE_END`. On the frame the
+/// walker reaches the node it is heading for, `arrived` is raised and `cursor`
+/// advances, returning to the first index at the end marker.
+typedef struct {
+    u8*  nodeIndices; // Indices into the walker's nav node table, ended by BOSS_STRANGER_ROUTE_END
+    u8   field_4;     // Role unproven. Actor spawn stores 2 and the route rebuild stores 0; nothing reads it
+    u8   cursor;      // Index of the current entry. Wraps to 0 at the end marker
+    u8   arrived;     // 1 on the frame the current node is reached, otherwise 0
+    byte pad_7[0x1];  // Unread. Pointer alignment rounds the route to eight bytes
+} BossStrangerRoute;
+STATIC_ASSERT_SIZEOF(BossStrangerRoute, 0x8);
+
+/// Steering modes stored in the byte `BossStrangerWalker::state`.
+enum {
+    /// Skips goal selection while the speed ramp and movement still run.
+    ///
+    /// Turning still uses the unwritten tick goal. Idle callers disable turning
+    /// through turnLimit; this state alone does not stop the current speed.
+    BOSS_STRANGER_WALKER_IDLE = 0,
+
+    /// Steers directly toward the player selected by the walker's playerId.
+    ///
+    /// Copies the player's current translation into the signed-halfword goal.
+    /// playerId is one-based; only player 1 has established resident storage.
+    BOSS_STRANGER_WALKER_CHASE = 1,
+
+    /// Plans toward player 1 along the navigation node order.
+    ///
+    /// Neither known carrier selects this mode. It advances the order cursor on
+    /// arrival but leaves the tick goal unwritten. Its extra four scratch bytes
+    /// are released only on arrival; a non-arriving tick leaves the cursor lower.
+    BOSS_STRANGER_WALKER_CLOSE = 2,
+
+    /// Steers along the looping patrol route of navigation-node indices.
+    ///
+    /// Arrival selects the next index, wraps at `BOSS_STRANGER_ROUTE_END`, and
+    /// raises route->arrived for that tick before writing the new steering goal.
+    BOSS_STRANGER_WALKER_PATROL = 3
+};
+
+/// Movement record of the Boss Stranger walker.
+///
+/// Embedded in `cafeteria_boss_stranger` and the Acropolis bridge copy. Each tick steers
+/// `coord` toward the selected player, along `nav`'s node order, or along the
+/// patrol route, then ramps `speed` and turns within `turnLimit`. The ground
+/// step and contact avoidance run unless the carrier skips them. `scaleMtx`
+/// keeps the model's saved rotation and is rebuilt around `scale`.
+typedef struct {
+    BossStrangerNav*       nav;           // Node table and order. Usually &navData
+    BossStrangerRoute*     route;         // Patrol route. Usually &routeData
+    GfxCoord*              coord;         // Coordinate the step writes
+    WorldCollisionContact* recs;          // Contacts the ground step measures. NULL on the bridge
+    WorldCollisionContact* avoidRecs;     // Contacts the avoidance step backs away from
+    byte                   pad_14[0x8];   // Unread
+    SVECTOR                moveStep;      // Facing step applied this frame, or zero while actors are frozen
+    SVECTOR                moveDelta;     // Whole-unit collision step the ground step applied
+    SVECTOR3               push;          // Sum of the avoidance nudges this frame
+    byte                   pad_32[0x2];   // Aligns scaleMtx
+    MATRIX                 scaleMtx;      // Saved rotation the turn step copies back before applying yaw
+    s16                    scale;         // Uniform model scale. 0x1000 is full size
+    s16                    recCount;      // Contact count passed with recs. The actor stores 12, the bridge 0
+    s16                    avoidCount;    // Leading avoidRecs the avoidance step walks
+    u16                    turnLimit;     // Maximum yaw change per frame, in angle units. 0 forces the turn to 0
+    u16                    speedTarget;   // Unsigned ramp target. 0xFFFE is the patrol-out sentinel, applied as a step of -2
+    u16                    speed;         // Current speed, applied as a signed step along facing
+    u16                    speedStep;     // Most that speed may change in one frame
+    u16                    turnRun;       // Consecutive frames the relative bearing was nonzero. Cleared at 0 and on route arrival
+    u16                    turnBonus;     // Added to turnLimit. Each duration tier stores 0, and route arrival clears it
+    byte                   pad_66[0x2];   // Unread
+    u8                     state;         // BOSS_STRANGER_WALKER_IDLE, CHASE, CLOSE or PATROL
+    u8                     prevState;     // State the previous close-in tick ran. A change re-plans
+    u8                     node;          // Nav-node index being steered toward
+    u8                     lockHeight;    // Non-zero pins Y: the ground step discards collision Y and skips the fall
+    u8                     skipGround;    // Non-zero skips the ground step
+    u8                     skipAvoid;     // Non-zero skips contact avoidance
+    u8                     playerId;      // One-based player-status selector, copied from the save character id. Chase uses playerId - 1. Only initialization is known to store 1; a second resident record is not established
+    u8                     actorNode;     // Nav node nearest the selected actor
+    u8                     selfNode;      // Nav node nearest this walker
+    u8                     prevActorNode; // Previous actorNode. A change re-plans the close-in
+    u8                     prevSelfNode;  // Previous selfNode. A change re-plans the close-in
+    s8                     orderStep;     // +1 or -1 along nodeOrder. Added to cursor through a u8 cast, so it wraps
+    byte                   pad_74[0x1];   // Unread
+    u8                     goalSlot;      // nodeOrder slot on the actor side of the closest pair. Nothing reads it
+    u8                     cursor;        // Index into nav->nodeOrder while closing in
+    u8                     blocked;       // 1 when an avoidance contact's kind is 0x10000. Nothing reads it
+    u8                     offOrigin;     // 1 when local X or Z is nonzero after the ground step. Nothing reads it
+    byte                   pad_79[0x7];   // Unread
+    BossStrangerNav        navData;       // Storage nav usually points at
+    BossStrangerRoute      routeData;     // Storage route usually points at
+} BossStrangerWalker;
+STATIC_ASSERT_SIZEOF(BossStrangerWalker, 0x94);
 
 /// Unsigned-word sentinel for a nearest-node scan with no selected node.
 ///

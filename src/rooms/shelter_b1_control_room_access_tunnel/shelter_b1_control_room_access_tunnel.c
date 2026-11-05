@@ -35,7 +35,7 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room/room_visual_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB1ControlRoomAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -149,9 +149,9 @@ void shelterB1ControlRoomAccessTunnelRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_cone.inc.c"
+#include "effects/glow/cone.inc.c"
 
-#include "../../shared/effects/glow_draw_red_disc.inc.c"
+#include "effects/glow/red_disc.inc.c"
 
 /// Binds the six actor-effect selectors to this room's effect-task instances.
 ///

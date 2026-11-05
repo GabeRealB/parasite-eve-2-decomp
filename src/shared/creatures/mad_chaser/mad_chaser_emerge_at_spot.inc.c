@@ -1,5 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
+#include "../../room/encounter.h"
+
 /// Places the emerging root at a room spot, facing opposite its entry heading.
 ///
 /// Requires live work/root and a loaded spot table. Command bits 8..11 select
@@ -7,7 +9,7 @@
 /// are parent-coordinate units and heading is wrapped to 4096 units per turn.
 /// Borrows all storage and retains the command. Clears pitch/roll and writes
 /// root translation; the caller dirties and composes the changed root.
-static inline void _madChaserPlaceEmergeRoot(MadChaserWork* work, GfxCoord* root, const OverlayEncounterSpot* spots)
+static inline void _madChaserPlaceEmergeRoot(MadChaserWork* work, GfxCoord* root, const EncounterSpot* spots)
 {
     enum {
         MAD_CHASER_EMERGE_SPOT_SHIFT = 8,

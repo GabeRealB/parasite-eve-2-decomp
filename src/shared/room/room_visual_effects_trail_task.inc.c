@@ -211,7 +211,7 @@ static void _roomVisualEffectsDrawTwinTrail(const GfxCoord firstTrail[ROOM_VISUA
 /// It is evaluated three times and must stay stable across the LCG updates.
 /// Writes signed XYZ components in -255..256 game-coordinate units, leaving
 /// `pad` unchanged. Consumes three successive shared LCG draws in X/Y/Z order.
-/// Requires the shared LCG declarations from `main/random.h`.
+/// Requires the shared LCG declarations from `engine/random.h`.
 /// Captures only shared LCG state and constants; expands to one statement.
 /// Does not choose puff velocity. The binding is undefined after this fragment.
 #define ROOM_VISUAL_EFFECTS_CHOOSE_SMOKE_SPAWN_OFFSET(spawnOffset)                                                                    \

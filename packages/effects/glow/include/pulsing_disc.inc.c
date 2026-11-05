@@ -1,0 +1,126 @@
+/* Part of the glow drawing library; see glow.h. */
+
+/// Sets up a pulsing disc's wedge or blade: cyan at the center, black at the rim.
+static inline void _glowInitPulsingDiscWedge(POLY_G4* wedge, s32 cyanIntensity)
+{
+    setPolyG4(wedge);
+    setRGB0(wedge, 0, 0, 0);
+    setRGB1(wedge, 0, 0, 0);
+    setRGB2(wedge, 0, cyanIntensity, cyanIntensity);
+    setRGB3(wedge, 0, 0, 0);
+}
+
+/// Draws a pulsing cyan star glow around a world point, shaped as `glowDrawTintedDiscNoBias`'s; `pulseRate` sets how
+/// fast it pulses.
+static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale)
+{
+    GlowCentreRadiiScratch* block;
+    POLY_G4*                prim;
+    s32                     pulseSine;
+    s32                     intensity;
+    s32                     halfIntensity;
+    s32                     signedRadiusScale;
+    s32                     angle;
+    s32                     halfStepAngle;
+    s32                     nextAngle;
+    s32                     armAngle;
+
+    block = SCRATCH_STACK_RESERVE_BLOCK(GlowCentreRadiiScratch);
+
+    // Project into the current view before deriving screen radii and sorting depths.
+    gte_SetTransMatrix(&gGfxViewCoord.workm);
+    gte_SetRotMatrix(&gGfxViewCoord.workm);
+    gte_ldv0(worldPoint);
+    gte_rtps();
+    gte_stsxy(&block->sx);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        pulseSine          = rsin(gDisplayState.animFrame * (s16)pulseRate);
+        angle              = 0;
+        signedRadiusScale  = (s16)radiusScale;
+        block->outerRadius = (signedRadiusScale * GLOW_RADIUS_SCALE) / block->otz;
+        intensity          = pulseSine / GLOW_PULSE_DIVISOR + GLOW_PULSE_BASE_INTENSITY;
+        block->innerRadius = (signedRadiusScale * GLOW_INNER_RADIUS_SCALE) / block->otz;
+        // Layer eight outer wedges with full-bright copies at half radius.
+        do {
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            setPolyG4(prim);
+            halfIntensity = (s16)intensity >> 1;
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, 0, halfIntensity, halfIntensity);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0      = block->sx + ((block->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            halfStepAngle = angle + GLOW_SIXTEENTH_TURN;
+            prim->y0      = block->sy + ((block->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            prim->x1      = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y1      = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> GLOW_TRIG_SHIFT);
+            nextAngle     = angle + GLOW_EIGHTH_TURN;
+            prim->x2      = block->sx;
+            prim->y2      = block->sy;
+            prim->x3      = block->sx + ((block->outerRadius * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y3      = block->sy + ((block->outerRadius * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
+                    prim);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            _glowInitPulsingDiscWedge(prim, intensity);
+            prim->x0 = block->sx + ((block->outerRadius * rsin(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y0 = block->sy + ((block->outerRadius * rcos(angle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->x1 = block->sx + ((block->outerRadius * rsin(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y1 = block->sy + ((block->outerRadius * rcos(halfStepAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->outerRadius * rsin(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y3 = block->sy + ((block->outerRadius * rcos(nextAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            angle    = nextAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
+                    prim);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+        } while (angle < GLOW_FULL_TURN);
+
+        // Overlay four blades with alternating normal and doubled tips.
+        intensity = halfIntensity;
+        angle     = GLOW_EIGHTH_TURN;
+        do {
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            _glowInitPulsingDiscWedge(prim, intensity);
+            armAngle = angle - GLOW_QUARTER_TURN;
+            prim->x0 = block->sx + ((block->innerRadius * rsin(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y0 = block->sy + ((block->innerRadius * rcos(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->x1 = block->sx + ((block->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            prim->y1 = block->sy + ((block->outerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            armAngle = angle + GLOW_QUARTER_TURN;
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->innerRadius * rsin(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            prim->y3 = block->sy + ((block->innerRadius * rcos(armAngle)) >> (GLOW_TRIG_SHIFT + 1));
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
+                    prim);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+
+            prim           = gGpuPrimCursor;
+            gGpuPrimCursor = prim + 1;
+            _glowInitPulsingDiscWedge(prim, intensity);
+            prim->x0 = block->sx + ((block->innerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
+            prim->y0 = block->sy + ((block->innerRadius * rcos(angle)) >> GLOW_TRIG_SHIFT);
+            prim->x1 = block->sx + ((block->outerRadius * rsin(armAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            prim->y1 = block->sy + ((block->outerRadius * rcos(armAngle)) >> (GLOW_TRIG_SHIFT - 1));
+            armAngle = angle + GLOW_HALF_TURN;
+            prim->x2 = block->sx;
+            prim->y2 = block->sy;
+            prim->x3 = block->sx + ((block->innerRadius * rsin(armAngle)) >> GLOW_TRIG_SHIFT);
+            prim->y3 = block->sy + ((block->innerRadius * rcos(armAngle)) >> GLOW_TRIG_SHIFT);
+            angle    = armAngle;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_DEPTH(block->otz),
+                    prim);
+            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->otz);
+        } while (angle < GLOW_FULL_TURN);
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiiScratch);
+}

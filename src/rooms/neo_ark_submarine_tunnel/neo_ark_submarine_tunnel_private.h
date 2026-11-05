@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include "overlay.h"
+#include "screen/wave/wave.h"
 
 /// Entry scene/control latch for this overlay load (0 pending, 1 handled).
 ///

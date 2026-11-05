@@ -30,8 +30,7 @@
 #include "engine/sound_ids.h"
 #include "engine/task_types.h"
 
-#include "overlay.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_events.h"
 
 static WorldCollisionGrid _gNeoArkEveAccessTunnelCollisionGrid;
@@ -320,4 +319,4 @@ void neoArkEveAccessTunnelDrawViewGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"

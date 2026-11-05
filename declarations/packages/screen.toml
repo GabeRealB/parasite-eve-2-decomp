@@ -1,0 +1,40 @@
+# The modules of screen: one library each, so that what includes one depends on it alone.
+
+# Capturing the frame drawn.
+[frame_capture]
+uid = "uid://y2lqfm1ad1b8"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# Full-screen fades.
+[fade]
+uid = "uid://1f799t0mreqbq"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# The negative filter over the captured frame.
+[negative]
+uid = "uid://rmic8qmu3d9w"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+]
+
+# Screen waves over the captured frame.
+[wave]
+uid = "uid://1h9jm019456qk"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]

@@ -55,8 +55,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/mine_mesa.h"
 #include "../../shared/actor/limb_shadows.h"
 #include "../../shared/actor/player_detection.h"

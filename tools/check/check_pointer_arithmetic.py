@@ -18,7 +18,7 @@ Arithmetic written in a macro's argument is the caller's, and is reported where
 the argument is written. Arithmetic in a macro's body is reported at the
 macro's use, except for macros whose expansion is pointer arithmetic by design:
 the Psy-Q SDK's (`include/psyq`), the scratch-pad stack and its fixed address
-(`main/scratch.h`, `PLAYSTATION_SCRATCHPAD_ADDRESS`), the step from an embedded member to
+(`engine/scratch.h`, `PLAYSTATION_SCRATCHPAD_ADDRESS`), the step from an embedded member to
 the object holding it (`PARENT_OF`, `OFFSET_OF`), the whole-word accesses to
 primitives, matrices and location keys (`PRIM_*`, `MATRIX_*`, `GAME_LOCATION_WORD`), and the link-node-to-enemy
 step (`WORLD_TARGET_ENEMY_FROM_NODE`).

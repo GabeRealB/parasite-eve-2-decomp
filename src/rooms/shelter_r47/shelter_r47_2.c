@@ -34,7 +34,6 @@
 #include "engine/task.h"
 #include "engine/task_types.h"
 
-#include "overlay.h"
 #include "../../shared/room/action_prompt.h"
 
 /// Map width in screen pixels at which opening snaps to its full size (229).

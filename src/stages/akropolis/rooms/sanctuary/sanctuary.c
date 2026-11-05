@@ -61,8 +61,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room_common.h"
 #include "../../../../shared/actor/actor_contacts.h"
 

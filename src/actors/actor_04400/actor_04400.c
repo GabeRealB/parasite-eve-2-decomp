@@ -47,8 +47,6 @@
 #include "engine/tmd.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"

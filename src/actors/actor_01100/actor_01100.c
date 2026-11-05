@@ -57,7 +57,6 @@
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
 
-#include "overlay.h"
 #include "../../shared/actor/actor_contacts.h"
 
 /// Phases of the directional flinch pose mixed over the current body animation.

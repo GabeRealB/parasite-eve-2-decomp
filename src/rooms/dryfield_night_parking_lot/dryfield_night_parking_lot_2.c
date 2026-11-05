@@ -51,7 +51,7 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/parking_lot.h"
 
 static void _dryfieldNightParkingLotDrawGreyCapsule(const SVECTOR* startWorldPoint, const SVECTOR* endWorldPoint, s32 radiusScale);
@@ -864,7 +864,7 @@ void dryfieldNightParkingLotDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
+#include "effects/glow/flare_clipped.inc.c"
 
 /// Prepares the GPU header and colours of one grey capsule-cap quad.
 ///

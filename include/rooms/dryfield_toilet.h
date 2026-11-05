@@ -5,7 +5,7 @@
 #include <psyq/libgte.h>
 
 #include "common.h"
-#include "overlay.h"
+#include "../../src/shared/actor/model_morph.h"
 
 #include "gameplay/area.h"
 #include "gameplay/direction.h"

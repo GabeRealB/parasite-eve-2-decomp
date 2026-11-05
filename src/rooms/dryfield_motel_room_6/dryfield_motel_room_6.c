@@ -65,7 +65,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
@@ -2346,8 +2346,8 @@ void dryfieldMotelRoom6Task(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/effects/glow_draw_wide_diamond.inc.c"
+#include "effects/glow/wide_diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"
 
 #include "../../shared/motel_room_6_draw_glow.inc.c"

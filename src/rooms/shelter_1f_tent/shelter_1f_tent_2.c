@@ -34,12 +34,10 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 #include "../../shared/room/room_cutscene.h"
 
 /// World-space centre of the green flickering disc visible in mapped views 2, 3 and 7.
@@ -854,10 +852,10 @@ void shelter1fTentDrawViewGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
-#include "../../shared/effects/glow_draw_wide_diamond.inc.c"
+#include "effects/glow/wide_diamond.inc.c"
 
-#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
+#include "effects/glow/pulsing_disc.inc.c"

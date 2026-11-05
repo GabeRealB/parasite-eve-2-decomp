@@ -24,7 +24,7 @@
  *   - a game-wide mechanism:    here, next to the ID
  * Plain markers (0 not yet, 1 happened) need no value names.
  *
- * Flags not checked yet are still in `main/gameflag_ids.h`.
+ * Flags not checked yet are still in `engine/gameflag_ids.h`.
  */
 
 /// Values of a map door marker, shared by every `EVENT_FLAG_MAP_DOOR_*` ID.
@@ -75,7 +75,7 @@ enum {
 };
 
 // The IDs come in blocks. The boundaries below are the ones seen so far; the
-// gaps between listed IDs are still in `main/gameflag_ids.h`.
+// gaps between listed IDs are still in `engine/gameflag_ids.h`.
 enum {
     // ---- Akropolis, from 0x000 ---------------------------------------------
 

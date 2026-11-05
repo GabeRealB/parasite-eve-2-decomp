@@ -147,10 +147,14 @@ def resolve_scope(
     unknown: list[str] = []
     for raw in selectors:
         for sel in (s.strip() for s in raw.split(",") if s.strip()):
+            # A package also answers to its last name and its image's (`antibody`, `pe_antibody` for `pe/antibody`).
+            aliases = {n for n in names if "/" in n and sel in (n.rsplit("/", 1)[1], n.replace("/", "_"))}
             if sel in families:
                 wanted.update(n for _y, n, f in ordered if f == sel)
             elif sel in names:
                 wanted.add(sel)
+            elif aliases:
+                wanted.update(aliases)
             else:
                 unknown.append(sel)
     if unknown:
@@ -1204,7 +1208,8 @@ def write_scoped_checksum(version_dir: str, names: list[str], exe_name: str) -> 
     is translated the same way the link step does before matching.
     """
     full = Path(f"{CONFIG_DIR}/{version_dir}/checksum.sha")
-    wanted = {exe_name if n == "engine" else n for n in names}
+    # A package's image is its name with its steps joined by `_` (`pe/antibody`: pe_antibody).
+    wanted = {exe_name if n == "engine" else n.replace("/", "_") for n in names}
     lines = []
     for line in full.read_text(encoding="utf-8").splitlines():
         parts = line.split()
@@ -1235,7 +1240,14 @@ def link_public_headers() -> None:
     from declarations import Declarations
 
     folder = BUILD_DIR / "include"
-    for name, path in Declarations().public().items():
+    public = Declarations().public()
+    # Links of names no longer public go first, and a name's parent is a folder: a link standing where a package now has
+    # nested ones (`effects` above `effects/glow`) would have them written into what it points at.
+    for name in {name.split("/")[0] for name in public} | ({entry.name for entry in folder.iterdir()} if folder.is_dir() else set()):
+        entry = folder / name
+        if (entry.is_symlink() or os.path.isjunction(entry)) and name not in public:
+            entry.unlink() if entry.is_symlink() else os.rmdir(entry)
+    for name, path in public.items():
         if path.is_dir():
             project_tool().link_directory(folder / name, path)
     for name in ("pe2_values.h", "pe2_options.h"):
@@ -1314,6 +1326,8 @@ def ninja_packages(
         own = {"package": package.path, "release": version}
         # What its units include of other packages, each under its name: what it depends on, and what those expose.
         deps = out / "deps"
+        # Made again at every run: it holds links alone, which rmtree removes without following.
+        shutil.rmtree(deps, ignore_errors=True)
         for dependency in package.reachable(declarations):
             if dependency.public is not None:
                 project_tool().link_directory(deps / dependency.name, dependency.public)

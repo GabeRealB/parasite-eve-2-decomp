@@ -49,12 +49,10 @@
 
 #include "mapui/map_shelter.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
@@ -880,4 +878,4 @@ void shelterB1AccessTunnelDrawGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"

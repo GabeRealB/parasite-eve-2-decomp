@@ -50,8 +50,8 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/effects/water_effects.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/water/water.h"
+#include "effects/glow/glow.h"
 #include "../../shared/water_hole.h"
 #include "../../shared/room/room_variants.h"
 
@@ -1866,13 +1866,13 @@ void dryfieldWaterHoleRoomEffectsTask(Task* task)
 #undef DRYFIELD_WATER_HOLE_EMIT_PART_SPLASHES
 }
 
-#include "../../shared/effects/glow_draw_tapered_beam.inc.c"
+#include "effects/glow/tapered_beam.inc.c"
 
-#include "../../shared/effects/water_ripple_task.inc.c"
+#include "effects/water/ripple_task.inc.c"
 
 void dryfieldWaterHoleWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/effects/water_splash.inc.c"
+#include "effects/water/splash.inc.c"

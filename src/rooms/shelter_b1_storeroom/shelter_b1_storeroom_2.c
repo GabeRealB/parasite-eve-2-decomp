@@ -48,13 +48,11 @@
 #include "engine/task_types.h"
 #include "engine/tmd_types.h"
 
-#include "overlay.h"
-
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
 
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 #include "../../shared/room/room_visual_effects.h"
 
@@ -960,9 +958,9 @@ void shelterB1StoreroomDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/effects/glow_draw_capsule.inc.c"
+#include "effects/glow/capsule.inc.c"
 
-#include "../../shared/effects/glow_draw_disc.inc.c"
+#include "effects/glow/disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 

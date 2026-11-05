@@ -1,0 +1,152 @@
+# The modules of effects: one library each, so that what includes one depends on it alone.
+
+# Glows: discs, diamonds, capsules, cones, shafts, prisms, wedges, beams and flares drawn around projected points, with
+# their scratch blocks.
+[glow]
+uid = "uid://zx23wj30enza"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+# Water: refraction, drifting and spinning tiles, ripples, splashes and wave strips.
+[water]
+uid = "uid://9l3dyrmlv8n3"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+# Camera-facing textured quads around a projected point, the base of most sprite effects.
+[sprite_quad]
+uid = "uid://1iqwfb7fj1ein"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+# Effect sprites: debris, drift, rise, rotation and banked drawing.
+[effect_sprite]
+uid = "uid://xhkkjsl4qcs9"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# Falling leaves.
+[falling_leaves]
+uid = "uid://4a7dwijsj5is"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# Fireballs and their embers.
+[fireball]
+uid = "uid://emkrj6783hbu"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# Jet cones and the strip projection they draw with.
+[jet_cone]
+uid = "uid://18pegqpw6yd4j"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+# Glows on the ground.
+[ground_glow]
+uid = "uid://1cvvl3dl69thi"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+# Beam strips.
+[beam_strip]
+uid = "uid://ckuya2f1mzuw"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+]
+
+# Quads drawn from four checked transforms: their scratch block.
+[flagged_quad]
+uid = "uid://ek1hbppku3fb"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+]
+
+# The Akropolis rooms' lamp and star glows. Akropolis' own: it belongs with that stage once it has a library.
+[acropolis_glows]
+uid = "uid://1hzyw3ct5twgj"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+# Red beacons. Akropolis' own (its elevator halls): it belongs with that stage once it has a library.
+[red_beacon]
+uid = "uid://1u1gwsn9ckfi1"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+]
+
+# The garbage incinerator's blaze. The Shelter's own (the incinerator room and its actor): it belongs with that
+# stage once it has a library.
+[incinerator_blaze]
+uid = "uid://iy03bhbevup0"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1f799t0mreqbq", path = "res://packages/screen/fade.node" },
+    { uid = "uid://1h9jm019456qk", path = "res://packages/screen/wave.node" },
+]

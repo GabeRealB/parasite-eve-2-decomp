@@ -93,7 +93,7 @@
 #include "../../shared/room/room_visual_effects_trail_data.inc.c"
 #include "../../shared/room/room_visual_effects_disc_data.inc.c"
 #include "../../shared/room/room_events.h"
-#include "../../shared/effects/glow_draw.h"
+#include "effects/glow/glow.h"
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -537,9 +537,9 @@ static u8 D_shelter_b1_north_maintenance_walkway_80185B7F = 49;
 
 RoomLatchedEvent gRoomEventLatched;
 
-#include "../../shared/effects/glow_draw_cone.inc.c"
+#include "effects/glow/cone.inc.c"
 
-#include "../../shared/effects/glow_draw_red_disc.inc.c"
+#include "effects/glow/red_disc.inc.c"
 
 #include "../../shared/room/room_visual_effects.inc.c"
 
