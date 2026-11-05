@@ -11,7 +11,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from declarations import DECLARATIONS, Declarations, ROOT, uid_of  # noqa: E402
+from declarations import DECLARATIONS, Declarations, ROOT, targeted, uid_of  # noqa: E402
 from stage0 import Stage0  # noqa: E402
 
 ROM = ROOT / "rom"
@@ -92,10 +92,10 @@ at = [{ stage = 0, group = 1 }]
 [title]
 uid = "uid://1"
 template = "package"
-slot = "resident"
 sources = ["src/*.c", "!src/*.inc.c"]
 
 [title.target.psx]
+slot = "resident"
 link_script = "psx/link.ld"
 
 [core]
@@ -120,6 +120,12 @@ template = "package"
         self.assertEqual(declared.package_names(), {"title", "core", "main", "no_target"})
         self.assertEqual(declared.packages("pc"), [])
         self.assertEqual(declared.public(), {})
+
+    def test_a_target_appends_to_lists_and_replaces_the_rest(self) -> None:
+        declared = {"sources": ["a.c"], "slot": "none", "target": {"psx": {"sources": ["b.s"], "slot": "resident"}, "pc": {"sources": ["c.c"]}}}
+        self.assertEqual(targeted(declared, "psx"), {"sources": ["a.c", "b.s"], "slot": "resident"})
+        self.assertEqual(targeted(declared, "pc"), {"sources": ["a.c", "c.c"], "slot": "none"})
+        self.assertEqual(targeted(declared, "n64"), {"sources": ["a.c"], "slot": "none"})
 
     def test_sources_are_globs_a_bang_leaves_out(self) -> None:
         folder = self.root / "packages/title"

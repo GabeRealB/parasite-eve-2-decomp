@@ -470,7 +470,7 @@ def main() -> None:
     if args.step == "options":
         options, read = gathered(package, declarations)
         config = {"name": args.config or args.release.lower(), "release": args.release, "target": args.target}
-        written(args.out, options.header(package.declaration.table, config), [*read, *declarations.files])
+        written(args.out, options.header(package.fields, config), [*read, *declarations.files])
     else:
         disc = Stage0(declarations, args.rom, args.release)
         slots, reads, queries = slots_of([file.read_text(encoding="latin-1") for file in args.first])

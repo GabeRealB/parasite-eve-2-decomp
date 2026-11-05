@@ -80,6 +80,15 @@ class Stored:
         return self.place.get("symbol")
 
 
+def targeted(table: dict, target: str) -> dict:
+    """A declaration as a target reads it: its own values, then what it says under `target.<target>` - a list
+    appended to the list it has, any other value replacing. What it says for other targets is not there."""
+    out = {key: value for key, value in table.items() if key != "target"}
+    for key, value in table.get("target", {}).get(target, {}).items():
+        out[key] = out[key] + value if isinstance(value, list) and isinstance(out.get(key), list) else value
+    return out
+
+
 @dataclass(frozen=True)
 class Package:
     """A package a target builds. Its path is the folder its files are in, from the repository's root."""
@@ -96,23 +105,28 @@ class Package:
         return self.path.rsplit("/", 1)[-1]
 
     @property
+    def fields(self) -> dict:
+        """Its declaration as its target reads it (`targeted`)."""
+        return targeted(self.declaration.table, self.target)
+
+    @property
     def slot(self) -> str:
-        return self.declaration.table["slot"]
+        return self.fields["slot"]
 
     @property
     def bound(self) -> dict:
         """What fills its slots, by name."""
-        return self.declaration.table.get("bind", {})
+        return self.fields.get("bind", {})
 
     @property
     def link_script(self) -> Path:
-        return Path(self.path) / self.declaration.table["target"][self.target]["link_script"]
+        return Path(self.path) / self.fields["link_script"]
 
     def units(self) -> list[Path]:
         """Its sources, as `sources` lists them: globs from its folder, a `!` leaving out what it matches."""
         folder = Path(self.path)
         kept: set[Path] = set()
-        for pattern in self.declaration.table.get("sources", []):
+        for pattern in self.fields.get("sources", []):
             if pattern.startswith("!"):
                 kept -= set(folder.glob(pattern[1:]))
             else:
@@ -122,10 +136,10 @@ class Package:
     def include_path(self, declarations: Declarations) -> list[Path]:
         """Where a unit's plain includes are found: its own public folders and `src`, then the public folders of its
         `dependencies` and of theirs, in that order. A slot (`PE2_INCLUDE`) is not found by it."""
-        folders = [Path(self.path) / folder for folder in self.declaration.table.get("public", [])]
+        folders = [Path(self.path) / folder for folder in self.fields.get("public", [])]
         folders.append(Path(self.path) / "src")
         seen = {self.path}
-        pending = list(self.declaration.table.get("dependencies", []))
+        pending = list(self.fields.get("dependencies", []))
         while pending:
             dependency = declarations.named(pending.pop(0))
             if dependency.path in seen:

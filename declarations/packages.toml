@@ -5,7 +5,6 @@
 [title]
 uid = "uid://pc4ree5f63i7"
 template = "package"
-slot = "resident"
 sources = ["src/*.c", "!src/*.inc.c"]
 public = ["include"]
 dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
@@ -16,6 +15,7 @@ bind.menu = { uid = "uid://1cjow36nol6rd", path = "res://stage0/items.node", out
 bind.file = { uid = "uid://swvvgzpql4fk", path = "res://stage0/system/title.node" }
 
 [title.target.psx]
+slot = "resident"
 link_script = "psx/link.ld"
 
 # Packages with nothing of their own to build: what others include, and what they publish to link against.

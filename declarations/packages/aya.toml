@@ -3,7 +3,6 @@
 [aya_mist]
 uid = "uid://pkq6zctcq1as"
 template = "package"
-slot = "aya"
 sources = ["src/aya_mist.c"]
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/mist/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/mist/hand_left"
@@ -18,12 +17,12 @@ bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist
 dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
 
 [aya_mist.target.psx]
+slot = "aya"
 link_script = "psx/link.ld"
 
 [aya_dryfield]
 uid = "uid://gz0onrpki7ki"
 template = "package"
-slot = "aya"
 sources = ["src/aya_dryfield.c"]
 bind.body = "uid://vinvx0m1i1zv#outfit/dryfield/body"
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/dryfield/stored_hand_left"
@@ -39,12 +38,12 @@ bind.mouth_alternate = { uid = "uid://1pf66u5vaq3ux", path = "res://characters/a
 dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
 
 [aya_dryfield.target.psx]
+slot = "aya"
 link_script = "psx/link.ld"
 
 [aya_akropolis]
 uid = "uid://1poz67b78tdpm"
 template = "package"
-slot = "aya"
 sources = ["src/aya_akropolis.c"]
 bind.body = "uid://vinvx0m1i1zv#outfit/akropolis/body"
 bind.hand_left_both = "uid://vinvx0m1i1zv#outfit/akropolis/hand_left"
@@ -59,12 +58,12 @@ bind.mouth_alternate = { uid = "uid://o7dfmsql58ar", path = "res://characters/ay
 dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
 
 [aya_akropolis.target.psx]
+slot = "aya"
 link_script = "psx/link.ld"
 
 [aya_range]
 uid = "uid://18drk5dg73b83"
 template = "package"
-slot = "aya"
 sources = ["src/aya_range.c"]
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/range/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/range/hand_left"
@@ -79,4 +78,5 @@ bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist
 dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
 
 [aya_range.target.psx]
+slot = "aya"
 link_script = "psx/link.ld"
