@@ -1,8 +1,10 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
 
+# The UI font's page: the atlas's (below), which the faces make; extraction reads it there.
 [texture]
 uid = "uid://1lszyuxlyyz77"
-template = "texture"
+template = "font_texture"
+atlas = { uid = "uid://1nqpk8onk6hlb", path = "res://ui/font/atlas.node" }
 page = { slot = { uid = "uid://1woctxwwnoy2p", path = "res://engine/vram/ui_font.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -11,10 +13,74 @@ variants.fill = { palette = "fill" }
 variants.translucent_outline = { palette = "fill" }
 variants.opaque_outline = { palette = "fill" }
 
-[texture.import]
-importer = "pe2.images@ora"
-source = "source.ora"
+[medium]
+uid = "uid://1trik7y1sdfg9"
+template = "font"
+encoding = { uid = "uid://tmob68t9j6a5", path = "res://ui/encoding/ui.node" }
+first = 0x20
+count = 224
+kerning = 2
+family = "Parasite Eve II UI"
+style = "Medium"
+# From 0x7F on, a character the font lacks draws the space; below it, and 0x81, nothing.
+missing = { character = " ", from = 0x7F }
+nothing = [0x81]
 
-[texture.from.USA]
+[medium.from.USA]
+at = [{ disc = "disk1", slot = "SLUS_010.42" }, { disc = "disk2", slot = "SLUS_010.55" }]
+address = 0x8005EFB0
+sha1 = "23a9089e7290ebbe9a9b9127862c8b8b36622f25"
+
+[large]
+uid = "uid://cmo8xsrsj0ff"
+template = "font"
+encoding = { uid = "uid://tmob68t9j6a5", path = "res://ui/encoding/ui.node" }
+first = 0x20
+count = 224
+kerning = 2
+family = "Parasite Eve II UI"
+style = "Large"
+# From 0x7F on, a character the font lacks draws the space; below it, and 0x81, nothing.
+missing = { character = " ", from = 0x7F }
+nothing = [0x81]
+
+[large.from.USA]
+at = [{ disc = "disk1", slot = "SLUS_010.42" }, { disc = "disk2", slot = "SLUS_010.55" }]
+address = 0x8005FA30
+sha1 = "968713a4c4410e4e1a3148623dda5e10e63ce127"
+
+[small]
+uid = "uid://hwngnup2vy2m"
+template = "font"
+encoding = { uid = "uid://tmob68t9j6a5", path = "res://ui/encoding/ui.node" }
+first = 0x20
+count = 91
+kerning = 1
+family = "Parasite Eve II UI"
+style = "Small"
+# The buttons where Medium has $ % & *.
+characters = { "0x24" = "○", "0x25" = "□", "0x26" = "△", "0x2A" = "✕" }
+
+[small.from.USA]
+at = [{ disc = "disk1", slot = "SLUS_010.42" }, { disc = "disk2", slot = "SLUS_010.55" }]
+address = 0x800604B0
+sha1 = "ba753c05a5b39e019d9d071a1f52290ea0a3c589"
+
+# The page the three UI faces are drawn from, and their tables: each face's rows of the page (its band), which its V bias
+# reaches; a band's background index 5, the rows of none 0; a glyph without art (the space) draws the 1 x 1 cell at 0, 0.
+[atlas]
+uid = "uid://1nqpk8onk6hlb"
+template = "font_atlas"
+size = [256, 256]
+background = 5
+gap = 0
+blank = [0, 0]
+faces = [
+    { font = { uid = "uid://1trik7y1sdfg9", path = "res://ui/font/medium.node" }, bias = 38, band = [38, 125] },
+    { font = { uid = "uid://cmo8xsrsj0ff", path = "res://ui/font/large.node" }, bias = -128, band = [128, 255] },
+    { font = { uid = "uid://hwngnup2vy2m", path = "res://ui/font/small.node" }, bias = 0, band = [0, 32] },
+]
+
+[atlas.from.USA]
 at = [{ stage = 0, file = 1, slot = "font_image", page = 0 }, { stage = 0, file = 20162, slot = "font_image", page = 0 }]
 sha1 = "87360176e6526b05384e424170ef3a119ae3f014"

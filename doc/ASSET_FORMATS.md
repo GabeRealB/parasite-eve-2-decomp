@@ -615,6 +615,93 @@ running past their glyph's cell (Œ, œ, ç, 3, 4, 8, C, G, &, ?, y). Every othe
 texel outside the cells is index 5 within the faces' bands and index 0 in the
 seven rows no band covers.
 
+#### The fonts as assets (`pe2.fonts`)
+
+The editor holds the UI fonts as what makes the page and the tables
+(`declarations/ui/font.toml`, `declarations/ui/encoding.toml`). Each piece says one
+thing, and the game's chain is code to character to glyph: no one but the font names
+a glyph, so renaming one in a font editor changes nothing else.
+
+- `ui/encoding/ui` (`encoding`): code to character - Windows-1252 from the space, the
+  four buttons at `0x7B`-`0x7E`.
+- `ui/font/{medium,large,small}` (`font`): each face a plain UFO 3 folder
+  (`<name>.ufo`) - glyphs, their names, characters, metrics and kerning classes
+  (`public.kern1.`/`kern2.` groups) - and on it its binding, what the game's table of
+  it is: its table's `first` code and `count`, its `kerning` pixels, its own
+  `characters` over the encoding's (Small's `$ % & *` are the buttons), what a
+  character the font lacks draws (`missing`: Medium's and Large's draw the space from
+  `0x7F` on) and the codes drawing `nothing` (`0x81`). A glyph is a drawing: codes
+  with identical records are one glyph with several characters (Small's `A` and `a`,
+  `(` and `[`). Its image is its art, an indexed PNG whose index is the texel's value
+  (16 nothing), strokes past its drawn cell included, the cell in its lib
+  (`org.pe2decomp.cell`); a glyph without an image (the space) draws the page's blank
+  cell. Extraction names glyphs by the Adobe Glyph List For New Fonts
+  (`editor/extensions/fonts/data/aglfn.txt`), `uniXXXX` otherwise.
+- `ui/font/atlas` (`font_atlas`): the page's size, background and gap indices, the
+  `blank` cell, its faces with each one's `bias` and `band`, and `layout.toml`: by
+  face, its rows - a baseline and each cell's x, by a character the glyph draws -
+  and, by code, the records it keeps that no glyph makes (the stale records: Small's
+  copies of Medium's, Medium's and Large's `$ * > @`). Every glyph a code draws must
+  be placed, or the atlas fails naming what is not; its `packed` output is the
+  layout with that packed into rows of its own below what is placed, tallest first,
+  and with pins of characters no code draws left out, which "Pack unplaced" in its
+  contents writes. It makes the page (`pe2.fonts@page`, a texel a byte) and the
+  tables. That is the placed mode (`mode = "placed"`, the default); a generated atlas
+  (`mode = "generated"`) holds the glyphs of its `text` alone, in the order the text
+  first uses them, left to right in rows: a cell's x the first multiple of `align`
+  at or past the last cell's right edge and `spacing`, a cell whose right edge would
+  pass `wrap` starting the next row, each row `row_height` tall (the face's tallest
+  cell where unset), its cells' tops on the row's, each face from the row below the
+  last one's, the first from `start`. A character its layout places is pinned there,
+  the flow going on from it. The caption face's table (`gTextCaptionGlyphCells`) is
+  this rule's with `align = 8`, `row_height = 16`, `wrap = 256` over its characters
+  in code order, `b` pinned (extraction finds a generated atlas's pins itself: the
+  first record the rule makes otherwise, pinned where the disc has it, until none);
+  the credits' faces with `spacing = 0`, `wrap = 254` and the faces' heights; the
+  dialogues' with 14-row rows to 256. Without a `text`, a generated atlas holds
+  every character its faces' codes draw, in code order. What no glyph makes of
+  the page lies under the glyphs, as it is (`under.png` in the atlas's bundle,
+  an indexed PNG whose index is the texel's value, 16 nothing); an atlas with
+  nothing under its glyphs has none.
+- `ui/caption_font/{face,atlas,texture}` and `ui/encoding/caption`: the caption
+  face's table is `glyph_cell` (`format`; `TextGlyphCell`, 4 bytes: the cell
+  alone, drawn from the pen with its top on the baseline, the pen advancing by
+  its width). Its atlas is generated - code order, `align = 8`,
+  `row_height = 16`, `wrap = 256` - with `b` pinned at 97, one texel past its
+  column, and the space drawing the blank 5 x 1 cell at (248, 32). Rows 48-143
+  of its page are the Japanese release's caption glyphs, which no table of this
+  release reaches: the American face was painted over that sheet's first three
+  rows, as the UI fonts' page was over Japan's.
+- `ending/credits_{serif,sans,display}`, `ending/credits_atlas`,
+  `ending/credits_font_{0,1}` and `ui/encoding/credits`: the credits' three faces
+  are `stf_glyph` (`EndingStfGlyph`, 4 bytes: the cell, standing on the baseline,
+  the pen advancing by its width, its height in 7 bits and its page in the
+  eighth), 60 records each from the credits document's glyph table (resource 0
+  of the ending's bundle; a face's `from` names the `resource` and its `start`).
+  Their codes are the order the credits first use each glyph, so the atlas is
+  generated in code order: two pages (`pages = 2`, one canvas below the other, a
+  row that would run onto the next page starting it), no spacing, `wrap = 254`,
+  rows as tall as each face's cells, each face below the last - every one of the
+  180 cells where the rule puts it. An atlas without a `blank` cell gives a glyph
+  without art a cell of its own in the flow (each face's space, a 6-, 7- or
+  9-texel gap), its size in the UFO lib's `cell`. Each page's texture is one page
+  of the atlas (`atlas_page`). What lies under the glyphs is the palette rows at
+  the foot of each page.
+- A face whose glyphs are outlines rather than images - a font dropped in - is
+  drawn in the UI faces' style: its contours (lines, cubic and quadratic curves,
+  components) rasterized at `pixels` texels to the em (a unit a texel where
+  unset), each texel's coverage counted on an 8 x 8 grid, the shape quantized into
+  the letter's five values (11-15) and a ring `outline` texels wide around it
+  (1 where unset, 0 none) into the outline's (6-10); its advances scaled the
+  same. `cargo run -p pe2-fonts --example draw_face -- <face.ufo> <out> [pixels]
+  [outline]` writes a face's sample line and glyphs as PNGs.
+- `ui/font/texture` (`font_texture`): the texture whose texels are the atlas's page.
+
+Extraction reads the page and the three tables into the UFOs and the layout and
+writes nothing unless they make the page and the tables again byte for byte.
+`cargo run -p pe2-fonts --example ui_identity -- assets/USA rom/USA/disk1/SLUS_010.42`
+does the same outside the editor.
+
 ---
 
 ### 7.7 Assets embedded in the executables

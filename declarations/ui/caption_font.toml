@@ -1,8 +1,46 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
 
+# The load-screen and room captions' face: the executable's cells (`gTextCaptionGlyphCells`), a code each.
+[face]
+uid = "uid://75gm13jy5p4d"
+template = "font"
+encoding = { uid = "uid://x2o65ddk158b", path = "res://ui/encoding/caption.node" }
+first = 0
+count = 70
+format = "glyph_cell"
+family = "Parasite Eve II Caption"
+style = "Regular"
+
+[face.from.USA]
+at = [{ disc = "disk1", slot = "SLUS_010.42" }, { disc = "disk2", slot = "SLUS_010.55" }]
+address = 0x800627E0
+sha1 = "efb158cf3bf03eba8edef33006f27d5923ecb4d0"
+
+# The caption face's page: its characters in code order, each cell on the next 8-texel column past the last, in rows of
+# 16 to 256 from the top, its rows the face's band; what lies under them is the Japanese release's caption glyphs, which
+# no table of this release reaches. The space draws the blank 5 x 1 cell at (248, 32).
+[atlas]
+uid = "uid://nj5ynl5xb1qv"
+template = "font_atlas"
+size = [256, 144]
+background = 0
+gap = 0
+blank = [248, 32]
+mode = "generated"
+row_height = 16
+align = 8
+wrap = 256
+faces = [{ font = { uid = "uid://75gm13jy5p4d", path = "res://ui/caption_font/face.node" }, bias = 0, band = [0, 47] }]
+
+[atlas.from.USA]
+at = [{ stage = 0, file = 3, slot = "caption_font_image", page = 0 }, { stage = 0, file = 4, slot = "caption_font_image", page = 0 }, { stage = 0, file = 5, slot = "caption_font_image", page = 0 }, { stage = 0, file = 6, slot = "caption_font_image", page = 0 }, { stage = 0, file = 7, slot = "caption_font_image", page = 0 }, { stage = 0, file = 8, slot = "caption_font_image", page = 0 }, { stage = 0, file = 9, slot = "caption_font_image", page = 0 }, { stage = 0, file = 10, slot = "caption_font_image", page = 0 }, { stage = 0, file = 11, slot = "caption_font_image", page = 0 }, { stage = 0, file = 12, slot = "caption_font_image", page = 0 }, { stage = 0, file = 13, slot = "caption_font_image", page = 0 }, { stage = 0, file = 14, slot = "caption_font_image", page = 0 }, { stage = 0, file = 15, slot = "caption_font_image", page = 0 }, { stage = 0, file = 16, slot = "caption_font_image", page = 0 }, { stage = 0, file = 17, slot = "caption_font_image", page = 0 }, { stage = 0, file = 18, slot = "caption_font_image", page = 0 }, { stage = 0, file = 19, slot = "caption_font_image", page = 0 }, { stage = 0, file = 20, slot = "caption_font_image", page = 0 }, { stage = 0, file = 21, slot = "caption_font_image", page = 0 }, { stage = 0, file = 22, slot = "caption_font_image", page = 0 }, { stage = 0, file = 23, slot = "caption_font_image", page = 0 }, { stage = 0, file = 24, slot = "caption_font_image", page = 0 }, { stage = 0, file = 25, slot = "caption_font_image", page = 0 }, { stage = 0, file = 26, slot = "caption_font_image", page = 0 }, { stage = 0, file = 27, slot = "caption_font_image", page = 0 }, { stage = 0, file = 28, slot = "caption_font_image", page = 0 }, { stage = 0, file = 29, slot = "caption_font_image", page = 0 }, { stage = 0, file = 30, slot = "caption_font_image", page = 0 }, { stage = 0, file = 31, slot = "caption_font_image", page = 0 }, { stage = 0, file = 32, slot = "caption_font_image", page = 0 }, { stage = 0, file = 33, slot = "caption_font_image", page = 0 }, { stage = 0, file = 34, slot = "caption_font_image", page = 0 }, { stage = 0, file = 35, slot = "caption_font_image", page = 0 }, { stage = 0, file = 36, slot = "caption_font_image", page = 0 }, { stage = 0, file = 37, slot = "caption_font_image", page = 0 }, { stage = 0, file = 38, slot = "caption_font_image", page = 0 }, { stage = 0, file = 39, slot = "caption_font_image", page = 0 }, { stage = 0, file = 40, slot = "caption_font_image", page = 0 }]
+sha1 = "e7438e5d4e808c1a8b38c7e061514791aca9bb1e"
+
+# The page as a texture, drawn from the atlas.
 [texture]
 uid = "uid://1ctxcectnfq4q"
-template = "texture"
+template = "font_texture"
+atlas = { uid = "uid://nj5ynl5xb1qv", path = "res://ui/caption_font/atlas.node" }
 page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 144]
@@ -18,12 +56,3 @@ variants.x32 = { palette = "x32" }
 variants.x48 = { palette = "x48" }
 variants.x64 = { palette = "x64" }
 variants.x80 = { palette = "x80" }
-
-[texture.import]
-importer = "pe2.images@ora"
-source = "source.ora"
-
-[texture.from.USA]
-at = [{ stage = 0, file = 3, slot = "caption_font_image", page = 0 }, { stage = 0, file = 4, slot = "caption_font_image", page = 0 }, { stage = 0, file = 5, slot = "caption_font_image", page = 0 }, { stage = 0, file = 6, slot = "caption_font_image", page = 0 }, { stage = 0, file = 7, slot = "caption_font_image", page = 0 }, { stage = 0, file = 8, slot = "caption_font_image", page = 0 }, { stage = 0, file = 9, slot = "caption_font_image", page = 0 }, { stage = 0, file = 10, slot = "caption_font_image", page = 0 }, { stage = 0, file = 11, slot = "caption_font_image", page = 0 }, { stage = 0, file = 12, slot = "caption_font_image", page = 0 }, { stage = 0, file = 13, slot = "caption_font_image", page = 0 }, { stage = 0, file = 14, slot = "caption_font_image", page = 0 }, { stage = 0, file = 15, slot = "caption_font_image", page = 0 }, { stage = 0, file = 16, slot = "caption_font_image", page = 0 }, { stage = 0, file = 17, slot = "caption_font_image", page = 0 }, { stage = 0, file = 18, slot = "caption_font_image", page = 0 }, { stage = 0, file = 19, slot = "caption_font_image", page = 0 }, { stage = 0, file = 20, slot = "caption_font_image", page = 0 }, { stage = 0, file = 21, slot = "caption_font_image", page = 0 }, { stage = 0, file = 22, slot = "caption_font_image", page = 0 }, { stage = 0, file = 23, slot = "caption_font_image", page = 0 }, { stage = 0, file = 24, slot = "caption_font_image", page = 0 }, { stage = 0, file = 25, slot = "caption_font_image", page = 0 }, { stage = 0, file = 26, slot = "caption_font_image", page = 0 }, { stage = 0, file = 27, slot = "caption_font_image", page = 0 }, { stage = 0, file = 28, slot = "caption_font_image", page = 0 }, { stage = 0, file = 29, slot = "caption_font_image", page = 0 }, { stage = 0, file = 30, slot = "caption_font_image", page = 0 }, { stage = 0, file = 31, slot = "caption_font_image", page = 0 }, { stage = 0, file = 32, slot = "caption_font_image", page = 0 }, { stage = 0, file = 33, slot = "caption_font_image", page = 0 }, { stage = 0, file = 34, slot = "caption_font_image", page = 0 }, { stage = 0, file = 35, slot = "caption_font_image", page = 0 }, { stage = 0, file = 36, slot = "caption_font_image", page = 0 }, { stage = 0, file = 37, slot = "caption_font_image", page = 0 }, { stage = 0, file = 38, slot = "caption_font_image", page = 0 }, { stage = 0, file = 39, slot = "caption_font_image", page = 0 }, { stage = 0, file = 40, slot = "caption_font_image", page = 0 }]
-sha1 = "e7438e5d4e808c1a8b38c7e061514791aca9bb1e"
-palettes = { default = "103ae988d77991ccda7020a0ef18154f61ed46bb", x16 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x32 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x48 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x64 = "103ae988d77991ccda7020a0ef18154f61ed46bb", x80 = "103ae988d77991ccda7020a0ef18154f61ed46bb" }

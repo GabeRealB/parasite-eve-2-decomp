@@ -1,8 +1,85 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
 
+# The credits' three faces: their cells are the credits document's (resource 0 of the ending's bundle), 60 each, a
+# glyph's code its place in the order the credits first use them.
+[credits_serif]
+uid = "uid://4oeaq8zsg3ab"
+template = "font"
+encoding = { uid = "uid://tqqcxn90i84x", path = "res://ui/encoding/credits.node" }
+first = 0
+count = 60
+format = "stf_glyph"
+family = "Parasite Eve II Credits"
+style = "Serif"
+
+[credits_serif.from.USA]
+at = [{ stage = 0, file = 21000, slot = "bundle" }]
+resource = 0
+start = 0
+sha1 = "d56f3164656412c665e21b05f4dbd5b62482202c"
+
+[credits_sans]
+uid = "uid://mx60hjc7a9zu"
+template = "font"
+encoding = { uid = "uid://tqqcxn90i84x", path = "res://ui/encoding/credits.node" }
+first = 0
+count = 60
+format = "stf_glyph"
+family = "Parasite Eve II Credits"
+style = "Sans"
+
+[credits_sans.from.USA]
+at = [{ stage = 0, file = 21000, slot = "bundle" }]
+resource = 0
+start = 60
+sha1 = "e8e59b10a9c0641dad3f0841993c8f036eeee44e"
+
+[credits_display]
+uid = "uid://vce002bqfcli"
+template = "font"
+encoding = { uid = "uid://tqqcxn90i84x", path = "res://ui/encoding/credits.node" }
+first = 0
+count = 60
+format = "stf_glyph"
+family = "Parasite Eve II Credits"
+style = "Display"
+
+[credits_display.from.USA]
+at = [{ stage = 0, file = 21000, slot = "bundle" }]
+resource = 0
+start = 120
+sha1 = "d9608bf74eba8ce9cc2a67800e63354816d7f38e"
+
+# The credits' two pages: each face's characters in code order, left to right with no space between, a row as tall as
+# the face's cells and wrapping where a cell would pass 254, each face from the row below the last one's, a row that
+# would run onto the next page starting it (the display face's last two). Each space is a cell of its own.
+[credits_atlas]
+uid = "uid://mqx83o2dpgme"
+template = "font_atlas"
+size = [256, 256]
+pages = 2
+background = 0
+gap = 0
+mode = "generated"
+wrap = 254
+faces = [
+    { font = { uid = "uid://4oeaq8zsg3ab", path = "res://ending/credits_serif.node" }, bias = 0, band = [0, 47] },
+    { font = { uid = "uid://mx60hjc7a9zu", path = "res://ending/credits_sans.node" }, bias = 0, band = [48, 110] },
+    { font = { uid = "uid://vce002bqfcli", path = "res://ending/credits_display.node" }, bias = 0, band = [111, 294] },
+]
+
+[credits_atlas.from.USA]
+pages = [
+    { at = [{ stage = 0, file = 21000, slot = "font_image_0", page = 0 }], sha1 = "63ba1ed8efb66671aa36f7f763f7795fea7af854" },
+    { at = [{ stage = 0, file = 21000, slot = "font_image_1", page = 0 }], sha1 = "d37a03a2fd1beee6d644c3bf70340b6521dae95d" },
+]
+
+# The credits' page 1, drawn from the atlas.
 [credits_font_0]
 uid = "uid://binbyhfa0ewz"
-template = "texture"
+template = "font_texture"
+atlas = { uid = "uid://mqx83o2dpgme", path = "res://ending/credits_atlas.node" }
+atlas_page = 0
 page = { slot = { uid = "uid://1t7dq37x7a7u4", path = "res://engine/vram/credits_font.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -23,18 +100,13 @@ variants.aqua = { palette = "aqua" }
 variants.yellow = { palette = "yellow" }
 variants.light_gray = { palette = "light_gray" }
 
-[credits_font_0.import]
-importer = "pe2.images@ora"
-source = "source.ora"
 
-[credits_font_0.from.USA]
-at = [{ stage = 0, file = 21000, slot = "font_image_0", page = 0 }]
-sha1 = "63ba1ed8efb66671aa36f7f763f7795fea7af854"
-palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e7f08c99dc6ff03b81df068c72c11106a9c", red = "6387b0c183f4e4ace3b6e3dadd403465382c296f", magenta = "75abc7a552f88b9c83163f8a329b79af6147266d", blue = "0e5f22442feccda6ef0a352a60fa3502a66ed89b", aqua = "4fab74e231a77db62be2a109f53d6f534f921680", yellow = "bc7510c76099c12662c40f4e0c2f7dcd1e1cb257", light_gray = "732a792eb4085c5f8f38dcd8743fde2070e834ea" }
-
+# The credits' page 2, drawn from the atlas.
 [credits_font_1]
 uid = "uid://j5ynvx2x8i0x"
-template = "texture"
+template = "font_texture"
+atlas = { uid = "uid://mqx83o2dpgme", path = "res://ending/credits_atlas.node" }
+atlas_page = 1
 page = { slot = { uid = "uid://yjoa5nyt3fs0", path = "res://engine/vram/screen_sheet.node" }, at = [0, 0] }
 mode = "indexed_4bpp"
 size = [256, 256]
@@ -55,14 +127,6 @@ variants.aqua = { palette = "aqua" }
 variants.yellow = { palette = "yellow" }
 variants.light_gray = { palette = "light_gray" }
 
-[credits_font_1.import]
-importer = "pe2.images@ora"
-source = "source.ora"
-
-[credits_font_1.from.USA]
-at = [{ stage = 0, file = 21000, slot = "font_image_1", page = 0 }]
-sha1 = "d37a03a2fd1beee6d644c3bf70340b6521dae95d"
-palettes = { gray = "30476a6d4089e43dce1b270c28d9ddd4e5346a2b", violet = "4e5f6e7f08c99dc6ff03b81df068c72c11106a9c", red = "6387b0c183f4e4ace3b6e3dadd403465382c296f", magenta = "75abc7a552f88b9c83163f8a329b79af6147266d", blue = "0e5f22442feccda6ef0a352a60fa3502a66ed89b", aqua = "4fab74e231a77db62be2a109f53d6f534f921680", yellow = "bc7510c76099c12662c40f4e0c2f7dcd1e1cb257", light_gray = "732a792eb4085c5f8f38dcd8743fde2070e834ea" }
 
 [logos]
 uid = "uid://t0wkc20tu0i5"

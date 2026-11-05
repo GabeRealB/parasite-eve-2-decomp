@@ -1,0 +1,25 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+# The UI's texts and fonts: Windows-1252 from the space, the controller's buttons where it has { | } ~.
+[ui]
+uid = "uid://tmob68t9j6a5"
+template = "encoding"
+base = "windows-1252"
+first = 0x20
+characters = { "0x7B" = "○", "0x7C" = "△", "0x7D" = "✕", "0x7E" = "□" }
+
+# The load-screen captions' glyph scripts (bootload.c's caption streams): a code per glyph of the caption face, A-Z,
+# a-z, 1-9 and 0, then : ; ' , . ? ! and the space.
+[caption]
+uid = "uid://x2o65ddk158b"
+template = "encoding"
+base = "none"
+sequence = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890:;',.?! "
+
+# The credits' glyph codes (the ending's credits document): each face's 60 glyphs in the order the credits first use
+# them, from "BASED ON THE NOVEL" - 5 is the space, 12 the apostrophe.
+[credits]
+uid = "uid://tqqcxn90i84x"
+template = "encoding"
+base = "none"
+sequence = "BASED ONTHVL'PRIKWUXCMYGFJZQ12.o9-(,)&amplingsudrectbyhvkfz0"
