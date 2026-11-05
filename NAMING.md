@@ -456,7 +456,7 @@ static function instances marked `_`. Coefficients are signed halfword scalar
 polynomial terms, and sampling uses a parameter with 16 fractional bits.
 
 Package-specific routines keep their manifest-derived prefixes. The title
-interface is `packages/title/include/title.h`, implemented by `packages/title/src/title.c`.
+interface is `packages/title/include/title.h`, implemented by `packages/title/src/package.c`.
 Resident `playerActor` and `weapon` APIs are distinct from actor/weapon packages,
 whose entry points retain package identities.
 

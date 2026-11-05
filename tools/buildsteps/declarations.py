@@ -171,7 +171,7 @@ class Package:
 
     def object_of(self, unit: Path, root: Path) -> Path:
         """Where a unit's object is made, named by the package and the unit's place in it, as a link script names it
-        (`*/title/src/title.o`) in every build."""
+        (`*/title/src/package.o`) in every build."""
         return root / self.name / unit.relative_to(self.path).with_suffix(".o")
 
     def makes_image(self) -> bool:

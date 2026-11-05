@@ -86,7 +86,7 @@ its file's streams).
 **A package declares its slots and options in one of its units.** Every
 `PE2_BIND`, `PE2_BIND_SELF`, `PE2_BIND_ARG`, `PE2_OPTION_DEF` and
 `PE2_EDITOR_LABEL` of a package is in one C file it compiles - `src/package.c`
-for Aya's costumes, `src/title.c` for the title - and the editor lists them in
+for Aya's costumes, `src/package.c` for the title - and the editor lists them in
 the order they are written there. Never in a header (or an included `.inc.c`):
 whatever includes it would read it. Both builds fail by name on a declaration
 outside the package's units and on a second unit declaring one. What reads

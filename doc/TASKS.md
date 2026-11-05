@@ -16,7 +16,7 @@ Naming: [`NAMING.md`](../NAMING.md) (`task` functions / `TaskDesc`).
 | Frame tick | `src/engine/gamemain.c` (`_gameMainRunLoop` → `taskExecDefaultList`) |
 | Bank tables | `src/engine/textdraw.c` (`gTaskDescBanks`); each referenced resident descriptor table defines its own extent |
 | Gameplay banks 6, 10 | `asm/USA/gameplay/data/data.data.s` (`gEffectTaskDescs`, `gTaskBank10Descs`) |
-| Title extras | `packages/title/src/title.c`, `gTitleStartupTaskDescriptors` |
+| Title extras | `packages/title/src/package.c`, `gTitleStartupTaskDescriptors` |
 | Enemies | `src/gameplay/scene_runtime.c` (`_enemySpawn`, `enemySpawnFromTable`) |
 | UI stack descs | `src/engine/ui.c` (`uiSpawnObject`) |
 

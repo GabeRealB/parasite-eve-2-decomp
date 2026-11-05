@@ -329,7 +329,7 @@ ISO root scan sets the disc number (`gGameMainPersistentState.discNumber`):
 - stage4/5 present → `2` (disk2-like)
 
 ```c
-// title.c
+// packages/title/src/package.c
 key = gGameSession->location;
 if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2)
     key.loc.view = 0x65;  // 101
@@ -535,7 +535,7 @@ STR → demux → MDEC → VRAM
 | INTER seek = `source.interSectorOffset + INTER_LBA` (incl. 0) | High (`streamPrepareMoviePlayback`) |
 | `data.movie.volumeTableIndex` volume selection and CDF vs INTER | High |
 | Stream id lookup (`streamFindMovieSlot`) | High |
-| Title disc flag → id 100/101 | High (`title.c` + ISO scan) |
+| Title disc flag → id 100/101 | High (the title's `package.c` + ISO scan) |
 | Stage‑3 dual rows = per-disc packing (not dual-valid) | High (hashes + frame heads) |
 | In-game script choice of id 100 vs 101 | Medium (path clear; not all callers decompiled) |
 | `data.movie.frameLimit` ≈ frame count | High (empirical) |

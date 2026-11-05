@@ -5,13 +5,13 @@ SECTIONS
     .image SLOT : SUBALIGN(4)
     {
         LONG(5);
-        */title/src/title.o(.rodata);
+        */title/src/package.o(.rodata);
         *(.rodata);
-        */title/src/title.o(.text);
+        */title/src/package.o(.text);
         *(.text);
-        */title/src/title.o(.data);
+        */title/src/package.o(.data);
         *(.data);
     }
-    .unstored (NOLOAD) : SUBALIGN(4) { */title/src/title.o(.bss); *(.bss); }
+    .unstored (NOLOAD) : SUBALIGN(4) { */title/src/package.o(.bss); *(.bss); }
     /DISCARD/ : { *(*); }
 }
