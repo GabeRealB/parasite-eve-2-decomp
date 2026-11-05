@@ -579,6 +579,42 @@ Indices 0–10 are transparent; 11–15 are the letter. Dual SPRT (`0x7FFD` +
 cell padding: the TIM/fill clut at `(256, 243)` maps it to mid-grey (one
 box per glyph); `0x7FFD` keys it out.
 
+#### The page is the Japanese one, edited by the localization
+
+The European release (`SLES_025.58`) has the same page and the same three tables
+as the American one. The Japanese (`SLPS_024.80`) does not, and comparing the two
+explains the American page's layout, which follows no single rule:
+
+| Page rows | Japanese | American |
+|---|---|---|
+| 0–32 | Small's band | the same, byte for byte |
+| 33–127 | other fonts on index 0 (a stylized A–Z with Ä Ö Ü, two small text fonts), which no UI table reaches | 38–85: Japan's Medium art, rows 204–251 moved up 166 rows; 86–125: Medium's added glyphs; 33–37 and 126–127: Japan's index 0, left where the move did not reach |
+| 128–~200 | Large's band | the same, byte for byte |
+| ~200–255 | Medium's band | Large's added glyphs |
+
+`TEXT_GLYPH_V_BIAS_MEDIUM` therefore is 204 in the Japanese release and 38 in the
+American one. Japan's three tables have 91 records (`0x20`…`0x7A`); the
+localization extended Medium's and Large's to 224 (`0x7B`…`0xFF`: the four buttons
+and the Windows-1252 letters and signs) and replaced Japan's placeholders for `#`,
+`%`, `[` and `]` (copies of Small's records, `]` empty): `#` and `%` with art of
+their own, `[` and `]` with copies of `(` and `)`'s records, so they draw those. The
+added glyphs follow no one order: Medium's accented letters run acute first
+(Á À Â Ä), Large's grave first (À Á Â Ä), as if added in separate passes.
+
+Small's table is Japan's Medium table with Small's own glyphs put in: A–Z, 0–9 and
+`! $ % & ( ) * , . / ?` (its `$ % & *` draw the four buttons, which Small's band
+holds), the lowercase letters copies of the capitals' records, and
+`` " # ' + - : ; < = > @ [ \ ] ^ _ ` `` left as Medium's records. Those were made
+for Medium's bias, so with Small's (0) they draw fragments of other art in both
+releases - the 332 texels that two faces' cells share are theirs.
+
+Medium's and Large's cells are each glyph's ink, cut from rows of art that share a
+baseline; the spacing between neighbours (1–5 texels) follows neither the
+records' advances nor one gap per row. 63 texels outside every cell are strokes
+running past their glyph's cell (Œ, œ, ç, 3, 4, 8, C, G, &, ?, y). Every other
+texel outside the cells is index 5 within the faces' bands and index 0 in the
+seven rows no band covers.
+
 ---
 
 ### 7.7 Assets embedded in the executables
