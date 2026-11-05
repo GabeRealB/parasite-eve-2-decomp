@@ -122,16 +122,43 @@ class Package:
     def link_script(self) -> Path:
         return Path(self.path) / self.fields["link_script"]
 
-    def units(self) -> list[Path]:
-        """Its sources, as `sources` lists them: globs from its folder, a `!` leaving out what it matches."""
+    def listed(self, key: str) -> list[Path]:
+        """The files a list of its names: globs from its folder, in order, a `!` leaving out what it matches."""
         folder = Path(self.path)
         kept: set[Path] = set()
-        for pattern in self.fields.get("sources", []):
+        for pattern in self.fields.get(key, []):
             if pattern.startswith("!"):
                 kept -= set(folder.glob(pattern[1:]))
             else:
                 kept |= set(folder.glob(pattern))
         return sorted(kept)
+
+    def units(self) -> list[Path]:
+        """Its sources (`sources`), which its target compiles by their kind: C, or assembly (`.s`)."""
+        return self.listed("sources")
+
+    def objects(self) -> list[Path]:
+        """What its target links as it is (`objects`): an image's own, a library's for what depends on it."""
+        return self.listed("objects")
+
+    def object_of(self, unit: Path, root: Path) -> Path:
+        """Where a unit's object is made, named by the package and the unit's place in it, as a link script names it
+        (`*/title/src/title.o`) in every build."""
+        return root / self.name / unit.relative_to(self.path).with_suffix(".o")
+
+    def dependencies(self, declarations: Declarations) -> list[Package]:
+        """What it depends on, and what that does, each once, nearest first."""
+        found: list[Package] = []
+        seen = {self.path}
+        pending = list(self.fields.get("dependencies", []))
+        while pending:
+            dependency = declarations.named(pending.pop(0))
+            if dependency.path in seen:
+                continue
+            seen.add(dependency.path)
+            found.append(Package(dependency, self.target))
+            pending += targeted(dependency.table, self.target).get("dependencies", [])
+        return found
 
     def include_path(self, declarations: Declarations) -> list[Path]:
         """Where a unit's plain includes are found: its own public folders and `src`, then the public folders of its
@@ -225,6 +252,16 @@ class Declarations:
             Package(declaration, target)
             for declaration in self.by_path.values()
             if declaration.template == "package" and "link_script" in declaration.table.get("target", {}).get(target, {})
+        ]
+
+    def compiled(self, target: str = "psx") -> list[Package]:
+        """Every package and library a target has something to make of: sources to compile or objects to link."""
+        return [
+            package
+            for declaration in self.by_path.values()
+            if declaration.template in ("package", "library")
+            for package in [Package(declaration, target)]
+            if package.fields.get("sources") or package.fields.get("objects")
         ]
 
     def published(self, target: str = "psx") -> list[Path]:

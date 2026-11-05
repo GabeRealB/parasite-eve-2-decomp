@@ -245,8 +245,9 @@ class Options:
         return header + f"#ifndef PE2_FIRST_PASS\n{unwritten}#endif\n"
 
 
-def gathered(package: Package, declarations: Declarations) -> tuple[Options, list[Path]]:
-    """What a package's units and what they include say of options, every file read once."""
+def gathered(package: Package, declarations: Declarations) -> tuple[Options, list[Path], set[str]]:
+    """What a package's C units and what they include say of options, every file read once, and the packages they
+    bind (`PE2_BIND(<name>, package)`), whose symbols its image links against."""
     public = declarations.public()
     own = package.include_path(declarations)
     options, seen = Options(), []
@@ -276,12 +277,13 @@ def gathered(package: Package, declarations: Declarations) -> tuple[Options, lis
                     break
 
     for unit in package.units():
-        read(unit)
+        if unit.suffix == ".c":
+            read(unit)
     # As the editor's gather: what is included through a binding needs that binding declared somewhere it reads.
     for binding, at in asked:
         if binding not in bound:
             raise SystemExit(f"{at}: {binding} has no PE2_BIND({binding}, package)")
-    return options, seen
+    return options, seen, bound
 
 
 # --- values -------------------------------------------------------------------------------------------------------
@@ -468,7 +470,7 @@ def main() -> None:
     if package is None:
         raise SystemExit(f"{args.package}: no package of that path is declared")
     if args.step == "options":
-        options, read = gathered(package, declarations)
+        options, read, _ = gathered(package, declarations)
         config = {"name": args.config or args.release.lower(), "release": args.release, "target": args.target}
         written(args.out, options.header(package.fields, config), [*read, *declarations.files])
     else:

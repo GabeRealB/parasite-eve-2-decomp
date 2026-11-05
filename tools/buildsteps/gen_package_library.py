@@ -148,10 +148,13 @@ def make(tracked: list[Path]) -> None:
             stale.unlink()
 
 
-def symbols(elf: Path, out: Path, nm: str) -> None:
-    listed = subprocess.run([nm, str(elf)], capture_output=True, text=True, check=True).stdout
+def symbols(elf: Path, out: Path, nm: str, exported: bool = False) -> None:
+    """What an image publishes: every name it has, or only what it exports (`exported`), as a package's layout gives
+    them - a static of one package is no other's to link against."""
+    listed = subprocess.run([nm, *(["-g", "--defined-only"] if exported else []), str(elf)], capture_output=True, text=True, check=True).stdout
     fields = (line.split() for line in listed.splitlines())
-    named = {field[2]: field[0] for field in fields if len(field) == 3 and SYMBOL.fullmatch(field[2])}
+    # What a package exports is what its sections hold: an absolute name is its link's (SLOT, a script's PROVIDE).
+    named = {field[2]: field[0] for field in fields if len(field) == 3 and SYMBOL.fullmatch(field[2]) and not (exported and field[1] == "A")}
     written(out, "".join(f"PROVIDE({name} = 0x{address});\n" for name, address in named.items()))
 
 
@@ -161,8 +164,9 @@ def main() -> None:
     parser.add_argument("elf", type=Path)
     parser.add_argument("out", type=Path)
     parser.add_argument("--nm", required=True)
+    parser.add_argument("--exported", action="store_true")
     args = parser.parse_args()
-    symbols(args.elf, args.out, args.nm)
+    symbols(args.elf, args.out, args.nm, args.exported)
 
 
 if __name__ == "__main__":

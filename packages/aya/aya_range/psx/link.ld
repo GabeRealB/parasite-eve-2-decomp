@@ -4,11 +4,11 @@ SECTIONS
     .image SLOT : SUBALIGN(4)
     {
         LONG(0x00000029);
-        *aya_range.o(.data);
+        */aya_range/src/aya_range.o(.data);
     }
     .unstored (NOLOAD) : SUBALIGN(4)
     {
-        *aya_range.o(.bss);
+        */aya_range/src/aya_range.o(.bss);
     }
     /DISCARD/ : { *(*); }
 }

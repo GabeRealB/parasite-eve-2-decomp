@@ -4,11 +4,11 @@ SECTIONS
     .image SLOT : SUBALIGN(4)
     {
         LONG(0x00000007);
-        *aya_dryfield.o(.data);
+        */aya_dryfield/src/aya_dryfield.o(.data);
     }
     .unstored (NOLOAD) : SUBALIGN(4)
     {
-        *aya_dryfield.o(.bss);
+        */aya_dryfield/src/aya_dryfield.o(.bss);
     }
     /DISCARD/ : { *(*); }
 }

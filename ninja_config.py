@@ -1261,36 +1261,53 @@ def ninja_packages(
                 inputs=f"{BUILD_DIR.as_posix()}/{version_dir}/out/{elf}.elf",
                 implicit=[str(GEN_PACKAGE_LIBRARY)],
             )
+    from gen_package_values import gathered
+
     variables = {"VERSION": f"-DVER_{version}", "SKIPASMFLAG": "", "PACKAGE_DEFINES": "-Werror"}
     built = {}
     entries = []
-    for package in packages:
+    # What each package and library makes for what links it: its units compiled, by their kind, and its objects as
+    # they are. A scoped build compiles only what the packages it builds link.
+    provided: dict[str, list[str]] = {}
+    wanted = {p.path for p in packages} | {d.path for p in packages for d in p.dependencies(declarations)}
+    for package in declarations.compiled():
+        if package.path not in wanted:
+            continue
         out = root / package.name
+        made = []
+        units = package.units()
+        c_units = [unit for unit in units if unit.suffix == ".c"]
         options, values = (out / "pe2_options.h").as_posix(), (out / "pe2_values.h").as_posix()
         steps = [str(GEN_PACKAGE_VALUES), *(str(TOOLS_DIR / "buildsteps" / name) for name in ("declarations.py", "package_tokenizers.py", "stage0.py"))]
         own = {"package": package.path, "release": version}
-        ninja_file.build(outputs=options, rule="package-options", implicit=steps, variables={**own, "config": version_dir.lower()})
         path = " ".join(f"-I{folder.as_posix()}" for folder in package.include_path(declarations))
         includes = f"{path} -I{bindings.as_posix()} -I{out.as_posix()}"
-        first = []
-        for unit in package.units():
-            first.append((out / "first" / f"{unit.stem}.i").as_posix())
-            ninja_file.build(
-                outputs=first[-1],
-                rule="cpp",
-                inputs=unit.as_posix(),
-                order_only=[options],
-                variables={**variables, "INCLUDES": includes, "PACKAGE_DEFINES": "-DPE2_FIRST_PASS -Werror"},
-            )
-        ninja_file.build(outputs=values, rule="package-values", inputs=first, implicit=[*steps, str(GEN_MODEL_SOURCE)], variables=own)
-        objects = []
-        for unit in package.units():
-            stem = (out / unit.stem).as_posix()
+        if c_units:
+            ninja_file.build(outputs=options, rule="package-options", implicit=steps, variables={**own, "config": version_dir.lower()})
+            first = []
+            for unit in c_units:
+                first.append((out / "first" / f"{unit.stem}.i").as_posix())
+                ninja_file.build(
+                    outputs=first[-1],
+                    rule="cpp",
+                    inputs=unit.as_posix(),
+                    order_only=[options],
+                    variables={**variables, "INCLUDES": includes, "PACKAGE_DEFINES": "-DPE2_FIRST_PASS -Werror"},
+                )
+            ninja_file.build(outputs=values, rule="package-values", inputs=first, implicit=[*steps, str(GEN_MODEL_SOURCE)], variables=own)
+        for unit in units:
+            obj = package.object_of(unit, root).as_posix()
+            stem = obj.removesuffix(".o")
+            if unit.suffix == ".s":
+                # Assembly is assembled as it is written: no preprocessor, no maspsx.
+                ninja_file.build(outputs=obj, rule="as", inputs=unit.as_posix(), variables={"DLFLAG": DL_EXE_FLAGS})
+                made.append(obj)
+                continue
             entries.append({
                 "directory": os.getcwd(),
                 "command": f"clang {package_flags} -DVER_{version} {includes} -c {unit.as_posix()}",
                 "file": unit.as_posix(),
-                "output": f"{stem}.o",
+                "output": obj,
             })
             ninja_file.build(
                 outputs=f"{stem}.i",
@@ -1301,7 +1318,7 @@ def ninja_packages(
             )
             ninja_file.build(outputs=f"{stem}.s", rule="cc", inputs=f"{stem}.i", implicit=[str(CC)], variables={"DLFLAG": DL_OVL_FLAGS})
             ninja_file.build(
-                outputs=f"{stem}.o",
+                outputs=obj,
                 rule="maspsx",
                 inputs=f"{stem}.s",
                 implicit=MASPSX_SOURCES,
@@ -1312,17 +1329,40 @@ def ninja_packages(
                     "AS_INCLUDES": "",
                 },
             )
-            objects.append(f"{stem}.o")
+            made.append(obj)
+        provided[package.name] = made + [path.as_posix() for path in package.objects()]
+
+    # Each image: its layout first, publishing what it exports, then the image, linked against what the libraries
+    # publish and what the image packages it binds (`PE2_BIND(<name>, package)`) do.
+    images_by_name = {package.name: package for package in packages}
+    for package in packages:
+        out = root / package.name
+        inputs = provided.get(package.name, []) + [obj for dependency in package.dependencies(declarations) for obj in provided.get(dependency.name, [])]
         image = (images / package.name).as_posix()
+        slot = f"0x{slots[package.slot]:X}"
+        layout, own_symbols = (out / "layout.elf").as_posix(), (out / "symbols.ld").as_posix()
+        ninja_file.build(
+            outputs=layout,
+            rule="package-layout",
+            inputs=inputs,
+            implicit=[package.link_script.as_posix()],
+            variables={"slot": slot, "script": package.link_script.as_posix()},
+        )
+        ninja_file.build(outputs=own_symbols, rule="package-symbols", inputs=layout, implicit=[str(GEN_PACKAGE_LIBRARY)], variables={"exported": "--exported"})
+        try:
+            _, _, bound = gathered(package, declarations)
+        except SystemExit:
+            bound = set()  # the options step says what is wrong
+        linked = published + [(root / name / "symbols.ld").as_posix() for name in sorted(bound) if name in images_by_name and name != package.name]
         ninja_file.build(
             outputs=f"{image}.elf",
             rule="package-elf",
-            inputs=objects,
-            implicit=[package.link_script.as_posix(), *published],
+            inputs=inputs,
+            implicit=[package.link_script.as_posix(), *linked],
             variables={
-                "slot": f"0x{slots[package.slot]:X}",
+                "slot": slot,
                 "script": package.link_script.as_posix(),
-                "published": " ".join(f"-T {path}" for path in published),
+                "published": " ".join(f"-T {path}" for path in linked),
             },
         )
         ninja_file.build(outputs=image, rule="objcopy", inputs=f"{image}.elf", variables={"sections": "-j .image"})
@@ -1444,8 +1484,16 @@ def ninja_build(
     ninja_rules_file.rule(
         "package-symbols",
         description="package-symbols $out",
-        command=f"{PYTHON} {GEN_PACKAGE_LIBRARY} symbols $in $out --nm {NM}",
+        command=f"{PYTHON} {GEN_PACKAGE_LIBRARY} symbols $in $out --nm {NM} $exported",
         restat=True,
+    )
+    # An image's layout alone: where its own names land, its references left open, so that what it publishes depends
+    # on nothing another image publishes. A reference left open cannot be relocated (a jump to 0 does not reach), which
+    # ld says and goes on from: the bytes are not what this output is for, the addresses are.
+    ninja_rules_file.rule(
+        "package-layout",
+        description="package-layout $out",
+        command=f"{LD} {ENDIAN} -nostdlib --no-check-sections --unresolved-symbols=ignore-all --noinhibit-exec --defsym SLOT=$slot -T $script -o $out $in > /dev/null",
     )
     ninja_rules_file.rule(
         "package-elf",
