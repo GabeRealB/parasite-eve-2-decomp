@@ -81,6 +81,7 @@ typedef struct {
     s16 startRadius;  // The damage sphere's radius as it launches, and the trail puffs' size before their growth
     s16 travelFrames; // Frames the cloud travels and does damage for
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
 /// The cloud's collision, which the cast allocates and frees: a damage sphere keyed with the spell's damage id, and a
 /// sphere the room's grid stops, both on the cloud and sharing one contact.
@@ -90,12 +91,16 @@ typedef struct {
     WorldCollisionContact contacts[1]; // Cleared each frame of travel
 } _CloudCollision;
 
-/// Levels 1 to 3.
-static _LevelTuning _gLevelTuning[ATTACHMENT_LEVEL_COUNT] = {
+PE2_EDITOR_LABEL("Levels")
+/// The cloud at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 0x03C0, 0x000A },
     { 0x0480, 0x000F },
     { 0x0540, 0x0014 },
-};
+})
+PE2_EDITOR_LABEL("")
+
+static _LevelTuning _gLevelTuning[ATTACHMENT_LEVEL_COUNT] = PE2_OPTION(LEVELS);
 
 enum {
     CAST_SOUND_LEVEL_1 = (s32)0xE0150001,

@@ -12,15 +12,71 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from declarations import Declaration, Declarations  # noqa: E402
 from gen_package_values import LINE, Options, Query, Read_, Slot, Use, answer, defined, failing, reached, slot_problem, slots_of, uses  # noqa: E402
 from package_tokenizers import Reader, material_clut, material_tpage, tokens  # noqa: E402
+from option_types import Types  # noqa: E402
 
 CONFIG = {"name": "usa", "release": "USA", "target": "psx"}
 
 
 def options_of(text: str) -> Options:
-    options = Options()
+    options = Options(Types("psx"))
     for found in uses(text):
-        options.take(found, f"a.c:{found.line}")
+        options.take(found, f"a.c:{found.line}", text)
     return options
+
+
+class TypedOption(unittest.TestCase):
+    TYPE = "typedef struct {\n    s16 wedges; // Fanned\n    unsigned short limit;\n    u8 steps[2];\n} _Level;\nPE2_TYPE(_Level)\n"
+
+    def test_a_registered_type_reads_whole_and_by_path(self) -> None:
+        text = self.TYPE + "PE2_OPTION_DEF(LEVELS, _Level[2], { { 8, 0x90, { 1, 2 } }, { -1, 0, { 3, 4 } } })\nPE2_OPTION_AT(LEVELS, 1, steps, 0)\n"
+        header = options_of(text).header({"option": {"LEVELS": [{}, {"limit": 7}]}}, CONFIG)
+        for line in ("pe2_option_LEVELS { { 8, 144, { 1, 2 } }, { -1, 7, { 3, 4 } } }", "pe2_option_LEVELS_1_limit 7",
+                     "pe2_option_LEVELS_1_steps_0 3", "pe2_option_LEVELS_0_wedges 8"):
+            self.assertIn(f"#define {line}\n", header)
+
+    def test_a_primitive_is_held_to_its_range(self) -> None:
+        header = options_of("PE2_OPTION_DEF(Y, s16, -1024)\nPE2_OPTION_DEF(C, char, 200)\n").header({}, CONFIG)
+        self.assertIn("#define pe2_option_Y -1024\n", header)
+        self.assertIn("#define pe2_option_C 200\n", header)
+        self.assertEqual(Option.wrong(self, "PE2_OPTION_DEF(Y, s16, 40000)"), "a.c:1: Y: the value is a s16, -32768 to 32767, and is 40000")
+
+    def test_what_is_wrong_is_said_where(self) -> None:
+        self.assertEqual(Option.wrong(self, "typedef struct { s16* p; } P;\nPE2_TYPE(P)\n"),
+                         "a.c:2: P: `s16* p` is a pointer, which no field of a registered struct is")
+        self.assertEqual(Option.wrong(self, "typedef struct { float f; } F;\nPE2_TYPE(F)\n"),
+                         "a.c:2: F.f is a float, which is neither an integer primitive of psx nor a registered type")
+        self.assertEqual(Option.wrong(self, "PE2_TYPE(G)\n"), "a.c:1: PE2_TYPE(G) follows no typedef of G in its file")
+        self.assertEqual(Option.wrong(self, self.TYPE + "PE2_OPTION_DEF(L, _Level, { 1, 2 })\n"),
+                         "a.c:7: L: the value is a _Level: 3 fields, in order")
+        self.assertEqual(Option.wrong(self, self.TYPE + "PE2_OPTION_DEF(L, _Level)\n", {"option": {"L": {"wedges": 1}}}),
+                         "a.c:7: L, as this package sets it: the value has no default, so all of a _Level's fields are set: wedges, limit, steps")
+        self.assertEqual(Option.wrong(self, self.TYPE + "PE2_OPTION_DEF(L, _Level, { 1, 2, { 3, 4 } })\nPE2_OPTION_AT(L, steps, 2)\n"),
+                         "a.c:8: L has no integer at steps, 2")
+
+
+class DynamicOption(unittest.TestCase):
+    TYPE = "typedef struct {\n    s16 wedges;\n    u8 steps[2];\n} _Level;\nPE2_TYPE(_Level)\n"
+    TEXT = TYPE + "PE2_OPTION_DEF(WAVES, _Level[], { { 1, { 2, 3 } }, { 4, { 5, 6 } } })\nPE2_OPTION_COUNT(WAVES)\n"
+
+    def test_its_length_is_what_the_package_sets(self) -> None:
+        header = options_of(self.TEXT).header({}, CONFIG)
+        self.assertIn("#define pe2_option_WAVES { { 1, { 2, 3 } }, { 4, { 5, 6 } } }\n", header)
+        self.assertIn("#define pe2_option_WAVES_count 2\n", header)
+        longer = options_of(self.TEXT).header({"option": {"WAVES": [{"wedges": 9}, {}, {"wedges": 7, "steps": [8, 9]}]}}, CONFIG)
+        self.assertIn("#define pe2_option_WAVES { { 9, { 2, 3 } }, { 4, { 5, 6 } }, { 7, { 8, 9 } } }\n", longer)
+        self.assertIn("#define pe2_option_WAVES_count 3\n", longer)
+        shorter = options_of(self.TEXT).header({"option": {"WAVES": [{}]}}, CONFIG)
+        self.assertIn("#define pe2_option_WAVES { { 1, { 2, 3 } } }\n", shorter)
+
+    def test_what_is_wrong_is_said_where(self) -> None:
+        self.assertEqual(Option.wrong(self, self.TEXT, {"option": {"WAVES": []}}),
+                         "a.c:6: WAVES, as this package sets it: the value is set to one or more of _Level")
+        self.assertEqual(Option.wrong(self, self.TEXT, {"option": {"WAVES": [{}, {}, {"wedges": 7}]}}),
+                         "a.c:6: WAVES, as this package sets it: [2] has no default, so all of a _Level's fields are set: wedges, steps")
+        self.assertEqual(Option.wrong(self, self.TYPE + "PE2_OPTION_DEF(N, s16, 1)\nPE2_OPTION_COUNT(N)\n"),
+                         "a.c:7: PE2_OPTION_COUNT reads an array option, and N is none")
+        self.assertEqual(Option.wrong(self, "typedef struct { s16 all[]; } F;\nPE2_TYPE(F)\n"),
+                         "a.c:2: F: `s16 all[]` is no field of a registered struct: one integer or registered type, or a fixed array of one, to a declaration")
 
 
 class Scanning(unittest.TestCase):
@@ -102,7 +158,8 @@ class Option(unittest.TestCase):
     def test_what_is_wrong_is_said_where(self) -> None:
         self.assertEqual(self.wrong("PE2_OPTION(A)"), "a.c:1: A has no PE2_OPTION_DEF")
         self.assertEqual(self.wrong("PE2_OPTION_DEF(A, enum, b)\nPE2_OPTION_IS(A, c)"), "a.c:2: A has no member c; it has b")
-        self.assertEqual(self.wrong("PE2_OPTION_DEF(A, float)"), "a.c:1: A: there is no option type float")
+        self.assertEqual(self.wrong("PE2_OPTION_DEF(A, float)"), "a.c:1: A: there is no option type float; an option is int, bool, "
+                         "string, enum, an integer primitive or a registered type, or a fixed array of either")
         self.assertEqual(self.wrong("PE2_OPTION_DEF(A, int)\nPE2_OPTION_DEF(A, int)"), "a.c:2: A is defined already, at a.c:1")
         self.assertEqual(self.wrong("PE2_CONFIG(disc)"), "a.c:1: a config has no disc; it has name, release, target")
         self.assertEqual(self.wrong("PE2_OPTION_DEF(A, int)", {"option": {"A": "b"}}), "a.c:1: A is an int, and this package gives it b")

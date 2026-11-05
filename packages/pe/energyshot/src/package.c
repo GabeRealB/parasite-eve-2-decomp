@@ -77,20 +77,27 @@ STATIC_ASSERT(POWER_OF_TWO(PE2_OPTION(BILLBOARD_RISE_JITTER)) && POWER_OF_TWO(PE
 /// The cast's tuning at one Parasite Energy level, by the level digit of the attachment id less one. A scale is at once
 /// the drawing's brightness (its low byte the red and blue) and, multiplied up, each ring's, wedge's and beam's radius.
 typedef struct {
-    s16 wedgeCount; // Glow wedges fanned around the rings; the yaw table holds 16
+    s16 wedgeCount; // Glow wedges fanned around the rings
     s16 scaleLimit; // Scale that ends the growth; the fading rings are drawn at this scale
     s16 scaleStep;  // Scale gained per frame of growth; at level 3 the fading wedges and beams keep gaining it
     u16 ringHeight; // Height of the rings and wedges, which the beams' heights follow; also each spark's size
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
-enum { MAX_CAST_WEDGES = 16 };
-
-/// Levels 1 to 3.
-static _LevelTuning _gLevelTuning[] = {
+PE2_EDITOR_LABEL("Levels")
+/// The cast at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 8, 0x0090, 5, 0x0400 },
     { 12, 0x00C0, 6, 0x0500 },
-    { MAX_CAST_WEDGES, 0x00F0, 7, 0x0600 },
-};
+    { 16, 0x00F0, 7, 0x0600 },
+})
+PE2_EDITOR_LABEL("")
+
+/// The most any level has, which its table holds.
+enum { MAX_CAST_WEDGES = LARGER(LARGER(PE2_OPTION_AT(LEVELS, 0, wedgeCount), PE2_OPTION_AT(LEVELS, 1, wedgeCount)), PE2_OPTION_AT(LEVELS, 2, wedgeCount)) };
+STATIC_ASSERT(PE2_OPTION_AT(LEVELS, 0, wedgeCount) > 0 && PE2_OPTION_AT(LEVELS, 1, wedgeCount) > 0 && PE2_OPTION_AT(LEVELS, 2, wedgeCount) > 0, every_wedgeCount_is_positive);
+
+static _LevelTuning _gLevelTuning[] = PE2_OPTION(LEVELS);
 
 /// The cue each level's cast plays.
 static s32 _gCastSoundScripts[ARRAY_SIZE(_gLevelTuning)] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };

@@ -70,12 +70,16 @@ STATIC_ASSERT(PE2_OPTION(FADE_STEP) > 0, the_cast_fades);
 
 static void _drawRingBand(const EffectWork* effect, const GfxCoord* coord, s32 bandIndex);
 
-/// The three bands' base radius, lift and spread, all drawn at every level.
-static EffectBandShape _gBandShapes[] = {
+PE2_EDITOR_LABEL("Bands")
+/// The three bands' base radius, lift and spread.
+PE2_OPTION_DEF(BANDS, EffectBandShape[3], {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
     { 0x0300, 0x0400, 0x0400 },
-};
+})
+PE2_EDITOR_LABEL("")
+
+static EffectBandShape _gBandShapes[] = PE2_OPTION(BANDS);
 
 enum {
     CAST_SOUND_LEVEL_1 = (s32)0xE0160001,

@@ -214,6 +214,7 @@ typedef struct {
     s16 lift;       // Second rim's height above the base rim beyond the work's height; negative lowers it
     s16 spread;     // Second rim's radius beyond the base rim's, on top of the work's growth
 } EffectBandShape;
+PE2_TYPE(EffectBandShape)
 STATIC_ASSERT_SIZEOF(EffectBandShape, 0x6);
 
 /// Texture origin and palette location for one frame of an effect sprite.

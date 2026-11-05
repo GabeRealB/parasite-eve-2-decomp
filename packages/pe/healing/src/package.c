@@ -84,13 +84,18 @@ typedef struct {
     s16 radiusStep;  // Radius gained each frame, growing or fading; also sets the aura's spin
     s16 radiusLimit; // Radius that ends the growth; also each sparkle's and spark's size
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
-/// Levels 1 to 3.
-static _LevelTuning _gLevelTuning[] = {
+PE2_EDITOR_LABEL("Levels")
+/// The aura at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 0x0008, 0x0080, 0x0040, 0x0400 },
     { 0x000C, 0x00B0, 0x0048, 0x0500 },
     { 0x0010, 0x00E0, 0x0050, 0x0600 },
-};
+})
+PE2_EDITOR_LABEL("")
+
+static _LevelTuning _gLevelTuning[] = PE2_OPTION(LEVELS);
 
 /// The cue each level's cast plays.
 static s32 _gCastSoundScripts[ARRAY_SIZE(_gLevelTuning)] = { 0xE0200001, 0xE0230001, 0xE0260001 };

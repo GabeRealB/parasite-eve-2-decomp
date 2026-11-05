@@ -125,6 +125,29 @@ follow from (`title`'s black fade: its length and brightness step both come from
 such as task slots. A limit an option's uses put on it is a `STATIC_ASSERT` beside
 them (`title`'s fade step divides full brightness), so a bad value fails by name.
 
+**A table of tuning is one option of a registered type.** `PE2_TYPE(Name)`, after a
+typedef, registers it with the build: an alias of an integer primitive, or a struct
+whose fields are integer primitives, registered types, or fixed arrays of either,
+one to a declaration - never a pointer. A primitive is one of core's fixed-size
+integers (`s8` to `u64`, `i8` to `i64`, `byte`, the Q types) or one of C's at the
+target's size. An option of one, or of a fixed array of one, takes a C initializer
+as its default (`PE2_OPTION_DEF(LEVELS, _LevelTuning[3], { ... })`), and the code
+initializes its table with `PE2_OPTION(LEVELS)`; `PE2_OPTION_AT(LEVELS, 2, wedges)`
+is one integer of it, for assertions and derived sizes (a table sized by the most
+any level has, `LARGER` in core). Values code takes as constants rather than from a
+table are read the same way, so nothing new is stored (inferno's fan variants).
+An option may also be a dynamic array (`_Wave[]`, the option's own type alone; a
+field's array has a count): its length is what it holds, one or more, and
+`PE2_OPTION_COUNT(NAME)` gives it (any array's). What a package sets merges into
+the default: a table by field, an array by element - a dynamic one as long as what
+is set, an element past the default's set in full.
+A primitive is an option type too (`PE2_OPTION_DEF(RING_Y, s16, -1024)`), held to
+its range. Both builds read types as text (`option_types.py`, the editor's
+`types.rs`) and write the same `pe2_options.h`; the editor lists one as an
+inspector does, each element and nested struct a group that opens, each integer a
+field held to its type's range, the default greyed in what a package leaves unset,
+a dynamic array's elements added (a copy of the last) and removed.
+
 `ninja_packages` in `ninja_config.py` finds what to build in the declarations - a
 package is what names a `link_script` - through the rules everything else uses,
 and writes `build/USA/out/<name>`, held to `checksum.sha` like any image. A

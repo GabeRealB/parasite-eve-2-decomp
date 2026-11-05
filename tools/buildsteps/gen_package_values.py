@@ -23,11 +23,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from declarations import Declaration, Declarations, Package, includes, references, uid_of  # noqa: E402
 from package_tokenizers import Args, Reader, reached, tokens, type_of  # noqa: E402
+from option_types import Types, spelled  # noqa: E402
 from stage0 import Stage0  # noqa: E402
 
 KNOWN = frozenset({
     "PE2_BIND", "PE2_BIND_ARG", "PE2_BIND_SELF", "PE2_EDITOR_LABEL", "PE2_VALUE", "PE2_QUERY",
-    "PE2_OPTION_DEF", "PE2_OPTION", "PE2_OPTION_IS", "PE2_CONFIG", "PE2_CONFIG_IS",
+    "PE2_OPTION_DEF", "PE2_OPTION", "PE2_OPTION_IS", "PE2_OPTION_AT", "PE2_OPTION_COUNT", "PE2_CONFIG", "PE2_CONFIG_IS", "PE2_TYPE",
 })
 # What declares a package's slots and options, and how the editor shows them: all of it in one of the package's units,
 # whose order is the order the editor lists them in.
@@ -52,10 +53,11 @@ class Use:
     name: str
     args: tuple[str, ...]
     line: int
+    offset: int = field(default=0, compare=False)
 
 
 def arguments(text: str, opening: int) -> tuple[tuple[str, ...], int] | None:
-    """A call's arguments, from its opening parenthesis; and where it ends."""
+    """A call's arguments, from its opening parenthesis; and where it ends. A comma in braces is an initializer's."""
     at, depth, start, args = opening + 1, 0, opening + 1, []
     while at < len(text):
         byte = text[at]
@@ -63,12 +65,12 @@ def arguments(text: str, opening: int) -> tuple[tuple[str, ...], int] | None:
             at += 1
             while at < len(text) and text[at] != byte:
                 at += 2 if text[at] == "\\" else 1
-        elif byte == "(":
+        elif byte in "({":
             depth += 1
         elif byte == ")" and depth == 0:
             args.append(text[start:at].strip())
             return tuple(args), at + 1
-        elif byte == ")":
+        elif byte in ")}":
             depth -= 1
         elif byte == "," and depth == 0:
             args.append(text[start:at].strip())
@@ -95,7 +97,7 @@ def uses(text: str) -> list[Use]:
             continue
         read = arguments(text, opening)
         if read is not None:
-            found.append(Use(word, read[0], text.count("\n", 0, match.start()) + 1))
+            found.append(Use(word, read[0], text.count("\n", 0, match.start()) + 1, match.start()))
             at = read[1]
 
 
@@ -141,16 +143,23 @@ class Option:
 
 @dataclass
 class Options:
+    types: Types
     defined: dict[str, Option] = field(default_factory=dict)
     read: list[tuple[str, str | None, str]] = field(default_factory=list)
+    at_read: list[tuple[tuple[str, ...], str]] = field(default_factory=list)
+    count_read: list[tuple[str, str]] = field(default_factory=list)
     config: list[tuple[str, str]] = field(default_factory=list)
     wrong: list[str] = field(default_factory=list)
 
-    def take(self, found: Use, at: str) -> None:
+    def take(self, found: Use, at: str, text: str) -> None:
         name, args = found.name, found.args
-        if name == "PE2_OPTION_DEF" and len(args) >= 2:
-            if args[1] not in OPTION_TYPES:
-                self.wrong.append(f"{at}: {args[0]}: there is no option type {args[1]}")
+        if name == "PE2_TYPE" and len(args) == 1:
+            self.types.register(args[0], text, found.offset, at)
+        elif name == "PE2_OPTION_AT" and len(args) >= 2:
+            self.at_read.append((args, at))
+        elif name == "PE2_OPTION_COUNT" and len(args) == 1:
+            self.count_read.append((args[0], at))
+        elif name == "PE2_OPTION_DEF" and len(args) >= 2:
             if args[1] != "enum" and len(args) > 3:
                 self.wrong.append(f"{at}: {args[0]}: an option has one default")
             if args[0] in self.defined:
@@ -164,9 +173,26 @@ class Options:
         elif name in ("PE2_CONFIG", "PE2_CONFIG_IS") and args:
             self.config.append((args[0], at))
 
+    def shape_of(self, name: str):
+        """An option's shape when it is of a primitive or a registered type, or a fixed array of one."""
+        option = self.defined[name]
+        return None if option.type in OPTION_TYPES else spelled(option.type)
+
+    def shaped_value(self, name: str, fields: dict) -> object | None:
+        """A typed option's value: its default merged with what its package sets; none where it has no default."""
+        option, shape = self.defined[name], self.shape_of(name)
+        default = self.types.parsed(shape, option.members[0], f"{option.at}: {name}") if option.members else None
+        given = fields.get("option", {}).get(name)
+        if given is None:
+            return default
+        return self.types.merged(shape, default, given, f"{option.at}: {name}, as this package sets it")
+
     def default_of(self, name: str) -> str | None:
         """The default a source gives an option after its type, as C reads it."""
         option = self.defined[name]
+        if self.shape_of(name) is not None:
+            value = self.shaped_value(name, {})
+            return None if value is None else self.types.initializer(value)
         if option.type == "enum" or not option.members:
             return None
         written = option.members[0]
@@ -189,6 +215,9 @@ class Options:
     def value_of(self, name: str, fields: dict) -> str | None:
         """An option's value for a package, as C reads it: what its package sets, else the default its source gives; none
         where it has neither."""
+        if self.shape_of(name) is not None:
+            value = self.shaped_value(name, fields)
+            return None if value is None else self.types.initializer(value)
         if name not in fields.get("option", {}):
             return self.default_of(name)
         value, option = fields["option"][name], self.defined[name]
@@ -213,6 +242,23 @@ class Options:
         """The first thing wrong with what was read."""
         if self.wrong:
             raise SystemExit(self.wrong[0])
+        self.types.check()
+        for name, option in self.defined.items():
+            shape = self.shape_of(name)
+            if option.type not in OPTION_TYPES and (shape is None or not self.types.knows(shape)):
+                raise SystemExit(f"{option.at}: {name}: there is no option type {option.type}; an option is int, bool, "
+                                 f"string, enum, an integer primitive or a registered type, or a fixed array of either")
+        for name, at in self.count_read:
+            shape = self.shape_of(name) if name in self.defined else None
+            if shape is None or not (shape.dynamic or shape.count is not None):
+                raise SystemExit(f"{at}: PE2_OPTION_COUNT reads an array option, and {name} is none")
+        for args, at in self.at_read:
+            if args[0] not in self.defined or self.shape_of(args[0]) is None:
+                raise SystemExit(f"{at}: PE2_OPTION_AT reads an option of a registered type or an array, and {args[0]} is none")
+            value = self.shaped_value(args[0], fields)
+            paths = {path for path, _ in self.types.leaves(value)} if value is not None else set()
+            if value is not None and tuple(args[1:]) not in paths:
+                raise SystemExit(f"{at}: {args[0]} has no integer at {', '.join(args[1:])}")
         for name, member, at in self.read:
             if name not in self.defined:
                 raise SystemExit(f"{at}: {name} has no PE2_OPTION_DEF")
@@ -237,6 +283,13 @@ class Options:
             if value is None:
                 unwritten += failing(f"{UNSET}{name}", f"{name} has no value on this package")
             header += f"#define pe2_option_{name} {value if value is not None else unset}\n"
+            if self.shape_of(name) is not None and value is not None:
+                shaped = self.shaped_value(name, fields)
+                if isinstance(shaped, list):
+                    header += f"#define pe2_option_{name}_count {len(shaped)}\n"
+                for path, leaf in self.types.leaves(shaped):
+                    if path:
+                        header += f"#define pe2_option_{name}_{'_'.join(path)} {leaf}\n"
             if option.type == "enum":
                 for at, member in enumerate(option.members):
                     held = unset if value is None else str(int(value == str(at)))
@@ -247,12 +300,12 @@ class Options:
         return header + f"#ifndef PE2_FIRST_PASS\n{unwritten}#endif\n"
 
 
-def gathered(package: Package, declarations: Declarations) -> tuple[Options, list[Path]]:
+def gathered(package: Package, declarations: Declarations, target: str) -> tuple[Options, list[Path]]:
     """What a package's C units and what they include say of options, and every file read, once: each include is held
     to the rules of the package whose file has it (`Package.resolved`), and its slots and options to being declared in
     one of its units (`DECLARING`), as the editor's gather holds them: never a header, which whatever includes it reads.
     """
-    options, seen = Options(), []
+    options, seen = Options(Types(target)), []
     declaring: list[Path] = []
     units = [unit for unit in package.units() if unit.suffix == ".c"]
 
@@ -272,7 +325,7 @@ def gathered(package: Package, declarations: Declarations) -> tuple[Options, lis
                 if declaring and declaring[0] != file:
                     raise SystemExit(f"{at}: {found.name} outside {declaring[0].as_posix()}: a package's slots and options are declared in one file, in the order the editor lists them")
                 declaring[:1] = [file]
-            options.take(found, at)
+            options.take(found, at, text)
         for spelled, angled, line in includes(text):
             reached = owner.resolved(declarations, file, spelled, angled, f"{file.as_posix()}:{line}")
             if reached is not None:
@@ -467,7 +520,7 @@ def main() -> None:
     if package is None:
         raise SystemExit(f"{args.package}: no package of that path is declared")
     if args.step == "options":
-        options, read = gathered(package, declarations)
+        options, read = gathered(package, declarations, args.target)
         config = {"name": args.config or args.release.lower(), "release": args.release, "target": args.target}
         written(args.out, options.header(package.fields, config), [*read, *declarations.files])
     else:

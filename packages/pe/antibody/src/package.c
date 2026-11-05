@@ -85,7 +85,7 @@ STATIC_ASSERT(PE2_OPTION(MOTE_INWARD_FRAMES) > 0 && PE2_OPTION(MOTE_LAST_FRAME) 
 /// The cast's tuning at one Parasite Energy level, by the level digit of the attachment id less one. A scale is at once
 /// the drawing's brightness (its low byte the red and green) and, multiplied up, each ring's radius.
 typedef struct {
-    s16 wedges;          // Glow wedges fanned around the rings; the yaw table holds 16
+    s16 wedges;          // Glow wedges fanned around the rings
     s16 scaleLimit;      // The scale the growth ends at, which the fading rings keep
     s16 scaleStep;       // Scale gained each frame of growth; at level 3 the fading band and wedges keep gaining it
     s16 moteSize;        // Size a mote is spawned with
@@ -93,15 +93,29 @@ typedef struct {
     s16 moteRadius;      // Radius of the circle each burst is spawned on
     s16 moteInterval;    // Frames between bursts
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
-enum { MAX_CAST_WEDGES = 16 };
-
-/// Levels 1 to 3.
-static _LevelTuning _gLevelTuning[] = {
+PE2_EDITOR_LABEL("Levels")
+/// The cast at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 8, 0x0090, 5, 0x0200, 0x0080, 0x0600, 8 },
     { 12, 0x00C0, 6, 0x0300, 0x0100, 0x0700, 6 },
-    { MAX_CAST_WEDGES, 0x00F0, 7, 0x0400, 0x0180, 0x0800, 4 },
+    { 16, 0x00F0, 7, 0x0400, 0x0180, 0x0800, 4 },
+})
+PE2_EDITOR_LABEL("")
+
+/// The most wedges any level fans, which the yaw table holds.
+enum {
+    MAX_CAST_WEDGES =
+        LARGER(LARGER(PE2_OPTION_AT(LEVELS, 0, wedges), PE2_OPTION_AT(LEVELS, 1, wedges)), PE2_OPTION_AT(LEVELS, 2, wedges))
 };
+STATIC_ASSERT(PE2_OPTION_AT(LEVELS, 0, wedges) > 0 && PE2_OPTION_AT(LEVELS, 1, wedges) > 0 && PE2_OPTION_AT(LEVELS, 2, wedges) > 0,
+              every_level_fans_wedges);
+STATIC_ASSERT(PE2_OPTION_AT(LEVELS, 0, moteInterval) > 0 && PE2_OPTION_AT(LEVELS, 1, moteInterval) > 0 &&
+                  PE2_OPTION_AT(LEVELS, 2, moteInterval) > 0,
+              every_level_bursts);
+
+static _LevelTuning _gLevelTuning[] = PE2_OPTION(LEVELS);
 
 /// The cue each level's cast plays.
 static s32 _gCastSoundScripts[ARRAY_SIZE(_gLevelTuning)] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };

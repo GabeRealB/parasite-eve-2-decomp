@@ -88,6 +88,7 @@ typedef struct {
     s16 narrowFlameFrames; // Frames of narrow flames; the next, wide, ends the line and applies the spell
     s16 emitterFrames;     // Frames an emitter lives, and its rumble lasts
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
 /// Strip lengths shared by the drawers and the ember task's stopping tests.
 enum {
@@ -102,12 +103,16 @@ static void _drawSmallFlame(const GfxCoord* coord, s16 animationFrame, s16 sizeF
 static void _drawEmber(const GfxCoord* coord, s32 animationFrame, s16 sizeFactor);
 static void _drawLargeFlame(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor);
 
-/// Levels 1 to 3.
-static _LevelTuning _gLevelTuning[] = {
+PE2_EDITOR_LABEL("Levels")
+/// The lines at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 0x0060, 0x0120, 7, 21 },
     { 0x0055, 0x0187, 8, 23 },
     { 0x004C, 0x01F3, 9, 25 },
-};
+})
+PE2_EDITOR_LABEL("")
+
+static _LevelTuning _gLevelTuning[] = PE2_OPTION(LEVELS);
 
 /// The cue each level's lines play as they ignite.
 static s32 _gIgnitionSoundScripts[ARRAY_SIZE(_gLevelTuning)] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };

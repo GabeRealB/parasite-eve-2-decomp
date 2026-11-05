@@ -11,12 +11,34 @@
  * or the end of the file, where the label of what included it goes on; "" closes it. */
 #define PE2_EDITOR_LABEL(label)
 
-/* PE2_OPTION_DEF(WEAPON_INDEX, int), PE2_OPTION_DEF(IDLE_TIMEOUT_TICKS, int, 900), PE2_OPTION_DEF(FINISH, enum, matte, gloss):
- * a value set on a package in the editor. An int, bool or string may give its default after its type, which what the
- * package sets overrides; one without has to be set. In no #if. */
+/* PE2_TYPE(_LevelTuning): registers the typedef before it in the same file with the build, so an option can be of it.
+ * A registered type is an alias of an integer primitive, or a struct whose fields are integer primitives, registered
+ * types, or fixed arrays of either, one to a declaration; never a pointer. A primitive is one of core's fixed-size
+ * integers (s8 to u64, i8 to i64, byte, the Q types) or one of C's at the target's size (char, short, int, long, long
+ * long, signed or unsigned). It declares no slot, so a header may register one: a public header's types are its
+ * dependents' too. */
+#define PE2_TYPE(name)
+
+/* PE2_OPTION_DEF(WEAPON_INDEX, int), PE2_OPTION_DEF(IDLE_TIMEOUT_TICKS, int, 900), PE2_OPTION_DEF(FINISH, enum, matte, gloss),
+ * PE2_OPTION_DEF(RING_Y, s16, -1024), PE2_OPTION_DEF(LEVELS, _LevelTuning[3], { { 8, 0x90 }, ... }): a value set on a
+ * package in the editor, of a built-in type, an integer primitive or a registered type, or a fixed array of either, or
+ * a dynamic one (_Wave[]), whose length is what it holds, one or more. It may give its default after its type - a C
+ * initializer for a struct or an array - which what the package sets overrides; one without has to be set. PE2_OPTION
+ * reads it whole; PE2_OPTION_AT(LEVELS, 2, wedges) one integer of a struct or an array, by its path;
+ * PE2_OPTION_COUNT(LEVELS) an array's length. Only int, bool and enum options are read in #if. */
 #define PE2_OPTION_DEF(...)
 #define PE2_OPTION(name) pe2_option_##name
 #define PE2_OPTION_IS(name, member) pe2_option_##name##_is_##member
+#define PE2_OPTION_COUNT(name) pe2_option_##name##_count
+#define PE2_OPTION_AT(...) PE2_OPTION_AT_(PE2_OPTION_AT_COUNT(__VA_ARGS__, 6, 5, 4, 3, 2, 1, 0), __VA_ARGS__)
+#define PE2_OPTION_AT_COUNT(_1, _2, _3, _4, _5, _6, count, ...) count
+#define PE2_OPTION_AT_(count, ...) PE2_OPTION_AT__(count, __VA_ARGS__)
+#define PE2_OPTION_AT__(count, ...) PE2_OPTION_AT_##count(__VA_ARGS__)
+#define PE2_OPTION_AT_2(name, a) pe2_option_##name##_##a
+#define PE2_OPTION_AT_3(name, a, b) pe2_option_##name##_##a##_##b
+#define PE2_OPTION_AT_4(name, a, b, c) pe2_option_##name##_##a##_##b##_##c
+#define PE2_OPTION_AT_5(name, a, b, c, d) pe2_option_##name##_##a##_##b##_##c##_##d
+#define PE2_OPTION_AT_6(name, a, b, c, d, e) pe2_option_##name##_##a##_##b##_##c##_##d##_##e
 
 /* PE2_CONFIG(release), PE2_CONFIG_IS(target, psx): the build in use, by name, release or target. */
 #define PE2_CONFIG(key) pe2_config_##key

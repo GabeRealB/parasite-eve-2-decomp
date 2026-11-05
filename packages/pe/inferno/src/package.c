@@ -116,11 +116,39 @@ typedef struct {
     s32     sxy3;                          // Packed screen position of vertex 3
 } _FanScratch;
 
-/// The two bands' base radius, lift and spread.
-static EffectBandShape _gFanBandShapes[FAN_BAND_COUNT] = {
+PE2_EDITOR_LABEL("Bands")
+/// A fan's two bands' base radius, lift and spread.
+PE2_OPTION_DEF(BANDS, EffectBandShape[2], {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
-};
+})
+PE2_EDITOR_LABEL("")
+
+static EffectBandShape _gFanBandShapes[FAN_BAND_COUNT] = PE2_OPTION(BANDS);
+
+/// How a fan of each variant grows and fades, each frame: the variants are in the order the fan task takes them.
+typedef struct {
+    s16 fade;   // Brightness lost; the fan goes once it has less than this left
+    s16 radius; // Radius gained by both bands
+    s16 lift;   // Height the rising band's top gains; the center fan of level 3 rises to the lift limit, then fades
+    s16 spread; // Spread both tops gain
+} _FanVariant;
+PE2_TYPE(_FanVariant)
+
+PE2_EDITOR_LABEL("Fan variants")
+/// Grow then fade, stationary burst, drifting burst, wide ignition, shallow ring, fast ignition.
+PE2_OPTION_DEF(VARIANTS, _FanVariant[6], {
+    { 4, 0x20, 0xC0, 0x18 },
+    { 8, 0x20, 0xC0, 0x18 },
+    { 8, 0x20, 0xC0, 0x18 },
+    { 6, 0x40, 0xC0, 0x10 },
+    { 6, 0x40, 0x40, 0x18 },
+    { 6, 0x80, 0x20, 0x20 },
+})
+PE2_EDITOR_LABEL("")
+
+/// A variant's growth and fade, read as constants: no table of them is stored.
+#define FAN_VARIANT(variant, field) PE2_OPTION_AT(VARIANTS, variant, field)
 
 /// The cue each level's cast plays.
 static s32 _gCastSoundScripts[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
@@ -350,17 +378,14 @@ static inline void _fadeAndDrawFanBands(EffectWork* work, const GfxCoord* coord,
 void infernoFlameFanTask(Task* task)
 {
     enum {
-        FAN_STATE_INITIALIZE          = 0,
-        FAN_STATE_GROW_THEN_FADE      = 1,
-        FAN_STATE_STATIONARY_BURST    = 2,
-        FAN_STATE_DRIFTING_BURST      = 3,
-        FAN_STATE_WIDE_IGNITION       = 4,
-        FAN_STATE_SHALLOW_RING        = 5,
-        FAN_STATE_FAST_IGNITION       = 6,
-        FAN_SLOW_BRIGHTNESS_DECAY     = 4,
-        FAN_BURST_BRIGHTNESS_DECAY    = 8,
-        FAN_IGNITION_BRIGHTNESS_DECAY = 6,
-        FAN_RANDOM_PHASE_SHIFT        = 16
+        FAN_STATE_INITIALIZE       = 0,
+        FAN_STATE_GROW_THEN_FADE   = 1,
+        FAN_STATE_STATIONARY_BURST = 2,
+        FAN_STATE_DRIFTING_BURST   = 3,
+        FAN_STATE_WIDE_IGNITION    = 4,
+        FAN_STATE_SHALLOW_RING     = 5,
+        FAN_STATE_FAST_IGNITION    = 6,
+        FAN_RANDOM_PHASE_SHIFT     = 16
     };
     EffectWork*       work;
     GfxCoord*         coord;
@@ -413,22 +438,22 @@ void infernoFlameFanTask(Task* task)
             return;
         case FAN_STATE_GROW_THEN_FADE:
             // The centered fan reaches its lift limit before brightness starts fading.
-            if (work->scale >= FAN_SLOW_BRIGHTNESS_DECAY + 1) {
+            if (work->scale >= FAN_VARIANT(0, fade) + 1) {
                 if (work->period < PE2_OPTION(FAN_LIFT_LIMIT)) {
-                    work->period = work->period + 0xC0;
+                    work->period = work->period + FAN_VARIANT(0, lift);
                 } else {
-                    work->scale = work->scale - FAN_SLOW_BRIGHTNESS_DECAY;
+                    work->scale = work->scale - FAN_VARIANT(0, fade);
                 }
-                work->angle = work->angle + 0x20;
-                work->step  = work->step + 0x18;
+                work->angle = work->angle + FAN_VARIANT(0, radius);
+                work->step  = work->step + FAN_VARIANT(0, spread);
                 _drawRisingFanBand(work, coord, FAN_RISING_BAND, texturePhase);
                 _drawConstantLiftFanBand(work, coord, FAN_CONSTANT_LIFT_BAND, texturePhase);
                 return;
             }
             break;
         case FAN_STATE_STATIONARY_BURST:
-            if (work->scale >= FAN_BURST_BRIGHTNESS_DECAY + 1) {
-                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_BURST_BRIGHTNESS_DECAY, 0x20, 0xC0, 0x18);
+            if (work->scale >= FAN_VARIANT(1, fade) + 1) {
+                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_VARIANT(1, fade), FAN_VARIANT(1, radius), FAN_VARIANT(1, lift), FAN_VARIANT(1, spread));
                 return;
             }
             break;
@@ -438,26 +463,26 @@ void infernoFlameFanTask(Task* task)
             coord->coord.t[1]  += work->move.vy;
             coord->coord.t[2]  += work->move.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (work->scale >= FAN_BURST_BRIGHTNESS_DECAY + 1) {
-                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_BURST_BRIGHTNESS_DECAY, 0x20, 0xC0, 0x18);
+            if (work->scale >= FAN_VARIANT(2, fade) + 1) {
+                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_VARIANT(2, fade), FAN_VARIANT(2, radius), FAN_VARIANT(2, lift), FAN_VARIANT(2, spread));
                 return;
             }
             break;
         case FAN_STATE_WIDE_IGNITION:
-            if (work->scale >= FAN_IGNITION_BRIGHTNESS_DECAY + 1) {
-                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_IGNITION_BRIGHTNESS_DECAY, 0x40, 0xC0, 0x10);
+            if (work->scale >= FAN_VARIANT(3, fade) + 1) {
+                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_VARIANT(3, fade), FAN_VARIANT(3, radius), FAN_VARIANT(3, lift), FAN_VARIANT(3, spread));
                 return;
             }
             break;
         case FAN_STATE_SHALLOW_RING:
-            if (work->scale >= FAN_IGNITION_BRIGHTNESS_DECAY + 1) {
-                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_IGNITION_BRIGHTNESS_DECAY, 0x40, 0x40, 0x18);
+            if (work->scale >= FAN_VARIANT(4, fade) + 1) {
+                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_VARIANT(4, fade), FAN_VARIANT(4, radius), FAN_VARIANT(4, lift), FAN_VARIANT(4, spread));
                 return;
             }
             break;
         case FAN_STATE_FAST_IGNITION:
-            if (work->scale >= FAN_IGNITION_BRIGHTNESS_DECAY + 1) {
-                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_IGNITION_BRIGHTNESS_DECAY, 0x80, 0x20, 0x20);
+            if (work->scale >= FAN_VARIANT(5, fade) + 1) {
+                _fadeAndDrawFanBands(work, coord, texturePhase, FAN_VARIANT(5, fade), FAN_VARIANT(5, radius), FAN_VARIANT(5, lift), FAN_VARIANT(5, spread));
                 return;
             }
             break;
@@ -603,3 +628,5 @@ static void _drawConstantLiftFanBand(const EffectWork* work, const GfxCoord* coo
 }
 
 #undef BUILD_FAN_RIMS
+
+#undef FAN_VARIANT

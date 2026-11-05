@@ -107,6 +107,7 @@ typedef struct {
     s16 fullSize; // Size the ball charges to before it launches, and bursts from
     s16 sizeStep; // Size gained or lost each frame of charging, bursting or fading; also how far it rises each frame of charging
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
 /// A ball's collision, which its task allocates and frees: a sphere, linked while the ball flies with half its size as
 /// its radius, and the one contact it holds; an enemy's body in it bursts the ball.
@@ -142,12 +143,18 @@ static s32 _gSoundScripts[SOUND_SELECTOR_COUNT] = {
     0xE0310001,
 };
 
-/// Levels 1 to 3.
-static _LevelTuning _gLevelTuning[PE_LEVEL_COUNT] = {
+PE2_EDITOR_LABEL("Levels")
+/// A ball at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 0x0400, 0x0040 },
     { 0x0480, 0x0048 },
     { 0x0500, 0x0050 },
-};
+})
+PE2_EDITOR_LABEL("")
+
+STATIC_ASSERT(PE2_OPTION_AT(LEVELS, 0, sizeStep) > 0 && PE2_OPTION_AT(LEVELS, 1, sizeStep) > 0 && PE2_OPTION_AT(LEVELS, 2, sizeStep) > 0, every_sizeStep_is_positive);
+
+static _LevelTuning _gLevelTuning[PE_LEVEL_COUNT] = PE2_OPTION(LEVELS);
 
 /// Each charge band segment's random offset into the band's animation, chosen when a cast starts.
 static s16 _gChargeBandFrameOffsets[EFFECT_BAND_SEGMENT_COUNT];

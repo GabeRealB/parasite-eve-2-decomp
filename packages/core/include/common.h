@@ -73,6 +73,9 @@
 #define COLOR_BLUE(color)  (((color) >> 16) & 0xFF)
 #define IS_COLOR(value)    ((value) >= 0 && (value) <= 0xFFFFFF)
 
+/// The larger of two values, each evaluated twice: for a size that holds the largest of several, as a constant expression.
+#define LARGER(a, b) ((a) > (b) ? (a) : (b))
+
 /// Whether a value is a power of two, as an option standing for a mask (a range, odds) must be.
 #define POWER_OF_TWO(value) ((value) > 0 && ((value) & ((value) - 1)) == 0)
 

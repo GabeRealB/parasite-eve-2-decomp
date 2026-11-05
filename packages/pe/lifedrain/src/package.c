@@ -93,23 +93,29 @@ STATIC_ASSERT(PE2_OPTION(BRIGHTNESS_STEP) > 0 && PE2_OPTION(RING_FADE_STEP) > 0,
 /// The cast's tuning at one Parasite Energy level, by the level digit of the attachment id less one. Brightness is the
 /// blue channel's.
 typedef struct {
-    s16 wedgeCount;  // Glow wedges fanned around the funnel; the yaw table holds 16
+    s16 wedgeCount;  // Glow wedges fanned around the funnel
     s16 brightness;  // The flash's and the funnel's; a ring starts at it, growing by a third of it and widening by half
     s16 outerOffset; // A ring's first width; from level 2, how far out the funnel's dimmer band is
     s16 radiusLimit; // Radius that ends the funnel's growth; also its sparks' size (and a mote's, read at level 1)
     s16 radiusStep;  // Radius gained each frame, growing or fading
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
 static void _drawMoteBillboards(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor);
 
-enum { MAX_CAST_WEDGES = 16 };
-
-/// Levels 1 to 3; a mote reads level 1's at every level, by an index it never sets.
-static _LevelTuning _gLevelTuning[] = {
+PE2_EDITOR_LABEL("Levels")
+/// The cast at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 8, 0x0080, 0x0100, 0x0400, 0x0040 },
     { 12, 0x00B0, 0x0200, 0x0500, 0x0048 },
-    { MAX_CAST_WEDGES, 0x00E0, 0x0300, 0x0600, 0x0050 },
-};
+    { 16, 0x00E0, 0x0300, 0x0600, 0x0050 },
+})
+PE2_EDITOR_LABEL("")
+
+/// The most any level has, which its table holds.
+enum { MAX_CAST_WEDGES = LARGER(LARGER(PE2_OPTION_AT(LEVELS, 0, wedgeCount), PE2_OPTION_AT(LEVELS, 1, wedgeCount)), PE2_OPTION_AT(LEVELS, 2, wedgeCount)) };
+
+static _LevelTuning _gLevelTuning[] = PE2_OPTION(LEVELS);
 
 enum {
     EMPTY_SOUND_START     = 0,

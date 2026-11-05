@@ -128,6 +128,7 @@ typedef struct {
     s16 radiusStep;        // Added each frame to the ring's radius, its halo's size and its strips' length
     u16 stripScale;        // Scale of every strip, and of a shard's own sprite; a shard pinned to its coordinate doubles it
 } _LevelParams;
+PE2_TYPE(_LevelParams)
 
 static void _drawScreenFlash(s16 brightness);
 
@@ -139,14 +140,20 @@ enum {
     TRIG_SHIFT      = 12, // rsin/rcos return Q12 values
 };
 
-enum { MAX_CAST_STRIPS = 8 };
-
-/// Levels 1 to 3.
-static _LevelParams _gLevelParams[] = {
+PE2_EDITOR_LABEL("Levels")
+/// The cast at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelParams[3], {
     { 4, 0x0400, 192, 0x0280 },
     { 6, 0x0500, 256, 0x0300 },
-    { MAX_CAST_STRIPS, 0x0600, 320, 0x0400 },
-};
+    { 8, 0x0600, 320, 0x0400 },
+})
+PE2_EDITOR_LABEL("")
+
+/// The most any level has, which its table holds.
+enum { MAX_CAST_STRIPS = LARGER(LARGER(PE2_OPTION_AT(LEVELS, 0, stripCount), PE2_OPTION_AT(LEVELS, 1, stripCount)), PE2_OPTION_AT(LEVELS, 2, stripCount)) };
+STATIC_ASSERT(PE2_OPTION_AT(LEVELS, 0, stripCount) > 0 && PE2_OPTION_AT(LEVELS, 1, stripCount) > 0 && PE2_OPTION_AT(LEVELS, 2, stripCount) > 0, every_stripCount_is_positive);
+
+static _LevelParams _gLevelParams[] = PE2_OPTION(LEVELS);
 
 /// The cue each level's cast plays.
 static s32 _gCastSoundScripts[ARRAY_SIZE(_gLevelParams)] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };

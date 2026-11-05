@@ -78,20 +78,26 @@ STATIC_ASSERT(PE2_OPTION(BRIGHTNESS_STEP) > 0 && PE2_OPTION(FADING_SPARKLE_ODDS)
 /// The cast's tuning at one Parasite Energy level, by the level digit of the attachment id less one. Brightness is the
 /// green channel's; the radius sizes the fan and the bands, twice the disc's, and is how far out sparkles spawn.
 typedef struct {
-    s16 wedgeCount;      // Glow wedges in the fan, one random angle each; the angle table holds 16
+    s16 wedgeCount;      // Glow wedges in the fan, one random angle each
     s16 brightnessLimit; // Brightness the cast rises to
     s16 radiusStep;      // Radius gained per frame, while the cast grows and while it fades
     s16 radiusLimit;     // Radius that ends the growth; also the sprite radius each spark is spawned with
 } _LevelTuning;
+PE2_TYPE(_LevelTuning)
 
-enum { MAX_CAST_WEDGES = 16 };
-
-/// Levels 1 to 3.
-static _LevelTuning _gLevelTuning[] = {
+PE2_EDITOR_LABEL("Levels")
+/// The cast at levels 1 to 3.
+PE2_OPTION_DEF(LEVELS, _LevelTuning[3], {
     { 8, 0x0080, 0x0020, 0x0400 },
     { 12, 0x00B0, 0x0030, 0x0500 },
-    { MAX_CAST_WEDGES, 0x00E0, 0x0040, 0x0600 },
-};
+    { 16, 0x00E0, 0x0040, 0x0600 },
+})
+PE2_EDITOR_LABEL("")
+
+/// The most any level has, which its table holds.
+enum { MAX_CAST_WEDGES = LARGER(LARGER(PE2_OPTION_AT(LEVELS, 0, wedgeCount), PE2_OPTION_AT(LEVELS, 1, wedgeCount)), PE2_OPTION_AT(LEVELS, 2, wedgeCount)) };
+
+static _LevelTuning _gLevelTuning[] = PE2_OPTION(LEVELS);
 
 /// The cue each level's cast plays.
 static s32 _gCastSoundScripts[ARRAY_SIZE(_gLevelTuning)] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
