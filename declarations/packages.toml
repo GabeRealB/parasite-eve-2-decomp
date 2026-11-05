@@ -23,7 +23,6 @@ bind.menu = { uid = "uid://1cjow36nol6rd", path = "res://stage0/items.node", out
 bind.file = { uid = "uid://swvvgzpql4fk", path = "res://stage0/system/title.node" }
 
 [title.target.psx]
-slot = "resident"
 link_script = "psx/link.ld"
 
 # The Option / Key Configuration menu, which the engine's UI runs once it has loaded (uiUpdateOptionsAfterLoadTask).
@@ -39,7 +38,6 @@ dependencies = [
 ]
 
 [options.target.psx]
-slot = "options"
 link_script = "psx/link.ld"
 
 # A package of nothing but its id, in the file after the options menu's; nothing loads it.
@@ -49,7 +47,6 @@ template = "package"
 sources.private = ["src/package.s"]
 
 [stub_20200.target.psx]
-slot = "options"
 link_script = "psx/link.ld"
 
 # Packages with nothing of their own to build: what others include, and what they publish to link against.

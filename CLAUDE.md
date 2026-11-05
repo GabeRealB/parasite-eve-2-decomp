@@ -59,7 +59,6 @@ tables merged and its lists appended (`targeted`).
 | `packages/math` | `gte.h`: the GTE's commands as the COP2 words Sony's DMPSX made of the SDK's placeholders |
 | `packages/psyq` | the SDK: `include/`, a copy of `include/psyq` (which the decomp's tools read), and `lib/`, its objects and `snmain.s`, which the package compiles |
 | `packages/{engine,gameplay}/psx/symbols.ld` | made from their ELFs by ninja (`gen_package_library.py`), gitignored |
-| `configs/USA/package_slots.toml` | where each `slot` loads; `executable` is the PS-EXE, its header written by the target (`tools/buildsteps/psx_exe.py`) |
 | `configs/USA/resident.toml` | the models a package carries, which `dump_asset_db.py` catalogs |
 
 **A package reaches another by depending on it, as Unreal's modules do.** Its

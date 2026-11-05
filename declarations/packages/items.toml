@@ -1,5 +1,5 @@
 # The items cast like a Parasite Energy - the flare, the pepper spray and the combat light: what each source builds and
-# where it loads, the Parasite Energies' slot.
+# its link script, at the Parasite Energies' slot.
 
 [flare]
 uid = "uid://19rsccrsbnj46"
@@ -13,7 +13,6 @@ dependencies = [
 ]
 
 [flare.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [pepper_spray]
@@ -31,7 +30,6 @@ dependencies = [
 ]
 
 [pepper_spray.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [combat_light]
@@ -49,5 +47,4 @@ dependencies = [
 ]
 
 [combat_light.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"

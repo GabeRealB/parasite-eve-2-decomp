@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""The PS1's executable: an image in the `executable` slot, with the header the console's BIOS loads it by.
+"""The PS1's executable: a package's image its target declares `executable`, with the header the console's BIOS
+loads it by.
 
-    psx_exe.py IMAGE ELF OUT --address ADDRESS --release RELEASE
+    psx_exe.py IMAGE ELF OUT --release RELEASE
 
 The header is the target's, not a package's: every field follows from the link or from the target - the entry point
-(the ELF's), where the image loads (the slot's address) and how much of it (its bytes, padded to whole sectors), the
+(the ELF's), where the image loads (its link's, the first segment's address) and how much of it (its bytes, padded to whole sectors), the
 stack the BIOS sets (the target's), and the license string of the release's region. The editor's psx extension
 writes the same bytes (`exe_header`).
 """
@@ -32,6 +33,17 @@ def entry_of(elf: bytes) -> int:
     return struct.unpack_from("<I", elf, 0x18)[0]
 
 
+def load_address(elf: bytes) -> int:
+    """Where an ELF32 little-endian file's first loaded segment goes."""
+    phoff, = struct.unpack_from("<I", elf, 0x1C)
+    phentsize, phnum = struct.unpack_from("<HH", elf, 0x2A)
+    for index in range(phnum):
+        kind, _offset, vaddr = struct.unpack_from("<III", elf, phoff + index * phentsize)
+        if kind == 1:
+            return vaddr
+    raise SystemExit("the ELF loads nothing")
+
+
 def executable(image: bytes, entry: int, address: int, release: str) -> bytes:
     """The header and the image, padded to whole sectors."""
     size = -(-len(image) // SECTOR) * SECTOR
@@ -45,10 +57,10 @@ def main() -> None:
     parser.add_argument("image", type=Path)
     parser.add_argument("elf", type=Path)
     parser.add_argument("out", type=Path)
-    parser.add_argument("--address", type=lambda text: int(text, 0), required=True)
     parser.add_argument("--release", required=True, choices=sorted(REGION))
     args = parser.parse_args()
-    made = executable(args.image.read_bytes(), entry_of(args.elf.read_bytes()), args.address, args.release)
+    elf = args.elf.read_bytes()
+    made = executable(args.image.read_bytes(), entry_of(elf), load_address(elf), args.release)
     args.out.write_bytes(made)
 
 

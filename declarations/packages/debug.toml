@@ -12,5 +12,4 @@ dependencies = [
 ]
 
 [enemy_names.target.psx]
-slot = "debug"
 link_script = "psx/link.ld"

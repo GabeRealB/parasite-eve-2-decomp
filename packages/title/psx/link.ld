@@ -1,4 +1,5 @@
-/* The disc's layout of this package: its id, its sections in the disc's order. SLOT is the target's. */
+/* The disc's layout of this package: its id, its sections in the disc's order, at the resident slot, where the gameplay image loads once the title is done with it. */
+SLOT = 0x80093800;
 PROVIDE(func_807246B4 = 0x807246B4);
 SECTIONS
 {

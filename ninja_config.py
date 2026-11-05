@@ -1291,7 +1291,6 @@ def ninja_packages(
     images = BUILD_DIR / version_dir / "out"
     package_flags = COMPILE_COMMANDS_FLAGS.replace(INCLUDE_FLAGS, "").strip()
 
-    slots = tomllib.loads(Path(CONFIG_DIR, version_dir, "package_slots.toml").read_text(encoding="utf-8"))
     for path in declarations.published():
         library = path.parts[1]
         # A scoped build has no edge for an image it left out: the last whole build's symbols stand.
@@ -1391,14 +1390,13 @@ def ninja_packages(
         objects, against = linked[package.path]
         inputs = provided.get(package.name, ([], []))[0] + [obj for library in objects for obj in provided.get(library.name, ([], []))[1]]
         image = (images / package.name.replace("/", "_")).as_posix()
-        slot = f"0x{slots[package.slot]:X}"
         layout, own_symbols = (out / "layout.elf").as_posix(), (out / "symbols.ld").as_posix()
         ninja_file.build(
             outputs=layout,
             rule="package-layout",
             inputs=inputs,
             implicit=[package.link_script.as_posix()],
-            variables={"slot": slot, "script": package.link_script.as_posix()},
+            variables={"script": package.link_script.as_posix()},
         )
         ninja_file.build(outputs=own_symbols, rule="package-symbols", inputs=layout, implicit=[str(GEN_PACKAGE_LIBRARY)], variables={"exported": "--exported"})
         symbols = [
@@ -1411,12 +1409,11 @@ def ninja_packages(
             inputs=inputs,
             implicit=[package.link_script.as_posix(), *symbols],
             variables={
-                "slot": slot,
                 "script": package.link_script.as_posix(),
                 "published": " ".join(f"-T {path}" for path in symbols),
             },
         )
-        if package.slot == "executable":
+        if package.fields.get("executable"):
             # The image the BIOS loads, under the release's name, with the header the target writes around it.
             exe = (images / GAME_VERSIONS[game_version_idx].metadata.exe_disk1).as_posix()
             ninja_file.build(outputs=f"{image}.image", rule="objcopy", inputs=f"{image}.elf", variables={"sections": "-j .image"})
@@ -1425,7 +1422,7 @@ def ninja_packages(
                 rule="psx-exe",
                 inputs=[f"{image}.image", f"{image}.elf"],
                 implicit=[str(TOOLS_DIR / "buildsteps" / "psx_exe.py")],
-                variables={"address": slot, "release": version},
+                variables={"release": version},
             )
             built[package.name] = exe
             continue
@@ -1555,7 +1552,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "psx-exe",
         description="psx-exe $out",
-        command=f"{PYTHON} {TOOLS_DIR / 'buildsteps' / 'psx_exe.py'} $in $out --address $address --release $release",
+        command=f"{PYTHON} {TOOLS_DIR / 'buildsteps' / 'psx_exe.py'} $in $out --release $release",
     )
     # An image's layout alone: where its own names land, its references left open, so that what it publishes depends
     # on nothing another image publishes. A reference left open cannot be relocated (a jump to 0 does not reach), which
@@ -1563,12 +1560,12 @@ def ninja_build(
     ninja_rules_file.rule(
         "package-layout",
         description="package-layout $out",
-        command=f"{LD} {ENDIAN} -nostdlib --no-check-sections --unresolved-symbols=ignore-all --noinhibit-exec --defsym SLOT=$slot -T $script -o $out $in > /dev/null",
+        command=f"{LD} {ENDIAN} -nostdlib --no-check-sections --unresolved-symbols=ignore-all --noinhibit-exec -T $script -o $out $in > /dev/null",
     )
     ninja_rules_file.rule(
         "package-elf",
         description="package-elf $out",
-        command=f"{LD} {ENDIAN} {OPT_FLAGS} -nostdlib --no-check-sections --defsym SLOT=$slot -Map $out.map -T $script $published -o $out $in",
+        command=f"{LD} {ENDIAN} {OPT_FLAGS} -nostdlib --no-check-sections -Map $out.map -T $script $published -o $out $in",
     )
 
     if PLATFORM == Platform.Windows:

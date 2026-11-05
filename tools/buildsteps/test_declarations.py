@@ -95,7 +95,6 @@ template = "package"
 sources.private = ["src/*.c", "!src/*.inc.c"]
 
 [title.target.psx]
-slot = "resident"
 link_script = "psx/link.ld"
 
 [core]
@@ -114,7 +113,7 @@ uid = "uid://4"
 template = "package"
 """})
         package, = declared.packages()
-        self.assertEqual((package.path, package.name, package.slot), ("packages/title", "title", "resident"))
+        self.assertEqual((package.path, package.name), ("packages/title", "title"))
         self.assertEqual(package.link_script, Path("packages/title/psx/link.ld"))
         self.assertEqual(declared.published(), [Path("packages/engine/psx/symbols.ld")])
         self.assertEqual({one.name for one in declared.every_package()}, {"title", "core", "engine", "no_target"})

@@ -25,7 +25,6 @@ dependencies = [
 ]
 
 [pyrokinesis.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [combustion]
@@ -44,7 +43,6 @@ dependencies = [
 ]
 
 [combustion.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [inferno]
@@ -61,7 +59,6 @@ dependencies = [
 ]
 
 [inferno.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [necrosis]
@@ -79,7 +76,6 @@ dependencies = [
 ]
 
 [necrosis.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [plasma]
@@ -97,7 +93,6 @@ dependencies = [
 ]
 
 [plasma.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [apobiosis]
@@ -116,7 +111,6 @@ dependencies = [
 ]
 
 [apobiosis.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [metabolism]
@@ -133,7 +127,6 @@ dependencies = [
 ]
 
 [metabolism.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [healing]
@@ -151,7 +144,6 @@ dependencies = [
 ]
 
 [healing.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [lifedrain]
@@ -170,7 +162,6 @@ dependencies = [
 ]
 
 [lifedrain.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [antibody]
@@ -190,7 +181,6 @@ dependencies = [
 ]
 
 [antibody.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [energyshot]
@@ -208,7 +198,6 @@ dependencies = [
 ]
 
 [energyshot.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"
 
 [energyball]
@@ -227,5 +216,4 @@ dependencies = [
 ]
 
 [energyball.target.psx]
-slot = "overlay"
 link_script = "psx/link.ld"

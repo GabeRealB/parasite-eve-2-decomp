@@ -1,4 +1,5 @@
-/* The disc's layout of this package: its id, its sections in the disc's order. SLOT is the target's. */
+/* The disc's layout of this package: its id, its sections in the disc's order, at Aya's slot, where her costume loads. */
+SLOT = 0x80115770;
 SECTIONS
 {
     .image SLOT : SUBALIGN(4)

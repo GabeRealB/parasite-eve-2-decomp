@@ -172,10 +172,6 @@ class Package:
         return targeted(self.declaration.table, self.target)
 
     @property
-    def slot(self) -> str:
-        return self.fields["slot"]
-
-    @property
     def bound(self) -> dict:
         """What fills its slots, by name."""
         return self.fields.get("bind", {})
