@@ -1,20 +1,18 @@
 #ifndef GAMEPLAY_ENEMY_H
 #define GAMEPLAY_ENEMY_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "areaplace.h"
 #include "enemy_params.h"
 #include "world_targets_types.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
-#include PE2_INCLUDE(engine, session_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/coord.h>
+#include <engine/session_types.h>
+#include <engine/task_types.h>
 
 /// Bit of `Enemy::reactionFlags` requesting an immediate actor stagger.
 ///

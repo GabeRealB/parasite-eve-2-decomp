@@ -1,13 +1,12 @@
 #ifndef GAMEPLAY_MODEL_OBJECTS_H
 #define GAMEPLAY_MODEL_OBJECTS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "display.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
-#include PE2_INCLUDE(engine, tmd_types.h)
+#include <engine/task_types.h>
+#include <engine/tmd_types.h>
 
 /// Dispatches the four-state lifecycle of a task-owned attached child model.
 ///

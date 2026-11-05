@@ -1,7 +1,7 @@
 #ifndef ENGINE_GAME_DEBUG_TYPES_H
 #define ENGINE_GAME_DEBUG_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 // Established diagnostic selection, input override modes and loading states.
 enum {

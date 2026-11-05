@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_PAD_SCRIPT_H
 #define GAMEPLAY_PAD_SCRIPT_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 // Scripted controller-vibration commands and their task entry points.
 

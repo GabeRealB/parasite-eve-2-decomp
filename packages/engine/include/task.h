@@ -1,7 +1,7 @@
 #ifndef ENGINE_TASK_H
 #define ENGINE_TASK_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "task_ids.h"
 #include "task_types.h"

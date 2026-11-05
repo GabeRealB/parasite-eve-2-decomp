@@ -1,7 +1,7 @@
 #ifndef ENGINE_TMD_STREAM_TYPES_H
 #define ENGINE_TMD_STREAM_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Read-only stream prefix projecting and lighting one corner into separate XY/RGB destinations.
 ///

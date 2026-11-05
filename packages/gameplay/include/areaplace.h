@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_AREAPLACE_H
 #define GAMEPLAY_AREAPLACE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Reserved resource-entry ID that ends a placement-table walk.
 ///

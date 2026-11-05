@@ -1,12 +1,11 @@
 #ifndef GAMEPLAY_DISPLAY_H
 #define GAMEPLAY_DISPLAY_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
-#include PE2_INCLUDE(engine, task_types.h)
-#include PE2_INCLUDE(engine, tmd_types.h)
+#include <engine/coord.h>
+#include <engine/task_types.h>
+#include <engine/tmd_types.h>
 
 /// Reveals the loaded session from black and releases its display hold.
 ///

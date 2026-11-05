@@ -1,28 +1,27 @@
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "title.h"
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, memory.h)
-#include PE2_INCLUDE(psyq, rand.h)
-#include PE2_INCLUDE(psyq, stdio.h)
+#include <psyq/memory.h>
+#include <psyq/rand.h>
+#include <psyq/stdio.h>
 
-#include PE2_INCLUDE(engine, display.h)
-#include PE2_INCLUDE(engine, fs.h)
-#include PE2_INCLUDE(engine, game_debug.h)
-#include PE2_INCLUDE(engine, gameflag.h)
-#include PE2_INCLUDE(engine, gamemain.h)
-#include PE2_INCLUDE(engine, mc.h)
-#include PE2_INCLUDE(engine, mem.h)
-#include PE2_INCLUDE(engine, pad.h)
-#include PE2_INCLUDE(engine, scratch.h)
-#include PE2_INCLUDE(engine, session.h)
-#include PE2_INCLUDE(engine, sound.h)
-#include PE2_INCLUDE(engine, stream.h)
-#include PE2_INCLUDE(engine, task.h)
-#include PE2_INCLUDE(engine, text.h)
-#include PE2_INCLUDE(engine, ui.h)
-#include PE2_INCLUDE(engine, wipsys.h)
+#include <engine/display.h>
+#include <engine/fs.h>
+#include <engine/game_debug.h>
+#include <engine/gameflag.h>
+#include <engine/gamemain.h>
+#include <engine/mc.h>
+#include <engine/mem.h>
+#include <engine/pad.h>
+#include <engine/scratch.h>
+#include <engine/session.h>
+#include <engine/sound.h>
+#include <engine/stream.h>
+#include <engine/task.h>
+#include <engine/text.h>
+#include <engine/ui.h>
+#include <engine/wipsys.h>
 
 /// The chrome: one texture page of the rows the screen draws, a cell each.
 PE2_BIND(chrome, image)

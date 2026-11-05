@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_SCENE_H
 #define GAMEPLAY_SCENE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Control values shared by ordinary and parasite-energy effects.
 ///

@@ -1,13 +1,12 @@
 #ifndef GAMEPLAY_AREA_H
 #define GAMEPLAY_AREA_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "areaplace.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, gameflag_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/gameflag_types.h>
+#include <engine/task_types.h>
 
 /// Selectors for an area's global-library file-group base.
 ///

@@ -1,7 +1,7 @@
 #ifndef ENGINE_CDAUDIO_TYPES_H
 #define ENGINE_CDAUDIO_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// `CdAudioProgress::openStep` values: opening a track's stream.
 enum {

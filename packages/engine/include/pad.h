@@ -1,11 +1,10 @@
 #ifndef ENGINE_PAD_H
 #define ENGINE_PAD_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libetc.h)
+#include <psyq/sys/types.h>
+#include <psyq/libetc.h>
 
 #include "pad_types.h"
 

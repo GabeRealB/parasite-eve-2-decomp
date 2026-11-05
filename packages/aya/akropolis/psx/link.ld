@@ -4,11 +4,11 @@ SECTIONS
     .image SLOT : SUBALIGN(4)
     {
         LONG(0x0000002C);
-        */aya_akropolis/src/aya_akropolis.o(.data);
+        */aya/akropolis/src/package.o(.data);
     }
     .unstored (NOLOAD) : SUBALIGN(4)
     {
-        */aya_akropolis/src/aya_akropolis.o(.bss);
+        */aya/akropolis/src/package.o(.bss);
     }
     /DISCARD/ : { *(*); }
 }

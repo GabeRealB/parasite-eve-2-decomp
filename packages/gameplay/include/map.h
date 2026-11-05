@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_MAP_H
 #define GAMEPLAY_MAP_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, tmd_types.h)
+#include <engine/tmd_types.h>
 
 /// Area-map page sentinel for an area with no selectable map page.
 ///

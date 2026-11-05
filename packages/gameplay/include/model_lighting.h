@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_MODEL_LIGHTING_H
 #define GAMEPLAY_MODEL_LIGHTING_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, tmd_types.h)
+#include <engine/tmd_types.h>
 
 /// Sets the shared material greys used by environment-layer model drawing.
 ///

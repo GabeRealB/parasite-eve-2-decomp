@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ACTOR_SPAWN_TYPES_H
 #define GAMEPLAY_ACTOR_SPAWN_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Special yaw words resolved when preparing the player's facing for a warp.
 ///

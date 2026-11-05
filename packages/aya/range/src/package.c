@@ -1,28 +1,27 @@
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(aya, package)
-#include PE2_INCLUDE(aya, aya.h)
+#include <aya/aya.h>
 
 PE2_EDITOR_LABEL("Hands")
 PE2_BIND(hand_left_open, model)
-PE2_BIND_ARG(hand_left_open, _symbol, gAyaMistFirstPairHand0Model)
+PE2_BIND_ARG(hand_left_open, _symbol, gAyaRangeFirstPairHand0Model)
 PE2_VALUE(hand_left_open)
 
 PE2_BIND(hand_left_closed, model)
-PE2_BIND_ARG(hand_left_closed, _symbol, gAyaMistSecondPairHand0Model)
+PE2_BIND_ARG(hand_left_closed, _symbol, gAyaRangeSecondPairHand0Model)
 PE2_VALUE(hand_left_closed)
 
 PE2_BIND(hand_right_open, model)
-PE2_BIND_ARG(hand_right_open, _symbol, gAyaMistFirstPairHand1Model)
+PE2_BIND_ARG(hand_right_open, _symbol, gAyaRangeFirstPairHand1Model)
 PE2_VALUE(hand_right_open)
 
 PE2_BIND(hand_right_closed, model)
-PE2_BIND_ARG(hand_right_closed, _symbol, gAyaMistSecondPairHand1Model)
+PE2_BIND_ARG(hand_right_closed, _symbol, gAyaRangeSecondPairHand1Model)
 PE2_VALUE(hand_right_closed)
 
 PE2_EDITOR_LABEL("Body")
 PE2_BIND(body, model)
-PE2_BIND_ARG(body, _symbol, gAyaMistBodyModel)
+PE2_BIND_ARG(body, _symbol, gAyaRangeBodyModel)
 PE2_VALUE(body)
 
 PE2_EDITOR_LABEL("Face")
@@ -64,10 +63,10 @@ static GpuImageUpload _gMouthAlternateUploads[] = {
     { GPU_IMAGE_UPLOAD_END },
 };
 
-GpuImageUpload* gAyaMistEyesRestSequence[]    = { _gEyesOpenUploads, NULL };
-GpuImageUpload* gAyaMistEyesClosingSequence[] = { _gEyesOpenUploads, _gEyesHalfClosedUploads, _gEyesClosedUploads, NULL };
-GpuImageUpload* gAyaMistEyesOpeningSequence[] = { _gEyesClosedUploads, _gEyesHalfClosedUploads, _gEyesOpenUploads, NULL };
-GpuImageUpload* gAyaMistEyesBlinkSequence[]   = {
+GpuImageUpload* gAyaRangeEyesRestSequence[]    = { _gEyesOpenUploads, NULL };
+GpuImageUpload* gAyaRangeEyesClosingSequence[] = { _gEyesOpenUploads, _gEyesHalfClosedUploads, _gEyesClosedUploads, NULL };
+GpuImageUpload* gAyaRangeEyesOpeningSequence[] = { _gEyesClosedUploads, _gEyesHalfClosedUploads, _gEyesOpenUploads, NULL };
+GpuImageUpload* gAyaRangeEyesBlinkSequence[]   = {
     _gEyesOpenUploads,
     _gEyesHalfClosedUploads,
     _gEyesClosedUploads,
@@ -75,5 +74,5 @@ GpuImageUpload* gAyaMistEyesBlinkSequence[]   = {
     _gEyesOpenUploads,
     NULL,
 };
-GpuImageUpload* gAyaMistMouthRestSequence[]      = { _gMouthRestUploads, NULL };
-GpuImageUpload* gAyaMistMouthAlternateSequence[] = { _gMouthAlternateUploads, NULL };
+GpuImageUpload* gAyaRangeMouthRestSequence[]      = { _gMouthRestUploads, NULL };
+GpuImageUpload* gAyaRangeMouthAlternateSequence[] = { _gMouthAlternateUploads, NULL };

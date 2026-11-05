@@ -1,7 +1,7 @@
 #ifndef ENGINE_SCRATCH_H
 #define ENGINE_SCRATCH_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Byte offset from `PLAYSTATION_SCRATCHPAD_BASE` to the scratch-stack cursor slot.
 ///

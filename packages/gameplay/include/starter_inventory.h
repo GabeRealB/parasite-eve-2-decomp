@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_STARTER_INVENTORY_H
 #define GAMEPLAY_STARTER_INVENTORY_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, mc_types.h)
+#include <engine/mc_types.h>
 
 /// Number of container selectors accepted by the inventory-transfer screen.
 enum { INVENTORY_CONTAINER_COUNT = 12 };

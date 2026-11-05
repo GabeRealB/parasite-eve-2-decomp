@@ -142,7 +142,6 @@ CLANG_ARGS = [
     "-Iinclude/psyq",
     "-Iinclude/decomp",
     "-Ibuild/include",
-    "-Ipackages/core/include",
     "-D_LANGUAGE_C",
     "-DUSE_INCLUDE_ASM",
     "-DVER_USA",

@@ -1,19 +1,17 @@
 #ifndef GAMEPLAY_ACTOR_RENDER_H
 #define GAMEPLAY_ACTOR_RENDER_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
-#include PE2_INCLUDE(psyq, libgpu.h)
-#include PE2_INCLUDE(psyq, libgs.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gpu_image_upload.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/coord.h>
+#include <engine/task_types.h>
 
 /// Queues texture copies after placing the first entry on an actor's texture page.
 ///

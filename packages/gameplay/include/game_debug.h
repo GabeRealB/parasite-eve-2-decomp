@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_GAME_DEBUG_H
 #define GAMEPLAY_GAME_DEBUG_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Applies the diagnostic input override to one active-high controller sample.
 ///

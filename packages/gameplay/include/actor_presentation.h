@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ACTOR_PRESENTATION_H
 #define GAMEPLAY_ACTOR_PRESENTATION_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Scripted-control requests for the current player or companion.
 enum {

@@ -1,15 +1,14 @@
 #ifndef GAMEPLAY_PLAYER_STATE_H
 #define GAMEPLAY_PLAYER_STATE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "actor.h"
 #include "message.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
-#include PE2_INCLUDE(engine, session_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/coord.h>
+#include <engine/session_types.h>
+#include <engine/task_types.h>
 
 /// Restores the resident player's current HP and MP to their stored maxima.
 ///

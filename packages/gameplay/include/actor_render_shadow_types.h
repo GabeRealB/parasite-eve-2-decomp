@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ACTOR_RENDER_SHADOW_TYPES_H
 #define GAMEPLAY_ACTOR_RENDER_SHADOW_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Scratch-stack reservation for a model root's ground-shadow centre.
 ///

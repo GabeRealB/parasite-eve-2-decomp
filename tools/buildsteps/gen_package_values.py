@@ -21,12 +21,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from declarations import Declaration, Declarations, Package, references, uid_of  # noqa: E402
+from declarations import Declaration, Declarations, Package, includes, references, uid_of  # noqa: E402
 from package_tokenizers import Args, Reader, reached, tokens, type_of  # noqa: E402
 from stage0 import Stage0  # noqa: E402
 
 KNOWN = frozenset({
-    "PE2_BIND", "PE2_BIND_ARG", "PE2_BIND_SELF", "PE2_EDITOR_LABEL", "PE2_INCLUDE", "PE2_VALUE", "PE2_QUERY",
+    "PE2_BIND", "PE2_BIND_ARG", "PE2_BIND_SELF", "PE2_EDITOR_LABEL", "PE2_VALUE", "PE2_QUERY",
     "PE2_OPTION_DEF", "PE2_OPTION", "PE2_OPTION_IS", "PE2_CONFIG", "PE2_CONFIG_IS",
 })
 # The keys a query asks by.
@@ -42,7 +42,6 @@ LINE = 32_000
 DEFINED = re.compile(r"#[ \t]*define[ \t]+$")
 TAKING = re.compile(r"[ \t]*#[ \t]*define[ \t]+\w+\(")
 SKIPPED = re.compile(r'"(?:\\.|[^"\\])*"' r"|'(?:\\.|[^'\\])*'" r"|//[^\n]*|/\*.*?\*/" r"|\bPE2_[A-Z_]+\b", re.S)
-BESIDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"', re.M)
 
 
 @dataclass(frozen=True)
@@ -245,14 +244,10 @@ class Options:
         return header + f"#ifndef PE2_FIRST_PASS\n{unwritten}#endif\n"
 
 
-def gathered(package: Package, declarations: Declarations) -> tuple[Options, list[Path], set[str]]:
-    """What a package's C units and what they include say of options, every file read once, and the packages they
-    bind (`PE2_BIND(<name>, package)`), whose symbols its image links against."""
-    public = declarations.public()
-    own = package.include_path(declarations)
+def gathered(package: Package, declarations: Declarations) -> tuple[Options, list[Path]]:
+    """What a package's C units and what they include say of options, and every file read, once: each include is held
+    to the rules of the package whose file has it (`Package.resolved`), as the editor's gather holds it."""
     options, seen = Options(), []
-    bound: set[str] = set()
-    asked: list[tuple[str, str]] = []
 
     def read(file: Path) -> None:
         if file in seen:
@@ -261,29 +256,18 @@ def gathered(package: Package, declarations: Declarations) -> tuple[Options, lis
         text = file.read_text(encoding="latin-1")
         for found in uses(text):
             options.take(found, f"{file.as_posix()}:{found.line}")
-            if found.name == "PE2_BIND" and found.args[1:] == ("package",):
-                bound.add(found.args[0])
-            elif found.name == "PE2_INCLUDE" and found.args:
-                asked.append((found.args[0], f"{file.as_posix()}:{found.line}"))
-            if found.name == "PE2_INCLUDE" and len(found.args) == 2 and found.args[0] in public:
-                inside = public[found.args[0]] / found.args[1]
-                if inside.is_file():
-                    read(inside)
-        for name in BESIDE.findall(text):
-            # Beside it, then on the include path, as cpp finds it.
-            for folder in (file.parent, *own):
-                if (folder / name).is_file():
-                    read(folder / name)
-                    break
+        owner = declarations.owner_of(file)
+        if owner is None:
+            raise SystemExit(f"{file.as_posix()} is no package's")
+        for spelled, angled, line in includes(text):
+            reached = owner.resolved(declarations, file, spelled, angled, f"{file.as_posix()}:{line}")
+            if reached is not None:
+                read(reached)
 
     for unit in package.units():
         if unit.suffix == ".c":
             read(unit)
-    # As the editor's gather: what is included through a binding needs that binding declared somewhere it reads.
-    for binding, at in asked:
-        if binding not in bound:
-            raise SystemExit(f"{at}: {binding} has no PE2_BIND({binding}, package)")
-    return options, seen, bound
+    return options, seen
 
 
 # --- values -------------------------------------------------------------------------------------------------------
@@ -470,7 +454,7 @@ def main() -> None:
     if package is None:
         raise SystemExit(f"{args.package}: no package of that path is declared")
     if args.step == "options":
-        options, read, _ = gathered(package, declarations)
+        options, read = gathered(package, declarations)
         config = {"name": args.config or args.release.lower(), "release": args.release, "target": args.target}
         written(args.out, options.header(package.fields, config), [*read, *declarations.files])
     else:

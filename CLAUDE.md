@@ -11,7 +11,7 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 - `src/<overlay>` decompiled C (`src/engine`, `src/gameplay`) and
   `src/<family>/<overlay>` for the generated overlay families (`src/weapons/m93r`, …)
 - `packages/` overlays migrated out of splat: `packages/title` and the four
-  `packages/aya/aya_*` are source, written by hand (see "Packages" below)
+  `packages/aya/*` are source, written by hand (see "Packages" below)
 - `include/<overlay>` headers for that unit (`include/weapons`, `include/rooms`, …); a package's public headers are
   its own `include/` (`packages/engine/include`, `packages/gameplay/include`), which split units include by the
   package's name (`engine/fs.h`)
@@ -23,7 +23,7 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 ### Packages
 
 A fully decompiled overlay leaves splat and becomes a package: `packages/title`
-and `packages/aya/aya_{mist,dryfield,akropolis,range}` so far. Its folder is its
+and Aya's costumes, `packages/aya/{mist,dryfield,akropolis,range}`, so far. Its folder is its
 source - `src/`, public `include/`, `psx/link.ld` - and its declaration
 (`declarations/packages/`, the path being the folder) says what fills its slots.
 The same files are compiled by two builds that know nothing of each other: this
@@ -32,7 +32,7 @@ repository's ninja build, which needs no Rust, and the editor's.
 | File | Role |
 |---|---|
 | `packages/<...>/src`, `include`, `psx/link.ld` | source, written by hand |
-| `packages/core/include/pe2.h` | core's one public file: the macros a source declares slots with, and through its private `src/` the types and helpers every package uses; written by hand |
+| `packages/core/include` | `pe2.h`, the macros a source declares slots and options with, and the types and helpers every package uses (`types.h`, `common.h`); written by hand |
 | `packages/{engine,gameplay}/include` | the public headers of the two images still split, written by hand like any package's |
 | `packages/math` | `gte.h`: the GTE's commands as the COP2 words Sony's DMPSX made of the SDK's placeholders |
 | `packages/psyq` | the SDK: `include/`, a copy of `include/psyq` (which the decomp's tools read), and `lib/`, its objects and `snmain.s`, which the package compiles |
@@ -40,14 +40,39 @@ repository's ninja build, which needs no Rust, and the editor's.
 | `configs/USA/package_slots.toml` | where each `slot` loads; `executable` is the PS-EXE, its header written by the target (`tools/buildsteps/psx_exe.py`) |
 | `configs/USA/resident.toml` | the models a package carries, which `dump_asset_db.py` catalogs |
 
-**A package reaches another two ways.** A slot, `PE2_BIND(engine, package)` with
-`#include PE2_INCLUDE(engine, fs.h)`, is a dependency the build may fill with
-another package. Its declaration's `dependencies` are fixed: each one's public
-folders go on its include path, after its own `include/` and `src/`, and theirs
-after them, so those headers are included by their plain names, as Unreal's
-modules are (`#include "pe2.h"`, `#include "title.h"`). Every package that
-compiles lists `core`. Both builds read the same list: `include_path` in
-`tools/buildsteps/declarations.py` and in the editor's `gather.rs`.
+**A package reaches another by depending on it, as Unreal's modules do.** Its
+declaration lists what it uses (`dependencies`, which a target may change like
+any list). A package is named by the packages it is in, not by its folders: its
+folder's name, after the name of the nearest package whose folder holds it
+(`engine`, `aya/mist`; `packages/stages/akropolis/rooms/patio`, where `stages`
+and `rooms` are plain folders, would be `akropolis/patio`). A name is one
+package's within the package it is in, or among those in none, which both
+builds check (`aya/akropolis` beside `akropolis/patio` is fine, two packages
+named `aya` are not). Its image is the file the release names, the name's steps
+joined by `_` (`aya_mist`). The bracket says whose a file is:
+
+- `#include <engine/fs.h>` is always another package's public file. The
+  package's own folders are on the path only for quotes (`-iquote`), so an
+  angle include cannot reach them; dependencies are found under their names in
+  `build/USA/packages/<name>/deps` (the editor's tree: `dep/`).
+- `#include "scratch.h"` is always the package's own: beside the file, then its
+  `include/` and `src/`. From a public header it stays inside the public
+  folder, so a dependent never needs another package's private files. The only
+  exception is what the build makes for the package (`pe2_options.h`,
+  `pe2_values.h`), which `pe2.h` includes.
+
+Both builds hold every file read to these rules and fail by name: an angle
+include of a package the file's own package does not declare, or a quoted one
+that is not its package's. What a dependency's public headers include of its
+own dependencies it *exposes*, derived from the text and never declared, so a
+package compiles with what it declares and what those expose, and theirs
+(`Package.reachable`). An image links everything it depends on as far as an
+image: an image dependency is linked against by its symbols, and a library
+reached through it is that image's, so Psy-Q's members come from the
+executable rather than into the title (`Package.linked`). The two builds
+implement this once each: `tools/buildsteps/declarations.py` and the editor's
+`gather.rs`. `PE2_BIND(x, package)` is a slot, a choice made in the editor
+(`self`), never how a package reaches a library.
 
 **A slot can say more of itself, and the build answers questions about it.** After
 its type, `_self` fills a slot, where the declaration does not, with the package
@@ -86,23 +111,22 @@ both make a token it must be the same text.
 
 **What splat still builds reaches the packages' headers where they are.**
 `ninja_config.py` links each package's public folder into `build/include` by
-its name, so a split unit includes `engine/fs.h` or `title/title.h` with no
-copy, and again under `build/include/pkg`, through which those headers name
-each other (`PE2_INCLUDE`). They are written as a package's headers are: they
-include `pe2.h`, and the splat build fills their bindings one way, with a
-`pe2_values.h` of its own beside the links. `include/decomp`'s `types.h` and
-`common.h` are core's with splat's additions (`INCLUDE_ASM`, the version
-macros), so both builds have one set of types. A split image still takes the
-addresses of what it calls from its imports file.
+its name, as a package's `deps` holds them, so a split unit includes
+`engine/fs.h` or `title/title.h` with no copy, and their own angle includes
+(`<core/pe2.h>`, `<psyq/libgte.h>`) resolve there too. `pe2.h` includes what
+the build makes for a package; for a split unit those are empty
+(`build/include/pe2_values.h`). `include/decomp`'s `types.h` and `common.h`
+are core's with splat's additions (`INCLUDE_ASM`, the version macros), so both
+builds have one set of types. A split image still takes the addresses of what
+it calls from its imports file.
 
 **Disc records stay.** `dump_asset_db.py` rebuilds `asset_data.py` from the disc,
 so a package keeps its record and its models in `resident.toml`, which is also
 what lets `pack.py` still rebuild the disc. Moving an overlay drops only its
 `required` and its embedded records' `include`, not its presence in the table.
 
-`clang-format` runs over the hand-written packages; `PE2_INCLUDE` is listed in
-`.clang-format` as whitespace-sensitive, as it would otherwise turn `sys/types.h`
-into `sys / types.h`.
+`clang-format` runs over the hand-written packages but core, whose `pe2.h` it
+would rewrite.
 
 ### Generated overlay configs
 

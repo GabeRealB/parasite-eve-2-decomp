@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ATTACHMENT_STATE_H
 #define GAMEPLAY_ATTACHMENT_STATE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Wheel spells in slots 0..11, excluding the six item-ability slots.
 #define ATTACHMENT_SPELL_COUNT 0xC

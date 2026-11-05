@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_WORLD_STATE_H
 #define GAMEPLAY_WORLD_STATE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Scene battle phases, stored in one byte.
 enum {

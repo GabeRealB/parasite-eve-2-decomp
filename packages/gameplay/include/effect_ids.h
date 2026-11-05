@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_EFFECT_IDS_H
 #define GAMEPLAY_EFFECT_IDS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_ids.h)
+#include <engine/task_ids.h>
 
 /// Effect-id bit that bypasses the ordinary limit of 129 live counted effects.
 ///

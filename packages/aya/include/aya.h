@@ -1,13 +1,11 @@
 #ifndef AYA_AYA_H
 #define AYA_AYA_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(gameplay, package)
-#include PE2_INCLUDE(gameplay, gpu_image_upload.h)
+#include <gameplay/gpu_image_upload.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, tmd_types.h)
+#include <engine/tmd_types.h>
 
 /*
  * What Aya's four outfit packages publish: her body, her hands and the facial animation each one carries. They are

@@ -1,7 +1,7 @@
 #ifndef ENGINE_CDAUDIO_H
 #define ENGINE_CDAUDIO_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "cdaudio_types.h"
 

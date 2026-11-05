@@ -1,7 +1,7 @@
 #ifndef ENGINE_STAGE_TYPES_H
 #define ENGINE_STAGE_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Values of the resident stage-music request completion byte; storage is u8.
 enum {

@@ -1,7 +1,7 @@
 #ifndef ENGINE_RANDOM_H
 #define ENGINE_RANDOM_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Coefficients of the shared 32-bit linear congruential random sequence.
 enum {

@@ -1,7 +1,7 @@
 #ifndef ENGINE_FS_H
 #define ENGINE_FS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "fs_types.h"
 #include "session_types.h"

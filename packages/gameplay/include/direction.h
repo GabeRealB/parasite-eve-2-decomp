@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_DIRECTION_H
 #define GAMEPLAY_DIRECTION_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "actor_spawn_types.h"
 #include "message.h"

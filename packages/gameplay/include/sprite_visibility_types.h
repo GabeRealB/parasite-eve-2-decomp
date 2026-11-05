@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_SPRITE_VISIBILITY_TYPES_H
 #define GAMEPLAY_SPRITE_VISIBILITY_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// One view-selection, batch-visibility or end command in a sprite visibility stream.
 ///

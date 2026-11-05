@@ -1,10 +1,9 @@
 #ifndef TITLE_TITLE_H
 #define TITLE_TITLE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// Two bodyless spawn recipes for title startup (0) and intro playback (1).
 ///

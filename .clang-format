@@ -161,4 +161,3 @@ UseCRLF: false
 UseTab: Never
 WhitespaceSensitiveMacros:
   - INCLUDE_ASM
-  - PE2_INCLUDE

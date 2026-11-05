@@ -1,12 +1,11 @@
 #ifndef GAMEPLAY_SCENE_COMBAT_H
 #define GAMEPLAY_SCENE_COMBAT_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "world_state.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// Scene-wide battle state, actor controls, rewards and enemy-group signals.
 ///

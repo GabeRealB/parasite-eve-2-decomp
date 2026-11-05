@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_DAMAGE_H
 #define GAMEPLAY_DAMAGE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "collision.h"
 #include "enemy.h"

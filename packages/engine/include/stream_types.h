@@ -1,7 +1,7 @@
 #ifndef ENGINE_STREAM_TYPES_H
 #define ENGINE_STREAM_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Interpretations of a serialized stream descriptor.
 enum {

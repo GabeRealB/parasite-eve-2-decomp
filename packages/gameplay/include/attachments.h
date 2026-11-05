@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ATTACHMENTS_H
 #define GAMEPLAY_ATTACHMENTS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "attachment_state.h"
 

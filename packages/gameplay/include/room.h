@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ROOM_H
 #define GAMEPLAY_ROOM_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "light.h"
 

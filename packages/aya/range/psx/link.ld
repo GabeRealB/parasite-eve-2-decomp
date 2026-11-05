@@ -3,12 +3,12 @@ SECTIONS
 {
     .image SLOT : SUBALIGN(4)
     {
-        LONG(0x0000002E);
-        */aya_mist/src/aya_mist.o(.data);
+        LONG(0x00000029);
+        */aya/range/src/package.o(.data);
     }
     .unstored (NOLOAD) : SUBALIGN(4)
     {
-        */aya_mist/src/aya_mist.o(.bss);
+        */aya/range/src/package.o(.bss);
     }
     /DISCARD/ : { *(*); }
 }

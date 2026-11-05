@@ -1,7 +1,7 @@
 #ifndef ENGINE_PAD_TYPES_H
 #define ENGINE_PAD_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Number of controller ports indexed by resident pad APIs (ports 0 and 1).
 enum { PAD_PORT_COUNT = 2 };

@@ -1,7 +1,7 @@
 #ifndef ENGINE_TEXT_H
 #define ENGINE_TEXT_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "ui_types.h"
 

@@ -1,19 +1,17 @@
 #ifndef GAMEPLAY_WORLD_COORDS_H
 #define GAMEPLAY_WORLD_COORDS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "enemy.h"
 #include "light.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
-#include PE2_INCLUDE(engine, task_types.h)
-#include PE2_INCLUDE(engine, tmd_types.h)
+#include <engine/coord.h>
+#include <engine/task_types.h>
+#include <engine/tmd_types.h>
 
 /// Number of directly indexed transient point-light slots.
 enum { WORLD_COORDINATE_TRANSIENT_LIGHT_COUNT = 8 };

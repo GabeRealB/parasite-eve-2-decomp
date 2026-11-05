@@ -1,12 +1,11 @@
 #ifndef GAMEPLAY_EVS_SCRIPTS_H
 #define GAMEPLAY_EVS_SCRIPTS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "evs.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// Shared event/scene playback pause latch (0 running, nonzero paused).
 ///

@@ -1,8 +1,6 @@
 #ifndef GTE_H
 #define GTE_H
 
-#include "pe2.h"
-
 /// GTE command macros that emit real COP2 instructions.
 ///
 /// Psy-Q's `inline_c.h` writes every GTE *command* as two `nop`s followed by a
@@ -37,8 +35,7 @@
 /// still compiles and assembles but is not a GTE instruction. A function that
 /// needs one must add it here first, with the word from `gte_macros.inc`.
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, inline_c.h)
+#include <psyq/inline_c.h>
 
 /// Perspective transformation. `gte_rtps` rotates and translates V0
 /// (IR1..3 = TR + RT·V0), pushes its projected screen point into SXY and its

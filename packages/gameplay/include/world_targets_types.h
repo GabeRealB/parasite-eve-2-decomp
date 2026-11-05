@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_WORLD_TARGETS_TYPES_H
 #define GAMEPLAY_WORLD_TARGETS_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
+#include <psyq/sys/types.h>
 
 /// Bits stored in a target node's `flags` byte.
 ///

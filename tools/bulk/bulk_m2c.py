@@ -84,7 +84,6 @@ INCLUDE_FLAGS = [
     "-I", str(REPO_ROOT / "include" / "psyq"),
     "-I", str(REPO_ROOT / "include" / "decomp"),
     "-I", str(REPO_ROOT / "build" / "include"),
-    "-I", str(REPO_ROOT / "packages" / "core" / "include"),
 ]
 CPP_FLAGS = [
     *INCLUDE_FLAGS,

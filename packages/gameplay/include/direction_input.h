@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_DIRECTION_INPUT_H
 #define GAMEPLAY_DIRECTION_INPUT_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Whether a latched world-trigger direction action is being serviced.
 ///

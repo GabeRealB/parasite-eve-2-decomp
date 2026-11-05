@@ -1,15 +1,14 @@
 #ifndef GAMEPLAY_LOADING_H
 #define GAMEPLAY_LOADING_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "area.h"
 #include "room.h"
 #include "sprites.h"
 #include "view.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 // Room-resource loading, view setup and sprite-list construction.
 

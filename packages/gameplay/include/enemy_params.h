@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ENEMY_PARAMS_H
 #define GAMEPLAY_ENEMY_PARAMS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 struct DamageAttack;
 

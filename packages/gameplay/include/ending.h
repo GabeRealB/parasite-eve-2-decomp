@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_ENDING_H
 #define GAMEPLAY_ENDING_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// Starts the post-credits replay-award and cleared-save screen sequence.
 ///

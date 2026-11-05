@@ -1,21 +1,15 @@
-/* What every unit includes first, from core, which a package names in its dependencies. A slot of a package is declared, filled by its declaration, and
+/* What every unit includes first (`#include <core/pe2.h>`), from core, which a package names in its dependencies. A slot of a package is declared, filled by its declaration, and
  * read; the build decides what answers it. It reads a source twice: a first pass, with PE2_FIRST_PASS defined, leaves the live code with
  * every other macro expanded and those below it left as written, for the build to read. */
 #ifndef PE2_H
 #define PE2_H
 
-/* What core gives a package beside the macros, its one public file being this one: its types and helpers. */
-#include "../src/common.h"
-
-#define PE2_STR_(x) #x
-#define PE2_STR(x) PE2_STR_(x)
+/* What core gives a package beside the macros: its types and helpers. */
+#include "common.h"
 
 /* PE2_EDITOR_LABEL("Face"): what is declared after it, slots and options alike, is a section of that name in the editor, to the next label
  * or the end of the file, where the label of what included it goes on; "" closes it. */
 #define PE2_EDITOR_LABEL(label)
-
-/* #include PE2_INCLUDE(gameplay, enemy.h): a file of what a slot holds. */
-#define PE2_INCLUDE(binding, path) PE2_STR(pkg/binding/path)
 
 /* PE2_OPTION_DEF(WEAPON_INDEX, int), PE2_OPTION_DEF(IDLE_TIMEOUT_TICKS, int, 900), PE2_OPTION_DEF(FINISH, enum, matte, gloss):
  * a value set on a package in the editor. An int, bool or string may give its default after its type, which what the

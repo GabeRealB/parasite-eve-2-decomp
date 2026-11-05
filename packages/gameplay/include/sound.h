@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_SOUND_H
 #define GAMEPLAY_SOUND_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, sound_ids.h)
+#include <engine/sound_ids.h>
 
 /// Resolves a sound id's nonzero stage nibble against the current session stage.
 ///

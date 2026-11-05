@@ -7,7 +7,11 @@ uid = "uid://pc4ree5f63i7"
 template = "package"
 sources = ["src/*.c", "!src/*.inc.c"]
 public = ["include"]
-dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+]
 bind.chrome = { uid = "uid://ise7wq932mjc", path = "res://title/chrome.node" }
 bind.demos = { uid = "uid://6p4qnxbnkvf7", path = "res://attract_demos/demos.node" }
 bind.screen = { uid = "uid://1ri4tekdefv04", path = "res://stage0/system.node", output = "files/title_screen" }
@@ -43,12 +47,20 @@ objects = ["lib/*/*.o"]
 uid = "uid://11pxyk2e9y3yt"
 template = "library"
 public = ["include"]
-dependencies = [{ uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" }]
+dependencies = [
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+]
 
 [engine]
 uid = "uid://1gge5rcau98eq"
 template = "library"
 public = ["include"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+]
 
 [engine.target.psx]
 symbols = "psx/symbols.ld"
@@ -57,6 +69,11 @@ symbols = "psx/symbols.ld"
 uid = "uid://1xmru45vx7ejy"
 template = "library"
 public = ["include"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+]
 
 [gameplay.target.psx]
 symbols = "psx/symbols.ld"
@@ -65,6 +82,11 @@ symbols = "psx/symbols.ld"
 uid = "uid://upo6m0w1osm2"
 template = "library"
 public = ["include"]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
 
 # What a language server reads: every package that compiles, for the config in use.
 

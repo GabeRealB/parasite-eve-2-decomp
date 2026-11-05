@@ -1,10 +1,9 @@
 #ifndef ENGINE_MEM_H
 #define ENGINE_MEM_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
+#include <psyq/sys/types.h>
 
 /// Base of the current byte arena for GPU primitives and frame presentation.
 ///

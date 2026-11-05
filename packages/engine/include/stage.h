@@ -1,7 +1,7 @@
 #ifndef ENGINE_STAGE_H
 #define ENGINE_STAGE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "stage_types.h"
 #include "task_types.h"

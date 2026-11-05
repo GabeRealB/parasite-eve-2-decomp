@@ -1,13 +1,12 @@
 #ifndef GAMEPLAY_AREA_TRANSITIONS_H
 #define GAMEPLAY_AREA_TRANSITIONS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "area_flags.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, session_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/session_types.h>
+#include <engine/task_types.h>
 
 // Area transitions and persistent area-flag updates.
 

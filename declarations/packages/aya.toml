@@ -1,9 +1,9 @@
 # Aya's packages: what each source's slots hold, the models and frames it stores.
 
-[aya_mist]
+[mist]
 uid = "uid://pkq6zctcq1as"
 template = "package"
-sources = ["src/aya_mist.c"]
+sources = ["src/package.c"]
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/mist/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/mist/hand_left"
 bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/mist/stored_hand_right"
@@ -14,16 +14,19 @@ bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/
 bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/mist/eyes_closed.node" }
 bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist/mouth_rest.node" }
 
-dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://upo6m0w1osm2", path = "res://packages/aya.node" },
+]
 
-[aya_mist.target.psx]
+[mist.target.psx]
 slot = "aya"
 link_script = "psx/link.ld"
 
-[aya_dryfield]
+[dryfield]
 uid = "uid://gz0onrpki7ki"
 template = "package"
-sources = ["src/aya_dryfield.c"]
+sources = ["src/package.c"]
 bind.body = "uid://vinvx0m1i1zv#outfit/dryfield/body"
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/dryfield/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/dryfield/hand_left"
@@ -35,16 +38,19 @@ bind.eyes_closed = { uid = "uid://klal2y9l8ael", path = "res://characters/aya/dr
 bind.mouth_rest = { uid = "uid://q0c347avmygk", path = "res://characters/aya/dryfield/mouth_rest.node" }
 bind.mouth_alternate = { uid = "uid://1pf66u5vaq3ux", path = "res://characters/aya/dryfield/mouth_alternate.node" }
 
-dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://upo6m0w1osm2", path = "res://packages/aya.node" },
+]
 
-[aya_dryfield.target.psx]
+[dryfield.target.psx]
 slot = "aya"
 link_script = "psx/link.ld"
 
-[aya_akropolis]
+[akropolis]
 uid = "uid://1poz67b78tdpm"
 template = "package"
-sources = ["src/aya_akropolis.c"]
+sources = ["src/package.c"]
 bind.body = "uid://vinvx0m1i1zv#outfit/akropolis/body"
 bind.hand_left_both = "uid://vinvx0m1i1zv#outfit/akropolis/hand_left"
 bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/akropolis/stored_hand_right"
@@ -55,16 +61,19 @@ bind.eyes_closed = { uid = "uid://rr9dfll5tpb9", path = "res://characters/aya/ak
 bind.mouth_rest = { uid = "uid://1kd4b3khkr641", path = "res://characters/aya/akropolis/mouth_rest.node" }
 bind.mouth_alternate = { uid = "uid://o7dfmsql58ar", path = "res://characters/aya/akropolis/mouth_alternate.node" }
 
-dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://upo6m0w1osm2", path = "res://packages/aya.node" },
+]
 
-[aya_akropolis.target.psx]
+[akropolis.target.psx]
 slot = "aya"
 link_script = "psx/link.ld"
 
-[aya_range]
+[range]
 uid = "uid://18drk5dg73b83"
 template = "package"
-sources = ["src/aya_range.c"]
+sources = ["src/package.c"]
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/range/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/range/hand_left"
 bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/range/stored_hand_right"
@@ -75,8 +84,11 @@ bind.eyes_half_closed = { uid = "uid://16y82c6qbdb33", path = "res://characters/
 bind.eyes_closed = { uid = "uid://hly3xgviep0o", path = "res://characters/aya/mist/eyes_closed.node" }
 bind.mouth_rest = { uid = "uid://ckn35d9cm31", path = "res://characters/aya/mist/mouth_rest.node" }
 
-dependencies = [{ uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" }]
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://upo6m0w1osm2", path = "res://packages/aya.node" },
+]
 
-[aya_range.target.psx]
+[range.target.psx]
 slot = "aya"
 link_script = "psx/link.ld"

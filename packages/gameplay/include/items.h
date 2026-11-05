@@ -1,13 +1,12 @@
 #ifndef GAMEPLAY_ITEMS_H
 #define GAMEPLAY_ITEMS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "inventory.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, mc_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/mc_types.h>
+#include <engine/task_types.h>
 
 // Inventory contents, collection flags, quantities, sorting and equipment.
 

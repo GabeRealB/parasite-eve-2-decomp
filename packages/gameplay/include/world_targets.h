@@ -1,19 +1,17 @@
 #ifndef GAMEPLAY_WORLD_TARGETS_H
 #define GAMEPLAY_WORLD_TARGETS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
-#include PE2_INCLUDE(psyq, libgpu.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "enemy.h"
 #include "world_targets_types.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, session_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/session_types.h>
+#include <engine/task_types.h>
 
 /// Returns the live enemy containing an embedded target node.
 ///

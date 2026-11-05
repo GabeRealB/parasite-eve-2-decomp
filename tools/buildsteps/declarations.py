@@ -9,6 +9,7 @@ slots need followed: what a reference names, what a prefab's member holds, and w
 """
 from __future__ import annotations
 
+import re
 import sys
 import tomllib
 from dataclasses import dataclass
@@ -20,6 +21,26 @@ DECLARATIONS = ROOT / "declarations"
 UID = "uid://"
 RES = "res://"
 NODE = ".node"
+# What the build makes for the package being built, which core's `pe2.h` includes in quotes.
+MADE = frozenset({"pe2_options.h", "pe2_values.h", "pe2_server.h"})
+INCLUDED = re.compile(r'^[ \t]*#[ \t]*include[ \t]*(?:"([^"\n]+)"|<([^>\n]+)>)', re.M)
+
+
+def includes(text: str) -> Iterator[tuple[str, bool, int]]:
+    """Every `#include` written, whichever branch it is in: what it names, whether in angle brackets, its line."""
+    for found in INCLUDED.finditer(text):
+        yield found[1] or found[2], found[2] is not None, text.count("\n", 0, found.start()) + 1
+
+
+def normal(path: str) -> str:
+    """A path with its `.` and `..` steps taken."""
+    out: list[str] = []
+    for step in path.split("/"):
+        if step == ".." and out and out[-1] != "..":
+            out.pop()
+        elif step not in ("", "."):
+            out.append(step)
+    return "/".join(out)
 
 
 @dataclass(frozen=True)
@@ -95,14 +116,21 @@ class Package:
 
     declaration: Declaration
     target: str
+    # What others include it by (`<engine/fs.h>`) and its objects are named by: its folder's name, after the name of the
+    # package its folder is in, if one is (`aya/mist`); folders that are no package's do not count (`Declarations.names`).
+    name: str
 
     @property
     def path(self) -> str:
         return self.declaration.path
 
     @property
-    def name(self) -> str:
-        return self.path.rsplit("/", 1)[-1]
+    def public(self) -> Path | None:
+        """The folder of what others may include of it, if it has one."""
+        folders = self.declaration.table.get("public", [])
+        if len(folders) > 1:
+            raise SystemExit(f"{self.path}: a package has one public folder, not {', '.join(folders)}")
+        return Path(self.path) / folders[0] if folders else None
 
     @property
     def fields(self) -> dict:
@@ -146,35 +174,112 @@ class Package:
         (`*/title/src/title.o`) in every build."""
         return root / self.name / unit.relative_to(self.path).with_suffix(".o")
 
-    def dependencies(self, declarations: Declarations) -> list[Package]:
-        """What it depends on, and what that does, each once, nearest first."""
-        found: list[Package] = []
-        seen = {self.path}
-        pending = list(self.fields.get("dependencies", []))
+    def makes_image(self) -> bool:
+        """Whether its target makes it an image, which others link against by the symbols it publishes: it has a link
+        script, or, built elsewhere, publishes symbols (`symbols`)."""
+        return "link_script" in self.fields or "symbols" in self.fields
+
+    def makes_objects(self) -> bool:
+        """Whether it makes objects for what links it: sources compiled, or objects linked as they are."""
+        return bool(self.fields.get("sources") or self.fields.get("objects"))
+
+    def declared(self, declarations: Declarations) -> list[Package]:
+        """What it depends on, as its declaration says (`dependencies`) for its target."""
+        return [declarations.package(declarations.named(reference), self.target) for reference in self.fields.get("dependencies", [])]
+
+    def exposed(self, declarations: Declarations) -> list[Package]:
+        """What of what it depends on its public headers include, which whatever includes them needs too."""
+        if self.public is None or not self.public.is_dir():
+            return []
+        named = {package.name: package for package in self.declared(declarations)}
+        found: dict[str, Package] = {}
+        for header in sorted(self.public.rglob("*.h")):
+            for spelled, angled, _ in includes(header.read_text(encoding="latin-1")):
+                dependency = declarations.spelled(spelled) if angled else None
+                if dependency is not None and dependency[0].name in named:
+                    found[dependency[0].name] = named[dependency[0].name]
+        return list(found.values())
+
+    def reachable(self, declarations: Declarations) -> list[Package]:
+        """What its units can include: what it depends on, what each of those exposes, and theirs, each once."""
+        found: dict[str, Package] = {}
+        pending = self.declared(declarations)
         while pending:
-            dependency = declarations.named(pending.pop(0))
-            if dependency.path in seen:
+            dependency = pending.pop(0)
+            if dependency.name in found or dependency.name == self.name:
                 continue
-            seen.add(dependency.path)
-            found.append(Package(dependency, self.target))
-            pending += targeted(dependency.table, self.target).get("dependencies", [])
+            found[dependency.name] = dependency
+            pending += dependency.exposed(declarations)
+        return list(found.values())
+
+    def closure(self, declarations: Declarations) -> set[str]:
+        """The names of everything it depends on, however far."""
+        found: set[str] = set()
+        pending = self.declared(declarations)
+        while pending:
+            dependency = pending.pop(0)
+            if dependency.name not in found:
+                found.add(dependency.name)
+                pending += dependency.declared(declarations)
         return found
 
-    def include_path(self, declarations: Declarations) -> list[Path]:
-        """Where a unit's plain includes are found: its own public folders and `src`, then the public folders of its
-        `dependencies` and of theirs, in that order. A slot (`PE2_INCLUDE`) is not found by it."""
-        folders = [Path(self.path) / folder for folder in self.fields.get("public", [])]
-        folders.append(Path(self.path) / "src")
-        seen = {self.path}
-        pending = list(self.fields.get("dependencies", []))
+    def linked(self, declarations: Declarations) -> tuple[list[Package], list[Package]]:
+        """What its image links: the libraries whose objects it takes, and the images it links against.
+
+        Everything it depends on, and theirs, as far as an image: an image is linked against by its symbols, and what
+        it depends on is its own, so a library reached through it is not taken again (Psy-Q's members are the
+        executable's)."""
+        libraries: dict[str, Package] = {}
+        images: dict[str, Package] = {}
+        covered: set[str] = set()
+        pending = self.declared(declarations)
         while pending:
-            dependency = declarations.named(pending.pop(0))
-            if dependency.path in seen:
+            dependency = pending.pop(0)
+            if dependency.name in libraries or dependency.name in images or dependency.name == self.name:
                 continue
-            seen.add(dependency.path)
-            folders += [Path(dependency.path) / folder for folder in dependency.table.get("public", [])]
-            pending += dependency.table.get("dependencies", [])
-        return folders
+            if dependency.makes_image():
+                images[dependency.name] = dependency
+                covered |= dependency.closure(declarations)
+                continue
+            libraries[dependency.name] = dependency
+            pending += dependency.declared(declarations)
+        objects = [library for name, library in libraries.items() if name not in covered and library.makes_objects()]
+        return objects, list(images.values())
+
+    def include_flags(self, deps: Path) -> str:
+        """Where its units' includes are found: what they write in quotes in its own folders (`-iquote`), what they
+        write in angle brackets in `deps`, which holds each package it can reach under that package's name."""
+        own = [*([self.public] if self.public is not None else []), Path(self.path) / "src"]
+        return " ".join([*(f"-iquote {folder.as_posix()}" for folder in own), f"-I{deps.as_posix()}"])
+
+    def resolved(self, declarations: Declarations, file: Path, spelled: str, angled: bool, at: str) -> Path | None:
+        """The file an include in one of its files names, by the rules both builds hold every package's files to: in
+        quotes, a file of the same package - of the same public folder, from a public header - or one the build makes
+        (`pe2_options.h`); in angle brackets, a public file of a package its declaration names. A file not there is
+        the compiler's to say: it knows which branch of a conditional is taken."""
+        if not angled:
+            if spelled in MADE:
+                return None
+            public = self.public
+            in_public = public is not None and file.is_relative_to(public)
+            folders = [file.parent] if in_public else [file.parent, *([public] if public is not None else []), Path(self.path) / "src"]
+            within = public if in_public else Path(self.path)
+            for folder in folders:
+                candidate = Path(normal((folder / spelled).as_posix()))
+                if candidate.is_file():
+                    if not candidate.is_relative_to(within):
+                        kind = "a public file" if in_public else "a file"
+                        raise SystemExit(f'{at}: "{spelled}" is not {kind} of {self.name}')
+                    return candidate
+            raise SystemExit(f'{at}: "{spelled}" is no file of {self.name}; another package\'s is included in angle brackets')
+        dependency = declarations.spelled(spelled)
+        if dependency is None:
+            raise SystemExit(f"{at}: <{spelled}> names no package")
+        package, inside = dependency
+        if package.name not in {declared.name for declared in self.declared(declarations)}:
+            raise SystemExit(f"{at}: <{spelled}> is {package.name}'s, which {self.name} does not depend on")
+        found = package.public / inside if package.public is not None else None
+        return found if found is not None and found.is_file() else None
 
     def read_by_preprocessor(self) -> list[Path]:
         """Every file of its own a unit can include, the units among them."""
@@ -249,7 +354,7 @@ class Declarations:
     def packages(self, target: str = "psx") -> list[Package]:
         """The packages a target links, which its link script says."""
         return [
-            Package(declaration, target)
+            self.package(declaration, target)
             for declaration in self.by_path.values()
             if declaration.template == "package" and "link_script" in declaration.table.get("target", {}).get(target, {})
         ]
@@ -260,7 +365,7 @@ class Declarations:
             package
             for declaration in self.by_path.values()
             if declaration.template in ("package", "library")
-            for package in [Package(declaration, target)]
+            for package in [self.package(declaration, target)]
             if package.fields.get("sources") or package.fields.get("objects")
         ]
 
@@ -272,22 +377,44 @@ class Declarations:
             if "symbols" in declaration.table.get("target", {}).get(target, {})
         ]
 
-    def package_names(self) -> set[str]:
-        """Every package and library, as `PE2_BIND(<name>, package)` names them."""
-        return {
-            declaration.path.rsplit("/", 1)[-1]
-            for declaration in self.by_path.values()
-            if declaration.template in ("package", "library")
-        }
+    def every_package(self, target: str = "psx") -> list[Package]:
+        """Every package and library."""
+        return [self.package(declaration, target) for declaration in self.by_path.values() if declaration.template in ("package", "library")]
+
+    def package(self, declaration: Declaration, target: str = "psx") -> Package:
+        """A package or library as a target reads it."""
+        return Package(declaration, target, self.names()[declaration.path])
+
+    def names(self) -> dict[str, str]:
+        """Every package's name, by its path: its folder's name, after the name of the nearest package whose folder
+        holds it. A package nests in packages, not in folders: `packages/a/aya` and `packages/b/aya` are both `aya`,
+        and `packages/aya/akropolis` is `aya/akropolis`."""
+        if not hasattr(self, "_names"):
+            paths = sorted(path for path, declaration in self.by_path.items() if declaration.template in ("package", "library"))
+            self._names: dict[str, str] = {}
+            for path in paths:
+                outer = max((other for other in paths if path.startswith(other + "/")), key=len, default=None)
+                last = path.rsplit("/", 1)[-1]
+                self._names[path] = f"{self._names[outer]}/{last}" if outer is not None else last
+        return self._names
 
     def public(self) -> dict[str, Path]:
-        """What each package and library others include gives them, by the name `PE2_INCLUDE` binds it to."""
-        return {
-            declaration.path.rsplit("/", 1)[-1]: Path(declaration.path) / folder
-            for declaration in self.by_path.values()
-            if declaration.template in ("package", "library")
-            for folder in declaration.table.get("public", [])
-        }
+        """What each package and library others include gives them, by its name (`<engine/fs.h>`)."""
+        return {package.name: package.public for package in self.every_package() if package.public is not None}
+
+    def spelled(self, spelled: str) -> tuple[Package, str] | None:
+        """The package an include in angle brackets names, and the path within its public folder: the longest name
+        the include starts with."""
+        found = None
+        for package in self.every_package():
+            if spelled.startswith(package.name + "/") and (found is None or len(package.name) > len(found[0].name)):
+                found = (package, spelled[len(package.name) + 1:])
+        return found
+
+    def owner_of(self, file: Path) -> Package | None:
+        """The package a file is of: the one whose folder holds it nearest."""
+        owners = [package for package in self.every_package() if file.is_relative_to(package.path)]
+        return max(owners, key=lambda package: len(package.path), default=None)
 
     def stage0_file(self, file: int) -> tuple[Declaration, str] | None:
         """The stage 0 file of an id, as its group lists it: what fills it, and its name there."""
@@ -303,8 +430,19 @@ class Declarations:
         return None
 
     def problems(self) -> list[str]:
-        """What is wrong with them as a whole: a uid twice, or a reference naming no declaration."""
+        """What is wrong with them as a whole: a uid twice, a reference naming no declaration, or two packages' public
+        files at one place (a package with a public folder inside one that has one)."""
         found = [f"{uid} is declared twice" for uid in self.repeated]
+        by_name: dict[str, str] = {}
+        for path, name in self.names().items():
+            if name in by_name:
+                found.append(f"{by_name[name]} and {path} are both named {name}, in the same package or none")
+            by_name.setdefault(name, path)
+        public = self.public()
+        for name in public:
+            for outer in public:
+                if name != outer and name.startswith(outer + "/"):
+                    found.append(f"the package {name}: its public files and {outer}'s are both <{name}/...>")
         for declaration in self.by_path.values():
             for reference in references({key: value for key, value in declaration.table.items() if key != "uid"}):
                 uid, _ = uid_of(reference)

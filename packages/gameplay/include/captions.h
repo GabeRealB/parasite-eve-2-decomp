@@ -1,13 +1,12 @@
 #ifndef GAMEPLAY_CAPTIONS_H
 #define GAMEPLAY_CAPTIONS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "cap.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
-#include PE2_INCLUDE(engine, text.h)
+#include <engine/task_types.h>
+#include <engine/text.h>
 
 // CAP dialogue commands, text state, relocation and task control.
 

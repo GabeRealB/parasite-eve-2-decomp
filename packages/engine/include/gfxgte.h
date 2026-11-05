@@ -1,16 +1,14 @@
 #ifndef ENGINE_GFXGTE_H
 #define ENGINE_GFXGTE_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
-#include PE2_INCLUDE(psyq, gtemac.h)
-#include PE2_INCLUDE(psyq, inline_c.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/gtemac.h>
+#include <psyq/inline_c.h>
 
-PE2_BIND(math, package)
-#include PE2_INCLUDE(math, gte.h)
+#include <math/gte.h>
 
 #include "scratch.h"
 

@@ -1,15 +1,13 @@
 #ifndef ENGINE_SESSION_TYPES_H
 #define ENGINE_SESSION_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-PE2_BIND(gameplay, package)
-#include PE2_INCLUDE(gameplay, animation_types.h)
-#include PE2_INCLUDE(gameplay, world_collision_types.h)
+#include <gameplay/animation_types.h>
+#include <gameplay/world_collision_types.h>
 
 #include "areas.h"
 #include "coord.h"

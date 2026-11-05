@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_PLANAR_REFLECTION_H
 #define GAMEPLAY_PLANAR_REFLECTION_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// Dispatches a player-reflection task to the callback of its captured room.
 ///

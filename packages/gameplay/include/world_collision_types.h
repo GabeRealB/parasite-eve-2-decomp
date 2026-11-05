@@ -1,14 +1,12 @@
 #ifndef GAMEPLAY_WORLD_COLLISION_TYPES_H
 #define GAMEPLAY_WORLD_COLLISION_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
+#include <engine/coord.h>
 
 /// Contact-table flags and packed-key categories; LAST also marks an empty final element.
 enum {

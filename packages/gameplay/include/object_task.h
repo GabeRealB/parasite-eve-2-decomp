@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_OBJECT_TASK_H
 #define GAMEPLAY_OBJECT_TASK_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// Decimal location key selecting a room task from a stage's descriptor table.
 ///

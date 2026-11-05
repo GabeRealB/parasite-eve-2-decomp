@@ -1,11 +1,10 @@
 #ifndef GAMEPLAY_ITEM_MENU_H
 #define GAMEPLAY_ITEM_MENU_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
-#include PE2_INCLUDE(engine, ui_types.h)
+#include <engine/task_types.h>
+#include <engine/ui_types.h>
 
 // Inventory menu tasks, item panels, prompts and their shared descriptors.
 

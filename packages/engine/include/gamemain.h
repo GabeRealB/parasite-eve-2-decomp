@@ -1,7 +1,7 @@
 #ifndef ENGINE_GAMEMAIN_H
 #define ENGINE_GAMEMAIN_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "wipsys_types.h"
 

@@ -1,11 +1,10 @@
 #ifndef GAMEPLAY_GAMEFLAG_H
 #define GAMEPLAY_GAMEFLAG_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, event_flags.h)
-#include PE2_INCLUDE(engine, gameflag_types.h)
+#include <engine/event_flags.h>
+#include <engine/gameflag_types.h>
 
 /// Optional flag updates use zero to mean that no flag is associated with the event.
 enum { GAME_FLAG_OPTIONAL_NONE = 0 };

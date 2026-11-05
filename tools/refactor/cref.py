@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import glob
 import json
+import functools
 import os
 import re
 import subprocess
@@ -109,7 +110,7 @@ def load_db(root: str, version: str = DEFAULT_VERSION) -> dict[str, list[str]]:
                 _note_include_root(root, tok)
                 want_inc = False
                 continue
-            if tok == "-I":
+            if tok in ("-I", "-iquote"):
                 args.append(tok)
                 want_inc = True
                 continue
@@ -383,6 +384,7 @@ def _kind_label(kind) -> str:
     }.get(kind, str(kind))
 
 
+@functools.lru_cache(maxsize=None)
 def abspath(name: str, root: str) -> str:
     """libclang reports paths as given on the command line, so an include found
     through a relative -I comes back relative to the process cwd, not to root."""

@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_PAD_INPUT_H
 #define GAMEPLAY_PAD_INPUT_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, pad.h)
+#include <engine/pad.h>
 
 /// Eligible automatic-menu updates remaining before Select/Start unlock.
 ///

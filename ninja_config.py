@@ -751,7 +751,7 @@ OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
 OBJDIFF_TARGET_ASM = OBJDIFF_DIR / "target_asm.py"
 
 # Compilation flags (General)
-INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -I {BUILD_DIR}/include -Iinclude/psyq -Iinclude/decomp -Ipackages/core/include"
+INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -I {BUILD_DIR}/include -Iinclude/psyq -Iinclude/decomp"
 OPT_FLAGS = "-O2"
 ENDIAN = "-EL"
 DL_EXE_FLAGS = "-G0"
@@ -1228,21 +1228,18 @@ def declared_packages() -> list:
 
 
 def link_public_headers() -> None:
-    """What a split unit reaches of the packages: each one's public folder by its name (`engine/fs.h`) in build/include,
-    and the same folders under `pkg/`, through which their headers name each other (PE2_INCLUDE). Every binding a
-    package's public header makes is a library's, filled the one way the splat build knows (pe2_values.h); it sets no
-    options."""
+    """What a split unit reaches of the packages: each one's public folder by its name (`<engine/fs.h>`) in
+    build/include, as a package's `deps` holds them. Core's `pe2.h` includes what the build makes for a package, which
+    for a split unit is nothing: it has no slots and sets no options."""
     sys.path.insert(0, str(TOOLS_DIR / "buildsteps"))
     from declarations import Declarations
 
-    public = Declarations().public()
     folder = BUILD_DIR / "include"
-    for name, path in public.items():
+    for name, path in Declarations().public().items():
         if path.is_dir():
-            for link in (folder / name, folder / "pkg" / name):
-                project_tool().link_directory(link, path)
-    lines = "".join(f"#define pe2_bind_{name}\n" for name in sorted(public))
-    for name, text in (("pe2_values.h", lines), ("pe2_options.h", "")):
+            project_tool().link_directory(folder / name, path)
+    for name in ("pe2_values.h", "pe2_options.h"):
+        text = ""
         path = folder / name
         if not path.is_file() or path.read_text(encoding="utf-8") != text:
             folder.mkdir(parents=True, exist_ok=True)
@@ -1266,8 +1263,12 @@ def ninja_packages(
     from declarations import Declarations
 
     declarations = Declarations()
+    problems = declarations.problems()
+    if problems:
+        print("ERROR: " + "\n       ".join(problems))
+        sys.exit(1)
     all_packages = declarations.packages()
-    packages = [p for p in all_packages if scoped_names is None or p.name in scoped_names]
+    packages = [p for p in all_packages if scoped_names is None or p.name in scoped_names or Path(p.name).name in scoped_names]
     missing = [p.path for p in packages if not Path(p.path).is_dir()]
     if missing:
         print(f"ERROR: declared and not there: {', '.join(missing)}")
@@ -1276,14 +1277,9 @@ def ninja_packages(
         return [], []
     root = BUILD_DIR / version_dir / "packages"
     images = BUILD_DIR / version_dir / "out"
-    bindings = root / "bindings"
     package_flags = COMPILE_COMMANDS_FLAGS.replace(INCLUDE_FLAGS, "").strip()
-    for name, public in declarations.public().items():
-        if public.is_dir():
-            project_tool().link_directory(bindings / "pkg" / name, public)
 
     slots = tomllib.loads(Path(CONFIG_DIR, version_dir, "package_slots.toml").read_text(encoding="utf-8"))
-    published = [path.as_posix() for path in declarations.published()]
     for path in declarations.published():
         library = path.parts[1]
         # A scoped build has no edge for an image it left out: the last whole build's symbols stand.
@@ -1295,8 +1291,6 @@ def ninja_packages(
                 inputs=f"{BUILD_DIR.as_posix()}/{version_dir}/out/{elf}.elf",
                 implicit=[str(GEN_PACKAGE_LIBRARY)],
             )
-    from gen_package_values import gathered
-
     variables = {"VERSION": f"-DVER_{version}", "SKIPASMFLAG": "", "PACKAGE_DEFINES": "-Werror"}
     built = {}
     entries = []
@@ -1304,7 +1298,8 @@ def ninja_packages(
     # they are. A scoped build compiles only what the packages it builds link.
     provided: dict[str, list[str]] = {}
     # What the packages built link, and every library with something to compile: the split executable links psyq's.
-    wanted = {p.path for p in packages} | {d.path for p in packages for d in p.dependencies(declarations)}
+    linked = {package.path: package.linked(declarations) for package in packages}
+    wanted = {p.path for p in packages} | {library.path for objects, _ in linked.values() for library in objects}
     wanted |= {p.path for p in declarations.compiled() if p.declaration.template == "library"}
     for package in declarations.compiled():
         if package.path not in wanted:
@@ -1316,8 +1311,12 @@ def ninja_packages(
         options, values = (out / "pe2_options.h").as_posix(), (out / "pe2_values.h").as_posix()
         steps = [str(GEN_PACKAGE_VALUES), *(str(TOOLS_DIR / "buildsteps" / name) for name in ("declarations.py", "package_tokenizers.py", "stage0.py"))]
         own = {"package": package.path, "release": version}
-        path = " ".join(f"-I{folder.as_posix()}" for folder in package.include_path(declarations))
-        includes = f"{path} -I{bindings.as_posix()} -I{out.as_posix()}"
+        # What its units include of other packages, each under its name: what it depends on, and what those expose.
+        deps = out / "deps"
+        for dependency in package.reachable(declarations):
+            if dependency.public is not None:
+                project_tool().link_directory(deps / dependency.name, dependency.public)
+        includes = f"{package.include_flags(deps)} -I{out.as_posix()}"
         if c_units:
             ninja_file.build(outputs=options, rule="package-options", implicit=steps, variables={**own, "config": version_dir.lower()})
             first = []
@@ -1368,13 +1367,13 @@ def ninja_packages(
             made.append(obj)
         provided[package.name] = made + [path.as_posix() for path in package.objects()]
 
-    # Each image: its layout first, publishing what it exports, then the image, linked against what the libraries
-    # publish and what the image packages it binds (`PE2_BIND(<name>, package)`) do.
-    images_by_name = {package.name: package for package in packages}
+    # Each image: its layout first, publishing what it exports, then the image, linked with the objects of the
+    # libraries it takes and against the symbols of the images it depends on (`Package.linked`).
     for package in packages:
         out = root / package.name
-        inputs = provided.get(package.name, []) + [obj for dependency in package.dependencies(declarations) for obj in provided.get(dependency.name, [])]
-        image = (images / package.name).as_posix()
+        objects, against = linked[package.path]
+        inputs = provided.get(package.name, []) + [obj for library in objects for obj in provided.get(library.name, [])]
+        image = (images / package.name.replace("/", "_")).as_posix()
         slot = f"0x{slots[package.slot]:X}"
         layout, own_symbols = (out / "layout.elf").as_posix(), (out / "symbols.ld").as_posix()
         ninja_file.build(
@@ -1385,20 +1384,19 @@ def ninja_packages(
             variables={"slot": slot, "script": package.link_script.as_posix()},
         )
         ninja_file.build(outputs=own_symbols, rule="package-symbols", inputs=layout, implicit=[str(GEN_PACKAGE_LIBRARY)], variables={"exported": "--exported"})
-        try:
-            _, _, bound = gathered(package, declarations)
-        except SystemExit:
-            bound = set()  # the options step says what is wrong
-        linked = published + [(root / name / "symbols.ld").as_posix() for name in sorted(bound) if name in images_by_name and name != package.name]
+        symbols = [
+            (Path(image.path) / image.fields["symbols"]).as_posix() if "symbols" in image.fields else (root / image.name / "symbols.ld").as_posix()
+            for image in against
+        ]
         ninja_file.build(
             outputs=f"{image}.elf",
             rule="package-elf",
             inputs=inputs,
-            implicit=[package.link_script.as_posix(), *linked],
+            implicit=[package.link_script.as_posix(), *symbols],
             variables={
                 "slot": slot,
                 "script": package.link_script.as_posix(),
-                "published": " ".join(f"-T {path}" for path in linked),
+                "published": " ".join(f"-T {path}" for path in symbols),
             },
         )
         if package.slot == "executable":
@@ -1454,7 +1452,7 @@ def ninja_build(
     # verifier swapped build/ between the matching and objdiff modes, and every
     # switch saw the other mode's commands and rebuilt the whole project.
     ninja_rules_file.variable("builddir", "build")
-    # What a unit is compiled against, unless its edge says: a package's are its bindings.
+    # What a unit is compiled against, unless its edge says: a package's are its own folders and its deps.
     ninja_rules_file.variable("INCLUDES", INCLUDE_FLAGS)
     ninja_rules_file.variable("AS_INCLUDES", INCLUDE_FLAGS)
     os.makedirs("build", exist_ok=True)

@@ -1,7 +1,7 @@
 #ifndef ENGINE_TMD_H
 #define ENGINE_TMD_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "tmd_types.h"
 

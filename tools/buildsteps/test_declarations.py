@@ -15,7 +15,7 @@ from declarations import DECLARATIONS, Declarations, ROOT, targeted, uid_of  # n
 from stage0 import Stage0  # noqa: E402
 
 ROM = ROOT / "rom"
-OUTFITS = ("aya_mist", "aya_dryfield", "aya_akropolis", "aya_range")
+OUTFITS = ("aya/mist", "aya/dryfield", "aya/akropolis", "aya/range")
 
 
 def tree(root: Path, files: dict[str, str]) -> Declarations:
@@ -117,9 +117,62 @@ template = "package"
         self.assertEqual((package.path, package.name, package.slot), ("packages/title", "title", "resident"))
         self.assertEqual(package.link_script, Path("packages/title/psx/link.ld"))
         self.assertEqual(declared.published(), [Path("packages/engine/psx/symbols.ld")])
-        self.assertEqual(declared.package_names(), {"title", "core", "engine", "no_target"})
+        self.assertEqual({one.name for one in declared.every_package()}, {"title", "core", "engine", "no_target"})
         self.assertEqual(declared.packages("pc"), [])
         self.assertEqual(declared.public(), {})
+
+    def test_a_package_is_named_by_the_packages_it_is_in_not_its_folders(self) -> None:
+        library = 'template = "library"'
+        declared = tree(self.root, {
+            "packages.toml": f'[aya]\nuid = "uid://1"\n{library}\n',
+            "packages/aya.toml": f'[akropolis]\nuid = "uid://2"\n{library}\n',
+            "packages/stages.toml": f'[akropolis]\nuid = "uid://3"\n{library}\n',
+            "packages/stages/akropolis/rooms.toml": f'[patio]\nuid = "uid://4"\n{library}\n',
+        })
+        self.assertEqual(sorted(declared.names().values()), ["akropolis", "akropolis/patio", "aya", "aya/akropolis"])
+        self.assertEqual(declared.problems(), [])
+        twice = tree(self.root, {"packages/elsewhere.toml": f'[aya]\nuid = "uid://5"\n{library}\n'})
+        self.assertEqual(twice.problems(), ["packages/aya and packages/elsewhere/aya are both named aya, in the same package or none"])
+
+    def test_an_image_links_what_an_image_it_depends_on_does_not_hold(self) -> None:
+        declared = tree(self.root, {"packages.toml": """
+[title]
+uid = "uid://1"
+template = "package"
+dependencies = ["uid://2", "uid://3", "uid://5"]
+
+[title.target.psx]
+link_script = "psx/link.ld"
+
+[engine]
+uid = "uid://2"
+template = "library"
+dependencies = ["uid://3"]
+
+[engine.target.psx]
+symbols = "psx/symbols.ld"
+
+[psyq]
+uid = "uid://3"
+template = "library"
+objects = ["lib/*.o"]
+
+[helpers]
+uid = "uid://4"
+template = "library"
+sources = ["src/*.c"]
+
+[wrapper]
+uid = "uid://5"
+template = "library"
+dependencies = ["uid://4"]
+"""}, )
+        title, = declared.packages()
+        objects, images = title.linked(declared)
+        # Psy-Q's objects are the executable's, which engine stands for; what only a header library leads to is its own.
+        self.assertEqual([one.name for one in images], ["engine"])
+        self.assertEqual([one.name for one in objects], ["helpers"])
+        self.assertEqual(title.name, "title")
 
     def test_a_target_appends_to_lists_and_replaces_the_rest(self) -> None:
         declared = {"sources": ["a.c"], "slot": "none", "target": {"psx": {"sources": ["b.s"], "slot": "resident"}, "pc": {"sources": ["c.c"]}}}

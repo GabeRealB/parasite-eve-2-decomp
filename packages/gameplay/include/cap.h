@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_CAP_H
 #define GAMEPLAY_CAP_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, text.h)
+#include <engine/text.h>
 
 /// Callback for cursor effects and code cues during timed CAP text reveal.
 ///

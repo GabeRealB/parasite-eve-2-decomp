@@ -1,11 +1,10 @@
 #ifndef GAMEPLAY_GEOMETRY_H
 #define GAMEPLAY_GEOMETRY_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 /// A signed 16.16 fixed-point value. One whole unit is 0x10000.
 ///

@@ -1,7 +1,7 @@
 #ifndef ENGINE_GAMEFLAG_TYPES_H
 #define ENGINE_GAMEFLAG_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Number of four-bit positions in a saved game-flag payload.
 enum { GAME_FLAG_NIBBLE_COUNT = 504 };

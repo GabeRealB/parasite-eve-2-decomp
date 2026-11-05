@@ -1,7 +1,7 @@
 #ifndef ENGINE_SOUND_IDS_H
 #define ENGINE_SOUND_IDS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "areas.h"
 

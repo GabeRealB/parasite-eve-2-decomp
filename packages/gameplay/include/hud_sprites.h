@@ -1,17 +1,15 @@
 #ifndef GAMEPLAY_HUD_SPRITES_H
 #define GAMEPLAY_HUD_SPRITES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "view.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, session_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/session_types.h>
+#include <engine/task_types.h>
 
 /// Queues battle-escape results for an engaged or resumed battle without a pending reset.
 ///

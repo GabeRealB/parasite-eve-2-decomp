@@ -1,7 +1,7 @@
 #ifndef ENGINE_SOUND_TYPES_H
 #define ENGINE_SOUND_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Scaling policies for a linear audio gain ramp.
 enum {

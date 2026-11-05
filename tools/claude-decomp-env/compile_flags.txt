@@ -3,6 +3,5 @@
 -I../../include/psyq
 -I../../include/decomp
 -I../../build/include
--I../../packages/core/include
 -I../../src/
 -funsigned-char

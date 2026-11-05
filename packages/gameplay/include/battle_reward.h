@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_BATTLE_REWARD_H
 #define GAMEPLAY_BATTLE_REWARD_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
+#include <psyq/sys/types.h>
 
 /// Fixed values of an `InventoryBattleReward` list.
 enum {

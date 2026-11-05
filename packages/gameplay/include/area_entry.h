@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_AREA_ENTRY_H
 #define GAMEPLAY_AREA_ENTRY_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// Slot of the controlled character in `gPlayerActorTasks`.
 ///

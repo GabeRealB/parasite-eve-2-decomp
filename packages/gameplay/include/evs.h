@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_EVS_H
 #define GAMEPLAY_EVS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "cap.h"
 #include "message.h"

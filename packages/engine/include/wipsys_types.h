@@ -1,11 +1,10 @@
 #ifndef ENGINE_WIPSYS_TYPES_H
 #define ENGINE_WIPSYS_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 /// Game disc identified in the drive, by which stages' `.CDF` files it carries.
 ///

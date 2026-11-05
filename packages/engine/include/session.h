@@ -1,7 +1,7 @@
 #ifndef ENGINE_SESSION_H
 #define ENGINE_SESSION_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "session_types.h"
 

@@ -1,21 +1,19 @@
 #ifndef GAMEPLAY_ROOM_EFFECTS_H
 #define GAMEPLAY_ROOM_EFFECTS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
-#include PE2_INCLUDE(psyq, libgpu.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "effect_ids.h"
 #include "effects.h"
 #include "scene.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
-#include PE2_INCLUDE(engine, display_types.h)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/coord.h>
+#include <engine/display_types.h>
+#include <engine/task_types.h>
 
 /// Effect ids each room installs for the shared effects enemies spawn.
 ///

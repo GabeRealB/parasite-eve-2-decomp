@@ -1,17 +1,15 @@
 #ifndef GAMEPLAY_ANIMATION_H
 #define GAMEPLAY_ANIMATION_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 
 #include "animation_types.h"
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, coord.h)
-#include PE2_INCLUDE(engine, tmd_types.h)
+#include <engine/coord.h>
+#include <engine/tmd_types.h>
 
 /// Unpacked local transform of one animated model part.
 ///

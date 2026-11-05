@@ -1,7 +1,7 @@
 #ifndef ENGINE_GAMEFLAG_H
 #define ENGINE_GAMEFLAG_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "gameflag_ids.h"
 #include "gameflag_types.h"

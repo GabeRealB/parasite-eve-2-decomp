@@ -1,7 +1,7 @@
 #ifndef ENGINE_TASK_TYPES_H
 #define ENGINE_TASK_TYPES_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "tmd_types.h"
 

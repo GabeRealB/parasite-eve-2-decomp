@@ -1,7 +1,7 @@
 #ifndef ENGINE_GAMEFLOW_H
 #define ENGINE_GAMEFLOW_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "display_types.h"
 

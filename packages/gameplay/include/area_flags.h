@@ -1,10 +1,9 @@
 #ifndef GAMEPLAY_AREA_FLAGS_H
 #define GAMEPLAY_AREA_FLAGS_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(engine, package)
-#include PE2_INCLUDE(engine, task_types.h)
+#include <engine/task_types.h>
 
 /// `flagIndex` value that ends an `AreaObjectPlace` list.
 enum { AREA_OBJECT_PLACE_END = 0xFFFF };

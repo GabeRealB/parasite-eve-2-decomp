@@ -1,13 +1,12 @@
 #ifndef ENGINE_GFX_H
 #define ENGINE_GFX_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
-#include PE2_INCLUDE(psyq, libgpu.h)
-#include PE2_INCLUDE(psyq, libgs.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "coord.h"
 #include "gfx_types.h"

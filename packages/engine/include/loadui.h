@@ -1,7 +1,7 @@
 #ifndef ENGINE_LOADUI_H
 #define ENGINE_LOADUI_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Phases of the disk-swap presentation, stored in a byte.
 enum {

@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_ACTION_PROMPT_H
 #define GAMEPLAY_ACTION_PROMPT_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 /// Signed screen position of an action-prompt cursor, in pixels.
 ///

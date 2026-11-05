@@ -1,7 +1,7 @@
 #ifndef GAMEPLAY_INVENTORY_H
 #define GAMEPLAY_INVENTORY_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
 #include "starter_inventory.h"
 

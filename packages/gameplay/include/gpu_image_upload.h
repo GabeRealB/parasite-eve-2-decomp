@@ -1,12 +1,11 @@
 #ifndef GAMEPLAY_GPU_IMAGE_UPLOAD_H
 #define GAMEPLAY_GPU_IMAGE_UPLOAD_H
 
-#include "pe2.h"
+#include <core/pe2.h>
 
-PE2_BIND(psyq, package)
-#include PE2_INCLUDE(psyq, sys/types.h)
-#include PE2_INCLUDE(psyq, libgte.h)
-#include PE2_INCLUDE(psyq, libgpu.h)
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 /// Copy the record's packed RAM words to its VRAM destination.
 enum { GPU_IMAGE_UPLOAD_COPY = 0 };
