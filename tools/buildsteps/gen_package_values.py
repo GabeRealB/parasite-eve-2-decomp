@@ -29,6 +29,9 @@ KNOWN = frozenset({
     "PE2_BIND", "PE2_BIND_ARG", "PE2_BIND_SELF", "PE2_EDITOR_LABEL", "PE2_VALUE", "PE2_QUERY",
     "PE2_OPTION_DEF", "PE2_OPTION", "PE2_OPTION_IS", "PE2_CONFIG", "PE2_CONFIG_IS",
 })
+# What declares a package's slots and options, and how the editor shows them: all of it in one of the package's units,
+# whose order is the order the editor lists them in.
+DECLARING = frozenset({"PE2_BIND", "PE2_BIND_ARG", "PE2_BIND_SELF", "PE2_OPTION_DEF", "PE2_EDITOR_LABEL"})
 # The keys a query asks by.
 QUERIES = ("contains",)
 CONFIG_KEYS = ("name", "release", "target")
@@ -246,27 +249,37 @@ class Options:
 
 def gathered(package: Package, declarations: Declarations) -> tuple[Options, list[Path]]:
     """What a package's C units and what they include say of options, and every file read, once: each include is held
-    to the rules of the package whose file has it (`Package.resolved`), as the editor's gather holds it."""
+    to the rules of the package whose file has it (`Package.resolved`), and its slots and options to being declared in
+    one of its units (`DECLARING`), as the editor's gather holds them: never a header, which whatever includes it reads.
+    """
     options, seen = Options(), []
+    declaring: list[Path] = []
+    units = [unit for unit in package.units() if unit.suffix == ".c"]
 
     def read(file: Path) -> None:
         if file in seen:
             return
         seen.append(file)
         text = file.read_text(encoding="latin-1")
-        for found in uses(text):
-            options.take(found, f"{file.as_posix()}:{found.line}")
         owner = declarations.owner_of(file)
         if owner is None:
             raise SystemExit(f"{file.as_posix()} is no package's")
+        for found in uses(text):
+            at = f"{file.as_posix()}:{found.line}"
+            if found.name in DECLARING:
+                if file not in units:
+                    raise SystemExit(f"{at}: {found.name} in no unit of {package.name}: a package declares its slots and options in one of its units, never in a header")
+                if declaring and declaring[0] != file:
+                    raise SystemExit(f"{at}: {found.name} outside {declaring[0].as_posix()}: a package's slots and options are declared in one file, in the order the editor lists them")
+                declaring[:1] = [file]
+            options.take(found, at)
         for spelled, angled, line in includes(text):
             reached = owner.resolved(declarations, file, spelled, angled, f"{file.as_posix()}:{line}")
             if reached is not None:
                 read(reached)
 
-    for unit in package.units():
-        if unit.suffix == ".c":
-            read(unit)
+    for unit in units:
+        read(unit)
     return options, seen
 
 
