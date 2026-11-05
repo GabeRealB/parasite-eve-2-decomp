@@ -92,7 +92,7 @@ at = [{ stage = 0, group = 1 }]
 [title]
 uid = "uid://1"
 template = "package"
-sources = ["src/*.c", "!src/*.inc.c"]
+sources.private = ["src/*.c", "!src/*.inc.c"]
 
 [title.target.psx]
 slot = "resident"
@@ -155,12 +155,12 @@ symbols = "psx/symbols.ld"
 [psyq]
 uid = "uid://3"
 template = "library"
-objects = ["lib/*.o"]
+objects.public = ["lib/*.o"]
 
 [helpers]
 uid = "uid://4"
 template = "library"
-sources = ["src/*.c"]
+sources.public = ["src/*.c"]
 
 [wrapper]
 uid = "uid://5"
@@ -173,6 +173,10 @@ dependencies = ["uid://4"]
         self.assertEqual([one.name for one in images], ["engine"])
         self.assertEqual([one.name for one in objects], ["helpers"])
         self.assertEqual(title.name, "title")
+
+    def test_a_target_merges_tables(self) -> None:
+        declared = {"sources": {"private": ["a.c"]}, "target": {"psx": {"sources": {"private": ["b.s"], "public": ["c.s"]}, "slot": "x"}}}
+        self.assertEqual(targeted(declared, "psx"), {"sources": {"private": ["a.c", "b.s"], "public": ["c.s"]}, "slot": "x"})
 
     def test_a_target_appends_to_lists_and_replaces_the_rest(self) -> None:
         declared = {"sources": ["a.c"], "slot": "none", "target": {"psx": {"sources": ["b.s"], "slot": "resident"}, "pc": {"sources": ["c.c"]}}}
@@ -189,7 +193,7 @@ dependencies = ["uid://4"]
 [title]
 uid = "uid://1"
 template = "package"
-sources = ["src/*.c", "!src/*.inc.c"]
+sources.private = ["src/*.c", "!src/*.inc.c"]
 
 [title.target.psx]
 link_script = "psx/link.ld"

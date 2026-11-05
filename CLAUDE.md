@@ -24,10 +24,22 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 
 A fully decompiled overlay leaves splat and becomes a package: `packages/title`
 and Aya's costumes, `packages/aya/{mist,dryfield,akropolis,range}`, so far. Its folder is its
-source - `src/`, public `include/`, `psx/link.ld` - and its declaration
-(`declarations/packages/`, the path being the folder) says what fills its slots.
-The same files are compiled by two builds that know nothing of each other: this
-repository's ninja build, which needs no Rust, and the editor's.
+source, and its declaration (`declarations/packages/`, the path being the
+folder) says what of it is built and what fills its slots. The same files are
+compiled by two builds that know nothing of each other: this repository's
+ninja build, which needs no Rust, and the editor's, which builds each package
+from a tree of exactly what it declares and reaches (ninja builds in place and
+only has to follow it).
+
+**A package declares its files by kind and by what each is for**, as CMake
+does, and nothing is assumed: what is not declared is not built.
+`headers.public` is the one folder its name stands for (`<engine/fs.h>`),
+`headers.private` the folders its own quoted includes are found in;
+`sources` and `objects` are files (globs, a `!` leaving out what it matches).
+`private` is its own build's; `public` is its own and, as far as an image,
+what links it - Psy-Q's members and libsn's start-up (`sources.public`) go to
+the executable that links Psy-Q. A target adds under `target.<name>`, its
+tables merged and its lists appended (`targeted`).
 
 | File | Role |
 |---|---|
@@ -56,7 +68,7 @@ joined by `_` (`aya_mist`). The bracket says whose a file is:
   angle include cannot reach them; dependencies are found under their names in
   `build/USA/packages/<name>/deps` (the editor's tree: `dep/`).
 - `#include "scratch.h"` is always the package's own: beside the file, then its
-  `include/` and `src/`. From a public header it stays inside the public
+  header folders, public then private. From a public header it stays inside the public
   folder, so a dependent never needs another package's private files. The only
   exception is what the build makes for the package (`pe2_options.h`,
   `pe2_values.h`), which `pe2.h` includes.

@@ -1294,9 +1294,10 @@ def ninja_packages(
     variables = {"VERSION": f"-DVER_{version}", "SKIPASMFLAG": "", "PACKAGE_DEFINES": "-Werror"}
     built = {}
     entries = []
-    # What each package and library makes for what links it: its units compiled, by their kind, and its objects as
-    # they are. A scoped build compiles only what the packages it builds link.
-    provided: dict[str, list[str]] = {}
+    # What each package and library makes: its units compiled, by their kind, and its objects as they are - all of
+    # them, for its own image, and its public ones, for what links it. A scoped build compiles only what the packages
+    # it builds link.
+    provided: dict[str, tuple[list[str], list[str]]] = {}
     # What the packages built link, and every library with something to compile: the split executable links psyq's.
     linked = {package.path: package.linked(declarations) for package in packages}
     wanted = {p.path for p in packages} | {library.path for objects, _ in linked.values() for library in objects}
@@ -1365,14 +1366,16 @@ def ninja_packages(
                 },
             )
             made.append(obj)
-        provided[package.name] = made + [path.as_posix() for path in package.objects()]
+        public = {package.object_of(unit, root).as_posix() for unit in package.units(("public",))}
+        provided[package.name] = (made + [path.as_posix() for path in package.objects()],
+                                  [obj for obj in made if obj in public] + [path.as_posix() for path in package.objects(("public",))])
 
     # Each image: its layout first, publishing what it exports, then the image, linked with the objects of the
     # libraries it takes and against the symbols of the images it depends on (`Package.linked`).
     for package in packages:
         out = root / package.name
         objects, against = linked[package.path]
-        inputs = provided.get(package.name, []) + [obj for library in objects for obj in provided.get(library.name, [])]
+        inputs = provided.get(package.name, ([], []))[0] + [obj for library in objects for obj in provided.get(library.name, ([], []))[1]]
         image = (images / package.name.replace("/", "_")).as_posix()
         slot = f"0x{slots[package.slot]:X}"
         layout, own_symbols = (out / "layout.elf").as_posix(), (out / "symbols.ld").as_posix()

@@ -102,12 +102,29 @@ class Stored:
 
 
 def targeted(table: dict, target: str) -> dict:
-    """A declaration as a target reads it: its own values, then what it says under `target.<target>` - a list
-    appended to the list it has, any other value replacing. What it says for other targets is not there."""
-    out = {key: value for key, value in table.items() if key != "target"}
-    for key, value in table.get("target", {}).get(target, {}).items():
-        out[key] = out[key] + value if isinstance(value, list) and isinstance(out.get(key), list) else value
+    """A declaration as a target reads it: its own values, then what it says under `target.<target>` - a table merged
+    into the table it has, a list appended to the list it has, any other value replacing. What it says for other
+    targets is not there."""
+    return merged({key: value for key, value in table.items() if key != "target"}, table.get("target", {}).get(target, {}))
+
+
+def merged(into: dict, more: dict) -> dict:
+    """`more` over `into`: tables merged, lists appended, other values replacing."""
+    out = dict(into)
+    for key, value in more.items():
+        held = out.get(key)
+        if isinstance(value, dict) and isinstance(held, dict):
+            out[key] = merged(held, value)
+        elif isinstance(value, list) and isinstance(held, list):
+            out[key] = held + value
+        else:
+            out[key] = value
     return out
+
+
+# What a package's files are for, which a declaration says of each kind: `private`, its own build's; `public`, its own
+# and, as far as an image, what links it.
+VISIBILITIES = ("private", "public")
 
 
 @dataclass(frozen=True)
@@ -126,11 +143,28 @@ class Package:
 
     @property
     def public(self) -> Path | None:
-        """The folder of what others may include of it, if it has one."""
-        folders = self.declaration.table.get("public", [])
-        if len(folders) > 1:
-            raise SystemExit(f"{self.path}: a package has one public folder, not {', '.join(folders)}")
-        return Path(self.path) / folders[0] if folders else None
+        """The folder of what others may include of it (`headers.public`), if it has one: one, which its name stands
+        for (`<engine/fs.h>`)."""
+        folder = self.headers.get("public")
+        if folder is not None and not isinstance(folder, str):
+            raise SystemExit(f"{self.path}: headers.public is one folder, which its name stands for")
+        return Path(self.path) / folder if folder is not None else None
+
+    @property
+    def private(self) -> list[Path]:
+        """The folders its own files' quoted includes are found in after their own (`headers.private`)."""
+        return [Path(self.path) / folder for folder in self.headers.get("private", [])]
+
+    @property
+    def headers(self) -> dict:
+        return self.kind("headers")
+
+    def kind(self, key: str) -> dict:
+        """What it declares of a kind of file, by visibility."""
+        found = self.fields.get(key, {})
+        if not isinstance(found, dict) or any(visibility not in VISIBILITIES for visibility in found):
+            raise SystemExit(f"{self.path}: {key} is declared by visibility: {', '.join(f'{key}.{one}' for one in VISIBILITIES)}")
+        return found
 
     @property
     def fields(self) -> dict:
@@ -150,24 +184,26 @@ class Package:
     def link_script(self) -> Path:
         return Path(self.path) / self.fields["link_script"]
 
-    def listed(self, key: str) -> list[Path]:
-        """The files a list of its names: globs from its folder, in order, a `!` leaving out what it matches."""
+    def listed(self, key: str, visibilities: tuple[str, ...] = VISIBILITIES) -> list[Path]:
+        """The files it declares of a kind, of those visibilities: globs from its folder, in order, a `!` leaving out
+        what it matches."""
         folder = Path(self.path)
         kept: set[Path] = set()
-        for pattern in self.fields.get(key, []):
+        declared = self.kind(key)
+        for pattern in (pattern for visibility in visibilities for pattern in declared.get(visibility, [])):
             if pattern.startswith("!"):
                 kept -= set(folder.glob(pattern[1:]))
             else:
                 kept |= set(folder.glob(pattern))
         return sorted(kept)
 
-    def units(self) -> list[Path]:
+    def units(self, visibilities: tuple[str, ...] = VISIBILITIES) -> list[Path]:
         """Its sources (`sources`), which its target compiles by their kind: C, or assembly (`.s`)."""
-        return self.listed("sources")
+        return self.listed("sources", visibilities)
 
-    def objects(self) -> list[Path]:
-        """What its target links as it is (`objects`): an image's own, a library's for what depends on it."""
-        return self.listed("objects")
+    def objects(self, visibilities: tuple[str, ...] = VISIBILITIES) -> list[Path]:
+        """What its target links as it is (`objects`)."""
+        return self.listed("objects", visibilities)
 
     def object_of(self, unit: Path, root: Path) -> Path:
         """Where a unit's object is made, named by the package and the unit's place in it, as a link script names it
@@ -180,8 +216,8 @@ class Package:
         return "link_script" in self.fields or "symbols" in self.fields
 
     def makes_objects(self) -> bool:
-        """Whether it makes objects for what links it: sources compiled, or objects linked as they are."""
-        return bool(self.fields.get("sources") or self.fields.get("objects"))
+        """Whether it gives what links it objects: public sources compiled, or public objects as they are."""
+        return bool(self.kind("sources").get("public") or self.kind("objects").get("public"))
 
     def declared(self, declarations: Declarations) -> list[Package]:
         """What it depends on, as its declaration says (`dependencies`) for its target."""
@@ -249,7 +285,7 @@ class Package:
     def include_flags(self, deps: Path) -> str:
         """Where its units' includes are found: what they write in quotes in its own folders (`-iquote`), what they
         write in angle brackets in `deps`, which holds each package it can reach under that package's name."""
-        own = [*([self.public] if self.public is not None else []), Path(self.path) / "src"]
+        own = [*([self.public] if self.public is not None else []), *self.private]
         return " ".join([*(f"-iquote {folder.as_posix()}" for folder in own), f"-I{deps.as_posix()}"])
 
     def resolved(self, declarations: Declarations, file: Path, spelled: str, angled: bool, at: str) -> Path | None:
@@ -262,7 +298,7 @@ class Package:
                 return None
             public = self.public
             in_public = public is not None and file.is_relative_to(public)
-            folders = [file.parent] if in_public else [file.parent, *([public] if public is not None else []), Path(self.path) / "src"]
+            folders = [file.parent] if in_public else [file.parent, *([public] if public is not None else []), *self.private]
             within = public if in_public else Path(self.path)
             for folder in folders:
                 candidate = Path(normal((folder / spelled).as_posix()))
@@ -366,7 +402,7 @@ class Declarations:
             for declaration in self.by_path.values()
             if declaration.template in ("package", "library")
             for package in [self.package(declaration, target)]
-            if package.fields.get("sources") or package.fields.get("objects")
+            if package.kind("sources") or package.kind("objects")
         ]
 
     def published(self, target: str = "psx") -> list[Path]:

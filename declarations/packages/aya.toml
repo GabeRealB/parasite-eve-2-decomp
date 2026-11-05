@@ -3,7 +3,7 @@
 [mist]
 uid = "uid://pkq6zctcq1as"
 template = "package"
-sources = ["src/package.c"]
+sources.private = ["src/package.c"]
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/mist/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/mist/hand_left"
 bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/mist/stored_hand_right"
@@ -26,7 +26,7 @@ link_script = "psx/link.ld"
 [dryfield]
 uid = "uid://gz0onrpki7ki"
 template = "package"
-sources = ["src/package.c"]
+sources.private = ["src/package.c"]
 bind.body = "uid://vinvx0m1i1zv#outfit/dryfield/body"
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/dryfield/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/dryfield/hand_left"
@@ -50,7 +50,7 @@ link_script = "psx/link.ld"
 [akropolis]
 uid = "uid://1poz67b78tdpm"
 template = "package"
-sources = ["src/package.c"]
+sources.private = ["src/package.c"]
 bind.body = "uid://vinvx0m1i1zv#outfit/akropolis/body"
 bind.hand_left_both = "uid://vinvx0m1i1zv#outfit/akropolis/hand_left"
 bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/akropolis/stored_hand_right"
@@ -73,7 +73,7 @@ link_script = "psx/link.ld"
 [range]
 uid = "uid://18drk5dg73b83"
 template = "package"
-sources = ["src/package.c"]
+sources.private = ["src/package.c"]
 bind.hand_left_open = "uid://vinvx0m1i1zv#outfit/range/stored_hand_left"
 bind.hand_left_closed = "uid://vinvx0m1i1zv#outfit/range/hand_left"
 bind.hand_right_open = "uid://vinvx0m1i1zv#outfit/range/stored_hand_right"

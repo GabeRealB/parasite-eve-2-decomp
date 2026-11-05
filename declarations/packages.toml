@@ -1,12 +1,16 @@
 # Declarations: where extraction finds each asset on the discs (pe2-cli project extract); these are packages, which it finds on no disc:
-# what a package is built from, as CMake lists a target's, its paths relative to the folder of its name. A target adds to it under
-# target.<name>, its lists appended and its other values replacing.
+# what a package is built from, its paths relative to the folder of its name, each kind by what it is for, as CMake says a target's -
+# `private`, its own build's; `public`, its own and, as far as an image, what links it. `headers.public` is the one folder its name
+# stands for (`<engine/fs.h>`), `headers.private` the folders its own quoted includes are found in; `sources` and `objects` are files.
+# Nothing is assumed: what is not declared is not built. A target adds to it under target.<name>, its tables merged, its lists
+# appended and its other values replacing.
 
 [title]
 uid = "uid://pc4ree5f63i7"
 template = "package"
-sources = ["src/*.c", "!src/*.inc.c"]
-public = ["include"]
+headers.public = "include"
+headers.private = ["src"]
+sources.private = ["src/package.c"]
 dependencies = [
     { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
     { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
@@ -27,7 +31,7 @@ link_script = "psx/link.ld"
 [core]
 uid = "uid://1hq6535kv7l92"
 template = "library"
-public = ["include"]
+headers.public = "include"
 
 # Sony's SDK, as the game links it: its headers, and of its libraries the members the executable links, each converted from
 # the SDK's object - but libsn's start-up, which no ELF object can hold: its reconstruction is a source, compiled with the
@@ -35,18 +39,18 @@ public = ["include"]
 [psyq]
 uid = "uid://6xwnsgn9562h"
 template = "library"
-public = ["include"]
+headers.public = "include"
 
 [psyq.target.psx]
-sources = ["lib/libsn/snmain.s"]
-objects = ["lib/*/*.o"]
+sources.public = ["lib/libsn/snmain.s"]
+objects.public = ["lib/*/*.o"]
 
 # The GTE's commands as real COP2 instructions: what Sony's DMPSX made of the SDK's placeholder words, which no tool of
 # this build runs. It keeps the SDK's macro names, so the SDK's compound macros reach it too.
 [math]
 uid = "uid://11pxyk2e9y3yt"
 template = "library"
-public = ["include"]
+headers.public = "include"
 dependencies = [
     { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
 ]
@@ -54,7 +58,7 @@ dependencies = [
 [engine]
 uid = "uid://1gge5rcau98eq"
 template = "library"
-public = ["include"]
+headers.public = "include"
 dependencies = [
     { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
     { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
@@ -68,7 +72,7 @@ symbols = "psx/symbols.ld"
 [gameplay]
 uid = "uid://1xmru45vx7ejy"
 template = "library"
-public = ["include"]
+headers.public = "include"
 dependencies = [
     { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
     { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
@@ -81,7 +85,7 @@ symbols = "psx/symbols.ld"
 [aya]
 uid = "uid://upo6m0w1osm2"
 template = "library"
-public = ["include"]
+headers.public = "include"
 dependencies = [
     { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
     { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
