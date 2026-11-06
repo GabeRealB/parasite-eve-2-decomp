@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Make projects and fill their game layer.
 
-    pe2project.py create [DIR] [--release R ...] [--roms PATH] [--no-extract]
-    pe2project.py init [--release R ...] [--roms PATH] [--no-extract]
+    pe2project.py create [DIR] [--release R ...] [--roms PATH] [--no-extract] [--no-extensions]
+    pe2project.py init [--release R ...] [--roms PATH] [--no-extract] [--no-extensions]
     pe2project.py extract [--project DIR] [--release R ...] [--roms PATH] [--declarations PATH]
 
 `create` makes a new project in DIR (default `project/` at the repository root; it must not exist or be empty), `init`
@@ -10,8 +10,11 @@ makes the current directory one. Either writes `project.toml` - the releases it 
 (names, sizes and sha1s, read off the images), the game layer `.layers/game` and the project's own `.layers/project`,
 the `roms` folder, the declarations it extracts by, mounts of this checkout's `src/` and `include/` and of its
 declarations, a configuration per release - realizes the mounts as links, writes the `.gitignore` that keeps the
-game's content out (the game layer and its changeset, `roms`, the links), and then extracts. `--roms PATH` links
-`roms` to a folder of images kept elsewhere.
+game's content out (the game layer and its changeset, `roms`, the links), adds the extensions the project builds and
+plays its movies with (`pe2.psx`, `pe2.ffmpeg`: copied into its own layer and required, by `pe2-cli project extension
+add`), and then extracts. `--roms PATH` links `roms` to a folder of images kept elsewhere. The extensions come from the
+editor as `cargo xtask dist` lays it out, laid out again first where Rust is installed; without Rust and without one laid
+out, the project is made without them, saying how to add them.
 
 `extract` (re)writes a project's game layer, and nothing else: it finds each release's discs in `roms` by size and
 sha1, dumps them into the layer (`.rom/<release>/disk<n>`), extracts them with the project's declarations, and records
@@ -34,6 +37,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "peassets"))
 import project as projects  # noqa: E402
 
+EDITOR = ROOT / "editor"
+# What every project holds: the PlayStation target its packages build for, and ffmpeg, its movies' video files.
+EXTENSIONS = ["pe2.psx", "pe2.ffmpeg"]
 LAYER = ".layers/game"             # the extraction's layer; its changeset beside it, `.layers/game.toml`
 OWN = ".layers/project"             # the project's own layer
 DECLARATIONS = "res://declarations"
@@ -116,6 +122,32 @@ def setup(directory: Path, wanted: list[str], roms: Path | None) -> None:
     print(f"made the project {directory}")
 
 
+def editor_tree() -> Path | None:
+    """The editor as `cargo xtask dist` lays it out - `pe2-cli` beside the extensions built apart from it - laid out
+    again first where Rust is installed, so that what a project is given is this checkout's; the newest there is."""
+    if shutil.which("cargo"):
+        print("laying out the editor and its extensions (cargo xtask dist)")
+        subprocess.run(["cargo", "xtask", "dist"], cwd=EDITOR, check=True, stdout=subprocess.DEVNULL)
+    cli = "pe2-cli.exe" if os.name == "nt" else "pe2-cli"
+    trees = [t for t in (EDITOR / "target" / "dist").glob("pe2-*") if (t / cli).is_file() and (t / "extensions").is_dir()]
+    return max(trees, key=lambda t: (t / cli).stat().st_mtime, default=None)
+
+
+def add_extensions(directory: Path) -> None:
+    """Add the extensions every project holds (EXTENSIONS) to a new project, as `pe2-cli project extension add` does:
+    each copied into the project's own layer and required. Without an editor to add them with, said, not failed."""
+    tree = editor_tree()
+    if tree is None:
+        names = " and ".join(f"`pe2-cli project extension add {e}`" for e in EXTENSIONS)
+        print(f"warning: no editor laid out (`cargo xtask dist`, which needs Rust): the project holds no extensions "
+              f"yet - add them with {names}")
+        return
+    cli = tree / ("pe2-cli.exe" if os.name == "nt" else "pe2-cli")
+    for extension in EXTENSIONS:
+        subprocess.run([str(cli), "project", "extension", "add", extension, "--project", str(directory.absolute())],
+                       check=True)
+
+
 def find_disc(roms: Path, disc: dict) -> Path:
     """A disc's image in `roms`, by size and sha1 (its name may differ)."""
     named = roms / disc["name"]
@@ -187,6 +219,7 @@ def main() -> int:
         c.add_argument("--release", action="append", help="a release the project is built for (default USA)")
         c.add_argument("--roms", type=Path, help="a folder of disc images kept elsewhere: `roms` links to it")
         c.add_argument("--no-extract", action="store_true")
+        c.add_argument("--no-extensions", action="store_true", help="add no extensions (pe2.psx, pe2.ffmpeg)")
     e = sub.add_parser("extract")
     e.add_argument("--project", type=Path, default=Path.cwd())
     e.add_argument("--release", action="append")
@@ -196,6 +229,8 @@ def main() -> int:
     if args.command in ("create", "init"):
         directory = args.directory if args.command == "create" else Path.cwd()
         setup(directory, args.release or ["USA"], args.roms)
+        if not args.no_extensions:
+            add_extensions(directory)
         if not args.no_extract:
             extract(directory, None, None, None)
     else:
