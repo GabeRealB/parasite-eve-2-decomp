@@ -116,7 +116,7 @@ The original PSX GCC 2.8.1 compiler ships under `tools/linux/` (and equivalents 
 
    This uses `dumpsxiso` to write the disc's files under `rom/USA/disk1/` and `rom/USA/disk2/`, then writes what the build reads - the executables, the packages, the stored chunks and the instances of the data compiled into overlays - under `assets/USA/`.
 
-   For the full extraction, with every asset in an editable form (PNG, WAV, USD, ...), make a project instead: `python3 tools/pe2project.py create --roms rom/image` writes one to `project/`, which the asset tools then work on.
+   For the editor, with every asset in an editable form (PNG, WAV, USD, ...), make a project instead: `venv/bin/python3 tools/pe2project.py create --roms rom/image` writes one to `project/` from the declarations - every asset's node and the plan of what to read off the discs - and the editor fills it from your discs (`pe2-cli project extract`).
 
 ## Building
 

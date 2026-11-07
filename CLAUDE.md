@@ -238,11 +238,16 @@ Packages the decomp builds are marked `"required": True` in `asset_data.py`, so
 `python3 ninja_config.py --iso_build` materialises exactly that set — 443 overlays —
 with the rest of what the build reads (the stored chunks, the executables, the
 instances of the data compiled into overlays, the folders' streaming lists) into
-`assets/USA`: the CI/matching extract, and nothing a repack alone needs. The full
-extraction - every asset's editable form, `stages.json` and the ISO manifests,
-which the viewer, `dump_asset_db.py` and the repack need - is a project's:
-`python3 tools/pe2project.py create --roms rom/image` makes one in `project/`
-(gitignored), and every asset tool defaults to it (`tools/peassets/project.py`).
+`assets/USA`: the CI/matching extract, and nothing a repack alone needs. A project
+for the editor is made from the declarations: `venv/bin/python3 tools/pe2project.py
+create --roms rom/image` makes one in `project/` (gitignored) - its game layer's
+nodes, changeset and extraction plan written by `tools/editor_project/`, the plan
+run by `pe2-cli project extract` (only what changed is made again; `pe2-cli project
+verify` checks the layer without the discs) - and every asset tool defaults to it
+(`tools/peassets/project.py`). The editor knows nothing of the declarations: it runs
+the plan it is given. The old full Python extraction (`tools/peassets/extract.py`:
+`stages.json` and the ISO manifests, which the viewer, `dump_asset_db.py` and the
+repack read) is run by hand.
 `ninja_config.py --project [DIR]` builds a project's data instead of
 `assets/USA`.
 

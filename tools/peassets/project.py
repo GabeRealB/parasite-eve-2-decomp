@@ -5,14 +5,13 @@ A project is a directory holding `project.toml` (made by tools/pe2project.py):
     [game]
     layer = "game"                       the layer the user's discs fill (gitignored)
     roms = "roms"                        where a user puts the disc images (gitignored; shipped empty)
-    declarations = "res://declarations"  what the extraction goes by
 
     [game.releases.USA]                  the releases the project is built for, and the discs each needs
-    discs = [ { name = "SLUS-01042.bin", sha1 = "..." }, ... ]
+    discs = [ { name = "SLUS-01042.bin", size = ..., sha1 = "..." }, ... ]
 
     [[layer]]                            the asset layers below the project's own directory, bottom to top
     name = "game"
-    path = ".game"
+    path = ".layers/game"
 
     [[mount]]                            external trees placed in the project (its code tree)
     at = "src"
@@ -61,7 +60,6 @@ class Layer:
 class Game:
     layer: str
     roms: Path                           # resolved
-    declarations: str                    # a res:// path
     releases: dict[str, list[dict]]      # release -> its discs, { name, sha1 }
 
 
@@ -97,7 +95,7 @@ def load(directory: Path) -> Project:
     directory = Path(directory).absolute()
     data = tomllib.loads((directory / FILE).read_text(encoding="utf-8"))
     g = data.get("game")
-    game = Game(g["layer"], _path(directory, g.get("roms", "roms")), g["declarations"],
+    game = Game(g["layer"], _path(directory, g.get("roms", "roms")),
                 {r: spec.get("discs", []) for r, spec in g.get("releases", {}).items()}) if g else None
     layers = [Layer(layer["name"], _path(directory, layer["path"])) for layer in data.get("layer", ())]
     mounts = [Mount(m["at"], _path(directory, m["path"]), m.get("read_only", False), m.get("revision"))
