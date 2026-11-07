@@ -243,7 +243,10 @@ for the editor is made from the declarations: `venv/bin/python3 tools/pe2project
 create --roms rom/image` makes one in `project/` (gitignored) - its game layer's
 nodes, changeset and extraction plan written by `tools/editor_project/`, the plan
 run by `pe2-cli project extract` (only what changed is made again; `pe2-cli project
-verify` checks the layer without the discs) - and every asset tool defaults to it
+status` says whether the layer is as its plan says, `verify` checks its files, both
+without the discs); the project itself is made by the editor's commands (`pe2-cli
+project new`, `layer add`, `game`, `release add`, `mount add`, `config add`), never
+by writing its `project.toml` - and every asset tool defaults to it
 (`tools/peassets/project.py`). The editor knows nothing of the declarations: it runs
 the plan it is given. The old full Python extraction (`tools/peassets/extract.py`:
 `stages.json` and the ISO manifests, which the viewer, `dump_asset_db.py` and the

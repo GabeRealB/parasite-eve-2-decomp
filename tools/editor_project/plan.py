@@ -58,9 +58,11 @@ def declared(table: dict) -> dict:
 
 
 class Plan:
-    def __init__(self, layer: str, releases: list[str]) -> None:
+    def __init__(self, layer: str, releases: list[str], extensions: dict[str, str] | None = None) -> None:
         self.layer = layer
         self.releases = releases
+        # Each extension's version as the registry says it (`0.1.0 <build>`): what the plan requires of those it runs.
+        self.extensions = extensions or {}
         self.ops: dict[str, dict] = {}
         self.emits: dict[str, dict[str, str]] = {}
         self.checks: set[str] = set()
@@ -87,6 +89,21 @@ class Plan:
         self.ops[id] = line
         return id
 
+    def requires(self) -> list[dict]:
+        """The extensions whose operations it runs, each at the versions compatible with the one it was made by
+        (`^<major>.<minor>`)."""
+        used = sorted({line["op"].split("@")[0] for line in self.ops.values() if "@" in line["op"]})
+        if any(line["op"] == "source" for line in self.ops.values()):
+            used = sorted(set(used) | {"pe2.images"})
+        out = []
+        for id in used:
+            version = self.extensions.get(id, "").split(" ")[0]
+            parts = version.split(".")
+            if len(parts) < 2:
+                raise ValueError(f"the registry gives no version of {id}, whose operations the plan runs")
+            out.append({"id": id, "version": f"^{parts[0]}.{parts[1]}"})
+        return out
+
     def check(self, id: str) -> None:
         self.checks.add(id)
 
@@ -98,7 +115,7 @@ class Plan:
     def text(self) -> str:
         """The plan's lines: what it is, its operations - discs, containers, then reads, each in id order - and the
         bundles, by path."""
-        head = {"plan": VERSION, "layer": self.layer, "releases": self.releases}
+        head = {"plan": VERSION, "layer": self.layer, "releases": self.releases, "requires": self.requires()}
         emits = []
         for node, files in sorted(self.emits.items()):
             line = {"emit": node, "files": files}
@@ -347,7 +364,7 @@ def json_safe(item):
 
 
 def make(decl, registry: dict, releases: list[str], layer: str = "game") -> Plan:
-    plan = Plan(layer, releases)
+    plan = Plan(layer, releases, registry.get("extensions", {}))
     by_path = dict(sorted(decl.by_path.items()))
     discs: dict[tuple[str, str], str] = {}
     containers: dict[tuple[str, int], tuple[str, str]] = {}

@@ -6,20 +6,20 @@
     pe2project.py extract [--project DIR] [--roms PATH]
 
 `create` makes a new project in DIR (default `project/` at the repository root; it must not exist or be empty), `init`
-makes the current directory one. Either writes `project.toml` - the releases it is built for with the discs each needs
-(names, sizes and sha1s, read off the images), the game layer `.layers/game` and the project's own `.layers/project`,
-the `roms` folder, a read-only mount of this checkout's `packages/`, a configuration per release - realizes the mount
-as a link, writes the `.gitignore` that keeps the game's content out (the game layer and its changeset, `roms`, the
-links), adds the extensions the project builds and plays its movies with (`pe2.psx`, `pe2.ffmpeg`, by `pe2-cli project
-extension add`), and then extracts.
+makes the current directory one. The editor makes it (`pe2-cli project new`, then `layer add`, `game`, `release add`,
+`mount add`, `config add`): the game layer `.layers/game` below the project's own `.layers/project`, the releases it is
+built for with the discs each needs (names, sizes and sha1s, read off the images in `roms`), a read-only mount of this
+checkout's `packages/`, a configuration per release; then the mount is realized as a link, the `.gitignore` that keeps
+the game's content out is written (the game layer and its changeset, `roms`, the links), the extensions the project
+builds and plays its movies with are added (`pe2.psx`, `pe2.ffmpeg`, by `pe2-cli project extension add`), and it is
+extracted.
 
 `extract` writes the game layer from the declarations (`editor_project/`): every asset's node, the layer's changeset and
 its extraction plan - what the editor reads of the layer before anything is extracted - and then has the editor run the
 plan (`pe2-cli project extract`), which reads the discs in `roms` and makes only what changed since it last ran. The
 nodes are made by what the project's extensions offer (`pe2-cli project registry`).
 
-The editor comes from `cargo xtask dist`, laid out again first where Rust is installed; without Rust and without one laid
-out, the project is made without extensions or a game layer, saying how to make them.
+The editor comes from `cargo xtask dist`, laid out again first where Rust is installed; without one, no project is made.
 """
 from __future__ import annotations
 
@@ -40,7 +40,6 @@ import declarations as declared  # noqa: E402
 import init as layer_init  # noqa: E402
 import plan as plans  # noqa: E402
 import project_lock  # noqa: E402
-import toml_out  # noqa: E402
 
 EDITOR = ROOT / "editor"
 # What every project holds: the PlayStation target its packages build for, and ffmpeg, its movies' video files.
@@ -85,8 +84,10 @@ def make_link(path: Path, target: Path) -> None:
         subprocess.run(["cmd", "/c", "mklink", "/J", str(path), str(target.resolve())], check=True, capture_output=True)
 
 
-def setup(directory: Path, wanted: list[str], roms: Path | None) -> None:
-    """Write a new project into `directory` (absent or empty)."""
+def setup(directory: Path, wanted: list[str], roms: Path | None, cli: Path) -> None:
+    """Make a new project in `directory` (absent or empty), by the editor's own commands: an empty project, then its
+    game layer, its game and releases - the discs each needs, read off their images in `roms` - its mounts and its
+    configurations. What is not the project's file - the links, the `.gitignore` - is written here."""
     directory = directory.absolute()
     if directory.exists() and any(directory.iterdir()):
         raise SystemExit(f"{directory} is not empty: a project is made in a new or empty folder")
@@ -94,51 +95,34 @@ def setup(directory: Path, wanted: list[str], roms: Path | None) -> None:
     unknown = [r for r in wanted if r not in known]
     if unknown:
         raise SystemExit(f"unknown release {', '.join(unknown)}; known: {', '.join(known)}")
-    directory.mkdir(parents=True, exist_ok=True)
+    found = (roms or directory / "roms").absolute()
+    images = {release: [found / name for name in known[release]["images"]] for release in wanted}
+    for release, paths in images.items():
+        missing = [p.name for p in paths if not p.is_file()]
+        if missing:
+            raise SystemExit(f"{release}: {', '.join(missing)} not in {found}: the project records the discs it is "
+                             "built for from the images themselves")
+
+    def edit(*arguments: str) -> None:
+        subprocess.run([str(cli), "project", *arguments, "--project", str(directory)], check=True)
+
+    subprocess.run([str(cli), "project", "new", str(directory)], check=True)
     if roms is not None and roms.resolve() != (directory / "roms").resolve():
         make_link(directory / "roms", roms)
     else:
         (directory / "roms").mkdir(exist_ok=True)
-    found = directory / "roms"
-    game = {"layer": "game", "roms": "roms", "releases": {}}
-    for release in wanted:
-        discs = []
-        for name in known[release]["images"]:
-            image = found / name
-            if not image.is_file():
-                raise SystemExit(f"{release}: {name} is not in {found}: the project records the discs it is built for "
-                                 "from the images themselves")
-            discs.append({"name": name, "size": image.stat().st_size, "sha1": sha1(image)})
-        game["releases"][release] = {"discs": discs}
-    doc = {
-        "game": game,
-        "layer": [{"name": "game", "path": LAYER}, {"name": "project", "path": OWN}],
-        "mount": [{"at": at, "path": relative(path, directory), **({"read_only": True} if ro else {})}
-                  for at, path, ro in MOUNTS],
-        "config": {r.lower(): {"release": r, "target": "psx"} for r in wanted},
-    }
-    (directory / OWN).mkdir(parents=True, exist_ok=True)
-    (directory / "project.toml").write_text(project_toml(doc), encoding="utf-8")
-    for at, path, _ro in MOUNTS:
+    edit("layer", "add", "game", "--bottom")
+    edit("game", "--layer", "game", "--roms", "roms")
+    for release, paths in images.items():
+        edit("release", "add", release, *[str(directory / "roms" / p.name) for p in paths])
+    for at, path, read_only in MOUNTS:
+        edit("mount", "add", at, relative(path, directory), *(["--read-only"] if read_only else []))
         make_link(directory / at, path)
+    for release in wanted:
+        edit("config", "add", release.lower(), "--release", release, "--target", "psx")
     (directory / ".gitignore").write_text("# The game's content and this machine's links; see project.toml.\n"
                                           + "\n".join(IGNORE) + "\n", encoding="utf-8")
     print(f"made the project {directory}")
-
-
-def project_toml(doc: dict) -> str:
-    """A `project.toml`: its game and releases, its layers, mounts and configurations."""
-    game = doc["game"]
-    parts = ["# A project. `res://` paths are absolute from this directory.",
-             "[game]\n" + "\n".join(f"{k} = {toml_out.value(v)}" for k, v in game.items() if k != "releases")]
-    for release, spec in game["releases"].items():
-        parts.append(f"[game.releases.{release}]\ndiscs = {toml_out.value(spec['discs'])}")
-    for kind in ("layer", "mount"):
-        for item in doc[kind]:
-            parts.append(f"[[{kind}]]\n" + "\n".join(f"{k} = {toml_out.value(v)}" for k, v in item.items()))
-    for name, keys in doc["config"].items():
-        parts.append(f"[config.{name}]\n" + "\n".join(f"{k} = {toml_out.value(v)}" for k, v in keys.items()))
-    return "\n\n".join(parts) + "\n"
 
 
 def editor_cli() -> Path | None:
@@ -207,12 +191,11 @@ def main() -> int:
     args = ap.parse_args()
     cli = editor_cli()
     if cli is None:
-        print("warning: no editor laid out (`cargo xtask dist`, which needs Rust): no extensions, no game layer")
+        raise SystemExit("a project is made by the editor's own commands: lay the editor out (`cargo xtask dist`, "
+                         "which needs Rust)")
     if args.command in ("create", "init"):
         directory = (args.directory if args.command == "create" else Path.cwd()).absolute()
-        setup(directory, args.release or ["USA"], args.roms)
-        if cli is None:
-            return 0
+        setup(directory, args.release or ["USA"], args.roms, cli)
         if not args.no_extensions:
             add_extensions(directory, cli)
         if args.no_extract:
@@ -221,8 +204,6 @@ def main() -> int:
         else:
             extract(directory, None, cli)
     else:
-        if cli is None:
-            raise SystemExit("the editor is needed to extract: `cargo xtask dist`")
         extract(args.project, args.roms, cli)
     return 0
 
