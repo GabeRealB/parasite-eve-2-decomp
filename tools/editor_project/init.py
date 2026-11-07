@@ -33,8 +33,6 @@ NODE = ".node"
 HEADER = "# A node, written by extraction."
 LAYOUT_HEADER = "# A node, written by extraction: the layout and its slots."
 CHANGESET = "# A layer's changeset: what it creates, and what it does to the layers below."
-# The layer's own files beside its bundles: its plan, and the record of its last run.
-OWN = ("extraction.plan.jsonl", "extraction.record.jsonl")
 DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
@@ -87,7 +85,7 @@ def write_nodes(layer: Path, made: dict[str, tuple[str, dict]]) -> None:
         entries[uid] = f"{path}{NODE}"
     folders = sorted({parent for at in entries.values() for parent in parents(at)})
     taken = set(entries)
-    for folder in folders + list(OWN):
+    for folder in folders:
         uid = derived_uid(folder, taken)
         taken.add(uid)
         entries[uid] = folder
@@ -154,10 +152,9 @@ def main() -> int:
     write.add_argument("--declarations", type=Path, default=declared.DECLARATIONS)
     planned = sub.add_parser("plan")
     planned.add_argument("--registry", type=Path, required=True)
-    planned.add_argument("--layer", type=Path, required=True)
+    planned.add_argument("--out", type=Path, required=True, help="the plan's file, beside the layer it fills")
     planned.add_argument("--release", action="append", default=[])
     planned.add_argument("--declarations", type=Path, default=declared.DECLARATIONS)
-    planned.add_argument("--name", default="game", help="the layer's name in its project")
     check = sub.add_parser("compare")
     check.add_argument("--layer", type=Path, required=True)
     check.add_argument("--against", type=Path, required=True)
@@ -168,9 +165,8 @@ def main() -> int:
     decl = declared.Declarations(args.declarations)
     releases = args.release or sorted(p.name for p in (args.declarations / "disc").iterdir() if p.is_dir())
     if args.command == "plan":
-        made = plans.make(decl, registry, releases, args.name)
-        args.layer.mkdir(parents=True, exist_ok=True)
-        (args.layer / OWN[0]).write_text(made.text(), encoding="utf-8")
+        made = plans.make(decl, registry, releases)
+        args.out.write_text(made.text(), encoding="utf-8")
         print(f"{len(made.ops)} operations, {len(made.emits)} bundles given files")
         return 0
     write_nodes(args.layer, layer_nodes(decl, registry, releases))

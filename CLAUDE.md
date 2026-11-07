@@ -240,13 +240,17 @@ with the rest of what the build reads (the stored chunks, the executables, the
 instances of the data compiled into overlays, the folders' streaming lists) into
 `assets/USA`: the CI/matching extract, and nothing a repack alone needs. A project
 for the editor is made from the declarations: `venv/bin/python3 tools/pe2project.py
-create --roms rom/image` makes one in `project/` (gitignored) - its game layer's
-nodes, changeset and extraction plan written by `tools/editor_project/`, the plan
-run by `pe2-cli project extract` (only what changed is made again; `pe2-cli project
-status` says whether the layer is as its plan says, `verify` checks its files, both
-without the discs); the project itself is made by the editor's commands (`pe2-cli
-project new`, `layer add`, `game`, `release add`, `mount add`, `config add`), never
-by writing its `project.toml` - and every asset tool defaults to it
+create --roms rom/image` makes one in `project/` (gitignored) - the game's nodes
+(`.layers/game`, with its changeset) and the plan filling them with their files
+(`.layers/game-files.plan.jsonl`, stating the discs it reads by size and sha1)
+written by `tools/editor_project/`, the plan run by `pe2-cli project extract` into
+the generated layer `.layers/game-files` (only what changed is made again; `pe2-cli
+project status` says whether the layer is as its plan says, `verify` checks its
+files, both without the discs). The discs are in the unmanaged mount `roms` -
+read by path, never indexed - wherever this machine's `project.local.toml` says.
+The project itself is made by the editor's commands (`pe2-cli project new`, `layer
+add`, `layer add --generated --fills`, `mount add`, `mount locate`, `config add`),
+never by writing its `project.toml` - and every asset tool defaults to it
 (`tools/peassets/project.py`). The editor knows nothing of the declarations: it runs
 the plan it is given. The old full Python extraction (`tools/peassets/extract.py`:
 `stages.json` and the ISO manifests, which the viewer, `dump_asset_db.py` and the
@@ -853,8 +857,8 @@ disc images or copyrighted assets, and `.gitignore` enforces it: `rom/`,
 own discs. Anything you move out of those trees and into `src/` or `include/`
 is being committed, so that move is a licensing decision, not a formatting one.
 
-Game content lives in files, not in the executable - in a project's game layer
-(`project/.game/`): `pe2img` (textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `cap` (dialogue),
+Game content lives in files, not in the executable - in a project's generated layer
+(`project/.layers/game-files/`): `pe2img` (textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `cap` (dialogue),
 `audio`, `movie`, `bs`. See [`doc/ASSET_FORMATS.md`](doc/ASSET_FORMATS.md).
 
 **Only assets have to stay out of `src/` and `include/`.** Everything else a
@@ -885,7 +889,7 @@ warps, cameras, sprite views, triggers, occluders, lights and ambient levels,
 surfaces, placements and actor resources, area updates, vibration scripts, and
 the world points (`markers`), view masks and sample curves effect code reads -
 is decoded from the binary into the extraction's `<room group>/room.toml` (the
-build's in `assets/USA`, the project's in its game layer) and
+build's in `assets/USA`, the project's in its generated layer) and
 written back to C by the build, one include per module
 (`assets/<group>/<module>.inc`, plus `declarations.inc`;
 `tools/buildsteps/gen_room_inc.py`). The room package's record has

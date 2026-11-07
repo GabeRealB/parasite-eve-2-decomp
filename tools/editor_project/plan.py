@@ -57,10 +57,15 @@ def declared(table: dict) -> dict:
     return {k: v for k, v in table.items() if k != "from"}
 
 
+# Where a plan's discs are looked for: the project's unmanaged mount of them.
+LOOK_IN = "res://roms"
+
+
 class Plan:
-    def __init__(self, layer: str, releases: list[str], extensions: dict[str, str] | None = None) -> None:
-        self.layer = layer
+    def __init__(self, releases: list[str], extensions: dict[str, str] | None = None) -> None:
         self.releases = releases
+        # Each release's discs, in disc order, by name, size and sha1: what the plan reads.
+        self.inputs: dict[str, list[dict]] = {release: [] for release in releases}
         # Each extension's version as the registry says it (`0.1.0 <build>`): what the plan requires of those it runs.
         self.extensions = extensions or {}
         self.ops: dict[str, dict] = {}
@@ -115,7 +120,8 @@ class Plan:
     def text(self) -> str:
         """The plan's lines: what it is, its operations - discs, containers, then reads, each in id order - and the
         bundles, by path."""
-        head = {"plan": VERSION, "layer": self.layer, "releases": self.releases, "requires": self.requires()}
+        inputs = {release: {"look_in": LOOK_IN, "discs": discs} for release, discs in self.inputs.items()}
+        head = {"plan": VERSION, "requires": self.requires(), "inputs": inputs}
         emits = []
         for node, files in sorted(self.emits.items()):
             line = {"emit": node, "files": files}
@@ -363,8 +369,8 @@ def json_safe(item):
     return item
 
 
-def make(decl, registry: dict, releases: list[str], layer: str = "game") -> Plan:
-    plan = Plan(layer, releases, registry.get("extensions", {}))
+def make(decl, registry: dict, releases: list[str]) -> Plan:
+    plan = Plan(releases, registry.get("extensions", {}))
     by_path = dict(sorted(decl.by_path.items()))
     discs: dict[tuple[str, str], str] = {}
     containers: dict[tuple[str, int], tuple[str, str]] = {}
@@ -377,7 +383,9 @@ def make(decl, registry: dict, releases: list[str], layer: str = "game") -> Plan
             if table.get("template") == "disc":
                 image = table["image"]
                 slots = [[s["name"], s["type"]] for s in table.get("slots", [])]
-                args = {"image": {"name": image["name"], "size": image["size"], "sha1": image["sha1"]}, "slots": slots}
+                disc = {"name": image["name"], "size": image["size"], "sha1": image["sha1"]}
+                plan.inputs[release].append(disc)
+                args = {"image": disc, "release": release, "slots": slots}
                 discs[(release, parts[2])] = plan.op(f"disc:{release}/{parts[2]}", "disc", args=args)
     for release in releases:
         for path, d in by_path.items():

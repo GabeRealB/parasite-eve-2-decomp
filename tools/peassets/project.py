@@ -1,22 +1,25 @@
 """Projects: what a `project.toml` declares, and how the tier 1 build reaches a project's data.
 
-A project is a directory holding `project.toml` (made by tools/pe2project.py):
+A project is a directory holding `project.toml` (made by tools/pe2project.py, through the editor's commands):
 
-    [game]
-    layer = "game"                       the layer the user's discs fill (gitignored)
-    roms = "roms"                        where a user puts the disc images (gitignored; shipped empty)
-
-    [game.releases.USA]                  the releases the project is built for, and the discs each needs
-    discs = [ { name = "SLUS-01042.bin", size = ..., sha1 = "..." }, ... ]
-
-    [[layer]]                            the asset layers below the project's own directory, bottom to top
+    [[layer]]                            the layers, bottom to top: the game's nodes (shipped)
     name = "game"
     path = ".layers/game"
+
+    [[layer]]                            their files, written by the plan beside the folder (`.layers/game-files.plan.jsonl`)
+    name = "game-files"                  from the user's discs (gitignored)
+    path = ".layers/game-files"
+    kind = "generated"
+    fills = "game"
 
     [[mount]]                            external trees placed in the project (its code tree)
     at = "src"
     path = "../src"                      relative to project.toml, or absolute
     read_only = false
+
+    [[mount]]                            where the disc images are: read by path alone, never indexed; on each machine
+    at = "roms"                          where `project.local.toml` says (`[mounts] roms = "..."`), else `roms/`
+    unmanaged = true
 
     [config.usa]                         configurations: flat key-values
     release = "USA"
@@ -25,8 +28,8 @@ A project is a directory holding `project.toml` (made by tools/pe2project.py):
 
 The tier 1 build reaches the data it works on through one link, `build/<release>/project`, made at the start of a
 build (`link`): the splat configs' targets, the overlay configs' packages and every generator's root are paths through
-it. Without `--project` it is the extraction's native forms, `assets/<release>`; with it, a project's game layer
-(`data_root`) - until a resolver joins a project's layers, the game layer is the data a build reads.
+it. Without `--project` it is the extraction's native forms, `assets/<release>`; with it, a project's generated layer
+(`data_root`) - until a resolver joins a project's layers, the files the plan wrote are the data a build reads.
 """
 from __future__ import annotations
 
@@ -39,6 +42,7 @@ from pathlib import Path
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 FILE = "project.toml"
+LOCAL = "project.local.toml"             # what of a project is this machine's: where its unmanaged mounts are
 ENV = "PE2_PROJECT"                      # the data root a tool falls back to when it is given none
 
 
@@ -54,35 +58,38 @@ class Mount:
 class Layer:
     name: str
     path: Path                           # resolved
+    kind: str = "assets"
+    fills: str | None = None             # a generated layer's: the layer whose nodes it gives their files
 
-
-@dataclass
-class Game:
-    layer: str
-    roms: Path                           # resolved
-    releases: dict[str, list[dict]]      # release -> its discs, { name, sha1 }
+    @property
+    def plan(self) -> Path:
+        """A generated layer's plan: beside its folder."""
+        return self.path.with_name(self.path.name + ".plan.jsonl")
 
 
 @dataclass
 class Project:
     root: Path
-    game: Game | None
     layers: list[Layer] = field(default_factory=list)
     mounts: list[Mount] = field(default_factory=list)
     configs: dict[str, dict] = field(default_factory=dict)
+    unmanaged: list[Mount] = field(default_factory=list)
 
     def resolve(self, uri: str) -> Path:
-        """A `res://` path's place on disk, through the mounts (the longest mount point first)."""
+        """A `res://` path's place on disk, through the mounts, unmanaged ones too (the longest mount point first)."""
         if not uri.startswith("res://"):
             raise ValueError(f"{uri}: not a res:// path")
         rel = uri[len("res://"):].strip("/")
-        for m in sorted(self.mounts, key=lambda m: -len(m.at)):
+        for m in sorted(self.mounts + self.unmanaged, key=lambda m: -len(m.at)):
             if rel == m.at or rel.startswith(m.at + "/"):
                 return m.path / rel[len(m.at):].lstrip("/")
         return self.root / rel
 
     def layer(self, name: str) -> Layer:
         return next(layer for layer in self.layers if layer.name == name)
+
+    def generated(self) -> list[Layer]:
+        return [layer for layer in self.layers if layer.kind == "generated"]
 
 
 def _path(directory: Path, value: str) -> Path:
@@ -94,13 +101,19 @@ def load(directory: Path) -> Project:
     """The project in `directory`."""
     directory = Path(directory).absolute()
     data = tomllib.loads((directory / FILE).read_text(encoding="utf-8"))
-    g = data.get("game")
-    game = Game(g["layer"], _path(directory, g.get("roms", "roms")),
-                {r: spec.get("discs", []) for r, spec in g.get("releases", {}).items()}) if g else None
-    layers = [Layer(layer["name"], _path(directory, layer["path"])) for layer in data.get("layer", ())]
-    mounts = [Mount(m["at"], _path(directory, m["path"]), m.get("read_only", False), m.get("revision"))
-              for m in data.get("mount", ())]
-    return Project(directory, game, layers, mounts, data.get("config", {}))
+    local = directory / LOCAL
+    here = tomllib.loads(local.read_text(encoding="utf-8")).get("mounts", {}) if local.is_file() else {}
+    layers = [Layer(layer["name"], _path(directory, layer.get("path", f".layers/{layer['name']}")),
+                    layer.get("kind", "assets"), layer.get("fills"))
+              for layer in data.get("layer", ())]
+    mounts, unmanaged = [], []
+    for m in data.get("mount", ()):
+        at = m["at"].strip("/")
+        if m.get("unmanaged"):
+            unmanaged.append(Mount(at, _path(directory, here.get(at, m.get("path", at))), True))
+        else:
+            mounts.append(Mount(at, _path(directory, m["path"]), m.get("read_only", False), m.get("revision")))
+    return Project(directory, layers, mounts, data.get("config", {}), unmanaged)
 
 
 def is_project(directory: Path) -> bool:
@@ -108,38 +121,12 @@ def is_project(directory: Path) -> bool:
 
 
 def data_root(directory: Path) -> Path:
-    """The data a build reads in a project: its game layer (until a resolver joins the layers)."""
-    p = load(directory)
-    if p.game is None:
-        raise SystemExit(f"{directory}: the project names no game layer ([game] layer)")
-    return p.layer(p.game.layer).path
-
-
-def _toml(value) -> str:
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    if isinstance(value, (int, float)):
-        return str(value)
-    if isinstance(value, str):
-        return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
-    if isinstance(value, list):
-        return "[" + ", ".join(_toml(v) for v in value) + "]"
-    return "{ " + ", ".join(f"{k} = {_toml(v)}" for k, v in value.items()) + " }"
-
-
-def render(game: dict, layers: list[dict], mounts: list[dict], configs: dict[str, dict]) -> str:
-    """A `project.toml`'s text."""
-    lines = ["# A project. `res://` paths are absolute from this directory.", "",
-             "[game]"] + [f"{k} = {_toml(v)}" for k, v in game.items() if k != "releases"]
-    for release, spec in game.get("releases", {}).items():
-        lines += ["", f"[game.releases.{release}]", "discs = ["] + [f"    {_toml(d)}," for d in spec["discs"]] + ["]"]
-    for layer in layers:
-        lines += ["", "[[layer]]"] + [f"{k} = {_toml(v)}" for k, v in layer.items()]
-    for mount in mounts:
-        lines += ["", "[[mount]]"] + [f"{k} = {_toml(v)}" for k, v in mount.items()]
-    for name, keys in configs.items():
-        lines += ["", f"[config.{name}]"] + [f"{k} = {_toml(v)}" for k, v in keys.items()]
-    return "\n".join(lines) + "\n"
+    """The data a build reads in a project: the files its generated layer's plan wrote (until a resolver joins the
+    layers)."""
+    generated = load(directory).generated()
+    if not generated:
+        raise SystemExit(f"{directory}: no layer of the project is generated by a plan")
+    return generated[0].path
 
 
 def link_path(release: str = "USA") -> Path:
@@ -149,7 +136,7 @@ def link_path(release: str = "USA") -> Path:
 
 def link(release: str, target: Path) -> Path:
     """Point `build/<release>/project` at the data a build reads - a directory of native forms, or a project, whose
-    game layer it then points at - as a junction on Windows (no privileges needed), and make it the root tools fall
+    generated layer it then points at - as a junction on Windows (no privileges needed), and make it the root tools fall
     back to in this process and its children. Returns the link's path."""
     if is_project(target):
         target = data_root(target)
@@ -180,7 +167,7 @@ def link_directory(path: Path, target: Path) -> None:
 
 
 def default_root(release: str = "USA") -> Path:
-    """The data tools work on when given none: the checkout's project, `project/` (its game layer), where there is
+    """The data tools work on when given none: the checkout's project, `project/` (its generated layer), where there is
     one - the full extraction, which the asset tools work on -, else the extraction under `assets/<release>`."""
     if is_project(REPOSITORY / "project"):
         return data_root(REPOSITORY / "project")
