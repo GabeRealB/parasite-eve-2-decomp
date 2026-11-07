@@ -88,6 +88,10 @@ type = "dialogue"
 at = [{ stage = 3, folder = 1601, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dryfield_toilet_dialogue_0_atlas = "b0ebcf2225a3b08dc6ce714d3a73af75cdb67467" }
 
+[base.from.EUR]
+at = [{ stage = 3, folder = 1601, file = 0 }]
+chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dryfield_toilet_dialogue_0_atlas = "b0ebcf2225a3b08dc6ce714d3a73af75cdb67467" }
+
 [view1]
 uid = "uid://kza3sfkwi45a"
 template = "file"
@@ -96,6 +100,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 3, folder = 1601, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 3, folder = 1601, file = 1 }]
 
 [view2]
@@ -115,6 +122,10 @@ type = "bs"
 asset = { uid = "uid://tg3gsad8t8q4", path = "res://stages/dryfield/rooms/toilet/night/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 3, folder = 1601, file = 2 }]
+chunks = { image = "21a7f6e218d270ed5ec195ca745f1a26b28cb91f" }
+
+[view2.from.EUR]
 at = [{ stage = 3, folder = 1601, file = 2 }]
 chunks = { image = "21a7f6e218d270ed5ec195ca745f1a26b28cb91f" }
 
@@ -138,6 +149,10 @@ asset = { uid = "uid://1q6n6h0udzuf0", path = "res://stages/dryfield/rooms/toile
 at = [{ stage = 3, folder = 1601, file = 3 }]
 chunks = { image = "aa449bcfa546ebb6928cd7b1f6555c2095d94ef5" }
 
+[view3.from.EUR]
+at = [{ stage = 3, folder = 1601, file = 3 }]
+chunks = { image = "aa449bcfa546ebb6928cd7b1f6555c2095d94ef5" }
+
 [view4]
 uid = "uid://1q90dir2sm2xn"
 template = "file"
@@ -155,6 +170,10 @@ type = "bs"
 asset = { uid = "uid://wletgyxgrkwt", path = "res://stages/dryfield/rooms/toilet/night/views/view4_background.node" }
 
 [view4.from.USA]
+at = [{ stage = 3, folder = 1601, file = 4 }]
+chunks = { image = "104d667eeb1ad6332df3ab98977fcaa327e49362" }
+
+[view4.from.EUR]
 at = [{ stage = 3, folder = 1601, file = 4 }]
 chunks = { image = "104d667eeb1ad6332df3ab98977fcaa327e49362" }
 
@@ -178,6 +197,10 @@ asset = { uid = "uid://50j4d9ecu5q0", path = "res://stages/dryfield/rooms/toilet
 at = [{ stage = 3, folder = 1601, file = 5 }]
 chunks = { image = "8193305df2b31f4c9ca80a958532b86bd5b01fce" }
 
+[view5.from.EUR]
+at = [{ stage = 3, folder = 1601, file = 5 }]
+chunks = { image = "8193305df2b31f4c9ca80a958532b86bd5b01fce" }
+
 [view6]
 uid = "uid://yt57cdz3mog9"
 template = "file"
@@ -186,6 +209,9 @@ slots = [
 ]
 
 [view6.from.USA]
+at = [{ stage = 3, folder = 1601, file = 6 }]
+
+[view6.from.EUR]
 at = [{ stage = 3, folder = 1601, file = 6 }]
 
 [view7]
@@ -198,6 +224,9 @@ slots = [
 [view7.from.USA]
 at = [{ stage = 3, folder = 1601, file = 7 }]
 
+[view7.from.EUR]
+at = [{ stage = 3, folder = 1601, file = 7 }]
+
 [view8]
 uid = "uid://1g3ti3lyp2mcp"
 template = "file"
@@ -208,6 +237,9 @@ slots = [
 [view8.from.USA]
 at = [{ stage = 3, folder = 1601, file = 8 }]
 
+[view8.from.EUR]
+at = [{ stage = 3, folder = 1601, file = 8 }]
+
 [view9]
 uid = "uid://z1lnx8k20vql"
 template = "file"
@@ -216,4 +248,7 @@ slots = [
 ]
 
 [view9.from.USA]
+at = [{ stage = 3, folder = 1601, file = 9 }]
+
+[view9.from.EUR]
 at = [{ stage = 3, folder = 1601, file = 9 }]

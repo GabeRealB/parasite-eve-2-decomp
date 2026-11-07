@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20710, slot = "image", page = 0 }]
 sha1 = "13849f59ec225bebabae8d63d56616a7216d977a"
 palettes = { default = "d3b669ddadc04a9f331afdf47255d428e9237460" }
 
+[level1_menu_picture.from.EUR]
+at = [{ stage = 0, file = 20710, slot = "image", page = 0 }]
+sha1 = "13849f59ec225bebabae8d63d56616a7216d977a"
+palettes = { default = "d3b669ddadc04a9f331afdf47255d428e9237460" }
+
 [level2_menu_picture]
 uid = "uid://oubz2ui46xlj"
 template = "texture"
@@ -30,6 +35,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [level2_menu_picture.from.USA]
+at = [{ stage = 0, file = 20711, slot = "image", page = 0 }]
+sha1 = "ffe804b6b1a771f6e731cd220ec16c202729e9b6"
+palettes = { default = "2cd67090ae5c2137490a4123e84c62768fe910a5" }
+
+[level2_menu_picture.from.EUR]
 at = [{ stage = 0, file = 20711, slot = "image", page = 0 }]
 sha1 = "ffe804b6b1a771f6e731cd220ec16c202729e9b6"
 palettes = { default = "2cd67090ae5c2137490a4123e84c62768fe910a5" }
@@ -51,6 +61,11 @@ at = [{ stage = 0, file = 20712, slot = "image", page = 0 }]
 sha1 = "20586e6c90c61b69cc5a467d4b88b4978ea5a1f2"
 palettes = { default = "64b4fae0aed488a2292c804822f5e5445a0107a6" }
 
+[level3_menu_picture.from.EUR]
+at = [{ stage = 0, file = 20712, slot = "image", page = 0 }]
+sha1 = "20586e6c90c61b69cc5a467d4b88b4978ea5a1f2"
+palettes = { default = "64b4fae0aed488a2292c804822f5e5445a0107a6" }
+
 [shop_picture]
 uid = "uid://k19b3i0tbo95"
 template = "texture"
@@ -64,6 +79,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [shop_picture.from.USA]
+at = [{ stage = 0, file = 20324, slot = "image", page = 0 }, { stage = 0, file = 20325, slot = "image", page = 0 }, { stage = 0, file = 20326, slot = "image", page = 0 }]
+sha1 = "4e45967f9b11627c7c25070efc67245b4302cfc6"
+palettes = { default = "b403f19b17a68cd67ba938f5a621de7457a31252" }
+
+[shop_picture.from.EUR]
 at = [{ stage = 0, file = 20324, slot = "image", page = 0 }, { stage = 0, file = 20325, slot = "image", page = 0 }, { stage = 0, file = 20326, slot = "image", page = 0 }]
 sha1 = "4e45967f9b11627c7c25070efc67245b4302cfc6"
 palettes = { default = "b403f19b17a68cd67ba938f5a621de7457a31252" }

@@ -34,6 +34,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 4, folder = 2001 }]
 
+[folder.from.EUR]
+at = [{ stage = 4, folder = 2001 }]
+
 [image_0]
 uid = "uid://1fppvcnosvlr9"
 template = "texture"
@@ -55,6 +58,11 @@ at = [{ stage = 4, folder = 2001, file = 0, slot = "image_0", page = 0 }]
 sha1 = "3435251e61518b8bc99067d9572d86042ba8b46c"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
 
+[image_0.from.EUR]
+at = [{ stage = 4, folder = 2001, file = 0, slot = "image_0", page = 0 }]
+sha1 = "3435251e61518b8bc99067d9572d86042ba8b46c"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
 [dialogue_2_atlas]
 uid = "uid://tvczgafvxx9k"
 template = "texture"
@@ -72,6 +80,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_2_atlas.from.USA]
+at = [{ stage = 4, folder = 2001, file = 0, slot = "dialogue_2_atlas", page = 0 }]
+sha1 = "a555d350c06e60143126b91bea40a15dc16c9871"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_2_atlas.from.EUR]
 at = [{ stage = 4, folder = 2001, file = 0, slot = "dialogue_2_atlas", page = 0 }]
 sha1 = "a555d350c06e60143126b91bea40a15dc16c9871"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

@@ -12,6 +12,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 1401, file = 1, slot = "background" }, { stage = 3, folder = 1401, file = 1, slot = "background" }]
 sha1 = "e990aea6c6c832ff1ef2fa5e340453c81d927de5"
 
+[view1_background.from.EUR]
+at = [{ stage = 2, folder = 1401, file = 1, slot = "background" }, { stage = 3, folder = 1401, file = 1, slot = "background" }]
+sha1 = "e990aea6c6c832ff1ef2fa5e340453c81d927de5"
+
 [view2_background]
 uid = "uid://9h5hd4bwn395"
 template = "background"
@@ -21,6 +25,10 @@ format = "bs"
 source = "native.bs"
 
 [view2_background.from.USA]
+at = [{ stage = 2, folder = 1401, file = 2, slot = "background" }]
+sha1 = "5f6fe48053c6f4e3b019a4bf21cff61b4503c496"
+
+[view2_background.from.EUR]
 at = [{ stage = 2, folder = 1401, file = 2, slot = "background" }]
 sha1 = "5f6fe48053c6f4e3b019a4bf21cff61b4503c496"
 
@@ -36,6 +44,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 1401, file = 3, slot = "background" }]
 sha1 = "1319ba73f1ab2a915bf4fa30be9d722f22ea4ba2"
 
+[view3_background.from.EUR]
+at = [{ stage = 2, folder = 1401, file = 3, slot = "background" }]
+sha1 = "1319ba73f1ab2a915bf4fa30be9d722f22ea4ba2"
+
 [view4_background]
 uid = "uid://14boodg33nedk"
 template = "background"
@@ -45,6 +57,10 @@ format = "bs"
 source = "native.bs"
 
 [view4_background.from.USA]
+at = [{ stage = 2, folder = 1401, file = 4, slot = "background" }]
+sha1 = "6d617da6754011c49457b9928bbea6f6f89e4cde"
+
+[view4_background.from.EUR]
 at = [{ stage = 2, folder = 1401, file = 4, slot = "background" }]
 sha1 = "6d617da6754011c49457b9928bbea6f6f89e4cde"
 
@@ -60,6 +76,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 1401, file = 5, slot = "background" }]
 sha1 = "e62e86e3f24355a622b0761cd86716ae7cf34079"
 
+[view5_background.from.EUR]
+at = [{ stage = 2, folder = 1401, file = 5, slot = "background" }]
+sha1 = "e62e86e3f24355a622b0761cd86716ae7cf34079"
+
 [view6_background]
 uid = "uid://gvi1kpdp4vyl"
 template = "background"
@@ -69,5 +89,9 @@ format = "bs"
 source = "native.bs"
 
 [view6_background.from.USA]
+at = [{ stage = 2, folder = 1401, file = 6, slot = "background" }]
+sha1 = "8c6e33f78aa7f24310213a6974fac14c1b73b9af"
+
+[view6_background.from.EUR]
 at = [{ stage = 2, folder = 1401, file = 6, slot = "background" }]
 sha1 = "8c6e33f78aa7f24310213a6974fac14c1b73b9af"

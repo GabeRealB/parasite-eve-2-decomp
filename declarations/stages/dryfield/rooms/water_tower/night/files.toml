@@ -120,6 +120,10 @@ type = "dialogue"
 at = [{ stage = 3, folder = 2001, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dryfield_water_tower_dialogue_0_atlas = "3e2028841ed7e82766749db0d2a88bc3e889efd8" }
 
+[base.from.EUR]
+at = [{ stage = 3, folder = 2001, file = 0 }]
+chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dryfield_water_tower_dialogue_0_atlas = "3e2028841ed7e82766749db0d2a88bc3e889efd8" }
+
 [view1]
 uid = "uid://1kr4wfq4gzwh7"
 template = "file"
@@ -128,6 +132,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 3, folder = 2001, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 3, folder = 2001, file = 1 }]
 
 [view2]
@@ -147,6 +154,10 @@ type = "bs"
 asset = { uid = "uid://p13uedpiv29r", path = "res://stages/dryfield/rooms/water_tower/night/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 3, folder = 2001, file = 2 }]
+chunks = { image = "08b942c33892b73375fcb3e7432ef02e9687fc36" }
+
+[view2.from.EUR]
 at = [{ stage = 3, folder = 2001, file = 2 }]
 chunks = { image = "08b942c33892b73375fcb3e7432ef02e9687fc36" }
 
@@ -170,6 +181,10 @@ asset = { uid = "uid://1xn0tgir349kc", path = "res://stages/dryfield/rooms/water
 at = [{ stage = 3, folder = 2001, file = 3 }]
 chunks = { image = "8d8a8c87787870ef88bc0aa798b91bc460e36001" }
 
+[view3.from.EUR]
+at = [{ stage = 3, folder = 2001, file = 3 }]
+chunks = { image = "8d8a8c87787870ef88bc0aa798b91bc460e36001" }
+
 [view4]
 uid = "uid://1799o5ryttmd9"
 template = "file"
@@ -187,6 +202,10 @@ type = "bs"
 asset = { uid = "uid://r02tg5ff9q75", path = "res://stages/dryfield/rooms/water_tower/night/views/view4_background.node" }
 
 [view4.from.USA]
+at = [{ stage = 3, folder = 2001, file = 4 }]
+chunks = { image = "f2c5b8134268b6511f0756b8ddeee35e73c4fd6b" }
+
+[view4.from.EUR]
 at = [{ stage = 3, folder = 2001, file = 4 }]
 chunks = { image = "f2c5b8134268b6511f0756b8ddeee35e73c4fd6b" }
 
@@ -210,6 +229,10 @@ asset = { uid = "uid://1gfivtpg107wk", path = "res://stages/dryfield/rooms/water
 at = [{ stage = 3, folder = 2001, file = 5 }]
 chunks = { image = "3b0fc739834cf9b4494bfb01bcf3a7cf91dd3ffb" }
 
+[view5.from.EUR]
+at = [{ stage = 3, folder = 2001, file = 5 }]
+chunks = { image = "3b0fc739834cf9b4494bfb01bcf3a7cf91dd3ffb" }
+
 [view6]
 uid = "uid://o9mtnyrshfda"
 template = "file"
@@ -227,6 +250,10 @@ type = "bs"
 asset = { uid = "uid://rfqziuudbyhp", path = "res://stages/dryfield/rooms/water_tower/night/views/view6_background.node" }
 
 [view6.from.USA]
+at = [{ stage = 3, folder = 2001, file = 6 }]
+chunks = { image = "6b7c75785a707a3e3f991c8ed7e5e7332714b525" }
+
+[view6.from.EUR]
 at = [{ stage = 3, folder = 2001, file = 6 }]
 chunks = { image = "6b7c75785a707a3e3f991c8ed7e5e7332714b525" }
 
@@ -250,6 +277,10 @@ asset = { uid = "uid://1wi054nq42z07", path = "res://stages/dryfield/rooms/water
 at = [{ stage = 3, folder = 2001, file = 7 }]
 chunks = { image = "e974f494b4b161bb168d4886b0da18d9a6e77cad" }
 
+[view7.from.EUR]
+at = [{ stage = 3, folder = 2001, file = 7 }]
+chunks = { image = "e974f494b4b161bb168d4886b0da18d9a6e77cad" }
+
 [view8]
 uid = "uid://w2txvmvhhzju"
 template = "file"
@@ -270,6 +301,10 @@ asset = { uid = "uid://zbtwq7gsn1f1", path = "res://stages/dryfield/rooms/water_
 at = [{ stage = 3, folder = 2001, file = 8 }]
 chunks = { image = "e65f3337c0f29bc800d6c43981d6ec829f205a45" }
 
+[view8.from.EUR]
+at = [{ stage = 3, folder = 2001, file = 8 }]
+chunks = { image = "e65f3337c0f29bc800d6c43981d6ec829f205a45" }
+
 [view9]
 uid = "uid://1o2oseqbizsjv"
 template = "file"
@@ -278,6 +313,9 @@ slots = [
 ]
 
 [view9.from.USA]
+at = [{ stage = 3, folder = 2001, file = 9 }]
+
+[view9.from.EUR]
 at = [{ stage = 3, folder = 2001, file = 9 }]
 
 [view10]
@@ -297,5 +335,9 @@ type = "bs"
 asset = { uid = "uid://1ek6jl40e0qn9", path = "res://stages/dryfield/rooms/water_tower/night/views/view10_background.node" }
 
 [view10.from.USA]
+at = [{ stage = 3, folder = 2001, file = 10 }]
+chunks = { image = "153ebefbb0668dbad53ca8413905ca6ced130d34" }
+
+[view10.from.EUR]
 at = [{ stage = 3, folder = 2001, file = 10 }]
 chunks = { image = "153ebefbb0668dbad53ca8413905ca6ced130d34" }

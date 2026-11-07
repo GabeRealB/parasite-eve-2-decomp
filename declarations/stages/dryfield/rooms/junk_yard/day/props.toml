@@ -17,3 +17,8 @@ source = "source.ora"
 at = [{ stage = 2, folder = 2601, file = 0, slot = "image", page = 0 }]
 sha1 = "7cdbaa5d82b2ac789335788c1e8bed4cc6c38d37"
 palettes = { effect_row_2 = "a23113a98020a59098da4a6c50fbf2ef159a0190" }
+
+[tire.from.EUR]
+at = [{ stage = 2, folder = 2601, file = 0, slot = "image", page = 0 }]
+sha1 = "7cdbaa5d82b2ac789335788c1e8bed4cc6c38d37"
+palettes = { effect_row_2 = "a23113a98020a59098da4a6c50fbf2ef159a0190" }

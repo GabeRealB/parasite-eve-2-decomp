@@ -11,3 +11,7 @@ source = "native.bs"
 [background.from.USA]
 at = [{ stage = 0, file = 24, slot = "background" }]
 sha1 = "cff84fd88ba2aa583c41d96b755b991eb0c9429f"
+
+[background.from.EUR]
+at = [{ stage = 0, file = 24, slot = "background" }]
+sha1 = "cff84fd88ba2aa583c41d96b755b991eb0c9429f"

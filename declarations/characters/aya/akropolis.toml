@@ -20,6 +20,11 @@ at = [{ stage = 0, file = 10400, slot = "image", page = 0 }]
 sha1 = "5fde4a88130fce36b40afbb5a614e3ae2d6fbe19"
 palettes = { default = "6be4c71b2145dd45fae7247952871e4750807135", default_2 = "06fe0a65121b9a02591769b35b949200bb866f88" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "image", page = 0 }]
+sha1 = "5fde4a88130fce36b40afbb5a614e3ae2d6fbe19"
+palettes = { default = "6be4c71b2145dd45fae7247952871e4750807135", default_2 = "06fe0a65121b9a02591769b35b949200bb866f88" }
+
 # The stored models: a mesh with its slots filled.
 
 [body]
@@ -37,6 +42,14 @@ address = 2148620148
 symbol = "gAyaAkropolisBodyModel"
 sha1 = "615383b89362817a7a8470df1d76342ba7609f29"
 
+[body.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 4
+size = 22824
+address = 2148624516
+symbol = "gAyaAkropolisBodyModel"
+sha1 = "8ffc792441a1b7f67b4363342083edb9fcb2957b"
+
 [hand_right_open]
 uid = "uid://3n75xecosgbh"
 template = "model"
@@ -50,6 +63,14 @@ size = 1264
 address = 2148644080
 symbol = "gAyaAkropolisFirstPairHand1Model"
 sha1 = "7b1261e1320a1a6e2373aa1002b8faced6fba5e0"
+
+[hand_right_open.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 23936
+size = 1264
+address = 2148648448
+symbol = "gAyaAkropolisFirstPairHand1Model"
+sha1 = "8c60f510845757d7b00e282c271c3936bca2c5d6"
 
 [hand_left_both]
 uid = "uid://1rt517gjy6uta"
@@ -65,6 +86,14 @@ address = 2148642972
 symbol = "gAyaAkropolisHand0Model"
 sha1 = "0a810c3ad6ba2050a2df6ca392fd1c4c4eea9a5c"
 
+[hand_left_both.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 22828
+size = 1108
+address = 2148647340
+symbol = "gAyaAkropolisHand0Model"
+sha1 = "dda45927a82034d01167842741d4f8ba508d1865"
+
 [hand_right_closed]
 uid = "uid://1x7ipv1khfk4u"
 template = "model"
@@ -79,6 +108,14 @@ address = 2148645344
 symbol = "gAyaAkropolisSecondPairHand1Model"
 sha1 = "f3c4d4e907f0530f428ae4fd19c62c4ef67d7daa"
 
+[hand_right_closed.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 25200
+size = 1108
+address = 2148649712
+symbol = "gAyaAkropolisSecondPairHand1Model"
+sha1 = "2288007f5bf4d75f3781a57adeed428645935567"
+
 # The frames the game uploads over the face at run time: stored in the package, palettes those of the head's cell.
 
 [eyes_open]
@@ -92,6 +129,12 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [eyes_open.from.USA]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 26308
+size = 800
+sha1 = "188380f2a46a3832bb83bd45346d826ff974d60d"
+
+[eyes_open.from.EUR]
 at = [{ stage = 0, file = 10400, slot = "package" }]
 offset = 26308
 size = 800
@@ -113,6 +156,12 @@ offset = 27140
 size = 800
 sha1 = "d0fdd16a174289e72f39dacb3d470d2ee092a4dd"
 
+[eyes_half_closed.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 27140
+size = 800
+sha1 = "d0fdd16a174289e72f39dacb3d470d2ee092a4dd"
+
 [eyes_closed]
 uid = "uid://rr9dfll5tpb9"
 template = "texture"
@@ -124,6 +173,12 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [eyes_closed.from.USA]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 27972
+size = 800
+sha1 = "0042300a83ce2d2a63fc5ea45c278d363689ac4f"
+
+[eyes_closed.from.EUR]
 at = [{ stage = 0, file = 10400, slot = "package" }]
 offset = 27972
 size = 800
@@ -145,6 +200,12 @@ offset = 28804
 size = 560
 sha1 = "996ac70688e63f17a2ea419fa14739bb49bd722f"
 
+[mouth_rest.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 28804
+size = 560
+sha1 = "996ac70688e63f17a2ea419fa14739bb49bd722f"
+
 [mouth_alternate]
 uid = "uid://o7dfmsql58ar"
 template = "texture"
@@ -156,6 +217,12 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [mouth_alternate.from.USA]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 29396
+size = 560
+sha1 = "33ec2265a8c3ce43614d3e4cfe5efb19e441f539"
+
+[mouth_alternate.from.EUR]
 at = [{ stage = 0, file = 10400, slot = "package" }]
 offset = 29396
 size = 560

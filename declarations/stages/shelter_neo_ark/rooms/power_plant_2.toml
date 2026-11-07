@@ -22,6 +22,11 @@ at = [{ stage = 0, file = 105300, slot = "image", page = 0 }]
 sha1 = "2638c0ce0e5fb4cb812e89bd1e6e0a29dd713075"
 palettes = { default = "52aca0cbe1943c291d140ded80130162d05b614b", default_2 = "b4182a409cc970296fcca1789a3bb68758f11aa9", default_3 = "c6d549893979d5d8656a5b9dc72d046236f4eb01" }
 
+[beta_generator_texture.from.EUR]
+at = [{ stage = 0, file = 105300, slot = "image", page = 0 }]
+sha1 = "2638c0ce0e5fb4cb812e89bd1e6e0a29dd713075"
+palettes = { default = "52aca0cbe1943c291d140ded80130162d05b614b", default_2 = "b4182a409cc970296fcca1789a3bb68758f11aa9", default_3 = "c6d549893979d5d8656a5b9dc72d046236f4eb01" }
+
 [folder]
 uid = "uid://1qovokzbhuwmj"
 template = "folder"
@@ -41,6 +46,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 5, folder = 1601 }]
 
+[folder.from.EUR]
+at = [{ stage = 5, folder = 1601 }]
+
 [dialogue_0_atlas]
 uid = "uid://1qyr2ufrnw2kc"
 template = "texture"
@@ -58,6 +66,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 5, folder = 1601, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "6c9a151d77e73b28409aee3585f07d2cea743ab0"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 5, folder = 1601, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "6c9a151d77e73b28409aee3585f07d2cea743ab0"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

@@ -22,6 +22,11 @@ at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 0 }]
 sha1 = "06a072a33a7c1bc559d03ade253a1f60aec87410"
 palettes = { flame_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flame_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", flame_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8" }
 
+[flames.from.EUR]
+at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 0 }]
+sha1 = "06a072a33a7c1bc559d03ade253a1f60aec87410"
+palettes = { flame_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flame_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", flame_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8" }
+
 [folder]
 uid = "uid://byz9k900fel"
 template = "folder"
@@ -48,6 +53,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 1, folder = 1201 }]
 
+[folder.from.EUR]
+at = [{ stage = 1, folder = 1201 }]
+
 [mosaic_page_2]
 uid = "uid://loy7cedirzi6"
 template = "texture"
@@ -61,6 +69,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [mosaic_page_2.from.USA]
+at = [{ stage = 1, folder = 1201, file = 0, slot = "image_1", page = 0 }]
+sha1 = "ca1019e7ecd493a4dde15b1a29e03d2ab2aeb0c3"
+palettes = { default = "668b0a188b74c3b57cb96c460ebfb64b91a44ac3" }
+
+[mosaic_page_2.from.EUR]
 at = [{ stage = 1, folder = 1201, file = 0, slot = "image_1", page = 0 }]
 sha1 = "ca1019e7ecd493a4dde15b1a29e03d2ab2aeb0c3"
 palettes = { default = "668b0a188b74c3b57cb96c460ebfb64b91a44ac3" }
@@ -82,6 +95,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 1, folder = 1201, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "0fa47c0660c3eba344badef3b2e0613180996806"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 1, folder = 1201, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "0fa47c0660c3eba344badef3b2e0613180996806"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

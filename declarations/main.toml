@@ -9,3 +9,7 @@ format = "exe"
 [executable.from.USA]
 at = [{ disc = "disk1", slot = "SLUS_010.42" }, { disc = "disk2", slot = "SLUS_010.55" }]
 sha1 = "e2599d1aad77c08f6e145765b0ef04aba850d258"
+
+[executable.from.EUR]
+at = [{ disc = "disk1", slot = "SLES_025.58" }, { disc = "disk2", slot = "SLES_125.58" }]
+sha1 = "36568e28ef8afde7b11fd3f8f88da2b64135e82a"

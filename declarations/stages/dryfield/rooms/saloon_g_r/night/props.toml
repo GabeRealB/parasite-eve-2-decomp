@@ -28,6 +28,11 @@ at = [{ stage = 3, folder = 1801, file = 0, slot = "image", page = 0 }]
 sha1 = "06a072a33a7c1bc559d03ade253a1f60aec87410"
 palettes = { effect_row_2 = "01bbd9090cc3c7aff25ec4b9610233b8f4443fb6", effect_row_2_1 = "27327949c35d5c11cc3a292dee2eaa22c1beb8e2", effect_row_2_2 = "5471df75499dc501e4ccafa156c4ae75684015fb", effect_row_2_3 = "54cda19adfb8fc8b2f77a90ec77c504f4cbc29c2", effect_row_2_4 = "4f56e2631a45460b2dd2639a2c1de3d9a1d9608f", effect_row_2_5 = "f068acc4717dda15a533adb491e7fa94290910f3", effect_row_2_6 = "8d118cd2e565dbb9b6f7436189574be4e15afafe", effect_row_2_7 = "9953b0d6a3f5fe67f33377110d38d4617c3835f6", effect_row_2_8 = "45feb58337ea99ee9c40b8a64320fe0a004eb35b", effect_row_2_9 = "b0b07b71caa9225a7822e8cbd1bf5e808b4c623a", effect_row_2_10 = "5f42b772ba1a05b28c5318280beabd2acd3c1d53", effect_row_2_11 = "13b0708515c6acea53ffd104f0cc1e20c2c7d0f1" }
 
+[glows.from.EUR]
+at = [{ stage = 3, folder = 1801, file = 0, slot = "image", page = 0 }]
+sha1 = "06a072a33a7c1bc559d03ade253a1f60aec87410"
+palettes = { effect_row_2 = "01bbd9090cc3c7aff25ec4b9610233b8f4443fb6", effect_row_2_1 = "27327949c35d5c11cc3a292dee2eaa22c1beb8e2", effect_row_2_2 = "5471df75499dc501e4ccafa156c4ae75684015fb", effect_row_2_3 = "54cda19adfb8fc8b2f77a90ec77c504f4cbc29c2", effect_row_2_4 = "4f56e2631a45460b2dd2639a2c1de3d9a1d9608f", effect_row_2_5 = "f068acc4717dda15a533adb491e7fa94290910f3", effect_row_2_6 = "8d118cd2e565dbb9b6f7436189574be4e15afafe", effect_row_2_7 = "9953b0d6a3f5fe67f33377110d38d4617c3835f6", effect_row_2_8 = "45feb58337ea99ee9c40b8a64320fe0a004eb35b", effect_row_2_9 = "b0b07b71caa9225a7822e8cbd1bf5e808b4c623a", effect_row_2_10 = "5f42b772ba1a05b28c5318280beabd2acd3c1d53", effect_row_2_11 = "13b0708515c6acea53ffd104f0cc1e20c2c7d0f1" }
+
 [lattice]
 uid = "uid://hyg42d0nxp5r"
 template = "texture"
@@ -42,6 +47,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [lattice.from.USA]
+at = [{ stage = 3, folder = 1801, file = 0, slot = "image", page = 1 }]
+sha1 = "27d888622413de0649435eabc684cb8c954b3b74"
+palettes = { effect_row_2 = "1dc95223b6f1a957ef045d6b8fbe8cc1423ffaa5", effect_row_9 = "89139a15eb0467ee5cad326fd43feae40138a775" }
+
+[lattice.from.EUR]
 at = [{ stage = 3, folder = 1801, file = 0, slot = "image", page = 1 }]
 sha1 = "27d888622413de0649435eabc684cb8c954b3b74"
 palettes = { effect_row_2 = "1dc95223b6f1a957ef045d6b8fbe8cc1423ffaa5", effect_row_9 = "89139a15eb0467ee5cad326fd43feae40138a775" }

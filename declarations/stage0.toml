@@ -54,6 +54,9 @@ files = [
 [system.from.USA]
 at = [{ stage = 0, group = 0 }]
 
+[system.from.EUR]
+at = [{ stage = 0, group = 0 }]
+
 [player]
 uid = "uid://1mhe0176ghala"
 template = "file_group"
@@ -120,6 +123,9 @@ files = [
 ]
 
 [player.from.USA]
+at = [{ stage = 0, group = 1 }]
+
+[player.from.EUR]
 at = [{ stage = 0, group = 1 }]
 
 [items]
@@ -482,6 +488,9 @@ files = [
 [items.from.USA]
 at = [{ stage = 0, group = 2 }]
 
+[items.from.EUR]
+at = [{ stage = 0, group = 2 }]
+
 [maps]
 uid = "uid://abf2ddfh1mc3"
 template = "file_group"
@@ -514,6 +523,9 @@ files = [
 ]
 
 [maps.from.USA]
+at = [{ stage = 0, group = 3 }]
+
+[maps.from.EUR]
 at = [{ stage = 0, group = 3 }]
 
 [music]
@@ -594,6 +606,9 @@ files = [
 [music.from.USA]
 at = [{ stage = 0, group = 4 }]
 
+[music.from.EUR]
+at = [{ stage = 0, group = 4 }]
+
 [pe]
 uid = "uid://kfxb2n6bxaks"
 template = "file_group"
@@ -641,6 +656,9 @@ files = [
 ]
 
 [pe.from.USA]
+at = [{ stage = 0, group = 5 }]
+
+[pe.from.EUR]
 at = [{ stage = 0, group = 5 }]
 
 [actor_slot_1]
@@ -744,6 +762,9 @@ files = [
 [actor_slot_1.from.USA]
 at = [{ stage = 0, group = 10 }]
 
+[actor_slot_1.from.EUR]
+at = [{ stage = 0, group = 10 }]
+
 [actor_slot_2]
 uid = "uid://gl4bub7jouz3"
 template = "file_group"
@@ -791,6 +812,9 @@ files = [
 ]
 
 [actor_slot_2.from.USA]
+at = [{ stage = 0, group = 20 }]
+
+[actor_slot_2.from.EUR]
 at = [{ stage = 0, group = 20 }]
 
 [actor_slot_3]
@@ -855,6 +879,9 @@ files = [
 [actor_slot_3.from.USA]
 at = [{ stage = 0, group = 30 }]
 
+[actor_slot_3.from.EUR]
+at = [{ stage = 0, group = 30 }]
+
 [actor_slot_4]
 uid = "uid://13ls5u6dm96kd"
 template = "file_group"
@@ -898,6 +925,9 @@ files = [
 [actor_slot_4.from.USA]
 at = [{ stage = 0, group = 40 }]
 
+[actor_slot_4.from.EUR]
+at = [{ stage = 0, group = 40 }]
+
 [actor_slot_5]
 uid = "uid://1qgm8j9bcfc4d"
 template = "file_group"
@@ -914,6 +944,9 @@ files = [
 ]
 
 [actor_slot_5.from.USA]
+at = [{ stage = 0, group = 50 }]
+
+[actor_slot_5.from.EUR]
 at = [{ stage = 0, group = 50 }]
 
 [actor_slot_6]
@@ -955,6 +988,9 @@ files = [
 [actor_slot_6.from.USA]
 at = [{ stage = 0, group = 60 }]
 
+[actor_slot_6.from.EUR]
+at = [{ stage = 0, group = 60 }]
+
 [companions]
 uid = "uid://j9yxdst1ap8z"
 template = "file_group"
@@ -975,6 +1011,9 @@ files = [
 [companions.from.USA]
 at = [{ stage = 0, group = 80 }]
 
+[companions.from.EUR]
+at = [{ stage = 0, group = 80 }]
+
 [stages]
 uid = "uid://5azzd3aob9wh"
 template = "file_group"
@@ -988,4 +1027,7 @@ files = [
 ]
 
 [stages.from.USA]
+at = [{ stage = 0, group = 90 }]
+
+[stages.from.EUR]
 at = [{ stage = 0, group = 90 }]

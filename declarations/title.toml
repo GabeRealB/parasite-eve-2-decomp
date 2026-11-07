@@ -12,6 +12,10 @@ source = "native.bs"
 at = [{ stage = 0, file = 2, slot = "background" }]
 sha1 = "51e3bfec6e0392baacaf9e9e9d3cf8054db030db"
 
+[background.from.EUR]
+at = [{ stage = 0, file = 2, slot = "background" }]
+sha1 = "51e3bfec6e0392baacaf9e9e9d3cf8054db030db"
+
 # The title screen's chrome: one texture page of the prompt, the copyright line, the cursor and the menu's labels, a
 # row each. The file stores it as two images and their two palettes, alike, both uploaded to one place.
 [chrome]
@@ -34,6 +38,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [chrome.from.USA]
+at = [{ stage = 0, file = 2, slot = "chrome_image", page = 0 }]
+sha1 = "c95c089179987477311990993b6ddc3e121b2ffa"
+palettes = { default = "79361b435bccf7417a11e350b7dffe72b048efb5", default_2 = "79361b435bccf7417a11e350b7dffe72b048efb5" }
+
+[chrome.from.EUR]
 at = [{ stage = 0, file = 2, slot = "chrome_image", page = 0 }]
 sha1 = "c95c089179987477311990993b6ddc3e121b2ffa"
 palettes = { default = "79361b435bccf7417a11e350b7dffe72b048efb5", default_2 = "79361b435bccf7417a11e350b7dffe72b048efb5" }

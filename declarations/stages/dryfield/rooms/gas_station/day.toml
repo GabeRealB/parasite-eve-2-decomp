@@ -24,6 +24,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 2, folder = 101 }]
 
+[folder.from.EUR]
+at = [{ stage = 2, folder = 101 }]
+
 [dialogue_0_atlas]
 uid = "uid://5fs2x95baixh"
 template = "texture"
@@ -45,6 +48,11 @@ at = [{ stage = 2, folder = 101, file = 0, slot = "dialogue_0_atlas", page = 0 }
 sha1 = "c07334383e0489141fde5e4ad793f2a1f20d3f90"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
 
+[dialogue_0_atlas.from.EUR]
+at = [{ stage = 2, folder = 101, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "c07334383e0489141fde5e4ad793f2a1f20d3f90"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
 [dialogue_1_atlas]
 uid = "uid://1rpnb8cyrjsuh"
 template = "texture"
@@ -62,6 +70,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_1_atlas.from.USA]
+at = [{ stage = 2, folder = 101, file = 8, slot = "dialogue_1_atlas", page = 0 }, { stage = 2, folder = 2701, file = 10, slot = "dryfield_gas_station_dialogue_1_atlas", page = 0 }, { stage = 2, folder = 3001, file = 12, slot = "dryfield_gas_station_dialogue_1_atlas", page = 0 }]
+sha1 = "9cc9705b7b87228fd411f222d12255a42e2605ff"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_1_atlas.from.EUR]
 at = [{ stage = 2, folder = 101, file = 8, slot = "dialogue_1_atlas", page = 0 }, { stage = 2, folder = 2701, file = 10, slot = "dryfield_gas_station_dialogue_1_atlas", page = 0 }, { stage = 2, folder = 3001, file = 12, slot = "dryfield_gas_station_dialogue_1_atlas", page = 0 }]
 sha1 = "9cc9705b7b87228fd411f222d12255a42e2605ff"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

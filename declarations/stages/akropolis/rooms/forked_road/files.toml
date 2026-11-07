@@ -132,6 +132,10 @@ upload_mode = 0
 at = [{ stage = 1, folder = 901, file = 0 }]
 chunks = { palette = "fe78d2a2315a38157c0240b41d8a8447703ce52d", image = "72f5f7a2131d77d79b1217be00ea068b7d958775", dialogue_0_atlas = "bcf31c83062597c4b71e4ce33d5ba9c9a4674913" }
 
+[base.from.EUR]
+at = [{ stage = 1, folder = 901, file = 0 }]
+chunks = { palette = "fe78d2a2315a38157c0240b41d8a8447703ce52d", image = "72f5f7a2131d77d79b1217be00ea068b7d958775", dialogue_0_atlas = "bcf31c83062597c4b71e4ce33d5ba9c9a4674913" }
+
 [view1]
 uid = "uid://1qinh99iekd0s"
 template = "file"
@@ -140,6 +144,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 1, folder = 901, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 1, folder = 901, file = 1 }]
 
 [view2]
@@ -160,6 +167,10 @@ type = "bs"
 asset = { uid = "uid://1k43c1dqixvlp", path = "res://stages/akropolis/rooms/forked_road/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 1, folder = 901, file = 2 }]
+chunks = { image = "c2b5040d3e2c1bade290d4b11f3a0e4015130a89" }
+
+[view2.from.EUR]
 at = [{ stage = 1, folder = 901, file = 2 }]
 chunks = { image = "c2b5040d3e2c1bade290d4b11f3a0e4015130a89" }
 
@@ -184,6 +195,10 @@ asset = { uid = "uid://z5qhr8qmaf49", path = "res://stages/akropolis/rooms/forke
 at = [{ stage = 1, folder = 901, file = 3 }]
 chunks = { image = "3ac450f01b20cd4c39318513ddf446c3528f82a2" }
 
+[view3.from.EUR]
+at = [{ stage = 1, folder = 901, file = 3 }]
+chunks = { image = "3ac450f01b20cd4c39318513ddf446c3528f82a2" }
+
 [view4]
 uid = "uid://1wjxs76oabsb4"
 template = "file"
@@ -192,6 +207,9 @@ slots = [
 ]
 
 [view4.from.USA]
+at = [{ stage = 1, folder = 901, file = 4 }]
+
+[view4.from.EUR]
 at = [{ stage = 1, folder = 901, file = 4 }]
 
 [view5]
@@ -215,6 +233,10 @@ asset = { uid = "uid://wn57x3bxakm1", path = "res://stages/akropolis/rooms/forke
 at = [{ stage = 1, folder = 901, file = 5 }]
 chunks = { image = "01f407af4ebf492c4cd9075cbf63586d8df9b21c" }
 
+[view5.from.EUR]
+at = [{ stage = 1, folder = 901, file = 5 }]
+chunks = { image = "01f407af4ebf492c4cd9075cbf63586d8df9b21c" }
+
 [view6]
 uid = "uid://1wl099fnzfo9s"
 template = "file"
@@ -223,6 +245,9 @@ slots = [
 ]
 
 [view6.from.USA]
+at = [{ stage = 1, folder = 901, file = 6 }]
+
+[view6.from.EUR]
 at = [{ stage = 1, folder = 901, file = 6 }]
 
 [view7]
@@ -243,6 +268,10 @@ type = "bs"
 asset = { uid = "uid://d27ik04cl4ta", path = "res://stages/akropolis/rooms/forked_road/views/view7_background.node" }
 
 [view7.from.USA]
+at = [{ stage = 1, folder = 901, file = 7 }]
+chunks = { image = "b21aaefb038e397576040662e0e22444f8614684" }
+
+[view7.from.EUR]
 at = [{ stage = 1, folder = 901, file = 7 }]
 chunks = { image = "b21aaefb038e397576040662e0e22444f8614684" }
 
@@ -267,6 +296,10 @@ asset = { uid = "uid://1352vatwjl8cd", path = "res://stages/akropolis/rooms/fork
 at = [{ stage = 1, folder = 901, file = 8 }]
 chunks = { image = "b21aaefb038e397576040662e0e22444f8614684" }
 
+[view8.from.EUR]
+at = [{ stage = 1, folder = 901, file = 8 }]
+chunks = { image = "b21aaefb038e397576040662e0e22444f8614684" }
+
 [view9]
 uid = "uid://j9vktmdlu4b2"
 template = "file"
@@ -275,6 +308,9 @@ slots = [
 ]
 
 [view9.from.USA]
+at = [{ stage = 1, folder = 901, file = 9 }]
+
+[view9.from.EUR]
 at = [{ stage = 1, folder = 901, file = 9 }]
 
 [view10]
@@ -287,6 +323,9 @@ slots = [
 [view10.from.USA]
 at = [{ stage = 1, folder = 901, file = 10 }]
 
+[view10.from.EUR]
+at = [{ stage = 1, folder = 901, file = 10 }]
+
 [view11]
 uid = "uid://wg4cvofgl73e"
 template = "file"
@@ -295,6 +334,9 @@ slots = [
 ]
 
 [view11.from.USA]
+at = [{ stage = 1, folder = 901, file = 11 }]
+
+[view11.from.EUR]
 at = [{ stage = 1, folder = 901, file = 11 }]
 
 [view12]
@@ -315,5 +357,9 @@ type = "bs"
 asset = { uid = "uid://1ilof58h6uf1f", path = "res://stages/akropolis/rooms/forked_road/views/view12_background.node" }
 
 [view12.from.USA]
+at = [{ stage = 1, folder = 901, file = 12 }]
+chunks = { image = "3ac450f01b20cd4c39318513ddf446c3528f82a2" }
+
+[view12.from.EUR]
 at = [{ stage = 1, folder = 901, file = 12 }]
 chunks = { image = "3ac450f01b20cd4c39318513ddf446c3528f82a2" }

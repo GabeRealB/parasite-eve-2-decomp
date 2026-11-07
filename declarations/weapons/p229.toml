@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20105, slot = "image", page = 0 }]
 sha1 = "3857c99cca01a8fc1b536012ae4fcb635245ebdf"
 palettes = { default = "b0224bc4260db6528aedd81c0000052a11ea1f7e" }
 
+[preview.from.EUR]
+at = [{ stage = 0, file = 20105, slot = "image", page = 0 }]
+sha1 = "3857c99cca01a8fc1b536012ae4fcb635245ebdf"
+palettes = { default = "b0224bc4260db6528aedd81c0000052a11ea1f7e" }
+
 [texture]
 uid = "uid://9hgarq6cdjmo"
 template = "texture"
@@ -31,6 +36,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture.from.USA]
+at = [{ stage = 0, file = 10305, slot = "image", page = 0 }]
+sha1 = "02686e0aa073a0e16c1570e310200131b5e9dc68"
+palettes = { default = "c81918b1fd5bd798a4919f02b65f747e9526b476" }
+
+[texture.from.EUR]
 at = [{ stage = 0, file = 10305, slot = "image", page = 0 }]
 sha1 = "02686e0aa073a0e16c1570e310200131b5e9dc68"
 palettes = { default = "c81918b1fd5bd798a4919f02b65f747e9526b476" }
@@ -91,6 +101,15 @@ symbol = "gP229WeaponModel"
 material_slots = ["body"]
 sha1 = "9ad1c30765d509a1850b9b9f5c7832f8e69dbe86"
 
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10305, slot = "package" }]
+offset = 3896
+size = 1296
+address = 2148659720
+symbol = "gP229WeaponModel"
+material_slots = ["body"]
+sha1 = "06beeb95cfae19b05ed884643b92b0a87fd37988"
+
 [material]
 uid = "uid://90q31q7r3fjk"
 template = "material"
@@ -111,3 +130,10 @@ offset = 3896
 size = 1296
 address = 2148655352
 sha1 = "9ad1c30765d509a1850b9b9f5c7832f8e69dbe86"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10305, slot = "package" }]
+offset = 3896
+size = 1296
+address = 2148659720
+sha1 = "06beeb95cfae19b05ed884643b92b0a87fd37988"

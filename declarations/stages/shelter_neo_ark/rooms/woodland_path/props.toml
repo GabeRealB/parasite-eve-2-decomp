@@ -19,3 +19,8 @@ source = "source.ora"
 at = [{ stage = 5, folder = 2901, file = 0, slot = "image", page = 0 }]
 sha1 = "7d095dfe0b843f27b52b8f72e8829835233e0f03"
 palettes = { effect_row_9_16 = "47ef1fdc4ec12a7332ff1eae3a70a48323bce75a", effect_row_10_17 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_18 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_19 = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
+
+[water_effects.from.EUR]
+at = [{ stage = 5, folder = 2901, file = 0, slot = "image", page = 0 }]
+sha1 = "7d095dfe0b843f27b52b8f72e8829835233e0f03"
+palettes = { effect_row_9_16 = "47ef1fdc4ec12a7332ff1eae3a70a48323bce75a", effect_row_10_17 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_18 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_19 = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }

@@ -17,6 +17,11 @@ at = [{ stage = 4, folder = 1701, file = 11, slot = "image_0", page = 0 }]
 sha1 = "cb73dc4a28b9680235be9a12cc8ffd03df320fa2"
 palettes = { row_0 = "4bbbc3e9f1b379845747fecd44925b5304eccc68" }
 
+[pod_still_0.from.EUR]
+at = [{ stage = 4, folder = 1701, file = 11, slot = "image_0", page = 0 }]
+sha1 = "cb73dc4a28b9680235be9a12cc8ffd03df320fa2"
+palettes = { row_0 = "4bbbc3e9f1b379845747fecd44925b5304eccc68" }
+
 [pod_still_1]
 uid = "uid://j7yrmr0nuxxf"
 template = "texture"
@@ -30,6 +35,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [pod_still_1.from.USA]
+at = [{ stage = 4, folder = 1701, file = 11, slot = "image_1", page = 0 }]
+sha1 = "55af0ef8cba0251ea6429a94fcce99ba3328ab62"
+palettes = { row_0 = "4bbbc3e9f1b379845747fecd44925b5304eccc68" }
+
+[pod_still_1.from.EUR]
 at = [{ stage = 4, folder = 1701, file = 11, slot = "image_1", page = 0 }]
 sha1 = "55af0ef8cba0251ea6429a94fcce99ba3328ab62"
 palettes = { row_0 = "4bbbc3e9f1b379845747fecd44925b5304eccc68" }

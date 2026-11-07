@@ -22,3 +22,8 @@ source = "source.ora"
 at = [{ stage = 3, folder = 2301, file = 0, slot = "image", page = 0 }]
 sha1 = "30500a8b565d201e832dd2461db790e4095bb628"
 palettes = { effect_row_3 = "4836641b1311107fc57ac5e98e83ff3812e7a71a", effect_row_2 = "93b16c2e8d5d154ddbee788f9ff2812be42ce601" }
+
+[car.from.EUR]
+at = [{ stage = 3, folder = 2301, file = 0, slot = "image", page = 0 }]
+sha1 = "30500a8b565d201e832dd2461db790e4095bb628"
+palettes = { effect_row_3 = "4836641b1311107fc57ac5e98e83ff3812e7a71a", effect_row_2 = "93b16c2e8d5d154ddbee788f9ff2812be42ce601" }

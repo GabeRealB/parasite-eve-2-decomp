@@ -19,3 +19,8 @@ source = "source.ora"
 at = [{ stage = 4, folder = 701, file = 0, slot = "image_0", page = 0 }, { stage = 0, file = 140400, slot = "image", page = 0 }, { stage = 0, file = 640400, slot = "image", page = 0 }]
 sha1 = "f0e30c67983d141a8e7e16f15b170099e6b03eac"
 palettes = { effect_row_2 = "a91cd003c70915b70f00e96b5da83dabf7475472", effect_row_9 = "89139a15eb0467ee5cad326fd43feae40138a775" }
+
+[machinery.from.EUR]
+at = [{ stage = 4, folder = 701, file = 0, slot = "image_0", page = 0 }, { stage = 0, file = 140400, slot = "image", page = 0 }, { stage = 0, file = 640400, slot = "image", page = 0 }]
+sha1 = "f0e30c67983d141a8e7e16f15b170099e6b03eac"
+palettes = { effect_row_2 = "a91cd003c70915b70f00e96b5da83dabf7475472", effect_row_9 = "89139a15eb0467ee5cad326fd43feae40138a775" }

@@ -26,6 +26,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 1, folder = 601 }]
 
+[folder.from.EUR]
+at = [{ stage = 1, folder = 601 }]
+
 [lock_lamps_left]
 uid = "uid://15vqau10pa7po"
 template = "texture"
@@ -50,6 +53,11 @@ at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 0 }]
 sha1 = "a8d0c17bd1cd57a40b7e7429564f5906fd6d7535"
 palettes = { row_270 = "da5fbc489a2520743d422d0932903526ec7aa6b5", row_271 = "da5fbc489a2520743d422d0932903526ec7aa6b5" }
 
+[lock_lamps_left.from.EUR]
+at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 0 }]
+sha1 = "a8d0c17bd1cd57a40b7e7429564f5906fd6d7535"
+palettes = { row_270 = "da5fbc489a2520743d422d0932903526ec7aa6b5", row_271 = "da5fbc489a2520743d422d0932903526ec7aa6b5" }
+
 [lock_lamps_right]
 uid = "uid://bhpbu8y0h1b"
 template = "texture"
@@ -66,6 +74,10 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [lock_lamps_right.from.USA]
+at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 1 }]
+sha1 = "f60564816dd3cc54c128b8caf125f3a204e91a7b"
+
+[lock_lamps_right.from.EUR]
 at = [{ stage = 1, folder = 601, file = 0, slot = "image", page = 1 }]
 sha1 = "f60564816dd3cc54c128b8caf125f3a204e91a7b"
 
@@ -86,6 +98,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 1, folder = 601, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "ad44b6998c579d21b077d8d0a98d39c9384116f7"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 1, folder = 601, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "ad44b6998c579d21b077d8d0a98d39c9384116f7"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

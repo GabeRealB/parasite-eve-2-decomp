@@ -82,6 +82,10 @@ type = "dialogue"
 at = [{ stage = 5, folder = 1101, file = 0 }]
 chunks = { dialogue_0_atlas = "205d92185b9452f081db3c93ab9f6278f54a731d", palette = "85e93cfa4b1e275d1b55511c7847c24009bc2f75", image = "391f1070429c02b917fa252d58d8548fc44223ca" }
 
+[base.from.EUR]
+at = [{ stage = 5, folder = 1101, file = 0 }]
+chunks = { dialogue_0_atlas = "205d92185b9452f081db3c93ab9f6278f54a731d", palette = "85e93cfa4b1e275d1b55511c7847c24009bc2f75", image = "391f1070429c02b917fa252d58d8548fc44223ca" }
+
 [view1]
 uid = "uid://1q3zvj7clolq7"
 template = "file"
@@ -90,6 +94,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 5, folder = 1101, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 5, folder = 1101, file = 1 }]
 
 [view2]
@@ -109,6 +116,10 @@ type = "bs"
 asset = { uid = "uid://1fqa5p5gqqsnh", path = "res://stages/shelter_neo_ark/rooms/forest_zone/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 5, folder = 1101, file = 2 }]
+chunks = { image = "d1f15277772e4c8dce616c8d2dd2249fb7b30608" }
+
+[view2.from.EUR]
 at = [{ stage = 5, folder = 1101, file = 2 }]
 chunks = { image = "d1f15277772e4c8dce616c8d2dd2249fb7b30608" }
 
@@ -132,6 +143,10 @@ asset = { uid = "uid://1vgw8kenot8ls", path = "res://stages/shelter_neo_ark/room
 at = [{ stage = 5, folder = 1101, file = 3 }]
 chunks = { image = "5e2889a7e4fe2427a2e794dad95633031b4e43ed" }
 
+[view3.from.EUR]
+at = [{ stage = 5, folder = 1101, file = 3 }]
+chunks = { image = "5e2889a7e4fe2427a2e794dad95633031b4e43ed" }
+
 [view4]
 uid = "uid://ftthos80cr20"
 template = "file"
@@ -149,6 +164,10 @@ type = "bs"
 asset = { uid = "uid://103rzyu4lkp9x", path = "res://stages/shelter_neo_ark/rooms/forest_zone/views/view4_background.node" }
 
 [view4.from.USA]
+at = [{ stage = 5, folder = 1101, file = 4 }]
+chunks = { image = "5ce5465e664903748e3cad2f70fda16b69cd7d33" }
+
+[view4.from.EUR]
 at = [{ stage = 5, folder = 1101, file = 4 }]
 chunks = { image = "5ce5465e664903748e3cad2f70fda16b69cd7d33" }
 
@@ -172,6 +191,10 @@ asset = { uid = "uid://gh1n455jphsf", path = "res://stages/shelter_neo_ark/rooms
 at = [{ stage = 5, folder = 1101, file = 5 }]
 chunks = { image = "ce1fc8e68989d45f6a54bbef4bfa790c0fb1827f" }
 
+[view5.from.EUR]
+at = [{ stage = 5, folder = 1101, file = 5 }]
+chunks = { image = "ce1fc8e68989d45f6a54bbef4bfa790c0fb1827f" }
+
 [view6]
 uid = "uid://10uo92zvj5k0s"
 template = "file"
@@ -180,4 +203,7 @@ slots = [
 ]
 
 [view6.from.USA]
+at = [{ stage = 5, folder = 1101, file = 6 }]
+
+[view6.from.EUR]
 at = [{ stage = 5, folder = 1101, file = 6 }]

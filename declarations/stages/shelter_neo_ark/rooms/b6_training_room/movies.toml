@@ -10,3 +10,7 @@ format = "str"
 [movie_100.from.USA]
 at = [{ disc = "disk2", slot = "INTER1.STR", clip = 17 }]
 sha1 = "9c22a0353ee9ffc7e57e3a1ca91a3da3dbe117c5"
+
+[movie_100.from.EUR]
+at = [{ disc = "disk2", slot = "INTER1.STR", clip = 17 }]
+sha1 = "9c22a0353ee9ffc7e57e3a1ca91a3da3dbe117c5"

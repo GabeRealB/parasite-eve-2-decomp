@@ -18,6 +18,11 @@ at = [{ stage = 0, file = 10306, slot = "image", page = 0 }]
 sha1 = "ffae009c32ec67281d5e7daa223ad09660857959"
 palettes = { default = "c81918b1fd5bd798a4919f02b65f747e9526b476" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10306, slot = "image", page = 0 }]
+sha1 = "ffae009c32ec67281d5e7daa223ad09660857959"
+palettes = { default = "c81918b1fd5bd798a4919f02b65f747e9526b476" }
+
 [bank]
 uid = "uid://1hsqp8mbac7i1"
 template = "animation_bank"
@@ -74,6 +79,15 @@ symbol = "gUnused85HeldWeaponModel"
 material_slots = ["body"]
 sha1 = "63933434bef29e6dbe5e91d3dae64e37ca38796a"
 
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10306, slot = "package" }]
+offset = 4
+size = 924
+address = 2148655828
+symbol = "gUnused85HeldWeaponModel"
+material_slots = ["body"]
+sha1 = "528597cccbacc585dd27abf86af954b36ea68618"
+
 [material]
 uid = "uid://19ysodi0iq2yu"
 template = "material"
@@ -94,3 +108,10 @@ offset = 4
 size = 924
 address = 2148651460
 sha1 = "63933434bef29e6dbe5e91d3dae64e37ca38796a"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10306, slot = "package" }]
+offset = 4
+size = 924
+address = 2148655828
+sha1 = "528597cccbacc585dd27abf86af954b36ea68618"

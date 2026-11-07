@@ -17,6 +17,11 @@ at = [{ stage = 4, folder = 2201, file = 0, slot = "image_0", page = 0 }]
 sha1 = "85159da246f8966e735357ad653dc0e0df5a1cc4"
 palettes = { effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }
 
+[smoke.from.EUR]
+at = [{ stage = 4, folder = 2201, file = 0, slot = "image_0", page = 0 }]
+sha1 = "85159da246f8966e735357ad653dc0e0df5a1cc4"
+palettes = { effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }
+
 [creature]
 uid = "uid://1eqlz9ijjzhzc"
 template = "texture"
@@ -37,6 +42,11 @@ at = [{ stage = 4, folder = 2201, file = 0, slot = "image_1", page = 0 }]
 sha1 = "8a29cf9da2f0ae6e7b6516c1b3a137023272c8ae"
 palettes = { effect_row_9 = "3827df5302cf771283d24c68f9926f29f4a75a1f", effect_row_10 = "23647cbd421854cf091cf02488b763338f5ae49a", shared_row_1 = "9831b19a06803075c7050ab94ba66d6580fc1ed8", shared_row_0 = "582e33eb1fca771878905482fb6228e73c215b56" }
 
+[creature.from.EUR]
+at = [{ stage = 4, folder = 2201, file = 0, slot = "image_1", page = 0 }]
+sha1 = "8a29cf9da2f0ae6e7b6516c1b3a137023272c8ae"
+palettes = { effect_row_9 = "3827df5302cf771283d24c68f9926f29f4a75a1f", effect_row_10 = "23647cbd421854cf091cf02488b763338f5ae49a", shared_row_1 = "9831b19a06803075c7050ab94ba66d6580fc1ed8", shared_row_0 = "582e33eb1fca771878905482fb6228e73c215b56" }
+
 [creature_2]
 uid = "uid://1oc2vft7m15pr"
 template = "texture"
@@ -51,6 +61,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [creature_2.from.USA]
+at = [{ stage = 4, folder = 2201, file = 0, slot = "image_2", page = 0 }]
+sha1 = "dac34cc1f1c7819c7ebcb35b51103db26e596f37"
+palettes = { shared_row_0 = "582e33eb1fca771878905482fb6228e73c215b56", shared_row_1 = "9831b19a06803075c7050ab94ba66d6580fc1ed8" }
+
+[creature_2.from.EUR]
 at = [{ stage = 4, folder = 2201, file = 0, slot = "image_2", page = 0 }]
 sha1 = "dac34cc1f1c7819c7ebcb35b51103db26e596f37"
 palettes = { shared_row_0 = "582e33eb1fca771878905482fb6228e73c215b56", shared_row_1 = "9831b19a06803075c7050ab94ba66d6580fc1ed8" }

@@ -8,3 +8,7 @@ format = "mts"
 [scene_13.from.USA]
 at = [{ stage = 2, folder = 801, stream = 0 }]
 sha1 = "fe15d3125aec044b51344b63b4bc8f7c31b40819"
+
+[scene_13.from.EUR]
+at = [{ stage = 2, folder = 801, stream = 0 }]
+sha1 = "58ea4ce72e39749f9e4948fd787bdce1f0e48ec8"

@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 1, folder = 1401, file = 0, slot = "image", page = 1 }]
 sha1 = "320b018758ece3752ffedbaeb1a6db67c80b9359"
 palettes = { default = "14783831e87f895c56cbdf1793a3a4a7fc60efd8" }
+
+[bridge.from.EUR]
+at = [{ stage = 1, folder = 1401, file = 0, slot = "image", page = 1 }]
+sha1 = "320b018758ece3752ffedbaeb1a6db67c80b9359"
+palettes = { default = "14783831e87f895c56cbdf1793a3a4a7fc60efd8" }

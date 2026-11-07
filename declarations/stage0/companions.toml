@@ -10,6 +10,9 @@ slots = [
 [kyle_companion.from.USA]
 at = [{ stage = 0, file = 800100 }]
 
+[kyle_companion.from.EUR]
+at = [{ stage = 0, file = 800100 }]
+
 [kyle_companion_1]
 uid = "uid://1dy6pq3afesh6"
 template = "file"
@@ -53,6 +56,10 @@ name = "package"
 type = "package"
 
 [kyle_companion_1.from.USA]
+at = [{ stage = 0, file = 800101 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
+
+[kyle_companion_1.from.EUR]
 at = [{ stage = 0, file = 800101 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
 
@@ -102,6 +109,10 @@ type = "package"
 at = [{ stage = 0, file = 800102 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", mm1_palette = "76303bb67d2984038bac7dc178e15d2a123a56de", mm1_image = "321de772e775a264a70cc456b63f291cc77b6a57" }
 
+[kyle_companion_2.from.EUR]
+at = [{ stage = 0, file = 800102 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", mm1_palette = "76303bb67d2984038bac7dc178e15d2a123a56de", mm1_image = "321de772e775a264a70cc456b63f291cc77b6a57" }
+
 [kyle_companion_3]
 uid = "uid://pxj99lowpc5"
 template = "file"
@@ -145,6 +156,10 @@ name = "package"
 type = "package"
 
 [kyle_companion_3.from.USA]
+at = [{ stage = 0, file = 800103 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m950_palette = "9d90bfefb365038938325519fae6d83efe74ec56", m950_image = "8c97e9522da30044b42babb401e0a1161fff1929" }
+
+[kyle_companion_3.from.EUR]
 at = [{ stage = 0, file = 800103 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m950_palette = "9d90bfefb365038938325519fae6d83efe74ec56", m950_image = "8c97e9522da30044b42babb401e0a1161fff1929" }
 
@@ -194,6 +209,10 @@ type = "package"
 at = [{ stage = 0, file = 800104 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m4a1_palette = "30c1db1d9894a4de88e6215ac6e660725aca0592", m4a1_image = "c15b0e3d2ac50fe2226c5249f10c4f9229573d03" }
 
+[kyle_companion_4.from.EUR]
+at = [{ stage = 0, file = 800104 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m4a1_palette = "30c1db1d9894a4de88e6215ac6e660725aca0592", m4a1_image = "c15b0e3d2ac50fe2226c5249f10c4f9229573d03" }
+
 [kyle_companion_5]
 uid = "uid://fheuys1m1z7o"
 template = "file"
@@ -236,6 +255,10 @@ type = "package"
 at = [{ stage = 0, file = 800105 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m950_palette = "9d90bfefb365038938325519fae6d83efe74ec56", m950_image = "8c97e9522da30044b42babb401e0a1161fff1929" }
 
+[kyle_companion_5.from.EUR]
+at = [{ stage = 0, file = 800105 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f", m950_palette = "9d90bfefb365038938325519fae6d83efe74ec56", m950_image = "8c97e9522da30044b42babb401e0a1161fff1929" }
+
 [flint_companion]
 uid = "uid://g61m93n6dn2f"
 template = "file"
@@ -265,6 +288,10 @@ name = "package"
 type = "package"
 
 [flint_companion.from.USA]
+at = [{ stage = 0, file = 800200 }]
+chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd705d3ff9ebad301c211b732060e1b08508" }
+
+[flint_companion.from.EUR]
 at = [{ stage = 0, file = 800200 }]
 chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd705d3ff9ebad301c211b732060e1b08508" }
 
@@ -307,6 +334,10 @@ name = "package"
 type = "package"
 
 [eve_companion.from.USA]
+at = [{ stage = 0, file = 800300 }]
+chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b", p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
+
+[eve_companion.from.EUR]
 at = [{ stage = 0, file = 800300 }]
 chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b", p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
 
@@ -353,6 +384,10 @@ resources = [
 at = [{ stage = 0, file = 801000 }]
 chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
 
+[akropolis_square.from.EUR]
+at = [{ stage = 0, file = 801000 }]
+chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
+
 [dryfield_main_street]
 uid = "uid://1n8oqsrr25xl"
 template = "file"
@@ -396,6 +431,10 @@ resources = [
 at = [{ stage = 0, file = 801100 }]
 chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
 
+[dryfield_main_street.from.EUR]
+at = [{ stage = 0, file = 801100 }]
+chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
+
 [dryfield_underpass]
 uid = "uid://awkh1hwk0fk2"
 template = "file"
@@ -436,5 +475,9 @@ resources = [
 ]
 
 [dryfield_underpass.from.USA]
+at = [{ stage = 0, file = 801200 }]
+chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
+
+[dryfield_underpass.from.EUR]
 at = [{ stage = 0, file = 801200 }]
 chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }

@@ -163,7 +163,9 @@ def main() -> int:
         return compare(args.layer, args.against)
     registry = json.loads(args.registry.read_text(encoding="utf-8"))
     decl = declared.Declarations(args.declarations)
-    releases = args.release or sorted(p.name for p in (args.declarations / "disc").iterdir() if p.is_dir())
+    # USA, which the decompilation builds, first: the release a plan prefers.
+    found = sorted(p.name for p in (args.declarations / "disc").iterdir() if p.is_dir())
+    releases = args.release or [r for r in ["USA"] if r in found] + [r for r in found if r != "USA"]
     if args.command == "plan":
         made = plans.make(decl, registry, releases)
         args.out.write_text(made.text(), encoding="utf-8")

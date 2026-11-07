@@ -32,6 +32,10 @@ type = "package"
 at = [{ stage = 0, file = 100300 }]
 chunks = { palette = "08d4b12e9582ba84d25a8c07cfbdd88870828a8c", image = "1caf054fb2971fea6f9f896a6b667a2654c8d722" }
 
+[brain_stinger_package.from.EUR]
+at = [{ stage = 0, file = 100300 }]
+chunks = { palette = "08d4b12e9582ba84d25a8c07cfbdd88870828a8c", image = "1caf054fb2971fea6f9f896a6b667a2654c8d722" }
+
 [bog_diver_package]
 uid = "uid://yjn3e5e9clhi"
 template = "file"
@@ -61,6 +65,10 @@ name = "package"
 type = "package"
 
 [bog_diver_package.from.USA]
+at = [{ stage = 0, file = 100400 }]
+chunks = { image = "8d469690f741c924f8da63c5c4c9b63f9c9f8164", palette = "8f97aac9128ea5cd3985e21425e69b396eaafe97" }
+
+[bog_diver_package.from.EUR]
 at = [{ stage = 0, file = 100400 }]
 chunks = { image = "8d469690f741c924f8da63c5c4c9b63f9c9f8164", palette = "8f97aac9128ea5cd3985e21425e69b396eaafe97" }
 
@@ -96,6 +104,10 @@ type = "package"
 at = [{ stage = 0, file = 100500 }]
 chunks = { image = "f0b3b0600b959d4c6026d89118cc8507563d09b0", palette = "72bbc17f0c68af1b8748595316ceeac9e0c809d8" }
 
+[gray_stalker_package.from.EUR]
+at = [{ stage = 0, file = 100500 }]
+chunks = { image = "f0b3b0600b959d4c6026d89118cc8507563d09b0", palette = "72bbc17f0c68af1b8748595316ceeac9e0c809d8" }
+
 [rat_and_moth_package]
 uid = "uid://jk3f2e2pzdyt"
 template = "file"
@@ -125,6 +137,10 @@ name = "package"
 type = "package"
 
 [rat_and_moth_package.from.USA]
+at = [{ stage = 0, file = 100700 }]
+chunks = { palette = "469560ea3f8c2c4e40cbec65ea6e5359d6dfe45a", image = "491d4b82cf59ac5fefc926ceea813c070847998a" }
+
+[rat_and_moth_package.from.EUR]
 at = [{ stage = 0, file = 100700 }]
 chunks = { palette = "469560ea3f8c2c4e40cbec65ea6e5359d6dfe45a", image = "491d4b82cf59ac5fefc926ceea813c070847998a" }
 
@@ -160,6 +176,10 @@ type = "package"
 at = [{ stage = 0, file = 101000 }]
 chunks = { image = "df80e66ff9cd19441469dbeb450f5229fd6b4be9", palette = "7bb032df3ac96d82e3ef0046e963099fa4092512" }
 
+[odd_stranger_package_b.from.EUR]
+at = [{ stage = 0, file = 101000 }]
+chunks = { image = "df80e66ff9cd19441469dbeb450f5229fd6b4be9", palette = "7bb032df3ac96d82e3ef0046e963099fa4092512" }
+
 [brute_and_mossback_package]
 uid = "uid://1d5vz0a8h9klf"
 template = "file"
@@ -188,6 +208,10 @@ type = "package"
 at = [{ stage = 0, file = 101100 }]
 chunks = { image = "e043e14585b93c4bbf962c8d5a8a515c5a0b20b7", palette = "73b0329e03eb54304cce3fc21f8947e9b0edf849" }
 
+[brute_and_mossback_package.from.EUR]
+at = [{ stage = 0, file = 101100 }]
+chunks = { image = "e043e14585b93c4bbf962c8d5a8a515c5a0b20b7", palette = "73b0329e03eb54304cce3fc21f8947e9b0edf849" }
+
 [brute_and_mossback_sounds_1]
 uid = "uid://1hgi0eyvf00lk"
 template = "file"
@@ -198,6 +222,9 @@ slots = [
 [brute_and_mossback_sounds_1.from.USA]
 at = [{ stage = 0, file = 101101 }]
 
+[brute_and_mossback_sounds_1.from.EUR]
+at = [{ stage = 0, file = 101101 }]
+
 [brute_and_mossback_sounds_2]
 uid = "uid://1mrxyg0d0p8ln"
 template = "file"
@@ -206,6 +233,9 @@ slots = [
 ]
 
 [brute_and_mossback_sounds_2.from.USA]
+at = [{ stage = 0, file = 101102 }]
+
+[brute_and_mossback_sounds_2.from.EUR]
 at = [{ stage = 0, file = 101102 }]
 
 [bone_suckler_package]
@@ -237,6 +267,10 @@ name = "package"
 type = "package"
 
 [bone_suckler_package.from.USA]
+at = [{ stage = 0, file = 101200 }]
+chunks = { image = "a266eb18ebc85eeb477fda2106711c6e27c31462", palette = "1ca0bfb1705227271c3b7c37670f238de109a363" }
+
+[bone_suckler_package.from.EUR]
 at = [{ stage = 0, file = 101200 }]
 chunks = { image = "a266eb18ebc85eeb477fda2106711c6e27c31462", palette = "1ca0bfb1705227271c3b7c37670f238de109a363" }
 
@@ -272,6 +306,10 @@ type = "package"
 at = [{ stage = 0, file = 101300 }]
 chunks = { image = "8de5c40e312b871e142303a328240231bd3144dd", palette = "bbc1f852723073e83de2be33403bb70976f51242" }
 
+[horned_stranger_package.from.EUR]
+at = [{ stage = 0, file = 101300 }]
+chunks = { image = "8de5c40e312b871e142303a328240231bd3144dd", palette = "bbc1f852723073e83de2be33403bb70976f51242" }
+
 [mind_suckler_package]
 uid = "uid://5qvdf6zwcd5w"
 template = "file"
@@ -301,6 +339,10 @@ name = "package"
 type = "package"
 
 [mind_suckler_package.from.USA]
+at = [{ stage = 0, file = 101500 }]
+chunks = { palette = "77d22ff86f4c3605827849ccdb4ade56164a8f7b", image = "ab5c0f94f0625a9eec65da6f76baa1a0a97ca267" }
+
+[mind_suckler_package.from.EUR]
 at = [{ stage = 0, file = 101500 }]
 chunks = { palette = "77d22ff86f4c3605827849ccdb4ade56164a8f7b", image = "ab5c0f94f0625a9eec65da6f76baa1a0a97ca267" }
 
@@ -336,6 +378,10 @@ type = "package"
 at = [{ stage = 0, file = 101600 }]
 chunks = { palette = "90b4f12eb5003da40c1ffbae46fc1dd251bea82f", image = "36c2d1f058a8013ec5235a598a7c5c724f35f19e" }
 
+[scavenger_package.from.EUR]
+at = [{ stage = 0, file = 101600 }]
+chunks = { palette = "90b4f12eb5003da40c1ffbae46fc1dd251bea82f", image = "36c2d1f058a8013ec5235a598a7c5c724f35f19e" }
+
 [grinning_stranger_package]
 uid = "uid://8k5454h30plg"
 template = "file"
@@ -365,6 +411,10 @@ name = "package"
 type = "package"
 
 [grinning_stranger_package.from.USA]
+at = [{ stage = 0, file = 101900 }]
+chunks = { image = "833d890dcdcdd1183253a282063b77fc9797dfb5", palette = "601689df7e4f653f7ae7956f3a5a9448cd392b63" }
+
+[grinning_stranger_package.from.EUR]
 at = [{ stage = 0, file = 101900 }]
 chunks = { image = "833d890dcdcdd1183253a282063b77fc9797dfb5", palette = "601689df7e4f653f7ae7956f3a5a9448cd392b63" }
 
@@ -404,6 +454,10 @@ type = "package"
 at = [{ stage = 0, file = 102000 }]
 chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", image = "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a" }
 
+[pawn_golem_beam_sword_package.from.EUR]
+at = [{ stage = 0, file = 102000 }]
+chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", image = "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a" }
+
 [pawn_golem_beam_sword_sounds_1]
 uid = "uid://qsqvmm5rq0w7"
 template = "file"
@@ -412,6 +466,9 @@ slots = [
 ]
 
 [pawn_golem_beam_sword_sounds_1.from.USA]
+at = [{ stage = 0, file = 102001 }]
+
+[pawn_golem_beam_sword_sounds_1.from.EUR]
 at = [{ stage = 0, file = 102001 }]
 
 [pawn_golem_beam_sword_sounds_2]
@@ -424,6 +481,9 @@ slots = [
 [pawn_golem_beam_sword_sounds_2.from.USA]
 at = [{ stage = 0, file = 102002 }]
 
+[pawn_golem_beam_sword_sounds_2.from.EUR]
+at = [{ stage = 0, file = 102002 }]
+
 [pawn_golem_beam_sword_sounds_3]
 uid = "uid://1ttmghd5yhzyy"
 template = "file"
@@ -434,6 +494,9 @@ slots = [
 [pawn_golem_beam_sword_sounds_3.from.USA]
 at = [{ stage = 0, file = 102003 }]
 
+[pawn_golem_beam_sword_sounds_3.from.EUR]
+at = [{ stage = 0, file = 102003 }]
+
 [pawn_golem_beam_sword_sounds_4]
 uid = "uid://4361vjfdvai7"
 template = "file"
@@ -442,6 +505,9 @@ slots = [
 ]
 
 [pawn_golem_beam_sword_sounds_4.from.USA]
+at = [{ stage = 0, file = 102004 }]
+
+[pawn_golem_beam_sword_sounds_4.from.EUR]
 at = [{ stage = 0, file = 102004 }]
 
 [watcher_package]
@@ -473,6 +539,10 @@ name = "package"
 type = "package"
 
 [watcher_package.from.USA]
+at = [{ stage = 0, file = 102100 }]
+chunks = { palette = "5a5eb02dcda169ac3d1e9015d64697808eecd3fc", image = "93d7f4da0ea28e7f230f4b2adb8b491da5e1e966" }
+
+[watcher_package.from.EUR]
 at = [{ stage = 0, file = 102100 }]
 chunks = { palette = "5a5eb02dcda169ac3d1e9015d64697808eecd3fc", image = "93d7f4da0ea28e7f230f4b2adb8b491da5e1e966" }
 
@@ -512,6 +582,10 @@ type = "package"
 at = [{ stage = 0, file = 102300 }]
 chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "ded0a140f19a63360285cc120672783458b2a5fb", image = "c11006938812c87bbfaaee1a746701dbc129b15a" }
 
+[rook_golem_beam_sword_package.from.EUR]
+at = [{ stage = 0, file = 102300 }]
+chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "ded0a140f19a63360285cc120672783458b2a5fb", image = "c11006938812c87bbfaaee1a746701dbc129b15a" }
+
 [rook_golem_beam_sword_sounds_1]
 uid = "uid://dcqdeemtia4e"
 template = "file"
@@ -520,6 +594,9 @@ slots = [
 ]
 
 [rook_golem_beam_sword_sounds_1.from.USA]
+at = [{ stage = 0, file = 102301 }]
+
+[rook_golem_beam_sword_sounds_1.from.EUR]
 at = [{ stage = 0, file = 102301 }]
 
 [rook_golem_beam_sword_sounds_2]
@@ -532,6 +609,9 @@ slots = [
 [rook_golem_beam_sword_sounds_2.from.USA]
 at = [{ stage = 0, file = 102302 }]
 
+[rook_golem_beam_sword_sounds_2.from.EUR]
+at = [{ stage = 0, file = 102302 }]
+
 [rook_golem_beam_sword_sounds_3]
 uid = "uid://d958sh5j6m0e"
 template = "file"
@@ -542,6 +622,9 @@ slots = [
 [rook_golem_beam_sword_sounds_3.from.USA]
 at = [{ stage = 0, file = 102303 }]
 
+[rook_golem_beam_sword_sounds_3.from.EUR]
+at = [{ stage = 0, file = 102303 }]
+
 [rook_golem_beam_sword_sounds_4]
 uid = "uid://191p8yca5pwl8"
 template = "file"
@@ -550,6 +633,9 @@ slots = [
 ]
 
 [rook_golem_beam_sword_sounds_4.from.USA]
+at = [{ stage = 0, file = 102304 }]
+
+[rook_golem_beam_sword_sounds_4.from.EUR]
 at = [{ stage = 0, file = 102304 }]
 
 [green_and_red_amoeba_package]
@@ -581,6 +667,10 @@ name = "package"
 type = "package"
 
 [green_and_red_amoeba_package.from.USA]
+at = [{ stage = 0, file = 102400 }]
+chunks = { palette = "b22d25ea63b0221035d826c1226e6578d7eb9a75", image = "b71bcfbc1990a00ded45d14d5609043ba00655ef" }
+
+[green_and_red_amoeba_package.from.EUR]
 at = [{ stage = 0, file = 102400 }]
 chunks = { palette = "b22d25ea63b0221035d826c1226e6578d7eb9a75", image = "b71bcfbc1990a00ded45d14d5609043ba00655ef" }
 
@@ -616,6 +706,10 @@ type = "package"
 at = [{ stage = 0, file = 102500 }]
 chunks = { palette = "ea63ddeefafdd98381734adb91da4bc3303f9246", image = "8928dbe34948fdbb797c85c9c067ff4fb1acbbf5" }
 
+[scorpion_package.from.EUR]
+at = [{ stage = 0, file = 102500 }]
+chunks = { palette = "ea63ddeefafdd98381734adb91da4bc3303f9246", image = "8928dbe34948fdbb797c85c9c067ff4fb1acbbf5" }
+
 [maggot_package]
 uid = "uid://1ost4gfi68h2r"
 template = "file"
@@ -645,6 +739,10 @@ name = "package"
 type = "package"
 
 [maggot_package.from.USA]
+at = [{ stage = 0, file = 102600 }]
+chunks = { palette = "58c356d989ddd4c5ef6d03f7df979ba425f8d0cd", image = "788e398e271d8faa31772d774219331477452ac9" }
+
+[maggot_package.from.EUR]
 at = [{ stage = 0, file = 102600 }]
 chunks = { palette = "58c356d989ddd4c5ef6d03f7df979ba425f8d0cd", image = "788e398e271d8faa31772d774219331477452ac9" }
 
@@ -680,6 +778,10 @@ type = "package"
 at = [{ stage = 0, file = 103700 }]
 chunks = { palette = "bd8e9ef3d60f7c5b15c9d5874bfdd9ce04b138f0", image = "8f587def2a0108a90874c0c6c908b4834b3df90c" }
 
+[bat_package.from.EUR]
+at = [{ stage = 0, file = 103700 }]
+chunks = { palette = "bd8e9ef3d60f7c5b15c9d5874bfdd9ce04b138f0", image = "8f587def2a0108a90874c0c6c908b4834b3df90c" }
+
 [black_beetle_package]
 uid = "uid://8gxr68kmgd27"
 template = "file"
@@ -709,6 +811,10 @@ name = "package"
 type = "package"
 
 [black_beetle_package.from.USA]
+at = [{ stage = 0, file = 103800 }]
+chunks = { palette = "4230a6af3f81868fb0447839b5ab3c2e87f1b7c6", image = "5448c02fea766933ddc0fd0336d73ca31c30c7f9" }
+
+[black_beetle_package.from.EUR]
 at = [{ stage = 0, file = 103800 }]
 chunks = { palette = "4230a6af3f81868fb0447839b5ab3c2e87f1b7c6", image = "5448c02fea766933ddc0fd0336d73ca31c30c7f9" }
 
@@ -744,6 +850,10 @@ type = "package"
 at = [{ stage = 0, file = 104000 }]
 chunks = { image = "bb930db912821ff1ed889d1e1f2fa8e462f9a27f", palette = "d193fc2d2ad8965982dc2b12f91de74694968249" }
 
+[blood_suckler_package.from.EUR]
+at = [{ stage = 0, file = 104000 }]
+chunks = { image = "bb930db912821ff1ed889d1e1f2fa8e462f9a27f", palette = "d193fc2d2ad8965982dc2b12f91de74694968249" }
+
 [bass_sounds]
 uid = "uid://8stwqbg3z2z4"
 template = "file"
@@ -776,6 +886,10 @@ type = "package"
 at = [{ stage = 0, file = 104100 }]
 chunks = { image = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e", palette = "852234bb3d2a63cbd07314a10ddf7622513fee52" }
 
+[bass_sounds.from.EUR]
+at = [{ stage = 0, file = 104100 }]
+chunks = { image = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e", palette = "852234bb3d2a63cbd07314a10ddf7622513fee52" }
+
 [mad_chaser_package]
 uid = "uid://1hr6bjbktycde"
 template = "file"
@@ -804,6 +918,10 @@ type = "package"
 at = [{ stage = 0, file = 104400 }]
 chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a207608986d6ac5c3c98dc5e2bfacce652128" }
 
+[mad_chaser_package.from.EUR]
+at = [{ stage = 0, file = 104400 }]
+chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a207608986d6ac5c3c98dc5e2bfacce652128" }
+
 [mad_chaser_sounds_1]
 uid = "uid://2c70y2qq42do"
 template = "file"
@@ -812,6 +930,9 @@ slots = [
 ]
 
 [mad_chaser_sounds_1.from.USA]
+at = [{ stage = 0, file = 104401 }]
+
+[mad_chaser_sounds_1.from.EUR]
 at = [{ stage = 0, file = 104401 }]
 
 [mad_chaser_sounds_2]
@@ -824,6 +945,9 @@ slots = [
 [mad_chaser_sounds_2.from.USA]
 at = [{ stage = 0, file = 104402 }]
 
+[mad_chaser_sounds_2.from.EUR]
+at = [{ stage = 0, file = 104402 }]
+
 [mad_chaser_sounds_3]
 uid = "uid://16k4p5zlojt0z"
 template = "file"
@@ -832,6 +956,9 @@ slots = [
 ]
 
 [mad_chaser_sounds_3.from.USA]
+at = [{ stage = 0, file = 104403 }]
+
+[mad_chaser_sounds_3.from.EUR]
 at = [{ stage = 0, file = 104403 }]
 
 [actor_104500]
@@ -859,6 +986,10 @@ name = "actor_104500"
 type = "package"
 
 [actor_104500.from.USA]
+at = [{ stage = 0, file = 104500 }]
+chunks = { tentacle_palette = "7665c6a4bd5cdc50daff0ad90f6bf9bfd339f3e0", tentacle_image = "fcb78eb48dff096162870899f2d07fc1ab238759" }
+
+[actor_104500.from.EUR]
 at = [{ stage = 0, file = 104500 }]
 chunks = { tentacle_palette = "7665c6a4bd5cdc50daff0ad90f6bf9bfd339f3e0", tentacle_image = "fcb78eb48dff096162870899f2d07fc1ab238759" }
 
@@ -894,6 +1025,10 @@ type = "package"
 at = [{ stage = 0, file = 104600 }]
 chunks = { palette = "77e262d392f75995eb0ee5021a47ca414bb75e7a", image = "3e5fc257cc4abdafdc758065e284ddde3d107754" }
 
+[akropolis_forked_road_sucklerceph_and_skull_stalker.from.EUR]
+at = [{ stage = 0, file = 104600 }]
+chunks = { palette = "77e262d392f75995eb0ee5021a47ca414bb75e7a", image = "3e5fc257cc4abdafdc758065e284ddde3d107754" }
+
 [brute_and_mossback_recolor_package]
 uid = "uid://hc2e2o2ui16l"
 template = "file"
@@ -926,6 +1061,10 @@ type = "package"
 at = [{ stage = 0, file = 104900 }]
 chunks = { recolor_image = "fb5fd0b04c67cd310335286dbaf81fe307859c4b", recolor_palette = "3bcd3a6d7e8ab6d8825cd29821118dd3e1798863" }
 
+[brute_and_mossback_recolor_package.from.EUR]
+at = [{ stage = 0, file = 104900 }]
+chunks = { recolor_image = "fb5fd0b04c67cd310335286dbaf81fe307859c4b", recolor_palette = "3bcd3a6d7e8ab6d8825cd29821118dd3e1798863" }
+
 [puppet_stinger_package]
 uid = "uid://1nq9j4vff1zov"
 template = "file"
@@ -955,6 +1094,10 @@ name = "package"
 type = "package"
 
 [puppet_stinger_package.from.USA]
+at = [{ stage = 0, file = 105100 }]
+chunks = { palette = "08d4b12e9582ba84d25a8c07cfbdd88870828a8c", image = "1caf054fb2971fea6f9f896a6b667a2654c8d722" }
+
+[puppet_stinger_package.from.EUR]
 at = [{ stage = 0, file = 105100 }]
 chunks = { palette = "08d4b12e9582ba84d25a8c07cfbdd88870828a8c", image = "1caf054fb2971fea6f9f896a6b667a2654c8d722" }
 
@@ -993,6 +1136,10 @@ type = "package"
 at = [{ stage = 0, file = 105300 }]
 chunks = { palette = "efb054951ed9d6cc0996dd4a1528409e3483b05f", palette_2 = "eb4140a35a586a30e10ab6972f4fc5949b0a0c38", image = "65aeac84469435ca2bd53a6e0d3c82c50a627d6b" }
 
+[neo_ark_power_plant_2_beta_generator.from.EUR]
+at = [{ stage = 0, file = 105300 }]
+chunks = { palette = "efb054951ed9d6cc0996dd4a1528409e3483b05f", palette_2 = "eb4140a35a586a30e10ab6972f4fc5949b0a0c38", image = "65aeac84469435ca2bd53a6e0d3c82c50a627d6b" }
+
 [neo_ark_power_plant_1_proto_generator]
 uid = "uid://12q2l014nt67e"
 template = "file"
@@ -1028,6 +1175,10 @@ type = "package"
 at = [{ stage = 0, file = 105400 }]
 chunks = { palette = "02ea6b8e02f6b92c3673aec33f447a1ae0150b47", palette_2 = "35dbf000e5591e763f254119bae6bc938618719f", image = "0c5b898d1b74253b0d9e663cfe1f2d83ecb9765c" }
 
+[neo_ark_power_plant_1_proto_generator.from.EUR]
+at = [{ stage = 0, file = 105400 }]
+chunks = { palette = "02ea6b8e02f6b92c3673aec33f447a1ae0150b47", palette_2 = "35dbf000e5591e763f254119bae6bc938618719f", image = "0c5b898d1b74253b0d9e663cfe1f2d83ecb9765c" }
+
 [caterpillar_package]
 uid = "uid://5ovaiopwykml"
 template = "file"
@@ -1057,6 +1208,10 @@ name = "package"
 type = "package"
 
 [caterpillar_package.from.USA]
+at = [{ stage = 0, file = 105500 }]
+chunks = { palette = "e72c1cf19726fb72865a1959f75e4129637426fe", image = "6d3b8dcd002dddf9537fb7a22f5c64511a6a5aad" }
+
+[caterpillar_package.from.EUR]
 at = [{ stage = 0, file = 105500 }]
 chunks = { palette = "e72c1cf19726fb72865a1959f75e4129637426fe", image = "6d3b8dcd002dddf9537fb7a22f5c64511a6a5aad" }
 
@@ -1096,6 +1251,10 @@ type = "package"
 at = [{ stage = 0, file = 105600 }]
 chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", image = "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a" }
 
+[pawn_golem_grenade_launcher_package.from.EUR]
+at = [{ stage = 0, file = 105600 }]
+chunks = { palette = "cc227a9fda0cadf16345e38159daf7fcf87fe34d", palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", image = "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a" }
+
 [pawn_golem_grenade_launcher_sounds_1]
 uid = "uid://1fnbdb9zinetd"
 template = "file"
@@ -1104,6 +1263,9 @@ slots = [
 ]
 
 [pawn_golem_grenade_launcher_sounds_1.from.USA]
+at = [{ stage = 0, file = 105601 }]
+
+[pawn_golem_grenade_launcher_sounds_1.from.EUR]
 at = [{ stage = 0, file = 105601 }]
 
 [pawn_golem_grenade_launcher_sounds_2]
@@ -1116,6 +1278,9 @@ slots = [
 [pawn_golem_grenade_launcher_sounds_2.from.USA]
 at = [{ stage = 0, file = 105602 }]
 
+[pawn_golem_grenade_launcher_sounds_2.from.EUR]
+at = [{ stage = 0, file = 105602 }]
+
 [pawn_golem_grenade_launcher_sounds_3]
 uid = "uid://wbeg3yw0uuf"
 template = "file"
@@ -1126,6 +1291,9 @@ slots = [
 [pawn_golem_grenade_launcher_sounds_3.from.USA]
 at = [{ stage = 0, file = 105603 }]
 
+[pawn_golem_grenade_launcher_sounds_3.from.EUR]
+at = [{ stage = 0, file = 105603 }]
+
 [pawn_golem_grenade_launcher_sounds_4]
 uid = "uid://cbvrsvzts9dx"
 template = "file"
@@ -1134,6 +1302,9 @@ slots = [
 ]
 
 [pawn_golem_grenade_launcher_sounds_4.from.USA]
+at = [{ stage = 0, file = 105604 }]
+
+[pawn_golem_grenade_launcher_sounds_4.from.EUR]
 at = [{ stage = 0, file = 105604 }]
 
 [rook_golem_grenade_launcher_package]
@@ -1172,6 +1343,10 @@ type = "package"
 at = [{ stage = 0, file = 105700 }]
 chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "ded0a140f19a63360285cc120672783458b2a5fb", image = "c11006938812c87bbfaaee1a746701dbc129b15a" }
 
+[rook_golem_grenade_launcher_package.from.EUR]
+at = [{ stage = 0, file = 105700 }]
+chunks = { palette_2 = "e686ea27e93433b96e36c9b6f81986045bf1c4a5", palette = "ded0a140f19a63360285cc120672783458b2a5fb", image = "c11006938812c87bbfaaee1a746701dbc129b15a" }
+
 [rook_golem_grenade_launcher_sounds_1]
 uid = "uid://gx8feo0r31z3"
 template = "file"
@@ -1180,6 +1355,9 @@ slots = [
 ]
 
 [rook_golem_grenade_launcher_sounds_1.from.USA]
+at = [{ stage = 0, file = 105701 }]
+
+[rook_golem_grenade_launcher_sounds_1.from.EUR]
 at = [{ stage = 0, file = 105701 }]
 
 [rook_golem_grenade_launcher_sounds_2]
@@ -1192,6 +1370,9 @@ slots = [
 [rook_golem_grenade_launcher_sounds_2.from.USA]
 at = [{ stage = 0, file = 105702 }]
 
+[rook_golem_grenade_launcher_sounds_2.from.EUR]
+at = [{ stage = 0, file = 105702 }]
+
 [rook_golem_grenade_launcher_sounds_3]
 uid = "uid://dojv76jx6sek"
 template = "file"
@@ -1202,6 +1383,9 @@ slots = [
 [rook_golem_grenade_launcher_sounds_3.from.USA]
 at = [{ stage = 0, file = 105703 }]
 
+[rook_golem_grenade_launcher_sounds_3.from.EUR]
+at = [{ stage = 0, file = 105703 }]
+
 [rook_golem_grenade_launcher_sounds_4]
 uid = "uid://4o73eidd96ay"
 template = "file"
@@ -1210,6 +1394,9 @@ slots = [
 ]
 
 [rook_golem_grenade_launcher_sounds_4.from.USA]
+at = [{ stage = 0, file = 105704 }]
+
+[rook_golem_grenade_launcher_sounds_4.from.EUR]
 at = [{ stage = 0, file = 105704 }]
 
 [sucklerceph_and_slouch_package]
@@ -1241,6 +1428,10 @@ name = "package"
 type = "package"
 
 [sucklerceph_and_slouch_package.from.USA]
+at = [{ stage = 0, file = 107000 }]
+chunks = { palette = "50b8eff0cc658a7a33a2745cbc6f2c0adb45d208", image = "3c0e4847f13b41d027b6748c84ba916b5dd6b3ac" }
+
+[sucklerceph_and_slouch_package.from.EUR]
 at = [{ stage = 0, file = 107000 }]
 chunks = { palette = "50b8eff0cc658a7a33a2745cbc6f2c0adb45d208", image = "3c0e4847f13b41d027b6748c84ba916b5dd6b3ac" }
 
@@ -1276,6 +1467,10 @@ type = "package"
 at = [{ stage = 0, file = 107200 }]
 chunks = { palette = "e38155b119b7aad70d96339be2f981f2019ed2df", image = "be60a73f4f6afa512d41164b0fad6b96bcb73fbb" }
 
+[skull_stalker_and_creeping_stranger_package.from.EUR]
+at = [{ stage = 0, file = 107200 }]
+chunks = { palette = "e38155b119b7aad70d96339be2f981f2019ed2df", image = "be60a73f4f6afa512d41164b0fad6b96bcb73fbb" }
+
 [desert_chaser_garage_sounds]
 uid = "uid://11vmcor2tsdfz"
 template = "file"
@@ -1305,6 +1500,10 @@ name = "actor_107500"
 type = "package"
 
 [desert_chaser_garage_sounds.from.USA]
+at = [{ stage = 0, file = 107500 }]
+chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
+
+[desert_chaser_garage_sounds.from.EUR]
 at = [{ stage = 0, file = 107500 }]
 chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
 
@@ -1379,6 +1578,10 @@ type = "package"
 at = [{ stage = 0, file = 107600 }]
 chunks = { image = "374e63c641d1506b1136ce6be8f2e52556914427", palette = "4ffa84859521d609032e5227932ce51a9a07d976", palette_2 = "c7d9d816c2602ab8003edb2c3043973710a120ca", palette_3 = "8a35f7a3bdbb95c2395b86c34c7c8671f2fc4ab3", palette_4 = "c73a6ba8fcffb82cfcead13aa7ce862e11a2b16d", image_2 = "d7b31250d541a9806e84fd36da1c6644a9b0a365" }
 
+[mist_shooting_gallery_targets.from.EUR]
+at = [{ stage = 0, file = 107600 }]
+chunks = { image = "374e63c641d1506b1136ce6be8f2e52556914427", palette = "4ffa84859521d609032e5227932ce51a9a07d976", palette_2 = "c7d9d816c2602ab8003edb2c3043973710a120ca", palette_3 = "8a35f7a3bdbb95c2395b86c34c7c8671f2fc4ab3", palette_4 = "c73a6ba8fcffb82cfcead13aa7ce862e11a2b16d", image_2 = "d7b31250d541a9806e84fd36da1c6644a9b0a365" }
+
 [actor_109300]
 uid = "uid://p7m4c4fd1e7i"
 template = "file"
@@ -1407,6 +1610,10 @@ type = "package"
 at = [{ stage = 0, file = 109300 }]
 chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
 
+[actor_109300.from.EUR]
+at = [{ stage = 0, file = 109300 }]
+chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
+
 [rupert_bloodied_palette]
 uid = "uid://1xb5fzmej1f4z"
 template = "file"
@@ -1428,6 +1635,10 @@ pages = [
 page_slots = 6
 
 [rupert_bloodied_palette.from.USA]
+at = [{ stage = 0, file = 109400 }]
+chunks = { bloodied_palette = "f204981b9e88c3f37270d0f3c97480bada0e97a4", bloodied_image = "fce42cdf1e6d9352880eedc51205251b10684fb1" }
+
+[rupert_bloodied_palette.from.EUR]
 at = [{ stage = 0, file = 109400 }]
 chunks = { bloodied_palette = "f204981b9e88c3f37270d0f3c97480bada0e97a4", bloodied_image = "fce42cdf1e6d9352880eedc51205251b10684fb1" }
 
@@ -1473,6 +1684,10 @@ type = "package"
 at = [{ stage = 0, file = 110300 }]
 chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e", submachine_gun_palette = "99c20dbca8efd89ba35e47156d6a26f1b6485372", submachine_gun_image = "444f69024feff08db58a48916ca62819d993b4e1" }
 
+[akropolis_east_elevator_hall_swat_member.from.EUR]
+at = [{ stage = 0, file = 110300 }]
+chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e", submachine_gun_palette = "99c20dbca8efd89ba35e47156d6a26f1b6485372", submachine_gun_image = "444f69024feff08db58a48916ca62819d993b4e1" }
+
 [akropolis_cafeteria_boss_stranger]
 uid = "uid://113fyg67pjt9"
 template = "file"
@@ -1502,6 +1717,10 @@ name = "package"
 type = "package"
 
 [akropolis_cafeteria_boss_stranger.from.USA]
+at = [{ stage = 0, file = 110600 }]
+chunks = { image = "20fda9324b6ebb7d72e4c01dc0e375545dfab8ec", palette = "1b687438c0cbb5dac66a3bc06049cb81fbf152b8" }
+
+[akropolis_cafeteria_boss_stranger.from.EUR]
 at = [{ stage = 0, file = 110600 }]
 chunks = { image = "20fda9324b6ebb7d72e4c01dc0e375545dfab8ec", palette = "1b687438c0cbb5dac66a3bc06049cb81fbf152b8" }
 
@@ -1540,6 +1759,10 @@ type = "package"
 at = [{ stage = 0, file = 110700 }]
 chunks = { palette_akropolis = "cf9959f2952722bf78513b1393525cbec4f57018", palette_akropolis_2 = "2af25ad0cce4b9b82f813b5f13fd6f8067607e0b", image_akropolis = "cac88a65c67965fbf6c3b79113936088db6d3d53" }
 
+[akropolis_sanctuary_no_9.from.EUR]
+at = [{ stage = 0, file = 110700 }]
+chunks = { palette_akropolis = "cf9959f2952722bf78513b1393525cbec4f57018", palette_akropolis_2 = "2af25ad0cce4b9b82f813b5f13fd6f8067607e0b", image_akropolis = "cac88a65c67965fbf6c3b79113936088db6d3d53" }
+
 [akropolis_roof_garden_swat_member]
 uid = "uid://15umxtjjdnnb0"
 template = "file"
@@ -1565,6 +1788,10 @@ name = "package"
 type = "package"
 
 [akropolis_roof_garden_swat_member.from.USA]
+at = [{ stage = 0, file = 110800 }]
+chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e" }
+
+[akropolis_roof_garden_swat_member.from.EUR]
 at = [{ stage = 0, file = 110800 }]
 chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e" }
 
@@ -1600,6 +1827,10 @@ type = "package"
 at = [{ stage = 0, file = 111800 }]
 chunks = { image_2 = "d9cac39e687af20cfbb9686c10cad9748590f93e", palette_2 = "934a7fa2c1238cfcc9d1de043489517da1b5342e" }
 
+[akropolis_square_grinning_stranger.from.EUR]
+at = [{ stage = 0, file = 111800 }]
+chunks = { image_2 = "d9cac39e687af20cfbb9686c10cad9748590f93e", palette_2 = "934a7fa2c1238cfcc9d1de043489517da1b5342e" }
+
 [mist_r18_rupert]
 uid = "uid://z60gcehq3usk"
 template = "file"
@@ -1628,6 +1859,10 @@ type = "package"
 at = [{ stage = 0, file = 113000 }]
 chunks = { hurt_palette = "eb1fa3378993d003b53559608e6c73ebaac55445", hurt_image = "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0" }
 
+[mist_r18_rupert.from.EUR]
+at = [{ stage = 0, file = 113000 }]
+chunks = { hurt_palette = "eb1fa3378993d003b53559608e6c73ebaac55445", hurt_image = "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0" }
+
 [mist_parking_pierce]
 uid = "uid://zwqhx70ihk42"
 template = "file"
@@ -1653,6 +1888,10 @@ name = "package"
 type = "package"
 
 [mist_parking_pierce.from.USA]
+at = [{ stage = 0, file = 113100 }]
+chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
+
+[mist_parking_pierce.from.EUR]
 at = [{ stage = 0, file = 113100 }]
 chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
 
@@ -1698,6 +1937,10 @@ type = "package"
 at = [{ stage = 0, file = 120300 }]
 chunks = { shotgun_palette = "007900c7447f49e1e37889eebfad46fc875ab172", shotgun_image = "999260d17d71c6ed7fe81cce6121e5bff9638981", palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
 
+[dryfield_garage_gary.from.EUR]
+at = [{ stage = 0, file = 120300 }]
+chunks = { shotgun_palette = "007900c7447f49e1e37889eebfad46fc875ab172", shotgun_image = "999260d17d71c6ed7fe81cce6121e5bff9638981", palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
+
 [dryfield_water_tank_kyle]
 uid = "uid://t50tv3685n0n"
 template = "file"
@@ -1723,6 +1966,10 @@ name = "package"
 type = "package"
 
 [dryfield_water_tank_kyle.from.USA]
+at = [{ stage = 0, file = 120400 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }
+
+[dryfield_water_tank_kyle.from.EUR]
 at = [{ stage = 0, file = 120400 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }
 
@@ -1754,6 +2001,10 @@ type = "package"
 at = [{ stage = 0, file = 120500 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }
 
+[dryfield_motel_room_6_kyle.from.EUR]
+at = [{ stage = 0, file = 120500 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }
+
 [dryfield_r08_eve]
 uid = "uid://10znfwad7mm3f"
 template = "file"
@@ -1779,6 +2030,10 @@ name = "package"
 type = "package"
 
 [dryfield_r08_eve.from.USA]
+at = [{ stage = 0, file = 121300 }]
+chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
+
+[dryfield_r08_eve.from.EUR]
 at = [{ stage = 0, file = 121300 }]
 chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
 
@@ -1814,6 +2069,10 @@ type = "package"
 at = [{ stage = 0, file = 123000 }]
 chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
 
+[dryfield_main_street_desert_chaser.from.EUR]
+at = [{ stage = 0, file = 123000 }]
+chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
+
 [dryfield_motel_room_1_bone_suckler]
 uid = "uid://1ewaj0h5owbzm"
 template = "file"
@@ -1839,6 +2098,10 @@ name = "package"
 type = "package"
 
 [dryfield_motel_room_1_bone_suckler.from.USA]
+at = [{ stage = 0, file = 123200 }]
+chunks = { image = "a266eb18ebc85eeb477fda2106711c6e27c31462", palette = "1ca0bfb1705227271c3b7c37670f238de109a363" }
+
+[dryfield_motel_room_1_bone_suckler.from.EUR]
 at = [{ stage = 0, file = 123200 }]
 chunks = { image = "a266eb18ebc85eeb477fda2106711c6e27c31462", palette = "1ca0bfb1705227271c3b7c37670f238de109a363" }
 
@@ -1874,6 +2137,10 @@ type = "package"
 at = [{ stage = 0, file = 123400 }]
 chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
 
+[dryfield_breezeway_desert_chaser.from.EUR]
+at = [{ stage = 0, file = 123400 }]
+chunks = { image = "b68f73fdef812a2f3268505f93b689901fff2044", palette = "b18de4cdfab1a7a701688fe7735a7471e2e64e3b" }
+
 [actor_135000]
 uid = "uid://1lozlvc1l7mla"
 template = "file"
@@ -1899,6 +2166,10 @@ name = "actor_135000"
 type = "package"
 
 [actor_135000.from.USA]
+at = [{ stage = 0, file = 135000 }]
+chunks = { tentacle_palette = "7665c6a4bd5cdc50daff0ad90f6bf9bfd339f3e0", tentacle_image = "fcb78eb48dff096162870899f2d07fc1ab238759" }
+
+[actor_135000.from.EUR]
 at = [{ stage = 0, file = 135000 }]
 chunks = { tentacle_palette = "7665c6a4bd5cdc50daff0ad90f6bf9bfd339f3e0", tentacle_image = "fcb78eb48dff096162870899f2d07fc1ab238759" }
 
@@ -1930,6 +2201,10 @@ type = "package"
 at = [{ stage = 0, file = 135400 }]
 chunks = { palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
 
+[dryfield_night_garage_gary_and_flint.from.EUR]
+at = [{ stage = 0, file = 135400 }]
+chunks = { palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
+
 [dryfield_night_saloon_g_r_kyle]
 uid = "uid://1a77ky70dafce"
 template = "file"
@@ -1955,6 +2230,10 @@ name = "package"
 type = "package"
 
 [dryfield_night_saloon_g_r_kyle.from.USA]
+at = [{ stage = 0, file = 135600 }]
+chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }
+
+[dryfield_night_saloon_g_r_kyle.from.EUR]
 at = [{ stage = 0, file = 135600 }]
 chunks = { palette = "25489aff45973f27912a996c612e3a8141fa1813", image = "900c89c06c8b71189bdedb0a2de780542c48406f" }
 
@@ -2000,6 +2279,10 @@ type = "package"
 at = [{ stage = 0, file = 136100 }]
 chunks = { shotgun_palette = "007900c7447f49e1e37889eebfad46fc875ab172", shotgun_image = "999260d17d71c6ed7fe81cce6121e5bff9638981", palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
 
+[dryfield_night_main_street_gary.from.EUR]
+at = [{ stage = 0, file = 136100 }]
+chunks = { shotgun_palette = "007900c7447f49e1e37889eebfad46fc875ab172", shotgun_image = "999260d17d71c6ed7fe81cce6121e5bff9638981", palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
+
 [dryfield_night_garage_flint_scene]
 uid = "uid://xrkmgkwe9wg4"
 template = "file"
@@ -2016,6 +2299,10 @@ name = "package"
 type = "package"
 
 [dryfield_night_garage_flint_scene.from.USA]
+at = [{ stage = 0, file = 136300 }]
+chunks = { image = "9cc7cdc6d309230029b9fe810129adcb26db5fcd" }
+
+[dryfield_night_garage_flint_scene.from.EUR]
 at = [{ stage = 0, file = 136300 }]
 chunks = { image = "9cc7cdc6d309230029b9fe810129adcb26db5fcd" }
 
@@ -2043,6 +2330,10 @@ name = "actor_140400"
 type = "package"
 
 [actor_140400.from.USA]
+at = [{ stage = 0, file = 140400 }]
+chunks = { image = "c4b9a0832268d5d549734a007616788254db3ec3", palette = "04f0cf8b58bd23eb56d75bca218899d54ea75425" }
+
+[actor_140400.from.EUR]
 at = [{ stage = 0, file = 140400 }]
 chunks = { image = "c4b9a0832268d5d549734a007616788254db3ec3", palette = "04f0cf8b58bd23eb56d75bca218899d54ea75425" }
 
@@ -2090,6 +2381,10 @@ type = "package"
 at = [{ stage = 0, file = 141000 }]
 chunks = { palette_2 = "96ba991ed5b40988eb1e12cf93ccc981e7aabff5", image_2 = "4c3e136a5e9504fffe7433b781360fcd6261ef06", flame_image = "27b83d351ef64a0c8bed0b9072f652ccb02b461f", flame_palette = "46dcf23651a7da268f89da4d5e1a7cb9c339adfc" }
 
+[shelter_b1_pod_access_tunnel_eve.from.EUR]
+at = [{ stage = 0, file = 141000 }]
+chunks = { palette_2 = "96ba991ed5b40988eb1e12cf93ccc981e7aabff5", image_2 = "4c3e136a5e9504fffe7433b781360fcd6261ef06", flame_image = "27b83d351ef64a0c8bed0b9072f652ccb02b461f", flame_palette = "46dcf23651a7da268f89da4d5e1a7cb9c339adfc" }
+
 [shelter_b3_incinerator_control_room_arrival_scene]
 uid = "uid://1kwbjqpuxidmx"
 template = "file"
@@ -2100,6 +2395,9 @@ slots = [
 [shelter_b3_incinerator_control_room_arrival_scene.from.USA]
 at = [{ stage = 0, file = 142600 }]
 
+[shelter_b3_incinerator_control_room_arrival_scene.from.EUR]
+at = [{ stage = 0, file = 142600 }]
+
 [shelter_b2_elevator_elevator_scene]
 uid = "uid://17dmv44lg8kz8"
 template = "file"
@@ -2108,6 +2406,9 @@ slots = [
 ]
 
 [shelter_b2_elevator_elevator_scene.from.USA]
+at = [{ stage = 0, file = 142900 }]
+
+[shelter_b2_elevator_elevator_scene.from.EUR]
 at = [{ stage = 0, file = 142900 }]
 
 [shelter_b2_laboratory_console]
@@ -2137,6 +2438,10 @@ type = "package"
 at = [{ stage = 0, file = 143000 }]
 chunks = { console_palette = "7aca82df89a72821b15e0d1e76366ab8a7fd004f" }
 
+[shelter_b2_laboratory_console.from.EUR]
+at = [{ stage = 0, file = 143000 }]
+chunks = { console_palette = "7aca82df89a72821b15e0d1e76366ab8a7fd004f" }
+
 [shelter_r47_companion_entry_scene]
 uid = "uid://1tevtxq1nupbo"
 template = "file"
@@ -2145,6 +2450,9 @@ slots = [
 ]
 
 [shelter_r47_companion_entry_scene.from.USA]
+at = [{ stage = 0, file = 143400 }]
+
+[shelter_r47_companion_entry_scene.from.EUR]
 at = [{ stage = 0, file = 143400 }]
 
 [president_office_scenes]
@@ -2175,6 +2483,10 @@ type = "package"
 at = [{ stage = 0, file = 143900 }]
 chunks = { palette = "8039a156dff3b552a6d730faee32c3771a529ae7", image = "a688ff49a0fda56833c901b642db9b495d559020" }
 
+[president_office_scenes.from.EUR]
+at = [{ stage = 0, file = 143900 }]
+chunks = { palette = "8039a156dff3b552a6d730faee32c3771a529ae7", image = "a688ff49a0fda56833c901b642db9b495d559020" }
+
 [dryfield_night_water_hole_shelter_departure]
 uid = "uid://88knk0z5we8y"
 template = "file"
@@ -2183,6 +2495,9 @@ slots = [
 ]
 
 [dryfield_night_water_hole_shelter_departure.from.USA]
+at = [{ stage = 0, file = 146000 }]
+
+[dryfield_night_water_hole_shelter_departure.from.EUR]
 at = [{ stage = 0, file = 146000 }]
 
 [dryfield_night_water_tank_pierce]
@@ -2210,6 +2525,10 @@ name = "package"
 type = "package"
 
 [dryfield_night_water_tank_pierce.from.USA]
+at = [{ stage = 0, file = 146300 }]
+chunks = { palette_2 = "d43eb50d94fd2d8d9969bdc4c410984ccd9d0238", image_2 = "c4175c67a267f8387d0f9a6fd96a7ec72878e12b" }
+
+[dryfield_night_water_tank_pierce.from.EUR]
 at = [{ stage = 0, file = 146300 }]
 chunks = { palette_2 = "d43eb50d94fd2d8d9969bdc4c410984ccd9d0238", image_2 = "c4175c67a267f8387d0f9a6fd96a7ec72878e12b" }
 
@@ -2248,6 +2567,10 @@ type = "package"
 at = [{ stage = 0, file = 150400 }]
 chunks = { palette_dryfield = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea", palette_dryfield_2 = "e4e29496800573db7db990426c4145198368e756", image_dryfield = "1e8ccf9275d5dae9c7bbab09c60a6b06acee1e98" }
 
+[shelter_b1_control_room_no_9.from.EUR]
+at = [{ stage = 0, file = 150400 }]
+chunks = { palette_dryfield = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea", palette_dryfield_2 = "e4e29496800573db7db990426c4145198368e756", image_dryfield = "1e8ccf9275d5dae9c7bbab09c60a6b06acee1e98" }
+
 [neo_ark_garden_eve]
 uid = "uid://98dbnvw1wrsg"
 template = "file"
@@ -2273,6 +2596,10 @@ name = "package"
 type = "package"
 
 [neo_ark_garden_eve.from.USA]
+at = [{ stage = 0, file = 151000 }]
+chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
+
+[neo_ark_garden_eve.from.EUR]
 at = [{ stage = 0, file = 151000 }]
 chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
 
@@ -2304,6 +2631,10 @@ type = "package"
 at = [{ stage = 0, file = 160600 }]
 chunks = { palette = "f610e227cdce58ee8d4bed087353614e2ae370b5", image = "74a07401484a33561b46704550eb442753558ae2" }
 
+[shelter_b1_sterilization_room_soldier.from.EUR]
+at = [{ stage = 0, file = 160600 }]
+chunks = { palette = "f610e227cdce58ee8d4bed087353614e2ae370b5", image = "74a07401484a33561b46704550eb442753558ae2" }
+
 [shelter_b1_golem_freezer_1_pierce]
 uid = "uid://1n2uxc1kurrjd"
 template = "file"
@@ -2332,6 +2663,10 @@ type = "package"
 at = [{ stage = 0, file = 160700 }]
 chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
 
+[shelter_b1_golem_freezer_1_pierce.from.EUR]
+at = [{ stage = 0, file = 160700 }]
+chunks = { image = "dac3100ce5a24613f1805b83c3e6c56c3e88bae8", palette = "efef11c905491164179c00ab6937a586729d3c4e" }
+
 [shelter_b1_pod_service_gantry_kyle]
 uid = "uid://i3hew6i356qy"
 template = "file"
@@ -2340,6 +2675,9 @@ slots = [
 ]
 
 [shelter_b1_pod_service_gantry_kyle.from.USA]
+at = [{ stage = 0, file = 160900 }]
+
+[shelter_b1_pod_service_gantry_kyle.from.EUR]
 at = [{ stage = 0, file = 160900 }]
 
 [soldier_b_shop]
@@ -2381,5 +2719,9 @@ name = "package"
 type = "package"
 
 [soldier_b_shop.from.USA]
+at = [{ stage = 0, file = 161500 }]
+chunks = { palette = "af9896ed481a9cdb5e82a6b082fde34dd46d1db5", image = "dc3bb5578c72c89a656c10e98cc049da68bd7eae", rifle_palette = "48c12f2ec99d6eed559b3050c5c33d71df2cde9c", rifle_image = "4e2200fe11dd9c50fc28fb05451c8fe2cd15c89c" }
+
+[soldier_b_shop.from.EUR]
 at = [{ stage = 0, file = 161500 }]
 chunks = { palette = "af9896ed481a9cdb5e82a6b082fde34dd46d1db5", image = "dc3bb5578c72c89a656c10e98cc049da68bd7eae", rifle_palette = "48c12f2ec99d6eed559b3050c5c33d71df2cde9c", rifle_image = "4e2200fe11dd9c50fc28fb05451c8fe2cd15c89c" }

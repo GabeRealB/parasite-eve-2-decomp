@@ -12,6 +12,13 @@ size = 2232
 address = 2148710232
 sha1 = "ebe98e0e8063075fb211c40eb795805b940cdd37"
 
+[walk.from.EUR]
+at = [{ stage = 0, file = 10312, slot = "package" }]
+offset = 58776
+size = 2232
+address = 2148714600
+sha1 = "3150e507f03b8b118d2ab4f1f9db35d342731941"
+
 [backward_walk]
 uid = "uid://19nip6ec4j8az"
 template = "clip"
@@ -23,6 +30,13 @@ offset = 61008
 size = 1952
 address = 2148712464
 sha1 = "6b5bac8d15e674213ce0c90c7d65e3f71b97acc5"
+
+[backward_walk.from.EUR]
+at = [{ stage = 0, file = 10312, slot = "package" }]
+offset = 61008
+size = 1952
+address = 2148716832
+sha1 = "423aa1efbd1937b443bd7f3e4b2698b47e03aa88"
 
 [run]
 uid = "uid://1wvke1rocik7n"
@@ -36,6 +50,13 @@ size = 2516
 address = 2148714416
 sha1 = "cf7551aa8fb74e11e8f91131fc2df670bdac41a3"
 
+[run.from.EUR]
+at = [{ stage = 0, file = 10312, slot = "package" }]
+offset = 62960
+size = 2516
+address = 2148718784
+sha1 = "d10233355ec430ee15dba389e1580e0dc2d82fda"
+
 [aim_forward]
 uid = "uid://1olweyx96r8n0"
 template = "clip"
@@ -47,6 +68,13 @@ offset = 43548
 size = 2728
 address = 2148695004
 sha1 = "479a3d829c23e1fa4be4fbd0dc2e53f65e7029ea"
+
+[aim_forward.from.EUR]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 43548
+size = 2728
+address = 2148699372
+sha1 = "e31299159b8cdd75a74ad1abb0d634a9472d18d1"
 
 [bank]
 uid = "uid://1r6g09zd1kikf"

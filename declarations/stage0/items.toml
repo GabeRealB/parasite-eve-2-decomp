@@ -10,6 +10,9 @@ slots = [
 [options.from.USA]
 at = [{ stage = 0, file = 20100 }]
 
+[options.from.EUR]
+at = [{ stage = 0, file = 20100 }]
+
 [p08_snail_preview]
 uid = "uid://1ak9itvtgbb9w"
 template = "file"
@@ -33,6 +36,10 @@ name = "text"
 type = "text"
 
 [p08_snail_preview.from.USA]
+at = [{ stage = 0, file = 20101 }]
+chunks = { palette = "2942c1e2bc3ec07114fc630faf04642952c76ff6", image = "4254a5977e0ccb2ee2db90f95a95f02f397d8b18" }
+
+[p08_snail_preview.from.EUR]
 at = [{ stage = 0, file = 20101 }]
 chunks = { palette = "2942c1e2bc3ec07114fc630faf04642952c76ff6", image = "4254a5977e0ccb2ee2db90f95a95f02f397d8b18" }
 
@@ -62,6 +69,10 @@ type = "text"
 at = [{ stage = 0, file = 20102 }]
 chunks = { palette = "d3b6302a3956f9782c62883b94440dbb427f5f76", image = "d00466f4246ae4327dda027740b6fbec588b753c" }
 
+[m93r_preview.from.EUR]
+at = [{ stage = 0, file = 20102 }]
+chunks = { palette = "d3b6302a3956f9782c62883b94440dbb427f5f76", image = "d00466f4246ae4327dda027740b6fbec588b753c" }
+
 [m950_preview]
 uid = "uid://c3vlaezxlug6"
 template = "file"
@@ -85,6 +96,10 @@ name = "text"
 type = "text"
 
 [m950_preview.from.USA]
+at = [{ stage = 0, file = 20103 }]
+chunks = { palette = "d44e0e9508717c1438e111efcdd6524a7ea791a5", image = "587ccc69acd31494b3bd98d326c86deffaebd549" }
+
+[m950_preview.from.EUR]
 at = [{ stage = 0, file = 20103 }]
 chunks = { palette = "d44e0e9508717c1438e111efcdd6524a7ea791a5", image = "587ccc69acd31494b3bd98d326c86deffaebd549" }
 
@@ -114,6 +129,10 @@ type = "text"
 at = [{ stage = 0, file = 20104 }]
 chunks = { palette = "2238f3267cc894f812e840a3db5e1ced4268fb71", image = "cf32411ef1eafa061e92846a4df3211eb2ac265f" }
 
+[p08_preview.from.EUR]
+at = [{ stage = 0, file = 20104 }]
+chunks = { palette = "2238f3267cc894f812e840a3db5e1ced4268fb71", image = "cf32411ef1eafa061e92846a4df3211eb2ac265f" }
+
 [p229_preview]
 uid = "uid://1sl9lhikjf4b5"
 template = "file"
@@ -137,6 +156,10 @@ name = "text"
 type = "text"
 
 [p229_preview.from.USA]
+at = [{ stage = 0, file = 20105 }]
+chunks = { palette = "594c2b8644d63e73edbd8766c071c580f05b3d77", image = "3691f6ab867e2026b8805a2d5ab6fa5bcd8efacc" }
+
+[p229_preview.from.EUR]
 at = [{ stage = 0, file = 20105 }]
 chunks = { palette = "594c2b8644d63e73edbd8766c071c580f05b3d77", image = "3691f6ab867e2026b8805a2d5ab6fa5bcd8efacc" }
 
@@ -166,6 +189,10 @@ type = "text"
 at = [{ stage = 0, file = 20109 }]
 chunks = { palette = "1e9ba489914cc95a57eae2372833b946c45b56a0", image = "6930b73d49c83fa8d4bc5c56fb0c613c0653386c" }
 
+[mongoose_preview.from.EUR]
+at = [{ stage = 0, file = 20109 }]
+chunks = { palette = "1e9ba489914cc95a57eae2372833b946c45b56a0", image = "6930b73d49c83fa8d4bc5c56fb0c613c0653386c" }
+
 [grenade_pistol_preview]
 uid = "uid://1lg9vse4t6gu3"
 template = "file"
@@ -189,6 +216,10 @@ name = "text"
 type = "text"
 
 [grenade_pistol_preview.from.USA]
+at = [{ stage = 0, file = 20111 }]
+chunks = { palette = "e54f877df04ffdb63b389a7db9dce43168cd9325", image = "a0943422f2beb439c01cfb11448e9b346a2fe983" }
+
+[grenade_pistol_preview.from.EUR]
 at = [{ stage = 0, file = 20111 }]
 chunks = { palette = "e54f877df04ffdb63b389a7db9dce43168cd9325", image = "a0943422f2beb439c01cfb11448e9b346a2fe983" }
 
@@ -218,6 +249,10 @@ type = "text"
 at = [{ stage = 0, file = 20112 }]
 chunks = { palette = "2ac0189c966ffaf680a4db4b137fc87f36081973", image = "9a3b9df9e9d62b40355e0aa3081fed16046542f4" }
 
+[mm1_preview.from.EUR]
+at = [{ stage = 0, file = 20112 }]
+chunks = { palette = "2ac0189c966ffaf680a4db4b137fc87f36081973", image = "9a3b9df9e9d62b40355e0aa3081fed16046542f4" }
+
 [pa3_preview]
 uid = "uid://1rbcj2nabifn2"
 template = "file"
@@ -241,6 +276,10 @@ name = "text"
 type = "text"
 
 [pa3_preview.from.USA]
+at = [{ stage = 0, file = 20113 }]
+chunks = { palette = "287c76ab4db7cff666e5de95f98cf5fce3b9df74", image = "f09d3e25efab3fceb5476b256e64c9a719493f0f" }
+
+[pa3_preview.from.EUR]
 at = [{ stage = 0, file = 20113 }]
 chunks = { palette = "287c76ab4db7cff666e5de95f98cf5fce3b9df74", image = "f09d3e25efab3fceb5476b256e64c9a719493f0f" }
 
@@ -270,6 +309,10 @@ type = "text"
 at = [{ stage = 0, file = 20114 }]
 chunks = { palette = "a8b51c4069cf8319ca4b498daf77707abeadeff7", image = "89d8bee67d04c57f54c7ab8009255e8a1581fa35" }
 
+[sp12_preview.from.EUR]
+at = [{ stage = 0, file = 20114 }]
+chunks = { palette = "a8b51c4069cf8319ca4b498daf77707abeadeff7", image = "89d8bee67d04c57f54c7ab8009255e8a1581fa35" }
+
 [as12_preview]
 uid = "uid://xwk5dy0p5swo"
 template = "file"
@@ -293,6 +336,10 @@ name = "text"
 type = "text"
 
 [as12_preview.from.USA]
+at = [{ stage = 0, file = 20115 }]
+chunks = { palette = "3d768c8771ba1fa0675a18b9f178a958925ec498", image = "36ac1c696b964fbd2787710ee56b0f416ba2a891" }
+
+[as12_preview.from.EUR]
 at = [{ stage = 0, file = 20115 }]
 chunks = { palette = "3d768c8771ba1fa0675a18b9f178a958925ec498", image = "36ac1c696b964fbd2787710ee56b0f416ba2a891" }
 
@@ -322,6 +369,10 @@ type = "text"
 at = [{ stage = 0, file = 20116 }]
 chunks = { palette = "f773aba022b2f7bbefaae356b35c83bcb4d16a61", image = "759f115cdab151c987cd532f00dd1ee96b798488" }
 
+[m4a1_preview.from.EUR]
+at = [{ stage = 0, file = 20116 }]
+chunks = { palette = "f773aba022b2f7bbefaae356b35c83bcb4d16a61", image = "759f115cdab151c987cd532f00dd1ee96b798488" }
+
 [m249_preview]
 uid = "uid://1g93prxm9bex5"
 template = "file"
@@ -345,6 +396,10 @@ name = "text"
 type = "text"
 
 [m249_preview.from.USA]
+at = [{ stage = 0, file = 20117 }]
+chunks = { palette = "06722861dd90795bd90e1f183b22a8fb5f365807", image = "a535d06cb3090389ade20ff71535aaeebd1bb0e4" }
+
+[m249_preview.from.EUR]
 at = [{ stage = 0, file = 20117 }]
 chunks = { palette = "06722861dd90795bd90e1f183b22a8fb5f365807", image = "a535d06cb3090389ade20ff71535aaeebd1bb0e4" }
 
@@ -374,6 +429,10 @@ type = "text"
 at = [{ stage = 0, file = 20119 }]
 chunks = { palette = "0f68d093a11a1b55a5b8dd4707c450600cdee528", image = "f88b40f644be9ead0a9a8f4bf06c3eceebbbdde5" }
 
+[tonfa_baton_preview.from.EUR]
+at = [{ stage = 0, file = 20119 }]
+chunks = { palette = "0f68d093a11a1b55a5b8dd4707c450600cdee528", image = "f88b40f644be9ead0a9a8f4bf06c3eceebbbdde5" }
+
 [m4a1_p1_preview]
 uid = "uid://tcwsvuaamz1j"
 template = "file"
@@ -397,6 +456,10 @@ name = "text"
 type = "text"
 
 [m4a1_p1_preview.from.USA]
+at = [{ stage = 0, file = 20120 }]
+chunks = { palette = "142666b83e90cf71eb431361f312d70880135e1b", image = "62ad66e177667ab5075f32e1cc64217e4684701f" }
+
+[m4a1_p1_preview.from.EUR]
 at = [{ stage = 0, file = 20120 }]
 chunks = { palette = "142666b83e90cf71eb431361f312d70880135e1b", image = "62ad66e177667ab5075f32e1cc64217e4684701f" }
 
@@ -426,6 +489,10 @@ type = "text"
 at = [{ stage = 0, file = 20121 }]
 chunks = { palette = "60327d0482d686e29ccf2f5183c5459be533555f", image = "7d0d4d9af6f79b3a2a775b36918434ce06f91d8f" }
 
+[m4a1_p2_preview.from.EUR]
+at = [{ stage = 0, file = 20121 }]
+chunks = { palette = "60327d0482d686e29ccf2f5183c5459be533555f", image = "7d0d4d9af6f79b3a2a775b36918434ce06f91d8f" }
+
 [hypervelocity_preview]
 uid = "uid://161w9ll1hj6h8"
 template = "file"
@@ -449,6 +516,10 @@ name = "text"
 type = "text"
 
 [hypervelocity_preview.from.USA]
+at = [{ stage = 0, file = 20122 }]
+chunks = { palette = "d7cfe727e0e8cb6faf4d9a77d061fd7b8536361e", image = "08a52f4144860acf344335a4ad874600d76c9718" }
+
+[hypervelocity_preview.from.EUR]
 at = [{ stage = 0, file = 20122 }]
 chunks = { palette = "d7cfe727e0e8cb6faf4d9a77d061fd7b8536361e", image = "08a52f4144860acf344335a4ad874600d76c9718" }
 
@@ -478,6 +549,10 @@ type = "text"
 at = [{ stage = 0, file = 20123 }]
 chunks = { palette = "b937b6e77425448b0dd548506f6854c2df907d8b", image = "8f42917669b42272bbd4f95e00f9e1fc9c3acb38" }
 
+[gunblade_preview.from.EUR]
+at = [{ stage = 0, file = 20123 }]
+chunks = { palette = "b937b6e77425448b0dd548506f6854c2df907d8b", image = "8f42917669b42272bbd4f95e00f9e1fc9c3acb38" }
+
 [m4a1_hammer_preview]
 uid = "uid://ylk626wmzaxi"
 template = "file"
@@ -501,6 +576,10 @@ name = "text"
 type = "text"
 
 [m4a1_hammer_preview.from.USA]
+at = [{ stage = 0, file = 20125 }]
+chunks = { palette = "8531057094e1e843da85414a6b9d59d4d9ca82c4", image = "0eea66c0faa0c6e2e98ea2d38f052d9a87c9adad" }
+
+[m4a1_hammer_preview.from.EUR]
 at = [{ stage = 0, file = 20125 }]
 chunks = { palette = "8531057094e1e843da85414a6b9d59d4d9ca82c4", image = "0eea66c0faa0c6e2e98ea2d38f052d9a87c9adad" }
 
@@ -530,6 +609,10 @@ type = "text"
 at = [{ stage = 0, file = 20126 }]
 chunks = { palette = "9527cb2804844854b502ad783ca80e251ffa80f1", image = "41bf75d181c65bd4746695336c3ff551ebc43a0f" }
 
+[m4a1_bayonet_preview.from.EUR]
+at = [{ stage = 0, file = 20126 }]
+chunks = { palette = "9527cb2804844854b502ad783ca80e251ffa80f1", image = "41bf75d181c65bd4746695336c3ff551ebc43a0f" }
+
 [m4a1_grenade_preview]
 uid = "uid://1t8mq7tlub9kc"
 template = "file"
@@ -553,6 +636,10 @@ name = "text"
 type = "text"
 
 [m4a1_grenade_preview.from.USA]
+at = [{ stage = 0, file = 20127 }]
+chunks = { palette = "4bae1be66efcecf5e300dd3ed173017d4d987e59", image = "609e417fabfd8fd2156168a9d02c44e03e7560a5" }
+
+[m4a1_grenade_preview.from.EUR]
 at = [{ stage = 0, file = 20127 }]
 chunks = { palette = "4bae1be66efcecf5e300dd3ed173017d4d987e59", image = "609e417fabfd8fd2156168a9d02c44e03e7560a5" }
 
@@ -582,6 +669,10 @@ type = "text"
 at = [{ stage = 0, file = 20128 }]
 chunks = { palette = "873e749be3a1d53de3e51f6185769749b8b83ea1", image = "b6fb10e9078b6b86f5051052986ce6de2b5301e1" }
 
+[m4a1_pyke_preview.from.EUR]
+at = [{ stage = 0, file = 20128 }]
+chunks = { palette = "873e749be3a1d53de3e51f6185769749b8b83ea1", image = "b6fb10e9078b6b86f5051052986ce6de2b5301e1" }
+
 [m4a1_javelin_preview]
 uid = "uid://1n4c5gsde1213"
 template = "file"
@@ -605,6 +696,10 @@ name = "text"
 type = "text"
 
 [m4a1_javelin_preview.from.USA]
+at = [{ stage = 0, file = 20129 }]
+chunks = { palette = "3cf4daa284d08f35f2fc056fae15164ac6d41068", image = "6aaea3d845225c7a3197b0e5767a500d1938d3d9" }
+
+[m4a1_javelin_preview.from.EUR]
 at = [{ stage = 0, file = 20129 }]
 chunks = { palette = "3cf4daa284d08f35f2fc056fae15164ac6d41068", image = "6aaea3d845225c7a3197b0e5767a500d1938d3d9" }
 
@@ -634,6 +729,10 @@ type = "text"
 at = [{ stage = 0, file = 20130 }]
 chunks = { palette = "e2cdb9c6ada091f04751581346ab7bed5b3c1452", image = "5cba59db5dd6b1c802de243c41b747717178b2c6" }
 
+[mp5a5_preview.from.EUR]
+at = [{ stage = 0, file = 20130 }]
+chunks = { palette = "e2cdb9c6ada091f04751581346ab7bed5b3c1452", image = "5cba59db5dd6b1c802de243c41b747717178b2c6" }
+
 [mp5a5_p1_preview]
 uid = "uid://1lvsf9kvlnez9"
 template = "file"
@@ -660,6 +759,10 @@ type = "text"
 at = [{ stage = 0, file = 20131 }]
 chunks = { palette = "b2e3485ce854db47c17353d4a176595d4b6a5da6", image = "63b0e7c09412cce18f6deb159e091d8be4681e06" }
 
+[mp5a5_p1_preview.from.EUR]
+at = [{ stage = 0, file = 20131 }]
+chunks = { palette = "b2e3485ce854db47c17353d4a176595d4b6a5da6", image = "63b0e7c09412cce18f6deb159e091d8be4681e06" }
+
 [mp5a5_p2_preview]
 uid = "uid://1wikf8hz9j3ti"
 template = "file"
@@ -683,6 +786,10 @@ name = "text"
 type = "text"
 
 [mp5a5_p2_preview.from.USA]
+at = [{ stage = 0, file = 20132 }]
+chunks = { palette = "d9d20fea3f0d2ba4883f6294e1d27d5526e29598", image = "1de61a16f9d3e66a8486cfb372e383ab9455dff8" }
+
+[mp5a5_p2_preview.from.EUR]
 at = [{ stage = 0, file = 20132 }]
 chunks = { palette = "d9d20fea3f0d2ba4883f6294e1d27d5526e29598", image = "1de61a16f9d3e66a8486cfb372e383ab9455dff8" }
 
@@ -715,6 +822,10 @@ asset = { uid = "uid://1mllo0hmx74ep", path = "res://disc_swap/disc_1/background
 at = [{ stage = 0, file = 20160 }]
 chunks = { palette = "1253ac0ed427ecd898c3e8ba265874d95883de09", image = "6edd3c662675e79012f33dea6c1a385a897e2a5f" }
 
+[disc_swap_1.from.EUR]
+at = [{ stage = 0, file = 20160 }]
+chunks = { palette = "1253ac0ed427ecd898c3e8ba265874d95883de09", image = "6edd3c662675e79012f33dea6c1a385a897e2a5f" }
+
 [disc_swap_2]
 uid = "uid://1pil9h3bbmslc"
 template = "file"
@@ -741,6 +852,10 @@ type = "bs"
 asset = { uid = "uid://bjph9jnslbgu", path = "res://disc_swap/disc_2/background.node" }
 
 [disc_swap_2.from.USA]
+at = [{ stage = 0, file = 20161 }]
+chunks = { palette = "1253ac0ed427ecd898c3e8ba265874d95883de09", image = "6edd3c662675e79012f33dea6c1a385a897e2a5f" }
+
+[disc_swap_2.from.EUR]
 at = [{ stage = 0, file = 20161 }]
 chunks = { palette = "1253ac0ed427ecd898c3e8ba265874d95883de09", image = "6edd3c662675e79012f33dea6c1a385a897e2a5f" }
 
@@ -832,6 +947,10 @@ palettes = [
 at = [{ stage = 0, file = 20162 }]
 chunks = { font_image = "be2e0e8b8369be9d2a7889b0335a6ee579de630c", dialogue_palette = "b770378551c0f0deda9e65172e056a817539c14f", sheet_image = "6891a8c4f5a876ab13c617bfa06851b3cdbbda4c", sheet_palette = "17188003fce13afabb38fed0a1d85b1e82622596" }
 
+[ui.from.EUR]
+at = [{ stage = 0, file = 20162 }]
+chunks = { font_image = "be2e0e8b8369be9d2a7889b0335a6ee579de630c", dialogue_palette = "b770378551c0f0deda9e65172e056a817539c14f", sheet_image = "6891a8c4f5a876ab13c617bfa06851b3cdbbda4c", sheet_palette = "17188003fce13afabb38fed0a1d85b1e82622596" }
+
 [stub_20200]
 uid = "uid://n04zmney194w"
 template = "file"
@@ -840,6 +959,9 @@ slots = [
 ]
 
 [stub_20200.from.USA]
+at = [{ stage = 0, file = 20200 }]
+
+[stub_20200.from.EUR]
 at = [{ stage = 0, file = 20200 }]
 
 [parthenon_key]
@@ -865,6 +987,10 @@ name = "text"
 type = "text"
 
 [parthenon_key.from.USA]
+at = [{ stage = 0, file = 20201 }]
+chunks = { palette = "4a36b3eabdc584f0d63095bd05a6805d16e15ed8", image = "f4b00f06e5225d13f2e1dadab61f386818ac0956" }
+
+[parthenon_key.from.EUR]
 at = [{ stage = 0, file = 20201 }]
 chunks = { palette = "4a36b3eabdc584f0d63095bd05a6805d16e15ed8", image = "f4b00f06e5225d13f2e1dadab61f386818ac0956" }
 
@@ -894,6 +1020,10 @@ type = "text"
 at = [{ stage = 0, file = 20202 }]
 chunks = { palette = "6592f23abb8d6b3d5969b6b6bf715d3b249e00cb", image = "848c4c659c5655515a9ec1f1867b80356c10b937" }
 
+[micro_device.from.EUR]
+at = [{ stage = 0, file = 20202 }]
+chunks = { palette = "6592f23abb8d6b3d5969b6b6bf715d3b249e00cb", image = "848c4c659c5655515a9ec1f1867b80356c10b937" }
+
 [red_key]
 uid = "uid://116dwncp5akpw"
 template = "file"
@@ -917,6 +1047,10 @@ name = "text"
 type = "text"
 
 [red_key.from.USA]
+at = [{ stage = 0, file = 20203 }]
+chunks = { palette = "778590acf89f3c15e84276f35461c03d57019b4d", image = "eba65da9a443b0b6b8d53d102d032c65940c2bfe" }
+
+[red_key.from.EUR]
 at = [{ stage = 0, file = 20203 }]
 chunks = { palette = "778590acf89f3c15e84276f35461c03d57019b4d", image = "eba65da9a443b0b6b8d53d102d032c65940c2bfe" }
 
@@ -946,6 +1080,10 @@ type = "text"
 at = [{ stage = 0, file = 20204 }]
 chunks = { palette = "8966eee4a92298c50738f77257a8413e01906844", image = "6ba6b88c210296dcc503a6e1c6b8e4dfc0c5dc9c" }
 
+[blue_key.from.EUR]
+at = [{ stage = 0, file = 20204 }]
+chunks = { palette = "8966eee4a92298c50738f77257a8413e01906844", image = "6ba6b88c210296dcc503a6e1c6b8e4dfc0c5dc9c" }
+
 [armory_cardkey]
 uid = "uid://12qc3sh36wiw6"
 template = "file"
@@ -969,6 +1107,10 @@ name = "text"
 type = "text"
 
 [armory_cardkey.from.USA]
+at = [{ stage = 0, file = 20205 }]
+chunks = { palette = "397c6eb99eabd89031f8be9bce09807b0fd28212", image = "a3f57e40b7769409b618c7a0fcc178488ee90a48" }
+
+[armory_cardkey.from.EUR]
 at = [{ stage = 0, file = 20205 }]
 chunks = { palette = "397c6eb99eabd89031f8be9bce09807b0fd28212", image = "a3f57e40b7769409b618c7a0fcc178488ee90a48" }
 
@@ -998,6 +1140,10 @@ type = "text"
 at = [{ stage = 0, file = 20206 }]
 chunks = { palette = "8dfb7d08210fbd43982403065f94c0f04e2bdf37", image = "12884103e93caaf02c1ddf7abc71dacceeb0357b" }
 
+[mist_badge.from.EUR]
+at = [{ stage = 0, file = 20206 }]
+chunks = { palette = "8dfb7d08210fbd43982403065f94c0f04e2bdf37", image = "12884103e93caaf02c1ddf7abc71dacceeb0357b" }
+
 [mendel_sept_issue]
 uid = "uid://11idw1t2stodn"
 template = "file"
@@ -1021,6 +1167,10 @@ name = "text"
 type = "text"
 
 [mendel_sept_issue.from.USA]
+at = [{ stage = 0, file = 20207 }]
+chunks = { palette = "52362733efa621b72d79c0918b95eaf7e4523f18", image = "a817fa4e5e7ca5bbdd72f3d5c4f52727d25c721f" }
+
+[mendel_sept_issue.from.EUR]
 at = [{ stage = 0, file = 20207 }]
 chunks = { palette = "52362733efa621b72d79c0918b95eaf7e4523f18", image = "a817fa4e5e7ca5bbdd72f3d5c4f52727d25c721f" }
 
@@ -1050,6 +1200,10 @@ type = "text"
 at = [{ stage = 0, file = 20208 }]
 chunks = { palette = "0d6a85a4df6814327681940eca25c1c5cdf3f49a", image = "deeaf0fd660357ce144c93389a4845c1f06d1ed1" }
 
+[clipboard.from.EUR]
+at = [{ stage = 0, file = 20208 }]
+chunks = { palette = "0d6a85a4df6814327681940eca25c1c5cdf3f49a", image = "deeaf0fd660357ce144c93389a4845c1f06d1ed1" }
+
 [mist_search_warrant]
 uid = "uid://1qpp9oymu5bkt"
 template = "file"
@@ -1073,6 +1227,10 @@ name = "text"
 type = "text"
 
 [mist_search_warrant.from.USA]
+at = [{ stage = 0, file = 20209 }]
+chunks = { palette = "72c7c5af9d07ade8c813c6ebc5e0c80e72bc5739", image = "4d03282eaa0ff7332cbb4b101c3c258d7c0a2952" }
+
+[mist_search_warrant.from.EUR]
 at = [{ stage = 0, file = 20209 }]
 chunks = { palette = "72c7c5af9d07ade8c813c6ebc5e0c80e72bc5739", image = "4d03282eaa0ff7332cbb4b101c3c258d7c0a2952" }
 
@@ -1102,6 +1260,10 @@ type = "text"
 at = [{ stage = 0, file = 20210 }]
 chunks = { palette = "e79ce86116d63351320d6abffca2fd9ea6084ae8", image = "4c55b016ade8bf64bae48e4a0e170c3fd0552147" }
 
+[nmc_photo.from.EUR]
+at = [{ stage = 0, file = 20210 }]
+chunks = { palette = "e79ce86116d63351320d6abffca2fd9ea6084ae8", image = "4c55b016ade8bf64bae48e4a0e170c3fd0552147" }
+
 [manual]
 uid = "uid://1fi0ubhvr1b47"
 template = "file"
@@ -1128,6 +1290,10 @@ type = "text"
 at = [{ stage = 0, file = 20211 }]
 chunks = { palette = "33812d7778aa6e0a791e771c759bc8de0383f8ce", image = "782d56a781a7454b0ebb849ac91758b5f9767d37" }
 
+[manual.from.EUR]
+at = [{ stage = 0, file = 20211 }]
+chunks = { palette = "33812d7778aa6e0a791e771c759bc8de0383f8ce", image = "782d56a781a7454b0ebb849ac91758b5f9767d37" }
+
 [dryfield_map]
 uid = "uid://14vbvj0qpbkry"
 template = "file"
@@ -1151,6 +1317,10 @@ name = "text"
 type = "text"
 
 [dryfield_map.from.USA]
+at = [{ stage = 0, file = 20212 }]
+chunks = { palette = "ef39bcd4c71d4a1236aa4fa2b0cf969814241cea", image = "0e37a0d190551290bfc834d1fed1755947c9768f" }
+
+[dryfield_map.from.EUR]
 at = [{ stage = 0, file = 20212 }]
 chunks = { palette = "ef39bcd4c71d4a1236aa4fa2b0cf969814241cea", image = "0e37a0d190551290bfc834d1fed1755947c9768f" }
 
@@ -1182,6 +1352,10 @@ type = "text"
 at = [{ stage = 0, file = 20213 }, { stage = 0, file = 20214 }, { stage = 0, file = 20215 }]
 chunks = { palette = "9dee04aa582e56bf0706765144f481480e11283d", image = "bad83a367d176ae73047ace48db3b77d14327b9c" }
 
+[motel_key_no6.from.EUR]
+at = [{ stage = 0, file = 20213 }, { stage = 0, file = 20214 }, { stage = 0, file = 20215 }]
+chunks = { palette = "9dee04aa582e56bf0706765144f481480e11283d", image = "bad83a367d176ae73047ace48db3b77d14327b9c" }
+
 [saloon_key]
 uid = "uid://17nwz5ggbjrso"
 template = "file"
@@ -1205,6 +1379,10 @@ name = "text"
 type = "text"
 
 [saloon_key.from.USA]
+at = [{ stage = 0, file = 20216 }]
+chunks = { palette = "6331076573005c73f1189c4d07dfe06fef559da3", image = "004adc47a71e18d10bca2abd1d37c2cd6fdc203c" }
+
+[saloon_key.from.EUR]
 at = [{ stage = 0, file = 20216 }]
 chunks = { palette = "6331076573005c73f1189c4d07dfe06fef559da3", image = "004adc47a71e18d10bca2abd1d37c2cd6fdc203c" }
 
@@ -1234,6 +1412,10 @@ type = "text"
 at = [{ stage = 0, file = 20217 }]
 chunks = { palette = "3342cf794464f98dae053b95e5837f76df1286d7", image = "a5f00d2d44fc8037331a998d4cc30d6eee67c3e6" }
 
+[monkey_wrench.from.EUR]
+at = [{ stage = 0, file = 20217 }]
+chunks = { palette = "3342cf794464f98dae053b95e5837f76df1286d7", image = "a5f00d2d44fc8037331a998d4cc30d6eee67c3e6" }
+
 [lobby_key]
 uid = "uid://1ihn1gugdhfd3"
 template = "file"
@@ -1257,6 +1439,10 @@ name = "text"
 type = "text"
 
 [lobby_key.from.USA]
+at = [{ stage = 0, file = 20218 }]
+chunks = { palette = "e1eedb3bdefc1196e26a5f2e26c2f6e7ad88bf60", image = "d01c2f440f5f888370a7fbc44014c72370048773" }
+
+[lobby_key.from.EUR]
 at = [{ stage = 0, file = 20218 }]
 chunks = { palette = "e1eedb3bdefc1196e26a5f2e26c2f6e7ad88bf60", image = "d01c2f440f5f888370a7fbc44014c72370048773" }
 
@@ -1286,6 +1472,10 @@ type = "text"
 at = [{ stage = 0, file = 20219 }]
 chunks = { palette = "b0ad369ad68cd7ec92384974f79c29c5948df4df", image = "eb63e6f1b4af7570c2c73d2f9cdf24ad6660d8ff" }
 
+[bronco_masterkey.from.EUR]
+at = [{ stage = 0, file = 20219 }]
+chunks = { palette = "b0ad369ad68cd7ec92384974f79c29c5948df4df", image = "eb63e6f1b4af7570c2c73d2f9cdf24ad6660d8ff" }
+
 [wire_rope]
 uid = "uid://1cuxxyv1zp2ri"
 template = "file"
@@ -1309,6 +1499,10 @@ name = "text"
 type = "text"
 
 [wire_rope.from.USA]
+at = [{ stage = 0, file = 20220 }]
+chunks = { palette = "8b4cb862266d6ea17ec2031bb7524b2910423de1", image = "5e27a39120f8317c48063e9d00194047886b79bb" }
+
+[wire_rope.from.EUR]
 at = [{ stage = 0, file = 20220 }]
 chunks = { palette = "8b4cb862266d6ea17ec2031bb7524b2910423de1", image = "5e27a39120f8317c48063e9d00194047886b79bb" }
 
@@ -1338,6 +1532,10 @@ type = "text"
 at = [{ stage = 0, file = 20221 }]
 chunks = { palette = "8953ad28e8425e5e671f6c5f2ce057a14c57d0ea", image = "15fccc71aec3182363bcca3c574bd20ebbe84ca2" }
 
+[factory_key.from.EUR]
+at = [{ stage = 0, file = 20221 }]
+chunks = { palette = "8953ad28e8425e5e671f6c5f2ce057a14c57d0ea", image = "15fccc71aec3182363bcca3c574bd20ebbe84ca2" }
+
 [truck_key]
 uid = "uid://1sdufrbb7gwl5"
 template = "file"
@@ -1361,6 +1559,10 @@ name = "text"
 type = "text"
 
 [truck_key.from.USA]
+at = [{ stage = 0, file = 20222 }]
+chunks = { palette = "3ffca6eae1f2956089bc96738cc9b4b217bc2920", image = "92e14a40bd7a2f464d85978f779488b68c5820b1" }
+
+[truck_key.from.EUR]
 at = [{ stage = 0, file = 20222 }]
 chunks = { palette = "3ffca6eae1f2956089bc96738cc9b4b217bc2920", image = "92e14a40bd7a2f464d85978f779488b68c5820b1" }
 
@@ -1390,6 +1592,10 @@ type = "text"
 at = [{ stage = 0, file = 20223 }]
 chunks = { palette = "9543a9f1ab26d1cf37378282304c757b444d5da4", image = "a0bac88ab30aac67724b5f032bc3c7acb6f8eee8" }
 
+[jerry_can.from.EUR]
+at = [{ stage = 0, file = 20223 }]
+chunks = { palette = "9543a9f1ab26d1cf37378282304c757b444d5da4", image = "a0bac88ab30aac67724b5f032bc3c7acb6f8eee8" }
+
 [gasoline]
 uid = "uid://weaxjif28xv1"
 template = "file"
@@ -1413,6 +1619,10 @@ name = "text"
 type = "text"
 
 [gasoline.from.USA]
+at = [{ stage = 0, file = 20224 }]
+chunks = { palette = "b5e6f22ecdc2fffa8ee77b2f2028ea7b3acc242e", image = "973f0a5eaa0844ccbd88e326774850f2a8a2a15f" }
+
+[gasoline.from.EUR]
 at = [{ stage = 0, file = 20224 }]
 chunks = { palette = "b5e6f22ecdc2fffa8ee77b2f2028ea7b3acc242e", image = "973f0a5eaa0844ccbd88e326774850f2a8a2a15f" }
 
@@ -1442,6 +1652,10 @@ type = "text"
 at = [{ stage = 0, file = 20225 }]
 chunks = { palette = "baab835c664955c788bae2c3c9770bdaa2256edf", image = "31aa2214f0a04974b17b12f95cffcf8de6875ce2" }
 
+[ice_bag.from.EUR]
+at = [{ stage = 0, file = 20225 }]
+chunks = { palette = "baab835c664955c788bae2c3c9770bdaa2256edf", image = "31aa2214f0a04974b17b12f95cffcf8de6875ce2" }
+
 [bag_of_water]
 uid = "uid://1ru3ixxh2xlty"
 template = "file"
@@ -1465,6 +1679,10 @@ name = "text"
 type = "text"
 
 [bag_of_water.from.USA]
+at = [{ stage = 0, file = 20226 }]
+chunks = { palette = "da2e7aec0d795f569a8ac1535c9aadcfc24b3c17", image = "6d02557702cc2abc2bd78b4e8a84418b4a5d5216" }
+
+[bag_of_water.from.EUR]
 at = [{ stage = 0, file = 20226 }]
 chunks = { palette = "da2e7aec0d795f569a8ac1535c9aadcfc24b3c17", image = "6d02557702cc2abc2bd78b4e8a84418b4a5d5216" }
 
@@ -1494,6 +1712,10 @@ type = "text"
 at = [{ stage = 0, file = 20227 }]
 chunks = { palette = "ba1f3a1be81ccd71330f967db8296cbd599bfa76", image = "9bb1cfdfb629ef6707147b5cc853e54732766a5e" }
 
+[bottlecap_magnet.from.EUR]
+at = [{ stage = 0, file = 20227 }]
+chunks = { palette = "ba1f3a1be81ccd71330f967db8296cbd599bfa76", image = "9bb1cfdfb629ef6707147b5cc853e54732766a5e" }
+
 [suv_key]
 uid = "uid://1d5qviclnvu7z"
 template = "file"
@@ -1517,6 +1739,10 @@ name = "text"
 type = "text"
 
 [suv_key.from.USA]
+at = [{ stage = 0, file = 20230 }]
+chunks = { palette = "d238dd6f5fa68d7d89b8e85c4102f2ef09652886", image = "7e572b59b16a16f299ae18c280f5432a9070873e" }
+
+[suv_key.from.EUR]
 at = [{ stage = 0, file = 20230 }]
 chunks = { palette = "d238dd6f5fa68d7d89b8e85c4102f2ef09652886", image = "7e572b59b16a16f299ae18c280f5432a9070873e" }
 
@@ -1546,6 +1772,10 @@ type = "text"
 at = [{ stage = 0, file = 20231 }]
 chunks = { palette = "ac45f5d931cdddcb50f3e4f8075d998ceaeb09fc", image = "05c7ab5f6d2cf5571de3833017214eb4d4b55b55" }
 
+[oak_board.from.EUR]
+at = [{ stage = 0, file = 20231 }]
+chunks = { palette = "ac45f5d931cdddcb50f3e4f8075d998ceaeb09fc", image = "05c7ab5f6d2cf5571de3833017214eb4d4b55b55" }
+
 [jumper_plug]
 uid = "uid://6yxiawawc2l4"
 template = "file"
@@ -1569,6 +1799,10 @@ name = "text"
 type = "text"
 
 [jumper_plug.from.USA]
+at = [{ stage = 0, file = 20232 }]
+chunks = { palette = "17fd202fce7b1a86388d9d48fe52c5dd662cea94", image = "5333aa87d8794e3c8df6c6f406a5e6eca27439d8" }
+
+[jumper_plug.from.EUR]
 at = [{ stage = 0, file = 20232 }]
 chunks = { palette = "17fd202fce7b1a86388d9d48fe52c5dd662cea94", image = "5333aa87d8794e3c8df6c6f406a5e6eca27439d8" }
 
@@ -1598,6 +1832,10 @@ type = "text"
 at = [{ stage = 0, file = 20233 }]
 chunks = { palette = "28d0d98b44692b07d758163e8bb7865c8fc0630e", image = "de88e67c891b98ae3e535ca66ce9a1850bf7b519" }
 
+[bowmans_card.from.EUR]
+at = [{ stage = 0, file = 20233 }]
+chunks = { palette = "28d0d98b44692b07d758163e8bb7865c8fc0630e", image = "de88e67c891b98ae3e535ca66ce9a1850bf7b519" }
+
 [yoshidas_card]
 uid = "uid://18hn43ak1g1n7"
 template = "file"
@@ -1621,6 +1859,10 @@ name = "text"
 type = "text"
 
 [yoshidas_card.from.USA]
+at = [{ stage = 0, file = 20234 }]
+chunks = { palette = "ac241fd92661ca5bf6402485322c500eb3b629cc", image = "b75e7f575f80ab1c1e8d43723b6edd6b3baf3596" }
+
+[yoshidas_card.from.EUR]
 at = [{ stage = 0, file = 20234 }]
 chunks = { palette = "ac241fd92661ca5bf6402485322c500eb3b629cc", image = "b75e7f575f80ab1c1e8d43723b6edd6b3baf3596" }
 
@@ -1650,6 +1892,10 @@ type = "text"
 at = [{ stage = 0, file = 20235 }]
 chunks = { palette = "66b61ce0d0fc403b113ce5fb8435cf74333355f3", image = "3f9b97e21c29267f5538f644943ee8a2e0d5ed72" }
 
+[electric_car_key.from.EUR]
+at = [{ stage = 0, file = 20235 }]
+chunks = { palette = "66b61ce0d0fc403b113ce5fb8435cf74333355f3", image = "3f9b97e21c29267f5538f644943ee8a2e0d5ed72" }
+
 [teddy_bear]
 uid = "uid://1s042a2hmatty"
 template = "file"
@@ -1673,6 +1919,10 @@ name = "text"
 type = "text"
 
 [teddy_bear.from.USA]
+at = [{ stage = 0, file = 20236 }]
+chunks = { palette = "9092f22005f78ae3997230c9e91d8a7a4885a312", image = "b3962ea123135b9384eef4b35d06b366c107cd09" }
+
+[teddy_bear.from.EUR]
 at = [{ stage = 0, file = 20236 }]
 chunks = { palette = "9092f22005f78ae3997230c9e91d8a7a4885a312", image = "b3962ea123135b9384eef4b35d06b366c107cd09" }
 
@@ -1702,6 +1952,10 @@ type = "text"
 at = [{ stage = 0, file = 20237 }]
 chunks = { palette = "1b6e30cc53190115084b6c67612f155da6e7f08a", image = "1787f229d27ac172a78dde0f542a3bf852088bcc" }
 
+[pierces_memo.from.EUR]
+at = [{ stage = 0, file = 20237 }]
+chunks = { palette = "1b6e30cc53190115084b6c67612f155da6e7f08a", image = "1787f229d27ac172a78dde0f542a3bf852088bcc" }
+
 [unused_126]
 uid = "uid://1viot2spsj9i1"
 template = "file"
@@ -1725,6 +1979,10 @@ name = "text"
 type = "text"
 
 [unused_126.from.USA]
+at = [{ stage = 0, file = 20238 }]
+chunks = { palette = "8953ad28e8425e5e671f6c5f2ce057a14c57d0ea", image = "15fccc71aec3182363bcca3c574bd20ebbe84ca2" }
+
+[unused_126.from.EUR]
 at = [{ stage = 0, file = 20238 }]
 chunks = { palette = "8953ad28e8425e5e671f6c5f2ce057a14c57d0ea", image = "15fccc71aec3182363bcca3c574bd20ebbe84ca2" }
 
@@ -1754,6 +2012,10 @@ type = "text"
 at = [{ stage = 0, file = 20239 }]
 chunks = { palette = "23ec47fe99c673212318bd3f2680ff5447439df9", image = "7e436f79708c7339e86b273fa4629d454acb5ea5" }
 
+[aeris_sept_issue.from.EUR]
+at = [{ stage = 0, file = 20239 }]
+chunks = { palette = "23ec47fe99c673212318bd3f2680ff5447439df9", image = "7e436f79708c7339e86b273fa4629d454acb5ea5" }
+
 [mr_douglas_letter]
 uid = "uid://th2w86f9b7oj"
 template = "file"
@@ -1777,6 +2039,10 @@ name = "text"
 type = "text"
 
 [mr_douglas_letter.from.USA]
+at = [{ stage = 0, file = 20240 }]
+chunks = { palette = "54ca03f18d10bcbd7a0956586a2c6abd0fe1891b", image = "fc90ebcb26780863791757286bc3dd5f92482978" }
+
+[mr_douglas_letter.from.EUR]
 at = [{ stage = 0, file = 20240 }]
 chunks = { palette = "54ca03f18d10bcbd7a0956586a2c6abd0fe1891b", image = "fc90ebcb26780863791757286bc3dd5f92482978" }
 
@@ -1806,6 +2072,10 @@ type = "text"
 at = [{ stage = 0, file = 20241 }]
 chunks = { palette = "d775726605c393bfc914ebd6aa9a309b46a81677", image = "0e1ffe56820154f393fc19296d1702adae3ae186" }
 
+[unused_129.from.EUR]
+at = [{ stage = 0, file = 20241 }]
+chunks = { palette = "d775726605c393bfc914ebd6aa9a309b46a81677", image = "0e1ffe56820154f393fc19296d1702adae3ae186" }
+
 [unused_12a]
 uid = "uid://1mvzluc5nhfui"
 template = "file"
@@ -1829,6 +2099,10 @@ name = "text"
 type = "text"
 
 [unused_12a.from.USA]
+at = [{ stage = 0, file = 20242 }]
+chunks = { palette = "1027709f284bb8ecb434c0e8670e7aba59fc11a9", image = "ae36e0748d916533bc30d1b7e2474dd17046052f" }
+
+[unused_12a.from.EUR]
 at = [{ stage = 0, file = 20242 }]
 chunks = { palette = "1027709f284bb8ecb434c0e8670e7aba59fc11a9", image = "ae36e0748d916533bc30d1b7e2474dd17046052f" }
 
@@ -1858,6 +2132,10 @@ type = "text"
 at = [{ stage = 0, file = 20243 }]
 chunks = { palette = "ce6a6c4c35fd04dec63e30211e1c847765488265", image = "2051b757811972508eb033d5a775a399553c1834" }
 
+[unused_12b.from.EUR]
+at = [{ stage = 0, file = 20243 }]
+chunks = { palette = "ce6a6c4c35fd04dec63e30211e1c847765488265", image = "2051b757811972508eb033d5a775a399553c1834" }
+
 [jumper_plug_12c]
 uid = "uid://qu57jp355jdw"
 template = "file"
@@ -1881,6 +2159,10 @@ name = "text"
 type = "text"
 
 [jumper_plug_12c.from.USA]
+at = [{ stage = 0, file = 20244 }]
+chunks = { palette = "17fd202fce7b1a86388d9d48fe52c5dd662cea94", image = "5333aa87d8794e3c8df6c6f406a5e6eca27439d8" }
+
+[jumper_plug_12c.from.EUR]
 at = [{ stage = 0, file = 20244 }]
 chunks = { palette = "17fd202fce7b1a86388d9d48fe52c5dd662cea94", image = "5333aa87d8794e3c8df6c6f406a5e6eca27439d8" }
 
@@ -1910,6 +2192,10 @@ type = "text"
 at = [{ stage = 0, file = 20245 }]
 chunks = { palette = "6592f23abb8d6b3d5969b6b6bf715d3b249e00cb", image = "848c4c659c5655515a9ec1f1867b80356c10b937" }
 
+[micro_device_12d.from.EUR]
+at = [{ stage = 0, file = 20245 }]
+chunks = { palette = "6592f23abb8d6b3d5969b6b6bf715d3b249e00cb", image = "848c4c659c5655515a9ec1f1867b80356c10b937" }
+
 [recovery1]
 uid = "uid://2t5j13b8mmee"
 template = "file"
@@ -1933,6 +2219,10 @@ name = "text"
 type = "text"
 
 [recovery1.from.USA]
+at = [{ stage = 0, file = 20300 }, { stage = 0, file = 20301 }]
+chunks = { palette = "5fb588fa069c4265d3f5933168933b1e71ff2603", image = "0387502c5bc12c983c8bacdfd7a9832135a1a1be" }
+
+[recovery1.from.EUR]
 at = [{ stage = 0, file = 20300 }, { stage = 0, file = 20301 }]
 chunks = { palette = "5fb588fa069c4265d3f5933168933b1e71ff2603", image = "0387502c5bc12c983c8bacdfd7a9832135a1a1be" }
 
@@ -1962,6 +2252,10 @@ type = "text"
 at = [{ stage = 0, file = 20302 }]
 chunks = { palette = "a217d9c871c36af1ef27bbc9a3ec8dff8a09224b", image = "086026b38fdeed70fd540a096d3cb350e3165537" }
 
+[recovery2.from.EUR]
+at = [{ stage = 0, file = 20302 }]
+chunks = { palette = "a217d9c871c36af1ef27bbc9a3ec8dff8a09224b", image = "086026b38fdeed70fd540a096d3cb350e3165537" }
+
 [recovery3]
 uid = "uid://lfzway24n116"
 template = "file"
@@ -1985,6 +2279,10 @@ name = "text"
 type = "text"
 
 [recovery3.from.USA]
+at = [{ stage = 0, file = 20303 }]
+chunks = { palette = "4a0bd795472475c51af0ca6192b73eb3815b4a20", image = "ba485fffc85024cf50d2f94939ed661a2c303aa9" }
+
+[recovery3.from.EUR]
 at = [{ stage = 0, file = 20303 }]
 chunks = { palette = "4a0bd795472475c51af0ca6192b73eb3815b4a20", image = "ba485fffc85024cf50d2f94939ed661a2c303aa9" }
 
@@ -2014,6 +2312,10 @@ type = "text"
 at = [{ stage = 0, file = 20304 }]
 chunks = { palette = "a0156158b6f2d93286b8d14902d7b1ff9e1ebcf4", image = "4ff3f2fd8e9d3245666948facb79c18b7d536f3d" }
 
+[stim.from.EUR]
+at = [{ stage = 0, file = 20304 }]
+chunks = { palette = "a0156158b6f2d93286b8d14902d7b1ff9e1ebcf4", image = "4ff3f2fd8e9d3245666948facb79c18b7d536f3d" }
+
 [cola]
 uid = "uid://1nuv045t9560f"
 template = "file"
@@ -2037,6 +2339,10 @@ name = "text"
 type = "text"
 
 [cola.from.USA]
+at = [{ stage = 0, file = 20305 }]
+chunks = { palette = "e3074b0b71f506dee748bb54999864cee7080b17", image = "c55e071a8b13dfba8d156699ad78dc9f5e5e2206" }
+
+[cola.from.EUR]
 at = [{ stage = 0, file = 20305 }]
 chunks = { palette = "e3074b0b71f506dee748bb54999864cee7080b17", image = "c55e071a8b13dfba8d156699ad78dc9f5e5e2206" }
 
@@ -2066,6 +2372,10 @@ type = "text"
 at = [{ stage = 0, file = 20306 }]
 chunks = { palette = "517a7d1a71a4353554c2b95e371006d70241ed10", image = "d79764094b667fc3711af84a6a47a2500d50ed34" }
 
+[mp_boost1.from.EUR]
+at = [{ stage = 0, file = 20306 }]
+chunks = { palette = "517a7d1a71a4353554c2b95e371006d70241ed10", image = "d79764094b667fc3711af84a6a47a2500d50ed34" }
+
 [mp_boost2]
 uid = "uid://dsn443adgs6h"
 template = "file"
@@ -2089,6 +2399,10 @@ name = "text"
 type = "text"
 
 [mp_boost2.from.USA]
+at = [{ stage = 0, file = 20307 }]
+chunks = { palette = "b4697244b0292b1ead57bbc2b45faee037e6895c", image = "e3622cacdf66ca22ba8618e91209ce3a0ad4569d" }
+
+[mp_boost2.from.EUR]
 at = [{ stage = 0, file = 20307 }]
 chunks = { palette = "b4697244b0292b1ead57bbc2b45faee037e6895c", image = "e3622cacdf66ca22ba8618e91209ce3a0ad4569d" }
 
@@ -2118,6 +2432,10 @@ type = "text"
 at = [{ stage = 0, file = 20308 }]
 chunks = { palette = "fc0bd7257924a222eb32576decfb69d90902822d", image = "2ec1bb7ea6f366679d2e6442cdddb6ec21db7021" }
 
+[penicillin.from.EUR]
+at = [{ stage = 0, file = 20308 }]
+chunks = { palette = "fc0bd7257924a222eb32576decfb69d90902822d", image = "2ec1bb7ea6f366679d2e6442cdddb6ec21db7021" }
+
 [smg_clip_holder]
 uid = "uid://1t7glcq25byny"
 template = "file"
@@ -2141,6 +2459,10 @@ name = "text"
 type = "text"
 
 [smg_clip_holder.from.USA]
+at = [{ stage = 0, file = 20309 }]
+chunks = { palette = "29c9665fde9709f876722a64e3e61dc47f3623a6", image = "72a0e168f1c7f0f2bc00c8fd965f18eed6437f76" }
+
+[smg_clip_holder.from.EUR]
 at = [{ stage = 0, file = 20309 }]
 chunks = { palette = "29c9665fde9709f876722a64e3e61dc47f3623a6", image = "72a0e168f1c7f0f2bc00c8fd965f18eed6437f76" }
 
@@ -2170,6 +2492,10 @@ type = "text"
 at = [{ stage = 0, file = 20310 }]
 chunks = { palette = "78f8ed874f38494828a1c88ec65d9c705de28c99", image = "6eed85c985927f827c7a2f26a5e281497c671922" }
 
+[rifle_clip_holder.from.EUR]
+at = [{ stage = 0, file = 20310 }]
+chunks = { palette = "78f8ed874f38494828a1c88ec65d9c705de28c99", image = "6eed85c985927f827c7a2f26a5e281497c671922" }
+
 [lipstick]
 uid = "uid://1hvv7rzymg9u0"
 template = "file"
@@ -2193,6 +2519,10 @@ name = "text"
 type = "text"
 
 [lipstick.from.USA]
+at = [{ stage = 0, file = 20311 }]
+chunks = { palette = "dcf7d7dd78f0d4bf86100886cfdf7fd6319f8da2", image = "63f3cdc093c3b63961e59f63d97eaded2a50daa1" }
+
+[lipstick.from.EUR]
 at = [{ stage = 0, file = 20311 }]
 chunks = { palette = "dcf7d7dd78f0d4bf86100886cfdf7fd6319f8da2", image = "63f3cdc093c3b63961e59f63d97eaded2a50daa1" }
 
@@ -2222,6 +2552,10 @@ type = "text"
 at = [{ stage = 0, file = 20312 }]
 chunks = { palette = "f4489cd3d8351a243685bc32d11e8c3059ecb76c", image = "d3b0befaabef9ee43169c8cb3de091c2e7809195" }
 
+[snail_magazine.from.EUR]
+at = [{ stage = 0, file = 20312 }]
+chunks = { palette = "f4489cd3d8351a243685bc32d11e8c3059ecb76c", image = "d3b0befaabef9ee43169c8cb3de091c2e7809195" }
+
 [belt_pouch]
 uid = "uid://sjstlh8fmnlc"
 template = "file"
@@ -2245,6 +2579,10 @@ name = "text"
 type = "text"
 
 [belt_pouch.from.USA]
+at = [{ stage = 0, file = 20313 }]
+chunks = { palette = "396466604ab22df0dafb4fedf29be6fd764bc67d", image = "0e9f8a3b2fe06f519824bd82e1a2f46fce4aaa42" }
+
+[belt_pouch.from.EUR]
 at = [{ stage = 0, file = 20313 }]
 chunks = { palette = "396466604ab22df0dafb4fedf29be6fd764bc67d", image = "0e9f8a3b2fe06f519824bd82e1a2f46fce4aaa42" }
 
@@ -2274,6 +2612,10 @@ type = "text"
 at = [{ stage = 0, file = 20314 }]
 chunks = { palette = "add2d3d6019f831df317a156b4df2993acbd125b", image = "7aa636e729760264d961417a03290347462a3004" }
 
+[md_player.from.EUR]
+at = [{ stage = 0, file = 20314 }]
+chunks = { palette = "add2d3d6019f831df317a156b4df2993acbd125b", image = "7aa636e729760264d961417a03290347462a3004" }
+
 [pyrokinesis_level1_shop]
 uid = "uid://1vkdkdgn6r4pm"
 template = "file"
@@ -2297,6 +2639,10 @@ name = "text"
 type = "text"
 
 [pyrokinesis_level1_shop.from.USA]
+at = [{ stage = 0, file = 20315 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
+[pyrokinesis_level1_shop.from.EUR]
 at = [{ stage = 0, file = 20315 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
@@ -2326,6 +2672,10 @@ type = "text"
 at = [{ stage = 0, file = 20316 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
+[pyrokinesis_level2_shop.from.EUR]
+at = [{ stage = 0, file = 20316 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
 [pyrokinesis_level3_shop]
 uid = "uid://gzwcv6byrgo8"
 template = "file"
@@ -2349,6 +2699,10 @@ name = "text"
 type = "text"
 
 [pyrokinesis_level3_shop.from.USA]
+at = [{ stage = 0, file = 20317 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
+[pyrokinesis_level3_shop.from.EUR]
 at = [{ stage = 0, file = 20317 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
@@ -2378,6 +2732,10 @@ type = "text"
 at = [{ stage = 0, file = 20318 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
+[combustion_level1_shop.from.EUR]
+at = [{ stage = 0, file = 20318 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
 [combustion_level2_shop]
 uid = "uid://dh5h8sre2ozc"
 template = "file"
@@ -2401,6 +2759,10 @@ name = "text"
 type = "text"
 
 [combustion_level2_shop.from.USA]
+at = [{ stage = 0, file = 20319 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
+[combustion_level2_shop.from.EUR]
 at = [{ stage = 0, file = 20319 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
@@ -2430,6 +2792,10 @@ type = "text"
 at = [{ stage = 0, file = 20320 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
+[combustion_level3_shop.from.EUR]
+at = [{ stage = 0, file = 20320 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
 [inferno_level1_shop]
 uid = "uid://n8ou23m0oj6r"
 template = "file"
@@ -2453,6 +2819,10 @@ name = "text"
 type = "text"
 
 [inferno_level1_shop.from.USA]
+at = [{ stage = 0, file = 20321 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
+[inferno_level1_shop.from.EUR]
 at = [{ stage = 0, file = 20321 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
@@ -2482,6 +2852,10 @@ type = "text"
 at = [{ stage = 0, file = 20322 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
+[inferno_level2_shop.from.EUR]
+at = [{ stage = 0, file = 20322 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
 [inferno_level3_shop]
 uid = "uid://qse01jemvvf0"
 template = "file"
@@ -2505,6 +2879,10 @@ name = "text"
 type = "text"
 
 [inferno_level3_shop.from.USA]
+at = [{ stage = 0, file = 20323 }]
+chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
+
+[inferno_level3_shop.from.EUR]
 at = [{ stage = 0, file = 20323 }]
 chunks = { palette = "e697d8041111dcfdc503647f64601bc64bb26827", image = "5048614aa21e758acf427596a8dc3245446c9d2e" }
 
@@ -2534,6 +2912,10 @@ type = "text"
 at = [{ stage = 0, file = 20324 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
+[necrosis_level1_shop.from.EUR]
+at = [{ stage = 0, file = 20324 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
 [necrosis_level2_shop]
 uid = "uid://p86wiyh8gufh"
 template = "file"
@@ -2557,6 +2939,10 @@ name = "text"
 type = "text"
 
 [necrosis_level2_shop.from.USA]
+at = [{ stage = 0, file = 20325 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
+[necrosis_level2_shop.from.EUR]
 at = [{ stage = 0, file = 20325 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
@@ -2586,6 +2972,10 @@ type = "text"
 at = [{ stage = 0, file = 20326 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
+[necrosis_level3_shop.from.EUR]
+at = [{ stage = 0, file = 20326 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
 [plasma_level1_shop]
 uid = "uid://1nie02ofx9izj"
 template = "file"
@@ -2609,6 +2999,10 @@ name = "text"
 type = "text"
 
 [plasma_level1_shop.from.USA]
+at = [{ stage = 0, file = 20327 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
+[plasma_level1_shop.from.EUR]
 at = [{ stage = 0, file = 20327 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
@@ -2638,6 +3032,10 @@ type = "text"
 at = [{ stage = 0, file = 20328 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
+[plasma_level2_shop.from.EUR]
+at = [{ stage = 0, file = 20328 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
 [plasma_level3_shop]
 uid = "uid://axa9kdczjpjl"
 template = "file"
@@ -2661,6 +3059,10 @@ name = "text"
 type = "text"
 
 [plasma_level3_shop.from.USA]
+at = [{ stage = 0, file = 20329 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
+[plasma_level3_shop.from.EUR]
 at = [{ stage = 0, file = 20329 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
@@ -2690,6 +3092,10 @@ type = "text"
 at = [{ stage = 0, file = 20330 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
+[apobiosis_level1_shop.from.EUR]
+at = [{ stage = 0, file = 20330 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
 [apobiosis_level2_shop]
 uid = "uid://1flcioqoozbne"
 template = "file"
@@ -2713,6 +3119,10 @@ name = "text"
 type = "text"
 
 [apobiosis_level2_shop.from.USA]
+at = [{ stage = 0, file = 20331 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
+[apobiosis_level2_shop.from.EUR]
 at = [{ stage = 0, file = 20331 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
@@ -2742,6 +3152,10 @@ type = "text"
 at = [{ stage = 0, file = 20332 }]
 chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
 
+[apobiosis_level3_shop.from.EUR]
+at = [{ stage = 0, file = 20332 }]
+chunks = { palette = "f2d7984a8b09b0553103e119f47acdd31fe8ad66", image = "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003" }
+
 [metabolism_level1_shop]
 uid = "uid://1bmiul27t9csb"
 template = "file"
@@ -2765,6 +3179,10 @@ name = "text"
 type = "text"
 
 [metabolism_level1_shop.from.USA]
+at = [{ stage = 0, file = 20333 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
+[metabolism_level1_shop.from.EUR]
 at = [{ stage = 0, file = 20333 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
@@ -2794,6 +3212,10 @@ type = "text"
 at = [{ stage = 0, file = 20334 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
+[metabolism_level2_shop.from.EUR]
+at = [{ stage = 0, file = 20334 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
 [metabolism_level3_shop]
 uid = "uid://1bfy4llsqkv57"
 template = "file"
@@ -2817,6 +3239,10 @@ name = "text"
 type = "text"
 
 [metabolism_level3_shop.from.USA]
+at = [{ stage = 0, file = 20335 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
+[metabolism_level3_shop.from.EUR]
 at = [{ stage = 0, file = 20335 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
@@ -2846,6 +3272,10 @@ type = "text"
 at = [{ stage = 0, file = 20336 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
+[healing_level1_shop.from.EUR]
+at = [{ stage = 0, file = 20336 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
 [healing_level2_shop]
 uid = "uid://1s4frxxf8oyfk"
 template = "file"
@@ -2869,6 +3299,10 @@ name = "text"
 type = "text"
 
 [healing_level2_shop.from.USA]
+at = [{ stage = 0, file = 20337 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
+[healing_level2_shop.from.EUR]
 at = [{ stage = 0, file = 20337 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
@@ -2898,6 +3332,10 @@ type = "text"
 at = [{ stage = 0, file = 20338 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
+[healing_level3_shop.from.EUR]
+at = [{ stage = 0, file = 20338 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
 [lifedrain_level1_shop]
 uid = "uid://a99d0s0ify0v"
 template = "file"
@@ -2921,6 +3359,10 @@ name = "text"
 type = "text"
 
 [lifedrain_level1_shop.from.USA]
+at = [{ stage = 0, file = 20339 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
+[lifedrain_level1_shop.from.EUR]
 at = [{ stage = 0, file = 20339 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
@@ -2950,6 +3392,10 @@ type = "text"
 at = [{ stage = 0, file = 20340 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
+[lifedrain_level2_shop.from.EUR]
+at = [{ stage = 0, file = 20340 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
 [lifedrain_level3_shop]
 uid = "uid://6lgu4ugd8ppp"
 template = "file"
@@ -2973,6 +3419,10 @@ name = "text"
 type = "text"
 
 [lifedrain_level3_shop.from.USA]
+at = [{ stage = 0, file = 20341 }]
+chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
+
+[lifedrain_level3_shop.from.EUR]
 at = [{ stage = 0, file = 20341 }]
 chunks = { palette = "de9c44c3115ed35756ac6ce6375c4f7a713017b1", image = "f3ae4bae192efbefe98717b35f22f884eb46304c" }
 
@@ -3002,6 +3452,10 @@ type = "text"
 at = [{ stage = 0, file = 20342 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
+[antibody_level1_shop.from.EUR]
+at = [{ stage = 0, file = 20342 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
 [antibody_level2_shop]
 uid = "uid://157khexkzi0lq"
 template = "file"
@@ -3025,6 +3479,10 @@ name = "text"
 type = "text"
 
 [antibody_level2_shop.from.USA]
+at = [{ stage = 0, file = 20343 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
+[antibody_level2_shop.from.EUR]
 at = [{ stage = 0, file = 20343 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
@@ -3054,6 +3512,10 @@ type = "text"
 at = [{ stage = 0, file = 20344 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
+[antibody_level3_shop.from.EUR]
+at = [{ stage = 0, file = 20344 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
 [energyshot_level1_shop]
 uid = "uid://1rkh649k5t7wi"
 template = "file"
@@ -3077,6 +3539,10 @@ name = "text"
 type = "text"
 
 [energyshot_level1_shop.from.USA]
+at = [{ stage = 0, file = 20345 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
+[energyshot_level1_shop.from.EUR]
 at = [{ stage = 0, file = 20345 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
@@ -3106,6 +3572,10 @@ type = "text"
 at = [{ stage = 0, file = 20346 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
+[energyshot_level2_shop.from.EUR]
+at = [{ stage = 0, file = 20346 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
 [energyshot_level3_shop]
 uid = "uid://1eme55thhj9ex"
 template = "file"
@@ -3129,6 +3599,10 @@ name = "text"
 type = "text"
 
 [energyshot_level3_shop.from.USA]
+at = [{ stage = 0, file = 20347 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
+[energyshot_level3_shop.from.EUR]
 at = [{ stage = 0, file = 20347 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
@@ -3158,6 +3632,10 @@ type = "text"
 at = [{ stage = 0, file = 20348 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
+[energyball_level1_shop.from.EUR]
+at = [{ stage = 0, file = 20348 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
 [energyball_level2_shop]
 uid = "uid://pg8lft8o3xnc"
 template = "file"
@@ -3181,6 +3659,10 @@ name = "text"
 type = "text"
 
 [energyball_level2_shop.from.USA]
+at = [{ stage = 0, file = 20349 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
+[energyball_level2_shop.from.EUR]
 at = [{ stage = 0, file = 20349 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
@@ -3210,6 +3692,10 @@ type = "text"
 at = [{ stage = 0, file = 20350 }]
 chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
 
+[energyball_level3_shop.from.EUR]
+at = [{ stage = 0, file = 20350 }]
+chunks = { palette = "db569fb49c661fe29bc696fc4928375567c31718", image = "b44a13ecc2daa106b3c5a58694550535a6f6d747" }
+
 [unused_33]
 uid = "uid://1mp5t7iltfaui"
 template = "file"
@@ -3233,6 +3719,10 @@ name = "text"
 type = "text"
 
 [unused_33.from.USA]
+at = [{ stage = 0, file = 20351 }]
+chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "fd71c04b8d5b26fa4162cea6e4b6c7b17cb4d606" }
+
+[unused_33.from.EUR]
 at = [{ stage = 0, file = 20351 }]
 chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "fd71c04b8d5b26fa4162cea6e4b6c7b17cb4d606" }
 
@@ -3262,6 +3752,10 @@ type = "text"
 at = [{ stage = 0, file = 20352 }]
 chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "2e9c66dece98b445ed743d560c5c5d2e1a77c20b" }
 
+[unused_34.from.EUR]
+at = [{ stage = 0, file = 20352 }]
+chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "2e9c66dece98b445ed743d560c5c5d2e1a77c20b" }
+
 [unused_35]
 uid = "uid://a1hjfhks9pbf"
 template = "file"
@@ -3285,6 +3779,10 @@ name = "text"
 type = "text"
 
 [unused_35.from.USA]
+at = [{ stage = 0, file = 20353 }]
+chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "d7a137346dfb304e46a05eeee0a84e0b35f99e62" }
+
+[unused_35.from.EUR]
 at = [{ stage = 0, file = 20353 }]
 chunks = { palette = "56478afcc09943a5725c19d3b754ee3fdebae0a5", image = "d7a137346dfb304e46a05eeee0a84e0b35f99e62" }
 
@@ -3314,6 +3812,10 @@ type = "text"
 at = [{ stage = 0, file = 20354 }]
 chunks = { palette = "b6f36624168ad6ca28d8b8897e4ecbbb0326bc49", image = "2988d82c1e97c0bd6391366bcfe2752559055ee1" }
 
+[skull_crystal.from.EUR]
+at = [{ stage = 0, file = 20354 }]
+chunks = { palette = "b6f36624168ad6ca28d8b8897e4ecbbb0326bc49", image = "2988d82c1e97c0bd6391366bcfe2752559055ee1" }
+
 [medicine_wheel]
 uid = "uid://8udosmh6sdzv"
 template = "file"
@@ -3337,6 +3839,10 @@ name = "text"
 type = "text"
 
 [medicine_wheel.from.USA]
+at = [{ stage = 0, file = 20355 }]
+chunks = { palette = "702c219a6ec9571d4ff0b6ebc48a3deaacf453f9", image = "8cf8b3f8b211efc67b2827e8e879bb9fde445b12" }
+
+[medicine_wheel.from.EUR]
 at = [{ stage = 0, file = 20355 }]
 chunks = { palette = "702c219a6ec9571d4ff0b6ebc48a3deaacf453f9", image = "8cf8b3f8b211efc67b2827e8e879bb9fde445b12" }
 
@@ -3366,6 +3872,10 @@ type = "text"
 at = [{ stage = 0, file = 20356 }]
 chunks = { palette = "8471240365e4e6eef8e201ff3dee322301f57dd6", image = "66f6e9078d3fe8ab9fc516d801e3ee7751de070f" }
 
+[holy_water.from.EUR]
+at = [{ stage = 0, file = 20356 }]
+chunks = { palette = "8471240365e4e6eef8e201ff3dee322301f57dd6", image = "66f6e9078d3fe8ab9fc516d801e3ee7751de070f" }
+
 [ofuda]
 uid = "uid://1efp19slnwu7f"
 template = "file"
@@ -3389,6 +3899,10 @@ name = "text"
 type = "text"
 
 [ofuda.from.USA]
+at = [{ stage = 0, file = 20357 }]
+chunks = { palette = "8a6885ed62f5f64517bf4381edd6bc8259c2aa61", image = "aa3886c3f746670cb5131030016d491f6483d930" }
+
+[ofuda.from.EUR]
 at = [{ stage = 0, file = 20357 }]
 chunks = { palette = "8a6885ed62f5f64517bf4381edd6bc8259c2aa61", image = "aa3886c3f746670cb5131030016d491f6483d930" }
 
@@ -3418,6 +3932,10 @@ type = "text"
 at = [{ stage = 0, file = 20358 }]
 chunks = { palette = "75f43942ad6f2bdf194451b221fecfda15b49bfe", image = "dfbd6b9d217eb73b04fd5fa84e0df7c001db61ca" }
 
+[flare.from.EUR]
+at = [{ stage = 0, file = 20358 }]
+chunks = { palette = "75f43942ad6f2bdf194451b221fecfda15b49bfe", image = "dfbd6b9d217eb73b04fd5fa84e0df7c001db61ca" }
+
 [pepper_spray]
 uid = "uid://6r2xh594lhl7"
 template = "file"
@@ -3441,6 +3959,10 @@ name = "text"
 type = "text"
 
 [pepper_spray.from.USA]
+at = [{ stage = 0, file = 20359 }]
+chunks = { palette = "070f6300897d636dad25f28ea7e04ea8d3d8d671", image = "63aebef1f92e576389e0031f98c879ebde93d879" }
+
+[pepper_spray.from.EUR]
 at = [{ stage = 0, file = 20359 }]
 chunks = { palette = "070f6300897d636dad25f28ea7e04ea8d3d8d671", image = "63aebef1f92e576389e0031f98c879ebde93d879" }
 
@@ -3470,6 +3992,10 @@ type = "text"
 at = [{ stage = 0, file = 20360 }]
 chunks = { palette = "2e6520c451d934637d3d1b0bbbf7a6a0a75ba26b", image = "6b78d0c63f72409b83942ea1f088a8fc992aadac" }
 
+[protein_capsule.from.EUR]
+at = [{ stage = 0, file = 20360 }]
+chunks = { palette = "2e6520c451d934637d3d1b0bbbf7a6a0a75ba26b", image = "6b78d0c63f72409b83942ea1f088a8fc992aadac" }
+
 [ringers_solution]
 uid = "uid://swfo8f5uo9x1"
 template = "file"
@@ -3493,6 +4019,10 @@ name = "text"
 type = "text"
 
 [ringers_solution.from.USA]
+at = [{ stage = 0, file = 20361 }]
+chunks = { palette = "dd94846353c63c60081e7e9b4a77f839ab5ea753", image = "601f82035eccfc6345f084797d22cefb2e16fbd9" }
+
+[ringers_solution.from.EUR]
 at = [{ stage = 0, file = 20361 }]
 chunks = { palette = "dd94846353c63c60081e7e9b4a77f839ab5ea753", image = "601f82035eccfc6345f084797d22cefb2e16fbd9" }
 
@@ -3522,6 +4052,10 @@ type = "text"
 at = [{ stage = 0, file = 20362 }]
 chunks = { palette = "120f7dc32d8661423dc0a1cfa46ddca25b37372e", image = "9a5682c6f86072e2dfe6563cc9c35aaf4d560764" }
 
+[eau_de_toilette.from.EUR]
+at = [{ stage = 0, file = 20362 }]
+chunks = { palette = "120f7dc32d8661423dc0a1cfa46ddca25b37372e", image = "9a5682c6f86072e2dfe6563cc9c35aaf4d560764" }
+
 [hunter_goggles]
 uid = "uid://1ez9th2f98glm"
 template = "file"
@@ -3545,6 +4079,10 @@ name = "text"
 type = "text"
 
 [hunter_goggles.from.USA]
+at = [{ stage = 0, file = 20363 }]
+chunks = { palette = "636d81f62ef364957a9bad89a0933b83b1d88ac2", image = "1544acf74527d71d6ef868f6e21c31c38dd1b61d" }
+
+[hunter_goggles.from.EUR]
 at = [{ stage = 0, file = 20363 }]
 chunks = { palette = "636d81f62ef364957a9bad89a0933b83b1d88ac2", image = "1544acf74527d71d6ef868f6e21c31c38dd1b61d" }
 
@@ -3574,6 +4112,10 @@ type = "text"
 at = [{ stage = 0, file = 20364 }]
 chunks = { palette = "1027709f284bb8ecb434c0e8670e7aba59fc11a9", image = "ae36e0748d916533bc30d1b7e2474dd17046052f" }
 
+[gps.from.EUR]
+at = [{ stage = 0, file = 20364 }]
+chunks = { palette = "1027709f284bb8ecb434c0e8670e7aba59fc11a9", image = "ae36e0748d916533bc30d1b7e2474dd17046052f" }
+
 [combat_light]
 uid = "uid://lalcfgsnqqn2"
 template = "file"
@@ -3597,6 +4139,10 @@ name = "text"
 type = "text"
 
 [combat_light.from.USA]
+at = [{ stage = 0, file = 20365 }]
+chunks = { palette = "b18af84a7b2ac0730e6bca230b1ffb25f6d781ec", image = "7c58aaa7776cadee30dbbd55399390198ec7efdc" }
+
+[combat_light.from.EUR]
 at = [{ stage = 0, file = 20365 }]
 chunks = { palette = "b18af84a7b2ac0730e6bca230b1ffb25f6d781ec", image = "7c58aaa7776cadee30dbbd55399390198ec7efdc" }
 
@@ -3626,6 +4172,10 @@ type = "text"
 at = [{ stage = 0, file = 20366 }]
 chunks = { palette = "ecce81ba967e4de9b326566543b331ccb660449e", image = "f9a8a9b9b75dbd2ad3f2b5a978fa08a767ea0479" }
 
+[hammer.from.EUR]
+at = [{ stage = 0, file = 20366 }]
+chunks = { palette = "ecce81ba967e4de9b326566543b331ccb660449e", image = "f9a8a9b9b75dbd2ad3f2b5a978fa08a767ea0479" }
+
 [pyke]
 uid = "uid://mtq2pjsj0ydo"
 template = "file"
@@ -3649,6 +4199,10 @@ name = "text"
 type = "text"
 
 [pyke.from.USA]
+at = [{ stage = 0, file = 20367 }]
+chunks = { palette = "04ad2c2f08dcc5ae850769828faa96b07a910166", image = "f56cd4c28e318ffd1f487a821be84f286d5e8eef" }
+
+[pyke.from.EUR]
 at = [{ stage = 0, file = 20367 }]
 chunks = { palette = "04ad2c2f08dcc5ae850769828faa96b07a910166", image = "f56cd4c28e318ffd1f487a821be84f286d5e8eef" }
 
@@ -3678,6 +4232,10 @@ type = "text"
 at = [{ stage = 0, file = 20368 }]
 chunks = { palette = "6fb5c5512e702c77c7557874cd94eda1b9577f2e", image = "74fed375dbd1431fcc31509d91861d134d7df804" }
 
+[javelin.from.EUR]
+at = [{ stage = 0, file = 20368 }]
+chunks = { palette = "6fb5c5512e702c77c7557874cd94eda1b9577f2e", image = "74fed375dbd1431fcc31509d91861d134d7df804" }
+
 [m203]
 uid = "uid://1iofbzq0a3y2f"
 template = "file"
@@ -3701,6 +4259,10 @@ name = "text"
 type = "text"
 
 [m203.from.USA]
+at = [{ stage = 0, file = 20369 }]
+chunks = { palette = "bffe3bca94fce67650d860f69112bd38f5f2d9c1", image = "fa1a34443174db81079551c4c584e7831911b393" }
+
+[m203.from.EUR]
 at = [{ stage = 0, file = 20369 }]
 chunks = { palette = "bffe3bca94fce67650d860f69112bd38f5f2d9c1", image = "fa1a34443174db81079551c4c584e7831911b393" }
 
@@ -3730,6 +4292,10 @@ type = "text"
 at = [{ stage = 0, file = 20370 }]
 chunks = { palette = "4ed3bc009b2c735787a21bc22a6c33eea2cecf07", image = "80c79ce0ab69eb331b2907d589427fce68f996de" }
 
+[m9.from.EUR]
+at = [{ stage = 0, file = 20370 }]
+chunks = { palette = "4ed3bc009b2c735787a21bc22a6c33eea2cecf07", image = "80c79ce0ab69eb331b2907d589427fce68f996de" }
+
 [9mm_pb]
 uid = "uid://3exwwzx8h3vy"
 template = "file"
@@ -3753,6 +4319,10 @@ name = "text"
 type = "text"
 
 [9mm_pb.from.USA]
+at = [{ stage = 0, file = 20400 }, { stage = 0, file = 20401 }]
+chunks = { palette = "f193f090f9a387b7676dfa34f7721a47ff99d878", image = "658d3bfbb95caaee76730cf0efd8fe4752ced699" }
+
+[9mm_pb.from.EUR]
 at = [{ stage = 0, file = 20400 }, { stage = 0, file = 20401 }]
 chunks = { palette = "f193f090f9a387b7676dfa34f7721a47ff99d878", image = "658d3bfbb95caaee76730cf0efd8fe4752ced699" }
 
@@ -3782,6 +4352,10 @@ type = "text"
 at = [{ stage = 0, file = 20402 }]
 chunks = { palette = "5db61acfa34267effbaf2835fbf244b1a821f0a8", image = "db7f1d2ab20c3c3951e03225980ae72e482b8cf3" }
 
+[9mm_hydra.from.EUR]
+at = [{ stage = 0, file = 20402 }]
+chunks = { palette = "5db61acfa34267effbaf2835fbf244b1a821f0a8", image = "db7f1d2ab20c3c3951e03225980ae72e482b8cf3" }
+
 [9mm_spartan]
 uid = "uid://db3lmleuwfl3"
 template = "file"
@@ -3805,6 +4379,10 @@ name = "text"
 type = "text"
 
 [9mm_spartan.from.USA]
+at = [{ stage = 0, file = 20403 }]
+chunks = { palette = "737a6d768c63682d960c90a03fb7733a33853660", image = "71ecfcb7272feca95f8476d868aec54395f69965" }
+
+[9mm_spartan.from.EUR]
 at = [{ stage = 0, file = 20403 }]
 chunks = { palette = "737a6d768c63682d960c90a03fb7733a33853660", image = "71ecfcb7272feca95f8476d868aec54395f69965" }
 
@@ -3834,6 +4412,10 @@ type = "text"
 at = [{ stage = 0, file = 20407 }]
 chunks = { palette = "bf4551e775a708614a4c81fee29460ffd260943e", image = "3193f6301ff7f3603a92f65ffc20374f566b1b1a" }
 
+[44_magnum.from.EUR]
+at = [{ stage = 0, file = 20407 }]
+chunks = { palette = "bf4551e775a708614a4c81fee29460ffd260943e", image = "3193f6301ff7f3603a92f65ffc20374f566b1b1a" }
+
 [44_maeda_sp]
 uid = "uid://qh5qkxov61g"
 template = "file"
@@ -3857,6 +4439,10 @@ name = "text"
 type = "text"
 
 [44_maeda_sp.from.USA]
+at = [{ stage = 0, file = 20408 }]
+chunks = { palette = "6fb9fd9dbdb7553aaaf6321e264338804c201ab5", image = "d5c5a9b818c7242ad9936f3ebcd92d88df6d178f" }
+
+[44_maeda_sp.from.EUR]
 at = [{ stage = 0, file = 20408 }]
 chunks = { palette = "6fb9fd9dbdb7553aaaf6321e264338804c201ab5", image = "d5c5a9b818c7242ad9936f3ebcd92d88df6d178f" }
 
@@ -3886,6 +4472,10 @@ type = "text"
 at = [{ stage = 0, file = 20409 }]
 chunks = { palette = "6fb9fd9dbdb7553aaaf6321e264338804c201ab5", image = "d5c5a9b818c7242ad9936f3ebcd92d88df6d178f" }
 
+[44_poison.from.EUR]
+at = [{ stage = 0, file = 20409 }]
+chunks = { palette = "6fb9fd9dbdb7553aaaf6321e264338804c201ab5", image = "d5c5a9b818c7242ad9936f3ebcd92d88df6d178f" }
+
 [grenade]
 uid = "uid://nbvr39ulckbf"
 template = "file"
@@ -3909,6 +4499,10 @@ name = "text"
 type = "text"
 
 [grenade.from.USA]
+at = [{ stage = 0, file = 20410 }]
+chunks = { palette = "44443cc311f1119106fb054dfd1cebacb600fcea", image = "6b8e11a2bc13b7270bcf417c89a1ae3066691c19" }
+
+[grenade.from.EUR]
 at = [{ stage = 0, file = 20410 }]
 chunks = { palette = "44443cc311f1119106fb054dfd1cebacb600fcea", image = "6b8e11a2bc13b7270bcf417c89a1ae3066691c19" }
 
@@ -3938,6 +4532,10 @@ type = "text"
 at = [{ stage = 0, file = 20411 }]
 chunks = { palette = "3b5875ebe867325dbdd8e34df4e44084a6f80445", image = "5bbb652e0056a44b1e77eaf88a12d3c948730578" }
 
+[airburst.from.EUR]
+at = [{ stage = 0, file = 20411 }]
+chunks = { palette = "3b5875ebe867325dbdd8e34df4e44084a6f80445", image = "5bbb652e0056a44b1e77eaf88a12d3c948730578" }
+
 [riot]
 uid = "uid://nkuc6rwap4nl"
 template = "file"
@@ -3961,6 +4559,10 @@ name = "text"
 type = "text"
 
 [riot.from.USA]
+at = [{ stage = 0, file = 20412 }]
+chunks = { palette = "2b114df405ae825ab5aba5b64ace2b9df4084f65", image = "7b5c86c83c0aafac223cc9c369c9e773f94bc2df" }
+
+[riot.from.EUR]
 at = [{ stage = 0, file = 20412 }]
 chunks = { palette = "2b114df405ae825ab5aba5b64ace2b9df4084f65", image = "7b5c86c83c0aafac223cc9c369c9e773f94bc2df" }
 
@@ -3990,6 +4592,10 @@ type = "text"
 at = [{ stage = 0, file = 20413 }]
 chunks = { palette = "bb72c9e7ec6a5ebf90f82778ceb44983f931f0bc", image = "ec0f5488e8824d552a6c48bdc10e823849f48ebc" }
 
+[buckshot.from.EUR]
+at = [{ stage = 0, file = 20413 }]
+chunks = { palette = "bb72c9e7ec6a5ebf90f82778ceb44983f931f0bc", image = "ec0f5488e8824d552a6c48bdc10e823849f48ebc" }
+
 [firefly]
 uid = "uid://wbaebdjacah5"
 template = "file"
@@ -4013,6 +4619,10 @@ name = "text"
 type = "text"
 
 [firefly.from.USA]
+at = [{ stage = 0, file = 20414 }]
+chunks = { palette = "ad4413f160b3f2efee408739f1182160b4daf231", image = "da78da2d8b74fad95b7b2938e371e495a0a9552c" }
+
+[firefly.from.EUR]
 at = [{ stage = 0, file = 20414 }]
 chunks = { palette = "ad4413f160b3f2efee408739f1182160b4daf231", image = "da78da2d8b74fad95b7b2938e371e495a0a9552c" }
 
@@ -4042,6 +4652,10 @@ type = "text"
 at = [{ stage = 0, file = 20415 }]
 chunks = { palette = "4877802617f1e6cc36fedc616c1a214687164793", image = "bdc21aa742f2f3fd4c80f904eea17e5c0cb3580e" }
 
+[rifled_slug.from.EUR]
+at = [{ stage = 0, file = 20415 }]
+chunks = { palette = "4877802617f1e6cc36fedc616c1a214687164793", image = "bdc21aa742f2f3fd4c80f904eea17e5c0cb3580e" }
+
 [5_56_rifle]
 uid = "uid://x5gfq6zogbj9"
 template = "file"
@@ -4065,6 +4679,10 @@ name = "text"
 type = "text"
 
 [5_56_rifle.from.USA]
+at = [{ stage = 0, file = 20416 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
+[5_56_rifle.from.EUR]
 at = [{ stage = 0, file = 20416 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
@@ -4094,6 +4712,10 @@ type = "text"
 at = [{ stage = 0, file = 20417 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
+[paralizer.from.EUR]
+at = [{ stage = 0, file = 20417 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
 [flashbomb]
 uid = "uid://19dq3l6do6wj5"
 template = "file"
@@ -4117,6 +4739,10 @@ name = "text"
 type = "text"
 
 [flashbomb.from.USA]
+at = [{ stage = 0, file = 20418 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
+[flashbomb.from.EUR]
 at = [{ stage = 0, file = 20418 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
@@ -4146,6 +4772,10 @@ type = "text"
 at = [{ stage = 0, file = 20422 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
+[battery.from.EUR]
+at = [{ stage = 0, file = 20422 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
 [hypervelocity_battery]
 uid = "uid://12mqesbz0df5f"
 template = "file"
@@ -4169,6 +4799,10 @@ name = "text"
 type = "text"
 
 [hypervelocity_battery.from.USA]
+at = [{ stage = 0, file = 20426 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
+[hypervelocity_battery.from.EUR]
 at = [{ stage = 0, file = 20426 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
@@ -4198,6 +4832,10 @@ type = "text"
 at = [{ stage = 0, file = 20428 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
+[hammer_battery.from.EUR]
+at = [{ stage = 0, file = 20428 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
 [fuel]
 uid = "uid://j4pvu4wgkv0g"
 template = "file"
@@ -4221,6 +4859,10 @@ name = "text"
 type = "text"
 
 [fuel.from.USA]
+at = [{ stage = 0, file = 20430 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
+[fuel.from.EUR]
 at = [{ stage = 0, file = 20430 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
@@ -4250,6 +4892,10 @@ type = "text"
 at = [{ stage = 0, file = 20431 }]
 chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
 
+[javelin_battery.from.EUR]
+at = [{ stage = 0, file = 20431 }]
+chunks = { palette = "29bae6e3d76e75da44c1f73f325796b287df1496", image = "5e600c54adc571b571d23423c30ef2db0da02a14" }
+
 [leather_jacket]
 uid = "uid://1ld1an0lfy1bg"
 template = "file"
@@ -4273,6 +4919,10 @@ name = "text"
 type = "text"
 
 [leather_jacket.from.USA]
+at = [{ stage = 0, file = 20500 }, { stage = 0, file = 20501 }]
+chunks = { palette = "1e39543b68dbff2b7f47a78d4289fd71e8bfd0a2", image = "3b9eb18e052a763afa0cc2014c7e8657ce141402" }
+
+[leather_jacket.from.EUR]
 at = [{ stage = 0, file = 20500 }, { stage = 0, file = 20501 }]
 chunks = { palette = "1e39543b68dbff2b7f47a78d4289fd71e8bfd0a2", image = "3b9eb18e052a763afa0cc2014c7e8657ce141402" }
 
@@ -4302,6 +4952,10 @@ type = "text"
 at = [{ stage = 0, file = 20502 }]
 chunks = { palette = "4a4064b200da70849e6bd1163f95c2145d3f8694", image = "9a1eacd8ef4384614f3e53351a870f05616aca8e" }
 
+[tactical_armor.from.EUR]
+at = [{ stage = 0, file = 20502 }]
+chunks = { palette = "4a4064b200da70849e6bd1163f95c2145d3f8694", image = "9a1eacd8ef4384614f3e53351a870f05616aca8e" }
+
 [combat_armor]
 uid = "uid://ih09lbbt9dk0"
 template = "file"
@@ -4325,6 +4979,10 @@ name = "text"
 type = "text"
 
 [combat_armor.from.USA]
+at = [{ stage = 0, file = 20503 }]
+chunks = { palette = "1f2d2e836dcfba0c3be8f2843312fc2f90838530", image = "e9f35622f5fd344a984050bc6181a8c3b1ed12ad" }
+
+[combat_armor.from.EUR]
 at = [{ stage = 0, file = 20503 }]
 chunks = { palette = "1f2d2e836dcfba0c3be8f2843312fc2f90838530", image = "e9f35622f5fd344a984050bc6181a8c3b1ed12ad" }
 
@@ -4354,6 +5012,10 @@ type = "text"
 at = [{ stage = 0, file = 20504 }]
 chunks = { palette = "0bc07136b39cf5cc7a3fb1b455858c8802296964", image = "12d28d5149fc4d2a0b79bfff036e4f76a063f4a9" }
 
+[assault_suit.from.EUR]
+at = [{ stage = 0, file = 20504 }]
+chunks = { palette = "0bc07136b39cf5cc7a3fb1b455858c8802296964", image = "12d28d5149fc4d2a0b79bfff036e4f76a063f4a9" }
+
 [pasgt_vest]
 uid = "uid://1uak6seooylpn"
 template = "file"
@@ -4377,6 +5039,10 @@ name = "text"
 type = "text"
 
 [pasgt_vest.from.USA]
+at = [{ stage = 0, file = 20505 }]
+chunks = { palette = "04d843dac976cf55cf158edab9fed42fac657693", image = "efa18ac7e27ae65bd81bfadc68e24f0424f69fc2" }
+
+[pasgt_vest.from.EUR]
 at = [{ stage = 0, file = 20505 }]
 chunks = { palette = "04d843dac976cf55cf158edab9fed42fac657693", image = "efa18ac7e27ae65bd81bfadc68e24f0424f69fc2" }
 
@@ -4406,6 +5072,10 @@ type = "text"
 at = [{ stage = 0, file = 20506 }]
 chunks = { palette = "ef2a0be1d4ae9cd3751835d4dbe798f9b38bb24a", image = "89c075c384d735f92df0eb5c5651d4b10ca6a76e" }
 
+[tactical_vest.from.EUR]
+at = [{ stage = 0, file = 20506 }]
+chunks = { palette = "ef2a0be1d4ae9cd3751835d4dbe798f9b38bb24a", image = "89c075c384d735f92df0eb5c5651d4b10ca6a76e" }
+
 [eod_suit]
 uid = "uid://bu9oijrbidn2"
 template = "file"
@@ -4429,6 +5099,10 @@ name = "text"
 type = "text"
 
 [eod_suit.from.USA]
+at = [{ stage = 0, file = 20507 }]
+chunks = { palette = "c044f4f010a4ec7bf3df1c72f405ae94cd67ea59", image = "933d7a64016162755485aae7cca69c15abaf674f" }
+
+[eod_suit.from.EUR]
 at = [{ stage = 0, file = 20507 }]
 chunks = { palette = "c044f4f010a4ec7bf3df1c72f405ae94cd67ea59", image = "933d7a64016162755485aae7cca69c15abaf674f" }
 
@@ -4458,6 +5132,10 @@ type = "text"
 at = [{ stage = 0, file = 20508 }]
 chunks = { palette = "1e3e5279f83c88118c5308d664f20a26968f0cc2", image = "3e7851f9adac45836f409fbff6e40a487d068b36" }
 
+[turtle_vest.from.EUR]
+at = [{ stage = 0, file = 20508 }]
+chunks = { palette = "1e3e5279f83c88118c5308d664f20a26968f0cc2", image = "3e7851f9adac45836f409fbff6e40a487d068b36" }
+
 [chicken_plate]
 uid = "uid://1dfml5rknnkws"
 template = "file"
@@ -4481,6 +5159,10 @@ name = "text"
 type = "text"
 
 [chicken_plate.from.USA]
+at = [{ stage = 0, file = 20509 }]
+chunks = { palette = "845ef09840d644ae258006e648a2c90f071e0baa", image = "e8cd43fece6a96f9b81c2c90f841e5920b26d9c0" }
+
+[chicken_plate.from.EUR]
 at = [{ stage = 0, file = 20509 }]
 chunks = { palette = "845ef09840d644ae258006e648a2c90f071e0baa", image = "e8cd43fece6a96f9b81c2c90f841e5920b26d9c0" }
 
@@ -4510,6 +5192,10 @@ type = "text"
 at = [{ stage = 0, file = 20510 }]
 chunks = { palette = "167d9180fc5b78be4ffe90b682f569cf70d24cf1", image = "7556a47ad056051fc76102e08e3ecc5c168ddc24" }
 
+[nbc_suit.from.EUR]
+at = [{ stage = 0, file = 20510 }]
+chunks = { palette = "167d9180fc5b78be4ffe90b682f569cf70d24cf1", image = "7556a47ad056051fc76102e08e3ecc5c168ddc24" }
+
 [psysuit]
 uid = "uid://1d2u0yks2fy7c"
 template = "file"
@@ -4533,6 +5219,10 @@ name = "text"
 type = "text"
 
 [psysuit.from.USA]
+at = [{ stage = 0, file = 20511 }]
+chunks = { palette = "d36f593e2f764918a780be8f353e6e0bc23c1810", image = "43534b8a9e70ca81d88566a241efa41b1c6c9313" }
+
+[psysuit.from.EUR]
 at = [{ stage = 0, file = 20511 }]
 chunks = { palette = "d36f593e2f764918a780be8f353e6e0bc23c1810", image = "43534b8a9e70ca81d88566a241efa41b1c6c9313" }
 
@@ -4562,6 +5252,10 @@ type = "text"
 at = [{ stage = 0, file = 20512 }]
 chunks = { palette = "5a29eaab55ee26ac7721205641e6054a3dfd19a7", image = "79598617248751f714ffe3081a132460d86cff05" }
 
+[aya_special.from.EUR]
+at = [{ stage = 0, file = 20512 }]
+chunks = { palette = "5a29eaab55ee26ac7721205641e6054a3dfd19a7", image = "79598617248751f714ffe3081a132460d86cff05" }
+
 [shoulder_holster]
 uid = "uid://1o6po69v1txv6"
 template = "file"
@@ -4585,6 +5279,10 @@ name = "text"
 type = "text"
 
 [shoulder_holster.from.USA]
+at = [{ stage = 0, file = 20513 }]
+chunks = { palette = "66b3635cf709d125bf175487436c1d681b9ed48b", image = "44de01694d2a8fd3a9e9ef01a9aceb77f4212447" }
+
+[shoulder_holster.from.EUR]
 at = [{ stage = 0, file = 20513 }]
 chunks = { palette = "66b3635cf709d125bf175487436c1d681b9ed48b", image = "44de01694d2a8fd3a9e9ef01a9aceb77f4212447" }
 
@@ -4614,6 +5312,10 @@ type = "text"
 at = [{ stage = 0, file = 20514 }]
 chunks = { palette = "05199d5d78699cb95c851f3090e8fa7a334a1614", image = "f9b1c8b1eadcf803da550236b90e3372ac65af8f" }
 
+[monk_robe.from.EUR]
+at = [{ stage = 0, file = 20514 }]
+chunks = { palette = "05199d5d78699cb95c851f3090e8fa7a334a1614", image = "f9b1c8b1eadcf803da550236b90e3372ac65af8f" }
+
 [nmc_names]
 uid = "uid://gahlbypbge93"
 template = "file"
@@ -4622,6 +5324,9 @@ slots = [
 ]
 
 [nmc_names.from.USA]
+at = [{ stage = 0, file = 20600 }]
+
+[nmc_names.from.EUR]
 at = [{ stage = 0, file = 20600 }]
 
 [enemy_rat]
@@ -4647,6 +5352,10 @@ name = "text"
 type = "text"
 
 [enemy_rat.from.USA]
+at = [{ stage = 0, file = 20601 }]
+chunks = { preview_palette = "d937aa2371da36a5c77088e8dbecb254f1aa61ec", preview_image = "f526c643dbaf8175713733c2a4b2c5dfe183dce8" }
+
+[enemy_rat.from.EUR]
 at = [{ stage = 0, file = 20601 }]
 chunks = { preview_palette = "d937aa2371da36a5c77088e8dbecb254f1aa61ec", preview_image = "f526c643dbaf8175713733c2a4b2c5dfe183dce8" }
 
@@ -4676,6 +5385,10 @@ type = "text"
 at = [{ stage = 0, file = 20602 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_moth.from.EUR]
+at = [{ stage = 0, file = 20602 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_bass]
 uid = "uid://wal2yh1fwa5k"
 template = "file"
@@ -4699,6 +5412,10 @@ name = "text"
 type = "text"
 
 [enemy_bass.from.USA]
+at = [{ stage = 0, file = 20603 }]
+chunks = { preview_palette = "9dc778cfeabccf1aa0c87f35d0eae8b4dcaadbf1", preview_image = "e883f32ba4cecc3c0c45758ac9cd124c44ee5528" }
+
+[enemy_bass.from.EUR]
 at = [{ stage = 0, file = 20603 }]
 chunks = { preview_palette = "9dc778cfeabccf1aa0c87f35d0eae8b4dcaadbf1", preview_image = "e883f32ba4cecc3c0c45758ac9cd124c44ee5528" }
 
@@ -4728,6 +5445,10 @@ type = "text"
 at = [{ stage = 0, file = 20604 }]
 chunks = { preview_palette = "e1396c6870c7e46c3d5a0bdc2d8bb01a137020c6", preview_image = "d353cad6399289136b36f775a85b5e9c5fcfc443" }
 
+[enemy_bat.from.EUR]
+at = [{ stage = 0, file = 20604 }]
+chunks = { preview_palette = "e1396c6870c7e46c3d5a0bdc2d8bb01a137020c6", preview_image = "d353cad6399289136b36f775a85b5e9c5fcfc443" }
+
 [enemy_scorpion]
 uid = "uid://kx6n4bkn720g"
 template = "file"
@@ -4751,6 +5472,10 @@ name = "text"
 type = "text"
 
 [enemy_scorpion.from.USA]
+at = [{ stage = 0, file = 20605 }]
+chunks = { preview_palette = "16bf04eafc2aaf6bbc93d598d9a754bb554999b8", preview_image = "9e744ab3f5bd1f12fd31c9fad6b737ecc0bf3331" }
+
+[enemy_scorpion.from.EUR]
 at = [{ stage = 0, file = 20605 }]
 chunks = { preview_palette = "16bf04eafc2aaf6bbc93d598d9a754bb554999b8", preview_image = "9e744ab3f5bd1f12fd31c9fad6b737ecc0bf3331" }
 
@@ -4780,6 +5505,10 @@ type = "text"
 at = [{ stage = 0, file = 20606 }]
 chunks = { preview_palette = "d5288673a2a55f4ebe0bdb8bcb864d83e6d6a0c6", preview_image = "cbc6eea0ec7233d6738325acaf729ac0894080f7" }
 
+[enemy_black_beetle.from.EUR]
+at = [{ stage = 0, file = 20606 }]
+chunks = { preview_palette = "d5288673a2a55f4ebe0bdb8bcb864d83e6d6a0c6", preview_image = "cbc6eea0ec7233d6738325acaf729ac0894080f7" }
+
 [enemy_maggot]
 uid = "uid://onmttxlmzs6o"
 template = "file"
@@ -4803,6 +5532,10 @@ name = "text"
 type = "text"
 
 [enemy_maggot.from.USA]
+at = [{ stage = 0, file = 20607 }]
+chunks = { preview_palette = "1e64322148f9832202d99bff4e724a06c8f4d278", preview_image = "46b2863c44c813815e8a1b4e92de5555160a7e0a" }
+
+[enemy_maggot.from.EUR]
 at = [{ stage = 0, file = 20607 }]
 chunks = { preview_palette = "1e64322148f9832202d99bff4e724a06c8f4d278", preview_image = "46b2863c44c813815e8a1b4e92de5555160a7e0a" }
 
@@ -4832,6 +5565,10 @@ type = "text"
 at = [{ stage = 0, file = 20608 }]
 chunks = { preview_palette = "1d5a98435f75c2307515f83598e23c5ab4255e19", preview_image = "2568ed85aeb6f7aee0e1b3b88596d0452c9dd4f6" }
 
+[enemy_green_amoeba.from.EUR]
+at = [{ stage = 0, file = 20608 }]
+chunks = { preview_palette = "1d5a98435f75c2307515f83598e23c5ab4255e19", preview_image = "2568ed85aeb6f7aee0e1b3b88596d0452c9dd4f6" }
+
 [enemy_red_amoeba]
 uid = "uid://eq9vwmzimf99"
 template = "file"
@@ -4855,6 +5592,10 @@ name = "text"
 type = "text"
 
 [enemy_red_amoeba.from.USA]
+at = [{ stage = 0, file = 20609 }]
+chunks = { preview_palette = "be5557553c018a8f24c128897a78b71b38f164f6", preview_image = "be2b1ca23c541204f39070b5fc8129ad2a7d9f57" }
+
+[enemy_red_amoeba.from.EUR]
 at = [{ stage = 0, file = 20609 }]
 chunks = { preview_palette = "be5557553c018a8f24c128897a78b71b38f164f6", preview_image = "be2b1ca23c541204f39070b5fc8129ad2a7d9f57" }
 
@@ -4884,6 +5625,10 @@ type = "text"
 at = [{ stage = 0, file = 20610 }]
 chunks = { preview_palette = "f423f18d36913260d020ccfa0e6dd57cddc857e2", preview_image = "c80be47d0a1d32f5ed6a8abbf496266c3908555c" }
 
+[enemy_chicken_man_a.from.EUR]
+at = [{ stage = 0, file = 20610 }]
+chunks = { preview_palette = "f423f18d36913260d020ccfa0e6dd57cddc857e2", preview_image = "c80be47d0a1d32f5ed6a8abbf496266c3908555c" }
+
 [enemy_chicken_man_b]
 uid = "uid://y9ujf2w0dgt1"
 template = "file"
@@ -4907,6 +5652,10 @@ name = "text"
 type = "text"
 
 [enemy_chicken_man_b.from.USA]
+at = [{ stage = 0, file = 20611 }]
+chunks = { preview_palette = "1d97e7d32d35e31a698879592c47dd1f4fa0bd28", preview_image = "c975fb72051bdfc8184aac6f93969b4e79e3fc82" }
+
+[enemy_chicken_man_b.from.EUR]
 at = [{ stage = 0, file = 20611 }]
 chunks = { preview_palette = "1d97e7d32d35e31a698879592c47dd1f4fa0bd28", preview_image = "c975fb72051bdfc8184aac6f93969b4e79e3fc82" }
 
@@ -4936,6 +5685,10 @@ type = "text"
 at = [{ stage = 0, file = 20612 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_chicken_walker.from.EUR]
+at = [{ stage = 0, file = 20612 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_chicken_rider]
 uid = "uid://1e3a05vhuiwv6"
 template = "file"
@@ -4959,6 +5712,10 @@ name = "text"
 type = "text"
 
 [enemy_chicken_rider.from.USA]
+at = [{ stage = 0, file = 20613 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_chicken_rider.from.EUR]
 at = [{ stage = 0, file = 20613 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -4988,6 +5745,10 @@ type = "text"
 at = [{ stage = 0, file = 20614 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_chicken_hopper.from.EUR]
+at = [{ stage = 0, file = 20614 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_cone_head]
 uid = "uid://11bkukunyzqr3"
 template = "file"
@@ -5011,6 +5772,10 @@ name = "text"
 type = "text"
 
 [enemy_cone_head.from.USA]
+at = [{ stage = 0, file = 20615 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_cone_head.from.EUR]
 at = [{ stage = 0, file = 20615 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5040,6 +5805,10 @@ type = "text"
 at = [{ stage = 0, file = 20616 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_turtle_head.from.EUR]
+at = [{ stage = 0, file = 20616 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_parasite_baby]
 uid = "uid://1n6b7mk0zez5s"
 template = "file"
@@ -5063,6 +5832,10 @@ name = "text"
 type = "text"
 
 [enemy_parasite_baby.from.USA]
+at = [{ stage = 0, file = 20617 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_parasite_baby.from.EUR]
 at = [{ stage = 0, file = 20617 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5092,6 +5865,10 @@ type = "text"
 at = [{ stage = 0, file = 20618 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_blood_suckler.from.EUR]
+at = [{ stage = 0, file = 20618 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_desert_chaser]
 uid = "uid://mppb9n1ufa4z"
 template = "file"
@@ -5115,6 +5892,10 @@ name = "text"
 type = "text"
 
 [enemy_desert_chaser.from.USA]
+at = [{ stage = 0, file = 20619 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_desert_chaser.from.EUR]
 at = [{ stage = 0, file = 20619 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5144,6 +5925,10 @@ type = "text"
 at = [{ stage = 0, file = 20620 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_stealth_punisher.from.EUR]
+at = [{ stage = 0, file = 20620 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_doppel_punisher]
 uid = "uid://1lojjoukm6et6"
 template = "file"
@@ -5167,6 +5952,10 @@ name = "text"
 type = "text"
 
 [enemy_doppel_punisher.from.USA]
+at = [{ stage = 0, file = 20621 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_doppel_punisher.from.EUR]
 at = [{ stage = 0, file = 20621 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5196,6 +5985,10 @@ type = "text"
 at = [{ stage = 0, file = 20622 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_night_singer.from.EUR]
+at = [{ stage = 0, file = 20622 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_parasite_flyer]
 uid = "uid://jxlisr9hk97v"
 template = "file"
@@ -5219,6 +6012,10 @@ name = "text"
 type = "text"
 
 [enemy_parasite_flyer.from.USA]
+at = [{ stage = 0, file = 20623 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_parasite_flyer.from.EUR]
 at = [{ stage = 0, file = 20623 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5248,6 +6045,10 @@ type = "text"
 at = [{ stage = 0, file = 20624 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_stalker.from.EUR]
+at = [{ stage = 0, file = 20624 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_sea_diver]
 uid = "uid://x83meqfcie4d"
 template = "file"
@@ -5271,6 +6072,10 @@ name = "text"
 type = "text"
 
 [enemy_sea_diver.from.USA]
+at = [{ stage = 0, file = 20625 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_sea_diver.from.EUR]
 at = [{ stage = 0, file = 20625 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5300,6 +6105,10 @@ type = "text"
 at = [{ stage = 0, file = 20626 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_smart_cone.from.EUR]
+at = [{ stage = 0, file = 20626 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_cone_walker]
 uid = "uid://1714c3ox9irl1"
 template = "file"
@@ -5323,6 +6132,10 @@ name = "text"
 type = "text"
 
 [enemy_cone_walker.from.USA]
+at = [{ stage = 0, file = 20627 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_cone_walker.from.EUR]
 at = [{ stage = 0, file = 20627 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5352,6 +6165,10 @@ type = "text"
 at = [{ stage = 0, file = 20628 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_half_desert.from.EUR]
+at = [{ stage = 0, file = 20628 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_parasite_dama]
 uid = "uid://3u8v4skqz4bd"
 template = "file"
@@ -5375,6 +6192,10 @@ name = "text"
 type = "text"
 
 [enemy_parasite_dama.from.USA]
+at = [{ stage = 0, file = 20629 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_parasite_dama.from.EUR]
 at = [{ stage = 0, file = 20629 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5404,6 +6225,10 @@ type = "text"
 at = [{ stage = 0, file = 20630 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_stealth_head.from.EUR]
+at = [{ stage = 0, file = 20630 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_laser_turret_1]
 uid = "uid://gkwax3hzyr9k"
 template = "file"
@@ -5427,6 +6252,10 @@ name = "text"
 type = "text"
 
 [enemy_laser_turret_1.from.USA]
+at = [{ stage = 0, file = 20631 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_laser_turret_1.from.EUR]
 at = [{ stage = 0, file = 20631 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5456,6 +6285,10 @@ type = "text"
 at = [{ stage = 0, file = 20632 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_laser_turret_2.from.EUR]
+at = [{ stage = 0, file = 20632 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_laser_turret_3]
 uid = "uid://xqf6oyh48x4j"
 template = "file"
@@ -5479,6 +6312,10 @@ name = "text"
 type = "text"
 
 [enemy_laser_turret_3.from.USA]
+at = [{ stage = 0, file = 20633 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_laser_turret_3.from.EUR]
 at = [{ stage = 0, file = 20633 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5508,6 +6345,10 @@ type = "text"
 at = [{ stage = 0, file = 20634 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_laser_turret_4.from.EUR]
+at = [{ stage = 0, file = 20634 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_laser_turret_machine_gun]
 uid = "uid://h50h62lhpruu"
 template = "file"
@@ -5531,6 +6372,10 @@ name = "text"
 type = "text"
 
 [enemy_laser_turret_machine_gun.from.USA]
+at = [{ stage = 0, file = 20635 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_laser_turret_machine_gun.from.EUR]
 at = [{ stage = 0, file = 20635 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5560,6 +6405,10 @@ type = "text"
 at = [{ stage = 0, file = 20636 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_pawn_golem_beam_sword.from.EUR]
+at = [{ stage = 0, file = 20636 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_pawn_golem_grenade_launcher]
 uid = "uid://cb931kb1767"
 template = "file"
@@ -5583,6 +6432,10 @@ name = "text"
 type = "text"
 
 [enemy_pawn_golem_grenade_launcher.from.USA]
+at = [{ stage = 0, file = 20637 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_pawn_golem_grenade_launcher.from.EUR]
 at = [{ stage = 0, file = 20637 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5612,6 +6465,10 @@ type = "text"
 at = [{ stage = 0, file = 20638 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_rook_golem_beam_sword.from.EUR]
+at = [{ stage = 0, file = 20638 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_rook_golem_grenade_launcher]
 uid = "uid://1fqithg98b9au"
 template = "file"
@@ -5635,6 +6492,10 @@ name = "text"
 type = "text"
 
 [enemy_rook_golem_grenade_launcher.from.USA]
+at = [{ stage = 0, file = 20639 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_rook_golem_grenade_launcher.from.EUR]
 at = [{ stage = 0, file = 20639 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5664,6 +6525,10 @@ type = "text"
 at = [{ stage = 0, file = 20640 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_knight_golem.from.EUR]
+at = [{ stage = 0, file = 20640 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_bishop_golem]
 uid = "uid://h67gm6n6k9ag"
 template = "file"
@@ -5687,6 +6552,10 @@ name = "text"
 type = "text"
 
 [enemy_bishop_golem.from.USA]
+at = [{ stage = 0, file = 20641 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_bishop_golem.from.EUR]
 at = [{ stage = 0, file = 20641 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5716,6 +6585,10 @@ type = "text"
 at = [{ stage = 0, file = 20642 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_glasses_woman.from.EUR]
+at = [{ stage = 0, file = 20642 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_gunther_1]
 uid = "uid://j0ql6qjur4bo"
 template = "file"
@@ -5739,6 +6612,10 @@ name = "text"
 type = "text"
 
 [enemy_gunther_1.from.USA]
+at = [{ stage = 0, file = 20643 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_gunther_1.from.EUR]
 at = [{ stage = 0, file = 20643 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5768,6 +6645,10 @@ type = "text"
 at = [{ stage = 0, file = 20644 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_gunther_2.from.EUR]
+at = [{ stage = 0, file = 20644 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_blizzard_chaser]
 uid = "uid://vzn2bhancoc0"
 template = "file"
@@ -5791,6 +6672,10 @@ name = "text"
 type = "text"
 
 [enemy_blizzard_chaser.from.USA]
+at = [{ stage = 0, file = 20645 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_blizzard_chaser.from.EUR]
 at = [{ stage = 0, file = 20645 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5820,6 +6705,10 @@ type = "text"
 at = [{ stage = 0, file = 20646 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_zombie_blizzard_chaser.from.EUR]
+at = [{ stage = 0, file = 20646 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_gigant_sapiens]
 uid = "uid://evtwwtq0nyoo"
 template = "file"
@@ -5843,6 +6732,10 @@ name = "text"
 type = "text"
 
 [enemy_gigant_sapiens.from.USA]
+at = [{ stage = 0, file = 20647 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_gigant_sapiens.from.EUR]
 at = [{ stage = 0, file = 20647 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5872,6 +6765,10 @@ type = "text"
 at = [{ stage = 0, file = 20648 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_glutton_first_encounter.from.EUR]
+at = [{ stage = 0, file = 20648 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_glutton_second_encounter]
 uid = "uid://yz4fshj2a0tf"
 template = "file"
@@ -5895,6 +6792,10 @@ name = "text"
 type = "text"
 
 [enemy_glutton_second_encounter.from.USA]
+at = [{ stage = 0, file = 20649 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_glutton_second_encounter.from.EUR]
 at = [{ stage = 0, file = 20649 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5924,6 +6825,10 @@ type = "text"
 at = [{ stage = 0, file = 20650 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_amplifier_a.from.EUR]
+at = [{ stage = 0, file = 20650 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_amplifier_b]
 uid = "uid://wgn0bjahvunw"
 template = "file"
@@ -5947,6 +6852,10 @@ name = "text"
 type = "text"
 
 [enemy_amplifier_b.from.USA]
+at = [{ stage = 0, file = 20651 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_amplifier_b.from.EUR]
 at = [{ stage = 0, file = 20651 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -5976,6 +6885,10 @@ type = "text"
 at = [{ stage = 0, file = 20652 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_giant_stalker.from.EUR]
+at = [{ stage = 0, file = 20652 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_brahman_a]
 uid = "uid://k4n6n04v30cf"
 template = "file"
@@ -5999,6 +6912,10 @@ name = "text"
 type = "text"
 
 [enemy_brahman_a.from.USA]
+at = [{ stage = 0, file = 20653 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_brahman_a.from.EUR]
 at = [{ stage = 0, file = 20653 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -6028,6 +6945,10 @@ type = "text"
 at = [{ stage = 0, file = 20654 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_brahman_b.from.EUR]
+at = [{ stage = 0, file = 20654 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_brahman_c]
 uid = "uid://h1i2i3yc0dkp"
 template = "file"
@@ -6051,6 +6972,10 @@ name = "text"
 type = "text"
 
 [enemy_brahman_c.from.USA]
+at = [{ stage = 0, file = 20655 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_brahman_c.from.EUR]
 at = [{ stage = 0, file = 20655 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -6080,6 +7005,10 @@ type = "text"
 at = [{ stage = 0, file = 20656 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_brahman_d.from.EUR]
+at = [{ stage = 0, file = 20656 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_clear_brahman_a]
 uid = "uid://1hjuzflt92p19"
 template = "file"
@@ -6103,6 +7032,10 @@ name = "text"
 type = "text"
 
 [enemy_clear_brahman_a.from.USA]
+at = [{ stage = 0, file = 20657 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_clear_brahman_a.from.EUR]
 at = [{ stage = 0, file = 20657 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -6132,6 +7065,10 @@ type = "text"
 at = [{ stage = 0, file = 20658 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_clear_brahman_b.from.EUR]
+at = [{ stage = 0, file = 20658 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_clear_brahman_c]
 uid = "uid://1kq8i9de2dr0g"
 template = "file"
@@ -6155,6 +7092,10 @@ name = "text"
 type = "text"
 
 [enemy_clear_brahman_c.from.USA]
+at = [{ stage = 0, file = 20659 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_clear_brahman_c.from.EUR]
 at = [{ stage = 0, file = 20659 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -6184,6 +7125,10 @@ type = "text"
 at = [{ stage = 0, file = 20660 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_clear_brahman_d.from.EUR]
+at = [{ stage = 0, file = 20660 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [enemy_sabotender]
 uid = "uid://13u0p7smqdjhw"
 template = "file"
@@ -6207,6 +7152,10 @@ name = "text"
 type = "text"
 
 [enemy_sabotender.from.USA]
+at = [{ stage = 0, file = 20661 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
+[enemy_sabotender.from.EUR]
 at = [{ stage = 0, file = 20661 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
@@ -6236,6 +7185,10 @@ type = "text"
 at = [{ stage = 0, file = 20662 }]
 chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
 
+[enemy_chocobo.from.EUR]
+at = [{ stage = 0, file = 20662 }]
+chunks = { preview_palette = "65e9784cafe3f1873b915a880cb1979b39621a83", preview_image = "161ac20e76eb8f36b46a091126eaafe3a329e23e" }
+
 [pyrokinesis_level1_menu]
 uid = "uid://1ri4s6peok4hp"
 template = "file"
@@ -6259,6 +7212,10 @@ name = "text"
 type = "text"
 
 [pyrokinesis_level1_menu.from.USA]
+at = [{ stage = 0, file = 20700 }, { stage = 0, file = 20701 }]
+chunks = { palette = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7", image = "607717d6080eb7587375e5efac3267eed40977fa" }
+
+[pyrokinesis_level1_menu.from.EUR]
 at = [{ stage = 0, file = 20700 }, { stage = 0, file = 20701 }]
 chunks = { palette = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7", image = "607717d6080eb7587375e5efac3267eed40977fa" }
 
@@ -6288,6 +7245,10 @@ type = "text"
 at = [{ stage = 0, file = 20702 }]
 chunks = { palette = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2", image = "b3a0769fe2042bae8e260bf23797d409ce624064" }
 
+[pyrokinesis_level2_menu.from.EUR]
+at = [{ stage = 0, file = 20702 }]
+chunks = { palette = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2", image = "b3a0769fe2042bae8e260bf23797d409ce624064" }
+
 [pyrokinesis_level3_menu]
 uid = "uid://1bsnfh2v1hkz4"
 template = "file"
@@ -6311,6 +7272,10 @@ name = "text"
 type = "text"
 
 [pyrokinesis_level3_menu.from.USA]
+at = [{ stage = 0, file = 20703 }]
+chunks = { palette = "9ef565721dfa75d5d0dcd5f78686649fc756e54a", image = "faaa12ae2a23fb2eca7e0c4dbb8e4e7c1f08dea1" }
+
+[pyrokinesis_level3_menu.from.EUR]
 at = [{ stage = 0, file = 20703 }]
 chunks = { palette = "9ef565721dfa75d5d0dcd5f78686649fc756e54a", image = "faaa12ae2a23fb2eca7e0c4dbb8e4e7c1f08dea1" }
 
@@ -6340,6 +7305,10 @@ type = "text"
 at = [{ stage = 0, file = 20704 }]
 chunks = { palette = "31c590c2e4cf1c4ffefd2b372bf69294ff4f0e8a", image = "a1894cb6e1258d9b57aae117fe921bf8270ac9b8" }
 
+[combustion_level1_menu.from.EUR]
+at = [{ stage = 0, file = 20704 }]
+chunks = { palette = "31c590c2e4cf1c4ffefd2b372bf69294ff4f0e8a", image = "a1894cb6e1258d9b57aae117fe921bf8270ac9b8" }
+
 [combustion_level2_menu]
 uid = "uid://8u9ng0q4dkxr"
 template = "file"
@@ -6363,6 +7332,10 @@ name = "text"
 type = "text"
 
 [combustion_level2_menu.from.USA]
+at = [{ stage = 0, file = 20705 }]
+chunks = { palette = "2fb5d2fb1b9367e843c7a32a822c1b94fce50497", image = "8e8d2a5c56e687c69137530b07b9696c61c2e3e4" }
+
+[combustion_level2_menu.from.EUR]
 at = [{ stage = 0, file = 20705 }]
 chunks = { palette = "2fb5d2fb1b9367e843c7a32a822c1b94fce50497", image = "8e8d2a5c56e687c69137530b07b9696c61c2e3e4" }
 
@@ -6392,6 +7365,10 @@ type = "text"
 at = [{ stage = 0, file = 20706 }]
 chunks = { palette = "2439af9a4c5278ef336053bf81870690c147efac", image = "b6546f5cbe9be90475fcc031ac2dff0114d62ae6" }
 
+[combustion_level3_menu.from.EUR]
+at = [{ stage = 0, file = 20706 }]
+chunks = { palette = "2439af9a4c5278ef336053bf81870690c147efac", image = "b6546f5cbe9be90475fcc031ac2dff0114d62ae6" }
+
 [inferno_level1_menu]
 uid = "uid://107hl3my5igz6"
 template = "file"
@@ -6415,6 +7392,10 @@ name = "text"
 type = "text"
 
 [inferno_level1_menu.from.USA]
+at = [{ stage = 0, file = 20707 }]
+chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a56598c36babdffa8271ff6338ca6b5771e4ea6" }
+
+[inferno_level1_menu.from.EUR]
 at = [{ stage = 0, file = 20707 }]
 chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a56598c36babdffa8271ff6338ca6b5771e4ea6" }
 
@@ -6444,6 +7425,10 @@ type = "text"
 at = [{ stage = 0, file = 20708 }]
 chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a56598c36babdffa8271ff6338ca6b5771e4ea6" }
 
+[inferno_level2_menu.from.EUR]
+at = [{ stage = 0, file = 20708 }]
+chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a56598c36babdffa8271ff6338ca6b5771e4ea6" }
+
 [inferno_level3_menu]
 uid = "uid://14l5893knj7s0"
 template = "file"
@@ -6467,6 +7452,10 @@ name = "text"
 type = "text"
 
 [inferno_level3_menu.from.USA]
+at = [{ stage = 0, file = 20709 }]
+chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a56598c36babdffa8271ff6338ca6b5771e4ea6" }
+
+[inferno_level3_menu.from.EUR]
 at = [{ stage = 0, file = 20709 }]
 chunks = { palette = "349b3f1655ea37ab94e21ffcb1f0b4cfd2661471", image = "0a56598c36babdffa8271ff6338ca6b5771e4ea6" }
 
@@ -6496,6 +7485,10 @@ type = "text"
 at = [{ stage = 0, file = 20710 }]
 chunks = { palette = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7", image = "607717d6080eb7587375e5efac3267eed40977fa" }
 
+[necrosis_level1_menu.from.EUR]
+at = [{ stage = 0, file = 20710 }]
+chunks = { palette = "78ec9a535acd9d8fe496d192ab7dbb1efca37bf7", image = "607717d6080eb7587375e5efac3267eed40977fa" }
+
 [necrosis_level2_menu]
 uid = "uid://xq13vmfywezc"
 template = "file"
@@ -6519,6 +7512,10 @@ name = "text"
 type = "text"
 
 [necrosis_level2_menu.from.USA]
+at = [{ stage = 0, file = 20711 }]
+chunks = { palette = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2", image = "b3a0769fe2042bae8e260bf23797d409ce624064" }
+
+[necrosis_level2_menu.from.EUR]
 at = [{ stage = 0, file = 20711 }]
 chunks = { palette = "a251622e2a9eeed62eca8edb261b2a5925c2a6b2", image = "b3a0769fe2042bae8e260bf23797d409ce624064" }
 
@@ -6548,6 +7545,10 @@ type = "text"
 at = [{ stage = 0, file = 20712 }]
 chunks = { palette = "9ef565721dfa75d5d0dcd5f78686649fc756e54a", image = "faaa12ae2a23fb2eca7e0c4dbb8e4e7c1f08dea1" }
 
+[necrosis_level3_menu.from.EUR]
+at = [{ stage = 0, file = 20712 }]
+chunks = { palette = "9ef565721dfa75d5d0dcd5f78686649fc756e54a", image = "faaa12ae2a23fb2eca7e0c4dbb8e4e7c1f08dea1" }
+
 [plasma_level1_menu]
 uid = "uid://t17gy0j3o9qp"
 template = "file"
@@ -6571,6 +7572,10 @@ name = "text"
 type = "text"
 
 [plasma_level1_menu.from.USA]
+at = [{ stage = 0, file = 20713 }]
+chunks = { palette = "cda7a47004e31870c3e47306b7d36de3f1ca84c1", image = "bd8682a587e79f7b07363b3104ea248b76696ba7" }
+
+[plasma_level1_menu.from.EUR]
 at = [{ stage = 0, file = 20713 }]
 chunks = { palette = "cda7a47004e31870c3e47306b7d36de3f1ca84c1", image = "bd8682a587e79f7b07363b3104ea248b76696ba7" }
 
@@ -6600,6 +7605,10 @@ type = "text"
 at = [{ stage = 0, file = 20714 }]
 chunks = { palette = "6703f4174841fd5a2a08307fb4d768ed3d65d3cb", image = "64948bc1a0f0115a4f1f42afcd9a2f0fb880ae13" }
 
+[plasma_level2_menu.from.EUR]
+at = [{ stage = 0, file = 20714 }]
+chunks = { palette = "6703f4174841fd5a2a08307fb4d768ed3d65d3cb", image = "64948bc1a0f0115a4f1f42afcd9a2f0fb880ae13" }
+
 [plasma_level3_menu]
 uid = "uid://x8l0vd2pcvz7"
 template = "file"
@@ -6623,6 +7632,10 @@ name = "text"
 type = "text"
 
 [plasma_level3_menu.from.USA]
+at = [{ stage = 0, file = 20715 }]
+chunks = { palette = "6302181c66ea973c52a5ae43e4ee821be6b7aa8f", image = "29e93c2d202475b164e7175c91b10be8bdbbc3d3" }
+
+[plasma_level3_menu.from.EUR]
 at = [{ stage = 0, file = 20715 }]
 chunks = { palette = "6302181c66ea973c52a5ae43e4ee821be6b7aa8f", image = "29e93c2d202475b164e7175c91b10be8bdbbc3d3" }
 
@@ -6652,6 +7665,10 @@ type = "text"
 at = [{ stage = 0, file = 20716 }]
 chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
 
+[apobiosis_level1_menu.from.EUR]
+at = [{ stage = 0, file = 20716 }]
+chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
+
 [apobiosis_level2_menu]
 uid = "uid://yn71mjf0ag1y"
 template = "file"
@@ -6675,6 +7692,10 @@ name = "text"
 type = "text"
 
 [apobiosis_level2_menu.from.USA]
+at = [{ stage = 0, file = 20717 }]
+chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
+
+[apobiosis_level2_menu.from.EUR]
 at = [{ stage = 0, file = 20717 }]
 chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
 
@@ -6704,6 +7725,10 @@ type = "text"
 at = [{ stage = 0, file = 20718 }]
 chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
 
+[apobiosis_level3_menu.from.EUR]
+at = [{ stage = 0, file = 20718 }]
+chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
+
 [metabolism_level1_menu]
 uid = "uid://fbsk73h02hv9"
 template = "file"
@@ -6727,6 +7752,10 @@ name = "text"
 type = "text"
 
 [metabolism_level1_menu.from.USA]
+at = [{ stage = 0, file = 20719 }]
+chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
+
+[metabolism_level1_menu.from.EUR]
 at = [{ stage = 0, file = 20719 }]
 chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
 
@@ -6756,6 +7785,10 @@ type = "text"
 at = [{ stage = 0, file = 20720 }]
 chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
 
+[metabolism_level2_menu.from.EUR]
+at = [{ stage = 0, file = 20720 }]
+chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
+
 [metabolism_level3_menu]
 uid = "uid://1dswjuprtypve"
 template = "file"
@@ -6779,6 +7812,10 @@ name = "text"
 type = "text"
 
 [metabolism_level3_menu.from.USA]
+at = [{ stage = 0, file = 20721 }]
+chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
+
+[metabolism_level3_menu.from.EUR]
 at = [{ stage = 0, file = 20721 }]
 chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
 
@@ -6808,6 +7845,10 @@ type = "text"
 at = [{ stage = 0, file = 20722 }]
 chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
 
+[healing_level1_menu.from.EUR]
+at = [{ stage = 0, file = 20722 }]
+chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
+
 [healing_level2_menu]
 uid = "uid://k56nwfbrqwoo"
 template = "file"
@@ -6831,6 +7872,10 @@ name = "text"
 type = "text"
 
 [healing_level2_menu.from.USA]
+at = [{ stage = 0, file = 20723 }]
+chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
+
+[healing_level2_menu.from.EUR]
 at = [{ stage = 0, file = 20723 }]
 chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
 
@@ -6860,6 +7905,10 @@ type = "text"
 at = [{ stage = 0, file = 20724 }]
 chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
 
+[healing_level3_menu.from.EUR]
+at = [{ stage = 0, file = 20724 }]
+chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
+
 [lifedrain_level1_menu]
 uid = "uid://1mcyeibfyj1u"
 template = "file"
@@ -6883,6 +7932,10 @@ name = "text"
 type = "text"
 
 [lifedrain_level1_menu.from.USA]
+at = [{ stage = 0, file = 20725 }]
+chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
+
+[lifedrain_level1_menu.from.EUR]
 at = [{ stage = 0, file = 20725 }]
 chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
 
@@ -6912,6 +7965,10 @@ type = "text"
 at = [{ stage = 0, file = 20726 }]
 chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
 
+[lifedrain_level2_menu.from.EUR]
+at = [{ stage = 0, file = 20726 }]
+chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
+
 [lifedrain_level3_menu]
 uid = "uid://cho97xqp0k7d"
 template = "file"
@@ -6935,6 +7992,10 @@ name = "text"
 type = "text"
 
 [lifedrain_level3_menu.from.USA]
+at = [{ stage = 0, file = 20727 }]
+chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
+
+[lifedrain_level3_menu.from.EUR]
 at = [{ stage = 0, file = 20727 }]
 chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
 
@@ -6964,6 +8025,10 @@ type = "text"
 at = [{ stage = 0, file = 20728 }]
 chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
 
+[antibody_level1_menu.from.EUR]
+at = [{ stage = 0, file = 20728 }]
+chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
+
 [antibody_level2_menu]
 uid = "uid://1nab5dby0kdt6"
 template = "file"
@@ -6987,6 +8052,10 @@ name = "text"
 type = "text"
 
 [antibody_level2_menu.from.USA]
+at = [{ stage = 0, file = 20729 }]
+chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
+
+[antibody_level2_menu.from.EUR]
 at = [{ stage = 0, file = 20729 }]
 chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
 
@@ -7016,6 +8085,10 @@ type = "text"
 at = [{ stage = 0, file = 20730 }]
 chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
 
+[antibody_level3_menu.from.EUR]
+at = [{ stage = 0, file = 20730 }]
+chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
+
 [energyshot_level1_menu]
 uid = "uid://9vuyidq7av1x"
 template = "file"
@@ -7039,6 +8112,10 @@ name = "text"
 type = "text"
 
 [energyshot_level1_menu.from.USA]
+at = [{ stage = 0, file = 20731 }]
+chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
+
+[energyshot_level1_menu.from.EUR]
 at = [{ stage = 0, file = 20731 }]
 chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
 
@@ -7068,6 +8145,10 @@ type = "text"
 at = [{ stage = 0, file = 20732 }]
 chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
 
+[energyshot_level2_menu.from.EUR]
+at = [{ stage = 0, file = 20732 }]
+chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
+
 [energyshot_level3_menu]
 uid = "uid://1br3wcsgsolqp"
 template = "file"
@@ -7091,6 +8172,10 @@ name = "text"
 type = "text"
 
 [energyshot_level3_menu.from.USA]
+at = [{ stage = 0, file = 20733 }]
+chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
+
+[energyshot_level3_menu.from.EUR]
 at = [{ stage = 0, file = 20733 }]
 chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
 
@@ -7120,6 +8205,10 @@ type = "text"
 at = [{ stage = 0, file = 20734 }]
 chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
 
+[energyball_level1_menu.from.EUR]
+at = [{ stage = 0, file = 20734 }]
+chunks = { palette = "096102053ac7a5f7b7624b0fe8096653d4bc142b", image = "806a2e395dd4bb2e0031d3db8a539b034a6c0576" }
+
 [energyball_level2_menu]
 uid = "uid://12j82lz1qr13o"
 template = "file"
@@ -7143,6 +8232,10 @@ name = "text"
 type = "text"
 
 [energyball_level2_menu.from.USA]
+at = [{ stage = 0, file = 20735 }]
+chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
+
+[energyball_level2_menu.from.EUR]
 at = [{ stage = 0, file = 20735 }]
 chunks = { palette = "9bacba745667a39c10285155db4cbd2ce655b369", image = "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42" }
 
@@ -7172,6 +8265,10 @@ type = "text"
 at = [{ stage = 0, file = 20736 }]
 chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
 
+[energyball_level3_menu.from.EUR]
+at = [{ stage = 0, file = 20736 }]
+chunks = { palette = "be46fc33db7a79bc132fdb9cbb5d3d91e5615b42", image = "04ea29969e886658d7ed60dad7168a6150f595b2" }
+
 [help_objective_0]
 uid = "uid://1i59s9eykkjv0"
 template = "file"
@@ -7180,6 +8277,9 @@ slots = [
 ]
 
 [help_objective_0.from.USA]
+at = [{ stage = 0, file = 20800 }, { stage = 0, file = 20801 }]
+
+[help_objective_0.from.EUR]
 at = [{ stage = 0, file = 20800 }, { stage = 0, file = 20801 }]
 
 [help_objective_2]
@@ -7192,6 +8292,9 @@ slots = [
 [help_objective_2.from.USA]
 at = [{ stage = 0, file = 20802 }]
 
+[help_objective_2.from.EUR]
+at = [{ stage = 0, file = 20802 }]
+
 [help_objective_3]
 uid = "uid://178klr3llpi7b"
 template = "file"
@@ -7200,6 +8303,9 @@ slots = [
 ]
 
 [help_objective_3.from.USA]
+at = [{ stage = 0, file = 20803 }]
+
+[help_objective_3.from.EUR]
 at = [{ stage = 0, file = 20803 }]
 
 [help_objective_4]
@@ -7212,6 +8318,9 @@ slots = [
 [help_objective_4.from.USA]
 at = [{ stage = 0, file = 20804 }]
 
+[help_objective_4.from.EUR]
+at = [{ stage = 0, file = 20804 }]
+
 [help_objective_5]
 uid = "uid://cphp8gd6r53a"
 template = "file"
@@ -7220,6 +8329,9 @@ slots = [
 ]
 
 [help_objective_5.from.USA]
+at = [{ stage = 0, file = 20805 }]
+
+[help_objective_5.from.EUR]
 at = [{ stage = 0, file = 20805 }]
 
 [help_objective_6]
@@ -7232,6 +8344,9 @@ slots = [
 [help_objective_6.from.USA]
 at = [{ stage = 0, file = 20806 }]
 
+[help_objective_6.from.EUR]
+at = [{ stage = 0, file = 20806 }]
+
 [help_objective_7]
 uid = "uid://vnsa06y1kepx"
 template = "file"
@@ -7240,6 +8355,9 @@ slots = [
 ]
 
 [help_objective_7.from.USA]
+at = [{ stage = 0, file = 20807 }]
+
+[help_objective_7.from.EUR]
 at = [{ stage = 0, file = 20807 }]
 
 [help_objective_8]
@@ -7252,6 +8370,9 @@ slots = [
 [help_objective_8.from.USA]
 at = [{ stage = 0, file = 20808 }]
 
+[help_objective_8.from.EUR]
+at = [{ stage = 0, file = 20808 }]
+
 [help_objective_9]
 uid = "uid://19uodbe64bqfv"
 template = "file"
@@ -7260,6 +8381,9 @@ slots = [
 ]
 
 [help_objective_9.from.USA]
+at = [{ stage = 0, file = 20809 }]
+
+[help_objective_9.from.EUR]
 at = [{ stage = 0, file = 20809 }]
 
 [help_objective_10]
@@ -7272,6 +8396,9 @@ slots = [
 [help_objective_10.from.USA]
 at = [{ stage = 0, file = 20810 }]
 
+[help_objective_10.from.EUR]
+at = [{ stage = 0, file = 20810 }]
+
 [help_objective_11]
 uid = "uid://14pb17xuxiunr"
 template = "file"
@@ -7280,6 +8407,9 @@ slots = [
 ]
 
 [help_objective_11.from.USA]
+at = [{ stage = 0, file = 20811 }]
+
+[help_objective_11.from.EUR]
 at = [{ stage = 0, file = 20811 }]
 
 [help_objective_12]
@@ -7292,6 +8422,9 @@ slots = [
 [help_objective_12.from.USA]
 at = [{ stage = 0, file = 20812 }]
 
+[help_objective_12.from.EUR]
+at = [{ stage = 0, file = 20812 }]
+
 [help_objective_13]
 uid = "uid://6j3s3qgqwbis"
 template = "file"
@@ -7300,6 +8433,9 @@ slots = [
 ]
 
 [help_objective_13.from.USA]
+at = [{ stage = 0, file = 20813 }]
+
+[help_objective_13.from.EUR]
 at = [{ stage = 0, file = 20813 }]
 
 [help_objective_14]
@@ -7312,6 +8448,9 @@ slots = [
 [help_objective_14.from.USA]
 at = [{ stage = 0, file = 20814 }]
 
+[help_objective_14.from.EUR]
+at = [{ stage = 0, file = 20814 }]
+
 [help_objective_15]
 uid = "uid://1tnpiesw41jp7"
 template = "file"
@@ -7320,6 +8459,9 @@ slots = [
 ]
 
 [help_objective_15.from.USA]
+at = [{ stage = 0, file = 20815 }]
+
+[help_objective_15.from.EUR]
 at = [{ stage = 0, file = 20815 }]
 
 [help_objective_16]
@@ -7332,6 +8474,9 @@ slots = [
 [help_objective_16.from.USA]
 at = [{ stage = 0, file = 20816 }]
 
+[help_objective_16.from.EUR]
+at = [{ stage = 0, file = 20816 }]
+
 [help_objective_17]
 uid = "uid://1xl24tcwd3ueo"
 template = "file"
@@ -7340,6 +8485,9 @@ slots = [
 ]
 
 [help_objective_17.from.USA]
+at = [{ stage = 0, file = 20817 }]
+
+[help_objective_17.from.EUR]
 at = [{ stage = 0, file = 20817 }]
 
 [help_objective_18]
@@ -7352,6 +8500,9 @@ slots = [
 [help_objective_18.from.USA]
 at = [{ stage = 0, file = 20818 }]
 
+[help_objective_18.from.EUR]
+at = [{ stage = 0, file = 20818 }]
+
 [help_objective_19]
 uid = "uid://f0hytawztcas"
 template = "file"
@@ -7360,6 +8511,9 @@ slots = [
 ]
 
 [help_objective_19.from.USA]
+at = [{ stage = 0, file = 20819 }]
+
+[help_objective_19.from.EUR]
 at = [{ stage = 0, file = 20819 }]
 
 [help_objective_20]
@@ -7372,6 +8526,9 @@ slots = [
 [help_objective_20.from.USA]
 at = [{ stage = 0, file = 20820 }]
 
+[help_objective_20.from.EUR]
+at = [{ stage = 0, file = 20820 }]
+
 [help_objective_21]
 uid = "uid://43a5hatm7omg"
 template = "file"
@@ -7380,6 +8537,9 @@ slots = [
 ]
 
 [help_objective_21.from.USA]
+at = [{ stage = 0, file = 20821 }]
+
+[help_objective_21.from.EUR]
 at = [{ stage = 0, file = 20821 }]
 
 [help_objective_22]
@@ -7392,6 +8552,9 @@ slots = [
 [help_objective_22.from.USA]
 at = [{ stage = 0, file = 20822 }]
 
+[help_objective_22.from.EUR]
+at = [{ stage = 0, file = 20822 }]
+
 [help_objective_23]
 uid = "uid://gqa6mxknar0f"
 template = "file"
@@ -7400,6 +8563,9 @@ slots = [
 ]
 
 [help_objective_23.from.USA]
+at = [{ stage = 0, file = 20823 }]
+
+[help_objective_23.from.EUR]
 at = [{ stage = 0, file = 20823 }]
 
 [help_objective_24]
@@ -7412,6 +8578,9 @@ slots = [
 [help_objective_24.from.USA]
 at = [{ stage = 0, file = 20824 }]
 
+[help_objective_24.from.EUR]
+at = [{ stage = 0, file = 20824 }]
+
 [help_objective_25]
 uid = "uid://1k8ofw9frnks6"
 template = "file"
@@ -7420,6 +8589,9 @@ slots = [
 ]
 
 [help_objective_25.from.USA]
+at = [{ stage = 0, file = 20825 }]
+
+[help_objective_25.from.EUR]
 at = [{ stage = 0, file = 20825 }]
 
 [help_objective_26]
@@ -7432,6 +8604,9 @@ slots = [
 [help_objective_26.from.USA]
 at = [{ stage = 0, file = 20826 }]
 
+[help_objective_26.from.EUR]
+at = [{ stage = 0, file = 20826 }]
+
 [help_objective_27]
 uid = "uid://o38qyaji2379"
 template = "file"
@@ -7440,6 +8615,9 @@ slots = [
 ]
 
 [help_objective_27.from.USA]
+at = [{ stage = 0, file = 20827 }]
+
+[help_objective_27.from.EUR]
 at = [{ stage = 0, file = 20827 }]
 
 [help_objective_28]
@@ -7452,6 +8630,9 @@ slots = [
 [help_objective_28.from.USA]
 at = [{ stage = 0, file = 20828 }]
 
+[help_objective_28.from.EUR]
+at = [{ stage = 0, file = 20828 }]
+
 [help_objective_29]
 uid = "uid://j7jo32fn6prj"
 template = "file"
@@ -7460,6 +8641,9 @@ slots = [
 ]
 
 [help_objective_29.from.USA]
+at = [{ stage = 0, file = 20829 }]
+
+[help_objective_29.from.EUR]
 at = [{ stage = 0, file = 20829 }]
 
 [help_objective_30]
@@ -7472,6 +8656,9 @@ slots = [
 [help_objective_30.from.USA]
 at = [{ stage = 0, file = 20830 }]
 
+[help_objective_30.from.EUR]
+at = [{ stage = 0, file = 20830 }]
+
 [help_objective_31]
 uid = "uid://1wb3vmboicm5g"
 template = "file"
@@ -7480,6 +8667,9 @@ slots = [
 ]
 
 [help_objective_31.from.USA]
+at = [{ stage = 0, file = 20831 }]
+
+[help_objective_31.from.EUR]
 at = [{ stage = 0, file = 20831 }]
 
 [help_objective_32]
@@ -7492,6 +8682,9 @@ slots = [
 [help_objective_32.from.USA]
 at = [{ stage = 0, file = 20832 }]
 
+[help_objective_32.from.EUR]
+at = [{ stage = 0, file = 20832 }]
+
 [help_objective_33]
 uid = "uid://84f9tvlmpwtn"
 template = "file"
@@ -7500,6 +8693,9 @@ slots = [
 ]
 
 [help_objective_33.from.USA]
+at = [{ stage = 0, file = 20833 }]
+
+[help_objective_33.from.EUR]
 at = [{ stage = 0, file = 20833 }]
 
 [help_objective_34]
@@ -7512,6 +8708,9 @@ slots = [
 [help_objective_34.from.USA]
 at = [{ stage = 0, file = 20834 }]
 
+[help_objective_34.from.EUR]
+at = [{ stage = 0, file = 20834 }]
+
 [help_objective_35]
 uid = "uid://1g3hauwarfdav"
 template = "file"
@@ -7520,6 +8719,9 @@ slots = [
 ]
 
 [help_objective_35.from.USA]
+at = [{ stage = 0, file = 20835 }]
+
+[help_objective_35.from.EUR]
 at = [{ stage = 0, file = 20835 }]
 
 [help_objective_36]
@@ -7532,6 +8734,9 @@ slots = [
 [help_objective_36.from.USA]
 at = [{ stage = 0, file = 20836 }]
 
+[help_objective_36.from.EUR]
+at = [{ stage = 0, file = 20836 }]
+
 [help_objective_37]
 uid = "uid://1xqz1hli61zcu"
 template = "file"
@@ -7540,6 +8745,9 @@ slots = [
 ]
 
 [help_objective_37.from.USA]
+at = [{ stage = 0, file = 20837 }]
+
+[help_objective_37.from.EUR]
 at = [{ stage = 0, file = 20837 }]
 
 [help_objective_38]
@@ -7552,6 +8760,9 @@ slots = [
 [help_objective_38.from.USA]
 at = [{ stage = 0, file = 20838 }]
 
+[help_objective_38.from.EUR]
+at = [{ stage = 0, file = 20838 }]
+
 [help_objective_39]
 uid = "uid://erutf0zmyjx2"
 template = "file"
@@ -7560,6 +8771,9 @@ slots = [
 ]
 
 [help_objective_39.from.USA]
+at = [{ stage = 0, file = 20839 }]
+
+[help_objective_39.from.EUR]
 at = [{ stage = 0, file = 20839 }]
 
 [help_objective_40]
@@ -7572,6 +8786,9 @@ slots = [
 [help_objective_40.from.USA]
 at = [{ stage = 0, file = 20840 }]
 
+[help_objective_40.from.EUR]
+at = [{ stage = 0, file = 20840 }]
+
 [help_objective_41]
 uid = "uid://e7zbs2ego69o"
 template = "file"
@@ -7580,6 +8797,9 @@ slots = [
 ]
 
 [help_objective_41.from.USA]
+at = [{ stage = 0, file = 20841 }]
+
+[help_objective_41.from.EUR]
 at = [{ stage = 0, file = 20841 }]
 
 [help_objective_42]
@@ -7592,6 +8812,9 @@ slots = [
 [help_objective_42.from.USA]
 at = [{ stage = 0, file = 20842 }]
 
+[help_objective_42.from.EUR]
+at = [{ stage = 0, file = 20842 }]
+
 [help_objective_43]
 uid = "uid://8i72crz4ggkm"
 template = "file"
@@ -7600,6 +8823,9 @@ slots = [
 ]
 
 [help_objective_43.from.USA]
+at = [{ stage = 0, file = 20843 }]
+
+[help_objective_43.from.EUR]
 at = [{ stage = 0, file = 20843 }]
 
 [help_objective_44]
@@ -7612,6 +8838,9 @@ slots = [
 [help_objective_44.from.USA]
 at = [{ stage = 0, file = 20844 }]
 
+[help_objective_44.from.EUR]
+at = [{ stage = 0, file = 20844 }]
+
 [help_objective_45]
 uid = "uid://3vssn4z0ns64"
 template = "file"
@@ -7620,6 +8849,9 @@ slots = [
 ]
 
 [help_objective_45.from.USA]
+at = [{ stage = 0, file = 20845 }]
+
+[help_objective_45.from.EUR]
 at = [{ stage = 0, file = 20845 }]
 
 [help_objective_46]
@@ -7632,6 +8864,9 @@ slots = [
 [help_objective_46.from.USA]
 at = [{ stage = 0, file = 20846 }]
 
+[help_objective_46.from.EUR]
+at = [{ stage = 0, file = 20846 }]
+
 [help_objective_47]
 uid = "uid://lcgu7ctn31hp"
 template = "file"
@@ -7640,6 +8875,9 @@ slots = [
 ]
 
 [help_objective_47.from.USA]
+at = [{ stage = 0, file = 20847 }]
+
+[help_objective_47.from.EUR]
 at = [{ stage = 0, file = 20847 }]
 
 [help_objective_48]
@@ -7652,6 +8890,9 @@ slots = [
 [help_objective_48.from.USA]
 at = [{ stage = 0, file = 20848 }]
 
+[help_objective_48.from.EUR]
+at = [{ stage = 0, file = 20848 }]
+
 [help_objective_49]
 uid = "uid://by7vtvpdgq9b"
 template = "file"
@@ -7660,6 +8901,9 @@ slots = [
 ]
 
 [help_objective_49.from.USA]
+at = [{ stage = 0, file = 20849 }]
+
+[help_objective_49.from.EUR]
 at = [{ stage = 0, file = 20849 }]
 
 [help_objective_50]
@@ -7672,6 +8916,9 @@ slots = [
 [help_objective_50.from.USA]
 at = [{ stage = 0, file = 20850 }]
 
+[help_objective_50.from.EUR]
+at = [{ stage = 0, file = 20850 }]
+
 [help_objective_51]
 uid = "uid://rab0ngefc0dk"
 template = "file"
@@ -7680,6 +8927,9 @@ slots = [
 ]
 
 [help_objective_51.from.USA]
+at = [{ stage = 0, file = 20851 }]
+
+[help_objective_51.from.EUR]
 at = [{ stage = 0, file = 20851 }]
 
 [help_objective_52]
@@ -7692,6 +8942,9 @@ slots = [
 [help_objective_52.from.USA]
 at = [{ stage = 0, file = 20852 }]
 
+[help_objective_52.from.EUR]
+at = [{ stage = 0, file = 20852 }]
+
 [help_objective_53]
 uid = "uid://141e5jaxap2z4"
 template = "file"
@@ -7700,6 +8953,9 @@ slots = [
 ]
 
 [help_objective_53.from.USA]
+at = [{ stage = 0, file = 20853 }]
+
+[help_objective_53.from.EUR]
 at = [{ stage = 0, file = 20853 }]
 
 [help_objective_54]
@@ -7712,6 +8968,9 @@ slots = [
 [help_objective_54.from.USA]
 at = [{ stage = 0, file = 20854 }]
 
+[help_objective_54.from.EUR]
+at = [{ stage = 0, file = 20854 }]
+
 [help_objective_55]
 uid = "uid://t05x9ni7a1p4"
 template = "file"
@@ -7720,6 +8979,9 @@ slots = [
 ]
 
 [help_objective_55.from.USA]
+at = [{ stage = 0, file = 20855 }]
+
+[help_objective_55.from.EUR]
 at = [{ stage = 0, file = 20855 }]
 
 [help_objective_56]
@@ -7732,6 +8994,9 @@ slots = [
 [help_objective_56.from.USA]
 at = [{ stage = 0, file = 20856 }]
 
+[help_objective_56.from.EUR]
+at = [{ stage = 0, file = 20856 }]
+
 [help_objective_57]
 uid = "uid://1n33rc65tpo72"
 template = "file"
@@ -7740,6 +9005,9 @@ slots = [
 ]
 
 [help_objective_57.from.USA]
+at = [{ stage = 0, file = 20857 }]
+
+[help_objective_57.from.EUR]
 at = [{ stage = 0, file = 20857 }]
 
 [help_objective_58]
@@ -7752,6 +9020,9 @@ slots = [
 [help_objective_58.from.USA]
 at = [{ stage = 0, file = 20858 }]
 
+[help_objective_58.from.EUR]
+at = [{ stage = 0, file = 20858 }]
+
 [help_objective_59]
 uid = "uid://qesqgg0f0m3m"
 template = "file"
@@ -7760,6 +9031,9 @@ slots = [
 ]
 
 [help_objective_59.from.USA]
+at = [{ stage = 0, file = 20859 }]
+
+[help_objective_59.from.EUR]
 at = [{ stage = 0, file = 20859 }]
 
 [help_objective_60]
@@ -7772,6 +9046,9 @@ slots = [
 [help_objective_60.from.USA]
 at = [{ stage = 0, file = 20860 }]
 
+[help_objective_60.from.EUR]
+at = [{ stage = 0, file = 20860 }]
+
 [help_objective_61]
 uid = "uid://1a9ac2amft0s5"
 template = "file"
@@ -7780,6 +9057,9 @@ slots = [
 ]
 
 [help_objective_61.from.USA]
+at = [{ stage = 0, file = 20861 }]
+
+[help_objective_61.from.EUR]
 at = [{ stage = 0, file = 20861 }]
 
 [game_over]
@@ -7834,6 +9114,10 @@ type = "package"
 at = [{ stage = 0, file = 20900 }]
 chunks = { glyph_palette_block = "a9ff54fadbd523350fe31a02275fc125319f2b3b", translucent_palette = "539d0ac30144dc835199a3df25e068d49f0f14fa", palette = "f9e10679e062dacfd539842a894a8914d3b7d8c1", image = "dd52dfd3d66618b4e2da0f3550f4bea1bd87f584" }
 
+[game_over.from.EUR]
+at = [{ stage = 0, file = 20900 }]
+chunks = { glyph_palette_block = "a9ff54fadbd523350fe31a02275fc125319f2b3b", translucent_palette = "539d0ac30144dc835199a3df25e068d49f0f14fa", palette = "f9e10679e062dacfd539842a894a8914d3b7d8c1", image = "dd52dfd3d66618b4e2da0f3550f4bea1bd87f584" }
+
 [aya_death_1]
 uid = "uid://ellkuljb32n7"
 template = "file"
@@ -7842,6 +9126,9 @@ slots = [
 ]
 
 [aya_death_1.from.USA]
+at = [{ stage = 0, file = 20930 }]
+
+[aya_death_1.from.EUR]
 at = [{ stage = 0, file = 20930 }]
 
 [aya_death_2]
@@ -7854,6 +9141,9 @@ slots = [
 [aya_death_2.from.USA]
 at = [{ stage = 0, file = 20931 }]
 
+[aya_death_2.from.EUR]
+at = [{ stage = 0, file = 20931 }]
+
 [aya_death_3]
 uid = "uid://4x0q7gnvfctg"
 template = "file"
@@ -7862,6 +9152,9 @@ slots = [
 ]
 
 [aya_death_3.from.USA]
+at = [{ stage = 0, file = 20932 }]
+
+[aya_death_3.from.EUR]
 at = [{ stage = 0, file = 20932 }]
 
 [kyle_death_1]
@@ -7874,6 +9167,9 @@ slots = [
 [kyle_death_1.from.USA]
 at = [{ stage = 0, file = 20933 }]
 
+[kyle_death_1.from.EUR]
+at = [{ stage = 0, file = 20933 }]
+
 [kyle_death_2]
 uid = "uid://1vb9q1b49qwhp"
 template = "file"
@@ -7884,6 +9180,9 @@ slots = [
 [kyle_death_2.from.USA]
 at = [{ stage = 0, file = 20934 }]
 
+[kyle_death_2.from.EUR]
+at = [{ stage = 0, file = 20934 }]
+
 [kyle_death_3]
 uid = "uid://71y7l1h7qiae"
 template = "file"
@@ -7892,6 +9191,9 @@ slots = [
 ]
 
 [kyle_death_3.from.USA]
+at = [{ stage = 0, file = 20935 }]
+
+[kyle_death_3.from.EUR]
 at = [{ stage = 0, file = 20935 }]
 
 [ending]
@@ -8030,5 +9332,9 @@ vlc_buffer_kind = 0
 timing_buffer_bytes = 0
 
 [ending.from.USA]
+at = [{ stage = 0, file = 21000 }]
+chunks = { logo_palettes = "c62b672729e9a792cc3a6d0cc06ceddb29013ebc", logo_image = "16d4d2546356c78da5c6832d7a7c4f8c683865ba", font_image_0 = "a65bdf427cb8c8b12e8d9c9234c0f45b8859729f", font_image_1 = "9ad6d87c5d858efd44c1b73c0f3a7906e01ac20e", glyph_palette_block = "a9ff54fadbd523350fe31a02275fc125319f2b3b", translucent_palette = "539d0ac30144dc835199a3df25e068d49f0f14fa" }
+
+[ending.from.EUR]
 at = [{ stage = 0, file = 21000 }]
 chunks = { logo_palettes = "c62b672729e9a792cc3a6d0cc06ceddb29013ebc", logo_image = "16d4d2546356c78da5c6832d7a7c4f8c683865ba", font_image_0 = "a65bdf427cb8c8b12e8d9c9234c0f45b8859729f", font_image_1 = "9ad6d87c5d858efd44c1b73c0f3a7906e01ac20e", glyph_palette_block = "a9ff54fadbd523350fe31a02275fc125319f2b3b", translucent_palette = "539d0ac30144dc835199a3df25e068d49f0f14fa" }

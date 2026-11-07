@@ -12,6 +12,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 601, file = 1, slot = "background" }]
 sha1 = "4e96b1675dccec60d4b4e94360c841ca0a9b762d"
 
+[view1_background.from.EUR]
+at = [{ stage = 2, folder = 601, file = 1, slot = "background" }]
+sha1 = "4e96b1675dccec60d4b4e94360c841ca0a9b762d"
+
 [view2_background]
 uid = "uid://jkodh3b17yql"
 template = "background"
@@ -24,6 +28,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 601, file = 2, slot = "background" }]
 sha1 = "7bb2a3076e7beaae52087c553ae52c236e513c27"
 
+[view2_background.from.EUR]
+at = [{ stage = 2, folder = 601, file = 2, slot = "background" }]
+sha1 = "7bb2a3076e7beaae52087c553ae52c236e513c27"
+
 [view3_background]
 uid = "uid://16ughlrfw8znj"
 template = "background"
@@ -33,6 +41,10 @@ format = "bs"
 source = "native.bs"
 
 [view3_background.from.USA]
+at = [{ stage = 2, folder = 601, file = 3, slot = "background" }]
+sha1 = "1d2ef2bc3ff97e19b59aa582d42cdcb5ac8c630f"
+
+[view3_background.from.EUR]
 at = [{ stage = 2, folder = 601, file = 3, slot = "background" }]
 sha1 = "1d2ef2bc3ff97e19b59aa582d42cdcb5ac8c630f"
 
@@ -95,6 +107,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view2.from.USA]
+at = [{ stage = 2, folder = 601, file = 2, slot = "image", page = 0 }]
+sha1 = "64401b19224292e148ba5592d2363561694652df"
+palettes = { row_0 = "f1ac5ebd07c6701eb7bdd3fdc3e0fbf90bc601b4", row_1 = "870b5efc49180d9d8b13af13f3702908fefb8532" }
+
+[view2.from.EUR]
 at = [{ stage = 2, folder = 601, file = 2, slot = "image", page = 0 }]
 sha1 = "64401b19224292e148ba5592d2363561694652df"
 palettes = { row_0 = "f1ac5ebd07c6701eb7bdd3fdc3e0fbf90bc601b4", row_1 = "870b5efc49180d9d8b13af13f3702908fefb8532" }
@@ -166,6 +183,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view3.from.USA]
+at = [{ stage = 2, folder = 601, file = 3, slot = "image", page = 0 }]
+sha1 = "490bb567c7b930ac6dcb6cca75ee8ca32f9a9a1f"
+palettes = { row_0 = "d0195e2cc2f2522ea08dcf8fd6883437064629e8", row_1 = "50ad7ac80a2ef7a960f41a39b5c02de0d150713c" }
+
+[view3.from.EUR]
 at = [{ stage = 2, folder = 601, file = 3, slot = "image", page = 0 }]
 sha1 = "490bb567c7b930ac6dcb6cca75ee8ca32f9a9a1f"
 palettes = { row_0 = "d0195e2cc2f2522ea08dcf8fd6883437064629e8", row_1 = "50ad7ac80a2ef7a960f41a39b5c02de0d150713c" }

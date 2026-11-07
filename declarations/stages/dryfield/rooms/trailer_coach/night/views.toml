@@ -12,6 +12,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 2701, file = 1, slot = "background" }, { stage = 3, folder = 2701, file = 1, slot = "background" }]
 sha1 = "3667d2ce2f03eea5daae1cc76ead81f3e27b9b0d"
 
+[view1_background.from.EUR]
+at = [{ stage = 2, folder = 2701, file = 1, slot = "background" }, { stage = 3, folder = 2701, file = 1, slot = "background" }]
+sha1 = "3667d2ce2f03eea5daae1cc76ead81f3e27b9b0d"
+
 [view2_background]
 uid = "uid://bpo3gomc8wa7"
 template = "background"
@@ -21,6 +25,10 @@ format = "bs"
 source = "native.bs"
 
 [view2_background.from.USA]
+at = [{ stage = 3, folder = 2701, file = 2, slot = "background" }]
+sha1 = "77a6f7b74043ee49fc5476194f214f7da0c93773"
+
+[view2_background.from.EUR]
 at = [{ stage = 3, folder = 2701, file = 2, slot = "background" }]
 sha1 = "77a6f7b74043ee49fc5476194f214f7da0c93773"
 
@@ -36,6 +44,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 2701, file = 3, slot = "background" }]
 sha1 = "38599fdc9f737717ce3c081173831e325ba8db85"
 
+[view3_background.from.EUR]
+at = [{ stage = 3, folder = 2701, file = 3, slot = "background" }]
+sha1 = "38599fdc9f737717ce3c081173831e325ba8db85"
+
 [view4_background]
 uid = "uid://1ubwlxnqgjhef"
 template = "background"
@@ -45,6 +57,10 @@ format = "bs"
 source = "native.bs"
 
 [view4_background.from.USA]
+at = [{ stage = 3, folder = 2701, file = 4, slot = "background" }]
+sha1 = "387e005e28156d44700a36b54339a983e66f2072"
+
+[view4_background.from.EUR]
 at = [{ stage = 3, folder = 2701, file = 4, slot = "background" }]
 sha1 = "387e005e28156d44700a36b54339a983e66f2072"
 
@@ -60,6 +76,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 2701, file = 5, slot = "background" }]
 sha1 = "e99e88a7b83a8e1917e517c69406176cc2ad7cd0"
 
+[view5_background.from.EUR]
+at = [{ stage = 3, folder = 2701, file = 5, slot = "background" }]
+sha1 = "e99e88a7b83a8e1917e517c69406176cc2ad7cd0"
+
 [view6_background]
 uid = "uid://3rn2osacqj5w"
 template = "background"
@@ -69,6 +89,10 @@ format = "bs"
 source = "native.bs"
 
 [view6_background.from.USA]
+at = [{ stage = 3, folder = 2701, file = 6, slot = "background" }]
+sha1 = "4b9d6bec51ea78ddc8a55ad64686e3640e39ff62"
+
+[view6_background.from.EUR]
 at = [{ stage = 3, folder = 2701, file = 6, slot = "background" }]
 sha1 = "4b9d6bec51ea78ddc8a55ad64686e3640e39ff62"
 
@@ -84,6 +108,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 2701, file = 7, slot = "background" }]
 sha1 = "e38107b5a18af9304a12147828455f448c280f2e"
 
+[view7_background.from.EUR]
+at = [{ stage = 3, folder = 2701, file = 7, slot = "background" }]
+sha1 = "e38107b5a18af9304a12147828455f448c280f2e"
+
 [view8_background]
 uid = "uid://1mrfwdrxrm53p"
 template = "background"
@@ -93,6 +121,10 @@ format = "bs"
 source = "native.bs"
 
 [view8_background.from.USA]
+at = [{ stage = 2, folder = 2701, file = 10, slot = "background" }, { stage = 3, folder = 2701, file = 8, slot = "background" }]
+sha1 = "23a7b52517a1192fe86706fc7b227a9e4a6b92db"
+
+[view8_background.from.EUR]
 at = [{ stage = 2, folder = 2701, file = 10, slot = "background" }, { stage = 3, folder = 2701, file = 8, slot = "background" }]
 sha1 = "23a7b52517a1192fe86706fc7b227a9e4a6b92db"
 
@@ -210,6 +242,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view2.from.USA]
+at = [{ stage = 3, folder = 2701, file = 2, slot = "image", page = 0 }]
+sha1 = "44d6bac78231f8054d9b2862c07415d099eb21a2"
+palettes = { row_0 = "526845d677f0425562046d8b0185b95cdcc13a34" }
+
+[view2.from.EUR]
 at = [{ stage = 3, folder = 2701, file = 2, slot = "image", page = 0 }]
 sha1 = "44d6bac78231f8054d9b2862c07415d099eb21a2"
 palettes = { row_0 = "526845d677f0425562046d8b0185b95cdcc13a34" }
@@ -391,6 +428,11 @@ at = [{ stage = 3, folder = 2701, file = 3, slot = "image", page = 0 }]
 sha1 = "d2b13ab266a7e96066b5c842398124fbef2328f7"
 palettes = { row_0 = "48f2e3f23003f2258bc88726d68d67fb2c25ad61" }
 
+[view3.from.EUR]
+at = [{ stage = 3, folder = 2701, file = 3, slot = "image", page = 0 }]
+sha1 = "d2b13ab266a7e96066b5c842398124fbef2328f7"
+palettes = { row_0 = "48f2e3f23003f2258bc88726d68d67fb2c25ad61" }
+
 [view4]
 uid = "uid://3ljqscihyh3l"
 template = "texture"
@@ -447,6 +489,11 @@ at = [{ stage = 3, folder = 2701, file = 4, slot = "image", page = 0 }]
 sha1 = "eb2562d48601f9b66a7837caf35db71f04bcc363"
 palettes = { row_0 = "e7db034908c1aff0e7a4b63af51c2906bba5491f" }
 
+[view4.from.EUR]
+at = [{ stage = 3, folder = 2701, file = 4, slot = "image", page = 0 }]
+sha1 = "eb2562d48601f9b66a7837caf35db71f04bcc363"
+palettes = { row_0 = "e7db034908c1aff0e7a4b63af51c2906bba5491f" }
+
 [view5]
 uid = "uid://126vgaf0ffq18"
 template = "texture"
@@ -465,6 +512,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view5.from.USA]
+at = [{ stage = 3, folder = 2701, file = 5, slot = "image", page = 0 }]
+sha1 = "b2799aed2f3365fcbc1bd49eebf76cf2cc475cb2"
+palettes = { row_0 = "5650c1dfd65f03c370f3ec4d0f85dd895d8d73d3" }
+
+[view5.from.EUR]
 at = [{ stage = 3, folder = 2701, file = 5, slot = "image", page = 0 }]
 sha1 = "b2799aed2f3365fcbc1bd49eebf76cf2cc475cb2"
 palettes = { row_0 = "5650c1dfd65f03c370f3ec4d0f85dd895d8d73d3" }
@@ -508,6 +560,11 @@ at = [{ stage = 3, folder = 2701, file = 6, slot = "image", page = 0 }]
 sha1 = "8ad286bc638709cf37e292a061dccc30389ec74b"
 palettes = { row_0 = "28638dcc358a1481d79b3cfdbd3cf72781ba34ce" }
 
+[view6.from.EUR]
+at = [{ stage = 3, folder = 2701, file = 6, slot = "image", page = 0 }]
+sha1 = "8ad286bc638709cf37e292a061dccc30389ec74b"
+palettes = { row_0 = "28638dcc358a1481d79b3cfdbd3cf72781ba34ce" }
+
 [view7]
 uid = "uid://i63jdy83wfik"
 template = "texture"
@@ -528,6 +585,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view7.from.USA]
+at = [{ stage = 3, folder = 2701, file = 7, slot = "image", page = 0 }]
+sha1 = "890e4ae49480ff3abd0d62862738868c8d981be3"
+palettes = { row_0 = "a21cfd7a002aad6362bed678a8fbefa90b163431" }
+
+[view7.from.EUR]
 at = [{ stage = 3, folder = 2701, file = 7, slot = "image", page = 0 }]
 sha1 = "890e4ae49480ff3abd0d62862738868c8d981be3"
 palettes = { row_0 = "a21cfd7a002aad6362bed678a8fbefa90b163431" }

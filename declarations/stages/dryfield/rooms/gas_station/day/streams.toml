@@ -8,3 +8,7 @@ format = "str"
 [movie_12.from.USA]
 at = [{ stage = 2, folder = 101, stream = 1 }]
 sha1 = "608c94e1d00d66e648af564335882debf4efe9a3"
+
+[movie_12.from.EUR]
+at = [{ stage = 2, folder = 101, stream = 1 }]
+sha1 = "608c94e1d00d66e648af564335882debf4efe9a3"

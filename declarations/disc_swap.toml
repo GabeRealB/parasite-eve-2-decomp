@@ -19,3 +19,8 @@ source = "source.ora"
 at = [{ stage = 0, file = 20160, slot = "image", page = 0 }, { stage = 0, file = 20161, slot = "image", page = 0 }]
 sha1 = "d1c28574be1383dbca7a98253282e10651a2c5d8"
 palettes = { default = "2368c46b080b92086d43d50a262c70e8116abe30" }
+
+[messages.from.EUR]
+at = [{ stage = 0, file = 20160, slot = "image", page = 0 }, { stage = 0, file = 20161, slot = "image", page = 0 }]
+sha1 = "d1c28574be1383dbca7a98253282e10651a2c5d8"
+palettes = { default = "2368c46b080b92086d43d50a262c70e8116abe30" }

@@ -24,6 +24,11 @@ at = [{ stage = 1, folder = 401, file = 0, slot = "image_0", page = 0 }, { stage
 sha1 = "cf9ed5fdd2508eaf02d8b025be4d208b0c6a628c"
 palettes = { default = "f463efbf6a4702b2828c74dbe29753d07f8c5801", stim = "446d9d88a7824f0fda646bb10c2729bf93723522", pain_reliever = "9b382e8d84e2bd0ba0a9107cad362eef47487560", ammunition = "24d412eaad362c291e8a0b08b04ca63b9c57e8de" }
 
+[container.from.EUR]
+at = [{ stage = 1, folder = 401, file = 0, slot = "image_0", page = 0 }, { stage = 2, folder = 2701, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2701, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 1601, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 2001, file = 0, slot = "image_1", page = 0 }, { stage = 4, folder = 3101, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 3901, file = 0, slot = "image_0", page = 0 }, { stage = 5, folder = 401, file = 0, slot = "image", page = 0 }]
+sha1 = "cf9ed5fdd2508eaf02d8b025be4d208b0c6a628c"
+palettes = { default = "f463efbf6a4702b2828c74dbe29753d07f8c5801", stim = "446d9d88a7824f0fda646bb10c2729bf93723522", pain_reliever = "9b382e8d84e2bd0ba0a9107cad362eef47487560", ammunition = "24d412eaad362c291e8a0b08b04ca63b9c57e8de" }
+
 [model]
 uid = "uid://78u9qvsagvui"
 template = "texture"
@@ -40,6 +45,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [model.from.USA]
+at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 1 }]
+sha1 = "05a24705ba2544bd45ec559e205fdf9b2cdb63e8"
+palettes = { default = "1a18cea47648422f0ad8958da6874d1776efe9ca", loose_prop = "d066cc61aaacb6b64a31999b3a4a6047da3793eb" }
+
+[model.from.EUR]
 at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 1 }]
 sha1 = "05a24705ba2544bd45ec559e205fdf9b2cdb63e8"
 palettes = { default = "1a18cea47648422f0ad8958da6874d1776efe9ca", loose_prop = "d066cc61aaacb6b64a31999b3a4a6047da3793eb" }
@@ -67,6 +77,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [puff.from.USA]
+at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 0 }]
+sha1 = "2422b444ed71058f4e4e4df655a71a3e2d2c87c6"
+palettes = { default = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }
+
+[puff.from.EUR]
 at = [{ stage = 1, folder = 401, file = 0, slot = "image_1", page = 0 }]
 sha1 = "2422b444ed71058f4e4e4df655a71a3e2d2c87c6"
 palettes = { default = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }

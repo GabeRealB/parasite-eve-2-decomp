@@ -12,6 +12,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 1301, file = 3, slot = "background" }]
 sha1 = "028eca338bc49894f141b3542a9c4a8c30fc83aa"
 
+[view3_background.from.EUR]
+at = [{ stage = 3, folder = 1301, file = 3, slot = "background" }]
+sha1 = "028eca338bc49894f141b3542a9c4a8c30fc83aa"
+
 [view4_background]
 uid = "uid://a4pgnsy5t9wz"
 template = "background"
@@ -21,6 +25,10 @@ format = "bs"
 source = "native.bs"
 
 [view4_background.from.USA]
+at = [{ stage = 3, folder = 1301, file = 4, slot = "background" }]
+sha1 = "76467c8834827e5fce12bf6e02aa76c34b5edc0a"
+
+[view4_background.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 4, slot = "background" }]
 sha1 = "76467c8834827e5fce12bf6e02aa76c34b5edc0a"
 
@@ -36,6 +44,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 1301, file = 5, slot = "background" }]
 sha1 = "25975412df5693108c6c934c79032a5ef80c6866"
 
+[view5_background.from.EUR]
+at = [{ stage = 3, folder = 1301, file = 5, slot = "background" }]
+sha1 = "25975412df5693108c6c934c79032a5ef80c6866"
+
 [view6_background]
 uid = "uid://1fsht7lyo4o90"
 template = "background"
@@ -45,6 +57,10 @@ format = "bs"
 source = "native.bs"
 
 [view6_background.from.USA]
+at = [{ stage = 3, folder = 1301, file = 6, slot = "background" }]
+sha1 = "da18a97dff46c253a006cd4f25b7f1e3e854b47d"
+
+[view6_background.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 6, slot = "background" }]
 sha1 = "da18a97dff46c253a006cd4f25b7f1e3e854b47d"
 
@@ -60,6 +76,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 1301, file = 7, slot = "background" }]
 sha1 = "c08f2b482e2e2d580ca46ca3d6b5c715020a4581"
 
+[view7_background.from.EUR]
+at = [{ stage = 3, folder = 1301, file = 7, slot = "background" }]
+sha1 = "c08f2b482e2e2d580ca46ca3d6b5c715020a4581"
+
 [view8_background]
 uid = "uid://6vbkz2d8gvgm"
 template = "background"
@@ -69,6 +89,10 @@ format = "bs"
 source = "native.bs"
 
 [view8_background.from.USA]
+at = [{ stage = 3, folder = 1301, file = 8, slot = "background" }]
+sha1 = "f6566b90921638f8b2eefbbab6f85a1adbc7a0a2"
+
+[view8_background.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 8, slot = "background" }]
 sha1 = "f6566b90921638f8b2eefbbab6f85a1adbc7a0a2"
 
@@ -84,6 +108,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 1301, file = 9, slot = "background" }]
 sha1 = "ee38bb96137c27c523131544f28d1b4f65256472"
 
+[view9_background.from.EUR]
+at = [{ stage = 3, folder = 1301, file = 9, slot = "background" }]
+sha1 = "ee38bb96137c27c523131544f28d1b4f65256472"
+
 [view10_background]
 uid = "uid://1245axq2blft2"
 template = "background"
@@ -96,6 +124,10 @@ source = "native.bs"
 at = [{ stage = 3, folder = 1301, file = 10, slot = "background" }]
 sha1 = "0e0f96a7874e82ebb8e93de59e823bf5d52d4ed7"
 
+[view10_background.from.EUR]
+at = [{ stage = 3, folder = 1301, file = 10, slot = "background" }]
+sha1 = "0e0f96a7874e82ebb8e93de59e823bf5d52d4ed7"
+
 [view11_background]
 uid = "uid://kz0i6s0gnemf"
 template = "background"
@@ -105,6 +137,10 @@ format = "bs"
 source = "native.bs"
 
 [view11_background.from.USA]
+at = [{ stage = 3, folder = 1301, file = 11, slot = "background" }]
+sha1 = "6e95c11534a83267a6517c2748f6a1ed39647995"
+
+[view11_background.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 11, slot = "background" }]
 sha1 = "6e95c11534a83267a6517c2748f6a1ed39647995"
 
@@ -181,6 +217,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view6.from.USA]
+at = [{ stage = 3, folder = 1301, file = 6, slot = "image", page = 0 }]
+sha1 = "86184414a8c8f95fbad807bd234cfaa1bca1eeed"
+palettes = { row_0 = "c723e0dc8425f5a3f61a1ad8289e58819e4403a2" }
+
+[view6.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 6, slot = "image", page = 0 }]
 sha1 = "86184414a8c8f95fbad807bd234cfaa1bca1eeed"
 palettes = { row_0 = "c723e0dc8425f5a3f61a1ad8289e58819e4403a2" }
@@ -294,6 +335,11 @@ at = [{ stage = 3, folder = 1301, file = 7, slot = "image", page = 0 }]
 sha1 = "45ebe7ed847694e36690d3367d1ac79dcd903188"
 palettes = { row_0 = "b3f2117db60d947e2ddc7c85119b7260ce13fdf7" }
 
+[view7.from.EUR]
+at = [{ stage = 3, folder = 1301, file = 7, slot = "image", page = 0 }]
+sha1 = "45ebe7ed847694e36690d3367d1ac79dcd903188"
+palettes = { row_0 = "b3f2117db60d947e2ddc7c85119b7260ce13fdf7" }
+
 [view8]
 uid = "uid://a5ypv2rwe1cg"
 template = "texture"
@@ -356,6 +402,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view8.from.USA]
+at = [{ stage = 3, folder = 1301, file = 8, slot = "image", page = 0 }]
+sha1 = "5f85aeadfe513d36fe94346763283ed0a9f534b7"
+palettes = { row_0 = "ce247597943e61cd88ed5b6f66564a298f33fcba" }
+
+[view8.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 8, slot = "image", page = 0 }]
 sha1 = "5f85aeadfe513d36fe94346763283ed0a9f534b7"
 palettes = { row_0 = "ce247597943e61cd88ed5b6f66564a298f33fcba" }
@@ -426,6 +477,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view9.from.USA]
+at = [{ stage = 3, folder = 1301, file = 9, slot = "image", page = 0 }]
+sha1 = "6d94dfe464f2109019287c79e0fdfac66a67696d"
+palettes = { row_0 = "a13009eaefd99f5c9cb2d2f31aa3fa0df0d5927a" }
+
+[view9.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 9, slot = "image", page = 0 }]
 sha1 = "6d94dfe464f2109019287c79e0fdfac66a67696d"
 palettes = { row_0 = "a13009eaefd99f5c9cb2d2f31aa3fa0df0d5927a" }
@@ -529,6 +585,11 @@ at = [{ stage = 3, folder = 1301, file = 10, slot = "image", page = 0 }]
 sha1 = "5e9bb3563273919e6f876eda17898414401e9eae"
 palettes = { row_0 = "9e8b49e036f1c0ebffaa94f0e5a19bb72b33468c" }
 
+[view10.from.EUR]
+at = [{ stage = 3, folder = 1301, file = 10, slot = "image", page = 0 }]
+sha1 = "5e9bb3563273919e6f876eda17898414401e9eae"
+palettes = { row_0 = "9e8b49e036f1c0ebffaa94f0e5a19bb72b33468c" }
+
 [view11]
 uid = "uid://j0hvrc9i6mqt"
 template = "texture"
@@ -570,6 +631,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view11.from.USA]
+at = [{ stage = 3, folder = 1301, file = 11, slot = "image", page = 0 }]
+sha1 = "bac7117ceaa0f5376c6eb49b4e96f4cbe1533d91"
+palettes = { row_0 = "c22607163f086b86d23c091bb83d78048fce230b" }
+
+[view11.from.EUR]
 at = [{ stage = 3, folder = 1301, file = 11, slot = "image", page = 0 }]
 sha1 = "bac7117ceaa0f5376c6eb49b4e96f4cbe1533d91"
 palettes = { row_0 = "c22607163f086b86d23c091bb83d78048fce230b" }

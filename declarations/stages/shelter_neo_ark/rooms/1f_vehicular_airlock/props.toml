@@ -17,3 +17,8 @@ source = "source.ora"
 at = [{ stage = 5, folder = 201, file = 0, slot = "image", page = 0 }]
 sha1 = "494ea001b84a6d01235491e8f56ca597a546eca4"
 palettes = { effect_row_1 = "10520421ecbe3f34392c850fbf9329201ea4fe1e" }
+
+[teddy_bear.from.EUR]
+at = [{ stage = 5, folder = 201, file = 0, slot = "image", page = 0 }]
+sha1 = "494ea001b84a6d01235491e8f56ca597a546eca4"
+palettes = { effect_row_1 = "10520421ecbe3f34392c850fbf9329201ea4fe1e" }

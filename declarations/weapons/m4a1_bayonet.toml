@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20126, slot = "image", page = 0 }]
 sha1 = "93371183483caf44e52badb7a10fc67dec50306b"
 palettes = { default = "ddaf140b2264f739b913394d97a9c4a3240e45f3" }
 
+[preview.from.EUR]
+at = [{ stage = 0, file = 20126, slot = "image", page = 0 }]
+sha1 = "93371183483caf44e52badb7a10fc67dec50306b"
+palettes = { default = "ddaf140b2264f739b913394d97a9c4a3240e45f3" }
+
 [texture]
 uid = "uid://r83olx2s5cxz"
 template = "texture"
@@ -35,6 +40,11 @@ at = [{ stage = 0, file = 10326, slot = "image", page = 0 }]
 sha1 = "f803bb229eb4461a77948aa8aaaad3a86d215b8c"
 palettes = { default = "d6e378f2f5ada3581b219b44e01f24e8e229f859" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10326, slot = "image", page = 0 }]
+sha1 = "f803bb229eb4461a77948aa8aaaad3a86d215b8c"
+palettes = { default = "d6e378f2f5ada3581b219b44e01f24e8e229f859" }
+
 [thrust]
 uid = "uid://1ltgly66csjvr"
 template = "clip"
@@ -46,6 +56,13 @@ offset = 51136
 size = 3392
 address = 2148702592
 sha1 = "e378c771fe830addcbc88ac3770600efa20e4a13"
+
+[thrust.from.EUR]
+at = [{ stage = 0, file = 10326, slot = "package" }]
+offset = 51136
+size = 3392
+address = 2148706960
+sha1 = "c27a039fbb800fe443d8fce097dff6a0b2af0f48"
 
 [bank]
 uid = "uid://1bxrvkps8ojdj"
@@ -105,6 +122,15 @@ symbol = "gM4a1BayonetWeaponModel"
 material_slots = ["body"]
 sha1 = "79d4ca13ca7609fe2bdc5579fb56ce41d07b969e"
 
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10326, slot = "package" }]
+offset = 3352
+size = 2888
+address = 2148659176
+symbol = "gM4a1BayonetWeaponModel"
+material_slots = ["body"]
+sha1 = "35f1bcbd28f8223d33da083d7f4fc932b80f639c"
+
 [material]
 uid = "uid://y9sc4lcwd9ng"
 template = "material"
@@ -125,3 +151,10 @@ offset = 3352
 size = 2888
 address = 2148654808
 sha1 = "79d4ca13ca7609fe2bdc5579fb56ce41d07b969e"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10326, slot = "package" }]
+offset = 3352
+size = 2888
+address = 2148659176
+sha1 = "35f1bcbd28f8223d33da083d7f4fc932b80f639c"

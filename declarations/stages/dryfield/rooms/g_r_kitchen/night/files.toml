@@ -43,6 +43,10 @@ type = "dialogue"
 at = [{ stage = 3, folder = 1901, file = 0 }]
 chunks = { dryfield_g_r_kitchen_dialogue_0_atlas = "7e419747df96f8ba84600b5bce9b66efeaf91ef8" }
 
+[base.from.EUR]
+at = [{ stage = 3, folder = 1901, file = 0 }]
+chunks = { dryfield_g_r_kitchen_dialogue_0_atlas = "7e419747df96f8ba84600b5bce9b66efeaf91ef8" }
+
 [view1]
 uid = "uid://uvbrqzfm4w5s"
 template = "file"
@@ -51,6 +55,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 3, folder = 1901, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 3, folder = 1901, file = 1 }]
 
 [view2]
@@ -73,6 +80,10 @@ asset = { uid = "uid://youer6au7gvj", path = "res://stages/dryfield/rooms/g_r_ki
 at = [{ stage = 3, folder = 1901, file = 2 }]
 chunks = { image = "64ecdbb8b5ab0cdadb5bd68cfdd4108206d73a28" }
 
+[view2.from.EUR]
+at = [{ stage = 3, folder = 1901, file = 2 }]
+chunks = { image = "64ecdbb8b5ab0cdadb5bd68cfdd4108206d73a28" }
+
 [view3]
 uid = "uid://1euh5bmh4f6nj"
 template = "file"
@@ -81,4 +92,7 @@ slots = [
 ]
 
 [view3.from.USA]
+at = [{ stage = 3, folder = 1901, file = 3 }]
+
+[view3.from.EUR]
 at = [{ stage = 3, folder = 1901, file = 3 }]

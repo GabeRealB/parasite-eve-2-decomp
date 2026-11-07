@@ -151,6 +151,11 @@ at = [{ stage = 4, folder = 2301, file = 0, slot = "image_0", page = 0 }]
 sha1 = "66a2e72c5a9143da15ef92a8be89a5fbd8dd3fad"
 palettes = { row_0 = "b5b046161f3650fed0d76c847aba17045dcb403e", view45_row_0 = "8f54b24a546740274939818bd7b0024741f825e7" }
 
+[sprites_2.from.EUR]
+at = [{ stage = 4, folder = 2301, file = 0, slot = "image_0", page = 0 }]
+sha1 = "66a2e72c5a9143da15ef92a8be89a5fbd8dd3fad"
+palettes = { row_0 = "b5b046161f3650fed0d76c847aba17045dcb403e", view45_row_0 = "8f54b24a546740274939818bd7b0024741f825e7" }
+
 [smoke]
 uid = "uid://1osqersldhetw"
 template = "texture"
@@ -166,6 +171,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [smoke.from.USA]
+at = [{ stage = 4, folder = 2301, file = 0, slot = "image_1", page = 0 }]
+sha1 = "cf56fed6646a7826b11f953d554ba418d578cbf6"
+palettes = { effect_row_9_19 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d", effect_row_10_19 = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
+
+[smoke.from.EUR]
 at = [{ stage = 4, folder = 2301, file = 0, slot = "image_1", page = 0 }]
 sha1 = "cf56fed6646a7826b11f953d554ba418d578cbf6"
 palettes = { effect_row_9_19 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d", effect_row_10_19 = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
@@ -236,6 +246,11 @@ at = [{ stage = 4, folder = 2301, file = 0, slot = "image_2", page = 0 }]
 sha1 = "ae91dfa02170e9e47d6eee4c0b40c7ba13c71c1d"
 palettes = { row_0 = "b5b046161f3650fed0d76c847aba17045dcb403e" }
 
+[sprites.from.EUR]
+at = [{ stage = 4, folder = 2301, file = 0, slot = "image_2", page = 0 }]
+sha1 = "ae91dfa02170e9e47d6eee4c0b40c7ba13c71c1d"
+palettes = { row_0 = "b5b046161f3650fed0d76c847aba17045dcb403e" }
+
 [chains]
 uid = "uid://1odrg94truk6e"
 template = "texture"
@@ -252,6 +267,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [chains.from.USA]
+at = [{ stage = 0, file = 660803, slot = "image", page = 0 }]
+sha1 = "fb4ae9296c8199a460020a32b079b24ec2268c95"
+palettes = { row_0 = "5e385ebabdd8b1b98e7c581890ebfa1e34f73e81" }
+
+[chains.from.EUR]
 at = [{ stage = 0, file = 660803, slot = "image", page = 0 }]
 sha1 = "fb4ae9296c8199a460020a32b079b24ec2268c95"
 palettes = { row_0 = "5e385ebabdd8b1b98e7c581890ebfa1e34f73e81" }

@@ -121,6 +121,10 @@ type = "package"
 at = [{ stage = 0, file = 900000 }, { stage = 0, file = 900001 }]
 chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef", logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
 
+[map_stage_0.from.EUR]
+at = [{ stage = 0, file = 900000 }, { stage = 0, file = 900001 }]
+chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef", logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
+
 [map_dryfield]
 uid = "uid://s1p64tsq77ud"
 template = "file"
@@ -239,6 +243,10 @@ name = "package"
 type = "package"
 
 [map_dryfield.from.USA]
+at = [{ stage = 0, file = 900002 }]
+chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef", logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
+
+[map_dryfield.from.EUR]
 at = [{ stage = 0, file = 900002 }]
 chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef", logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
 
@@ -367,6 +375,10 @@ type = "package"
 at = [{ stage = 0, file = 900003 }]
 chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef", logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
 
+[map_dryfield_full.from.EUR]
+at = [{ stage = 0, file = 900003 }]
+chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef", logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
+
 [map_shelter]
 uid = "uid://mod8scogy3si"
 template = "file"
@@ -460,6 +472,10 @@ type = "package"
 at = [{ stage = 0, file = 900004 }]
 chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef" }
 
+[map_shelter.from.EUR]
+at = [{ stage = 0, file = 900004 }]
+chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef" }
+
 [map_neo_ark]
 uid = "uid://1ujssdao4nm6k"
 template = "file"
@@ -550,5 +566,9 @@ name = "package"
 type = "package"
 
 [map_neo_ark.from.USA]
+at = [{ stage = 0, file = 900005 }]
+chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef" }
+
+[map_neo_ark.from.EUR]
 at = [{ stage = 0, file = 900005 }]
 chunks = { image = "3b124dc62c9c258391c09c756039fc0c08e0b47b", palette = "0805cb08c64455f575c67eb7e4e63598094c46ef" }

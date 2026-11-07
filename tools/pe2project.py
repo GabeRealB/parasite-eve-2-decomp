@@ -10,9 +10,10 @@ makes the current directory one. The editor makes it (`pe2-cli project new`, the
 locate`, `config add`): the layer of the game's nodes `.layers/game` below the project's own `.layers/project`, the
 generated layer `.layers/game-files` its plan fills with their files, the unmanaged mount `roms` where the disc images
 are (`roms/` in the project, or wherever `--roms` says, which this machine's `project.local.toml` keeps), a read-only
-mount of this checkout's `packages/`, a configuration per release; then the mount is realized as a link, the extensions
-the project builds and plays its movies with are added (`pe2.psx`, `pe2.ffmpeg`, by `pe2-cli project extension add`),
-and it is extracted. The editor keeps what is this machine's out of the project's `.gitignore`; what this script adds,
+mount of this checkout's `packages/`, a configuration per release the decompilation builds; then the mount is
+realized as a link, the extensions the project builds and plays its movies with are added (`pe2.psx`, `pe2.ffmpeg`, by
+`pe2-cli project extension add`), and it is extracted. A project is of every release declared (`--release` for fewer),
+the plan preferring those the decompilation builds. The editor keeps what is this machine's out of the project's `.gitignore`; what this script adds,
 the links and the builds' output, it keeps out itself.
 
 `extract` writes the game's nodes from the declarations (`editor_project/`): every asset's node and the layer's
@@ -53,12 +54,23 @@ MOUNTS = [("packages", ROOT / "packages", True)]
 IGNORE = ["/build/"] + [f"/{at}" for at, _p, _r in MOUNTS]
 
 
-def releases() -> dict[str, dict]:
-    """What the repository knows of each release: its discs' image names (ninja_config's table)."""
+def built_releases() -> list[str]:
+    """The releases the decompilation builds, in its order (ninja_config's table)."""
     sys.path.insert(0, str(ROOT))
     import ninja_config
-    return {v.metadata.version_dir: {"images": [f"{v.metadata.name_disk1}.bin", f"{v.metadata.name_disk2}.bin"]}
-            for v in ninja_config.GAME_VERSIONS}
+    return [v.metadata.version_dir for v in ninja_config.GAME_VERSIONS]
+
+
+def declared_releases() -> list[str]:
+    """The releases the declarations know, in the order a plan prefers them: those the decompilation builds first, as
+    it orders them, then the rest by name."""
+    declared = {p.name for p in (declared_root() / "disc").iterdir() if p.is_dir()}
+    built = built_releases()
+    return [r for r in built if r in declared] + sorted(declared - set(built))
+
+
+def declared_root() -> Path:
+    return Path(declared.DECLARATIONS)
 
 
 def relative(target: Path, start: Path) -> str:
@@ -86,10 +98,10 @@ def setup(directory: Path, wanted: list[str], roms: Path | None, cli: Path) -> N
     directory = directory.absolute()
     if directory.exists() and any(directory.iterdir()):
         raise SystemExit(f"{directory} is not empty: a project is made in a new or empty folder")
-    known = releases()
+    known = declared_releases()
     unknown = [r for r in wanted if r not in known]
     if unknown:
-        raise SystemExit(f"unknown release {', '.join(unknown)}; known: {', '.join(known)}")
+        raise SystemExit(f"unknown release {', '.join(unknown)}; declared: {', '.join(known)}")
     subprocess.run([str(cli), "project", "new", str(directory)], check=True)
     edit = editing(directory, cli)
     edit("layer", "add", NODES, "--bottom")
@@ -99,7 +111,8 @@ def setup(directory: Path, wanted: list[str], roms: Path | None, cli: Path) -> N
     for at, path, read_only in MOUNTS:
         edit("mount", "add", at, relative(path, directory), *(["--read-only"] if read_only else []))
         make_link(directory / at, path)
-    for release in wanted:
+    # A configuration for each release the decompilation builds.
+    for release in (r for r in wanted if r in built_releases()):
         edit("config", "add", release.lower(), "--release", release, "--target", "psx")
     ignore = directory / ".gitignore"
     text = ignore.read_text(encoding="utf-8") if ignore.is_file() else ""
@@ -153,22 +166,22 @@ def generated(directory: Path) -> tuple[Path, Path]:
 
 
 def planned_releases(directory: Path, plan: Path) -> list[str]:
-    """The releases a project is of: what its plan reads, else what its configurations build."""
+    """The releases a project is of, in the order a plan prefers them: what its plan reads, else every one declared."""
     if plan.is_file():
         with open(plan, encoding="utf-8") as f:
-            return list(json.loads(f.readline()).get("inputs", {}))
-    toml = __import__("tomllib").loads((directory / "project.toml").read_text(encoding="utf-8"))
-    return sorted({c["release"] for c in toml.get("config", {}).values() if "release" in c}) or ["USA"]
+            planned = set(json.loads(f.readline()).get("inputs", {}))
+        return [r for r in declared_releases() if r in planned]
+    return declared_releases()
 
 
-def write_layer(directory: Path, cli: Path) -> Path:
+def write_layer(directory: Path, cli: Path, releases: list[str] | None = None) -> Path:
     """The game's nodes as the declarations make them, and the plan filling them. Returns the nodes' layer."""
     registry = json.loads(subprocess.run([str(cli), "project", "registry", "--project", str(directory)],
                                          check=True, capture_output=True, text=True).stdout)
     decl = declared.Declarations()
     files, layer = generated(directory)
     plan = files.with_name(files.name + ".plan.jsonl")
-    wanted = planned_releases(directory, plan)
+    wanted = [r for r in declared_releases() if r in releases] if releases else planned_releases(directory, plan)
     layer_init.write_nodes(layer, layer_init.layer_nodes(decl, registry, wanted))
     made = plans.make(decl, registry, wanted)
     plan.write_text(made.text(), encoding="utf-8")
@@ -176,14 +189,14 @@ def write_layer(directory: Path, cli: Path) -> Path:
     return layer
 
 
-def extract(directory: Path, roms: Path | None, cli: Path) -> None:
+def extract(directory: Path, roms: Path | None, cli: Path, releases: list[str] | None = None) -> None:
     """Write the game's nodes and their plan from the declarations and have the editor fill them from the discs,
     holding the lock."""
     directory = directory.resolve()
     if roms is not None:
         locate(directory, roms, cli)
     _lock = project_lock.hold(directory, "tools/pe2project.py extract")
-    write_layer(directory, cli)
+    write_layer(directory, cli, releases)
     subprocess.run([str(cli), "project", "extract", "--project", str(directory)], check=True)
 
 
@@ -194,7 +207,7 @@ def main() -> int:
         c = sub.add_parser(name)
         if name == "create":
             c.add_argument("directory", nargs="?", type=Path, default=ROOT / "project")
-        c.add_argument("--release", action="append", help="a release the project is built for (default USA)")
+        c.add_argument("--release", action="append", help="a release the project is of (default: every one declared)")
         c.add_argument("--roms", type=Path, help="where the disc images are, if not in the project's `roms/`")
         c.add_argument("--no-extract", action="store_true", help="write the game's nodes, but read nothing off the discs")
         c.add_argument("--no-extensions", action="store_true", help="add no extensions (pe2.psx, pe2.ffmpeg)")
@@ -208,14 +221,15 @@ def main() -> int:
                          "which needs Rust)")
     if args.command in ("create", "init"):
         directory = (args.directory if args.command == "create" else Path.cwd()).absolute()
-        setup(directory, args.release or ["USA"], args.roms, cli)
+        wanted = args.release or declared_releases()
+        setup(directory, wanted, args.roms, cli)
         if not args.no_extensions:
             add_extensions(directory, cli)
         if args.no_extract:
             _lock = project_lock.hold(directory, "tools/pe2project.py init")
-            write_layer(directory, cli)
+            write_layer(directory, cli, wanted)
         else:
-            extract(directory, None, cli)
+            extract(directory, None, cli, wanted)
     else:
         extract(args.project, args.roms, cli)
     return 0

@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 0, file = 20354, slot = "image", page = 0 }]
 sha1 = "174c6d49d388ca18a0d5c370a8dd42c604c7134a"
 palettes = { default = "502c04a7fcc44fa3b6e4aa16743808bdee3776da" }
+
+[texture.from.EUR]
+at = [{ stage = 0, file = 20354, slot = "image", page = 0 }]
+sha1 = "174c6d49d388ca18a0d5c370a8dd42c604c7134a"
+palettes = { default = "502c04a7fcc44fa3b6e4aa16743808bdee3776da" }

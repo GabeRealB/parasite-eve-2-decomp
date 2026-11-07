@@ -11,6 +11,10 @@ format = "bin"
 at = [{ disc = "disk1", slot = "license" }, { disc = "disk2", slot = "license" }]
 sha1 = "bc19b9c6a8463cb234ab3255e3ce3885f6efa026"
 
+[license.from.EUR]
+at = [{ disc = "disk1", slot = "license" }, { disc = "disk2", slot = "license" }]
+sha1 = "80ffd037f7882ae26edd53cb29d3d40963f51ccd"
+
 [system_config_1]               # SYSTEM.CNF: boots the disc's executable
 uid = "uid://8aay9n5xeqyy"
 template = "text"
@@ -19,6 +23,10 @@ format = "cnf"
 [system_config_1.from.USA]
 at = [{ disc = "disk1", slot = "SYSTEM.CNF" }]
 sha1 = "b5db59175ff8a14922186b3421ac44b48b850356"
+
+[system_config_1.from.EUR]
+at = [{ disc = "disk1", slot = "SYSTEM.CNF" }]
+sha1 = "6298f0029515aa8a2e3022c6418351443a366cae"
 
 [system_config_2]
 uid = "uid://jqe4f7yh1mge"
@@ -29,6 +37,10 @@ format = "cnf"
 at = [{ disc = "disk2", slot = "SYSTEM.CNF" }]
 sha1 = "130ac8c12567aef86a6eec5b537a8d62733ed2e6"
 
+[system_config_2.from.EUR]
+at = [{ disc = "disk2", slot = "SYSTEM.CNF" }]
+sha1 = "b5849ec861e3f2f03e9ed560877be0b714dd4f6e"
+
 [disc_marker]                   # PE_DISK.01 and .02: the same bytes on both discs, told apart by their names
 uid = "uid://1g0xo6rrbudqm"
 template = "binary"
@@ -37,6 +49,10 @@ format = "bin"
 [disc_marker.from.USA]
 at = [{ disc = "disk1", slot = "PE_DISK.01" }, { disc = "disk2", slot = "PE_DISK.02" }]
 sha1 = "62c423004572d669f8c7006db11a0dc33783b1a2"
+
+[disc_marker.from.EUR]
+at = [{ disc = "disk1", slot = "PE_DISK.01" }, { disc = "disk2", slot = "PE_DISK.02" }]
+sha1 = "d1f47474b02834625925f06811c39f1fb8009f33"
 
 [init_image]                    # INIT.BS
 uid = "uid://1skpauej8oul1"
@@ -50,6 +66,10 @@ source = "native.bs"
 at = [{ disc = "disk1", slot = "INIT.BS" }, { disc = "disk2", slot = "INIT.BS" }]
 sha1 = "3d4c30456d18d01307c029e46d25ada7b129f525"
 
+[init_image.from.EUR]
+at = [{ disc = "disk1", slot = "INIT.BS" }, { disc = "disk2", slot = "INIT.BS" }]
+sha1 = "fb9ff8dd31fa2e3d8ad4d035fd935912db452b1d"
+
 [dummy]                         # DUMMY.DMY
 uid = "uid://kz8sahthlcdt"
 template = "binary"
@@ -58,3 +78,7 @@ format = "bin"
 [dummy.from.USA]
 at = [{ disc = "disk1", slot = "DUMMY.DMY" }, { disc = "disk2", slot = "DUMMY.DMY" }]
 sha1 = "81f102b03ce5bf07dddfbf20275d9a0c367abbeb"
+
+[dummy.from.EUR]
+at = [{ disc = "disk1", slot = "DUMMY.DMY" }, { disc = "disk2", slot = "DUMMY.DMY" }]
+sha1 = "c54800906b477cea6b8d6bf09066580f256bb493"

@@ -24,6 +24,11 @@ at = [{ stage = 0, file = 403000, slot = "image", page = 0 }]
 sha1 = "97f2c23a53bad4becd5b61d6cb1030148051fe1a"
 palettes = { default = "9a71722d39347f758625e6ce34567ec40cc39c97", default_2 = "1aa668a70880e6cb17713e28649f5eca9b9e3d71", default_3 = "29b22a7a87a509a4c8845f2d1887aae4e391a1ed", default_4 = "5abd81b6712786701c1bc9251b58dc2d1a8522dc" }
 
+[blizzard_chasers_texture.from.EUR]
+at = [{ stage = 0, file = 403000, slot = "image", page = 0 }]
+sha1 = "97f2c23a53bad4becd5b61d6cb1030148051fe1a"
+palettes = { default = "9a71722d39347f758625e6ce34567ec40cc39c97", default_2 = "1aa668a70880e6cb17713e28649f5eca9b9e3d71", default_3 = "29b22a7a87a509a4c8845f2d1887aae4e391a1ed", default_4 = "5abd81b6712786701c1bc9251b58dc2d1a8522dc" }
+
 [folder]
 uid = "uid://3o2ak6ad7brp"
 template = "folder"
@@ -59,6 +64,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 4, folder = 201 }]
 
+[folder.from.EUR]
+at = [{ stage = 4, folder = 201 }]
+
 [dialogue_0_atlas]
 uid = "uid://1jta2nhiim8vg"
 template = "texture"
@@ -76,6 +84,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 4, folder = 201, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "953ba8d0e269b99c1bd1a93221eccfc9b1001a13"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 4, folder = 201, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "953ba8d0e269b99c1bd1a93221eccfc9b1001a13"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

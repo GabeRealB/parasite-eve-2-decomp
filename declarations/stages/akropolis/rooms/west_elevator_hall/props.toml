@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 1, folder = 1701, file = 0, slot = "image_1", page = 1 }]
 sha1 = "2f40ca03fa563a4a9b25c8bc20473d414fd1128a"
 palettes = { default = "926f1bb7f326ab70e48e78176350e7a72cb78e58" }
+
+[doors.from.EUR]
+at = [{ stage = 1, folder = 1701, file = 0, slot = "image_1", page = 1 }]
+sha1 = "2f40ca03fa563a4a9b25c8bc20473d414fd1128a"
+palettes = { default = "926f1bb7f326ab70e48e78176350e7a72cb78e58" }

@@ -14,3 +14,7 @@ source = "source.ora"
 [main_power_panel.from.USA]
 at = [{ stage = 4, folder = 601, file = 0, slot = "image_1", page = 0 }]
 sha1 = "b424b4b185169db715f533f2aed2a78017fa0511"
+
+[main_power_panel.from.EUR]
+at = [{ stage = 4, folder = 601, file = 0, slot = "image_1", page = 0 }]
+sha1 = "b424b4b185169db715f533f2aed2a78017fa0511"

@@ -25,6 +25,11 @@ at = [{ stage = 4, folder = 4701, file = 2, slot = "image", page = 0 }]
 sha1 = "7b21ac5a800dd52c881f690a396b2f41a057aff7"
 palettes = { row_0 = "90d79e57f367bdb9fe7e96e893b214dcc8ffcff5" }
 
+[view2.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 2, slot = "image", page = 0 }]
+sha1 = "7b21ac5a800dd52c881f690a396b2f41a057aff7"
+palettes = { row_0 = "90d79e57f367bdb9fe7e96e893b214dcc8ffcff5" }
+
 [view3]
 uid = "uid://1m3x71npcok6z"
 template = "texture"
@@ -50,6 +55,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view3.from.USA]
+at = [{ stage = 4, folder = 4701, file = 3, slot = "image", page = 0 }]
+sha1 = "e0ebcaaa26cde28f045fdf413105bc8be6aed513"
+palettes = { row_0 = "a32d7c74e1100dffd5ac338765556dd1d47221cc" }
+
+[view3.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 3, slot = "image", page = 0 }]
 sha1 = "e0ebcaaa26cde28f045fdf413105bc8be6aed513"
 palettes = { row_0 = "a32d7c74e1100dffd5ac338765556dd1d47221cc" }
@@ -153,6 +163,11 @@ at = [{ stage = 4, folder = 4701, file = 4, slot = "image", page = 0 }]
 sha1 = "809c04d127d37398c259b6084047915912bc882c"
 palettes = { row_0 = "768093933752678bf7d377ba9f9f2598e3a49096" }
 
+[view4.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 4, slot = "image", page = 0 }]
+sha1 = "809c04d127d37398c259b6084047915912bc882c"
+palettes = { row_0 = "768093933752678bf7d377ba9f9f2598e3a49096" }
+
 [view5]
 uid = "uid://1o4qkso7byuap"
 template = "texture"
@@ -185,6 +200,11 @@ at = [{ stage = 4, folder = 4701, file = 5, slot = "image", page = 0 }]
 sha1 = "60c9497616fcf9a80b93991feebff842ffeeeee3"
 palettes = { row_0 = "cea27e9bc54e8dff0f15e4a1d1a891b43d4a1fb8" }
 
+[view5.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 5, slot = "image", page = 0 }]
+sha1 = "60c9497616fcf9a80b93991feebff842ffeeeee3"
+palettes = { row_0 = "cea27e9bc54e8dff0f15e4a1d1a891b43d4a1fb8" }
+
 [view8]
 uid = "uid://o0hq0ellctqd"
 template = "texture"
@@ -208,6 +228,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view8.from.USA]
+at = [{ stage = 4, folder = 4701, file = 8, slot = "image", page = 0 }]
+sha1 = "ed4571558b8897f33ec650ef713896620cd35443"
+palettes = { row_0 = "ac2163ca836048e584734a8834a33a6d19b49f93" }
+
+[view8.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 8, slot = "image", page = 0 }]
 sha1 = "ed4571558b8897f33ec650ef713896620cd35443"
 palettes = { row_0 = "ac2163ca836048e584734a8834a33a6d19b49f93" }
@@ -253,6 +278,11 @@ at = [{ stage = 4, folder = 4701, file = 9, slot = "image", page = 0 }]
 sha1 = "cced4b1a7e64ab4156adbd0b5a53590f2ec05caa"
 palettes = { row_0 = "f95ec943b1f0c709457c29710c9b36486283c447" }
 
+[view9.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 9, slot = "image", page = 0 }]
+sha1 = "cced4b1a7e64ab4156adbd0b5a53590f2ec05caa"
+palettes = { row_0 = "f95ec943b1f0c709457c29710c9b36486283c447" }
+
 [view11]
 uid = "uid://1iaizojxjfg26"
 template = "texture"
@@ -268,6 +298,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view11.from.USA]
+at = [{ stage = 4, folder = 4701, file = 11, slot = "image", page = 0 }]
+sha1 = "f37755118a862d3901e709dd8e5343aac4528355"
+palettes = { row_0 = "d85d81ce43863ab1a2cc99eaa304c486eb9252ad" }
+
+[view11.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 11, slot = "image", page = 0 }]
 sha1 = "f37755118a862d3901e709dd8e5343aac4528355"
 palettes = { row_0 = "d85d81ce43863ab1a2cc99eaa304c486eb9252ad" }
@@ -303,6 +338,11 @@ at = [{ stage = 4, folder = 4701, file = 14, slot = "image", page = 0 }]
 sha1 = "1b471669904130eec1d221c057aa164d254ad8ef"
 palettes = { row_0 = "5cc0a2d24824b6bfa220860fee2380de2fe3d67e" }
 
+[view14.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 14, slot = "image", page = 0 }]
+sha1 = "1b471669904130eec1d221c057aa164d254ad8ef"
+palettes = { row_0 = "5cc0a2d24824b6bfa220860fee2380de2fe3d67e" }
+
 [view16]
 uid = "uid://v3ubhoe4cn9t"
 template = "texture"
@@ -318,6 +358,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view16.from.USA]
+at = [{ stage = 4, folder = 4701, file = 16, slot = "image_0", page = 0 }]
+sha1 = "68bfeb0bc1f902f0c2f4ebae407367a82763c4ef"
+palettes = { row_0 = "588bc032619c64422869971111626d1a43150da7", row_1 = "d27e549df5fe884efcb64d386c2f8b00d799a582", row_2 = "d27e549df5fe884efcb64d386c2f8b00d799a582" }
+
+[view16.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 16, slot = "image_0", page = 0 }]
 sha1 = "68bfeb0bc1f902f0c2f4ebae407367a82763c4ef"
 palettes = { row_0 = "588bc032619c64422869971111626d1a43150da7", row_1 = "d27e549df5fe884efcb64d386c2f8b00d799a582", row_2 = "d27e549df5fe884efcb64d386c2f8b00d799a582" }
@@ -347,6 +392,11 @@ at = [{ stage = 4, folder = 4701, file = 16, slot = "image_1", page = 0 }]
 sha1 = "4e4f0199f46fe96c615ad4ffdb26ad8247cc73b3"
 palettes = { row_0 = "16fa1c8088a6da9ca1d33320b285c01eac30e195", row_0_1 = "6b1c57107277419742d812a6edf0ee6f96870714", row_0_2 = "05b1f4afa07fd69ed14a02a041d00172dba2af5f", row_0_3 = "b552ad703986959461d29f65cc82a3a834c7622b", row_0_4 = "ed25e9a6d0c3040466fd3695a1f045e62dcd09be", row_0_5 = "1a225ed53af6ead8a4d84b70ea8f9551a20703a5", row_0_6 = "e6aa571ba5b75f7bf34684ab8000511ed14502b9", row_0_7 = "c2d466f33d2a26a8323772d57f3a77cf5ce67a7c", row_0_8 = "f2a4b5994a454c5d6def88150245cea25e066797" }
 
+[view16_2.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 16, slot = "image_1", page = 0 }]
+sha1 = "4e4f0199f46fe96c615ad4ffdb26ad8247cc73b3"
+palettes = { row_0 = "16fa1c8088a6da9ca1d33320b285c01eac30e195", row_0_1 = "6b1c57107277419742d812a6edf0ee6f96870714", row_0_2 = "05b1f4afa07fd69ed14a02a041d00172dba2af5f", row_0_3 = "b552ad703986959461d29f65cc82a3a834c7622b", row_0_4 = "ed25e9a6d0c3040466fd3695a1f045e62dcd09be", row_0_5 = "1a225ed53af6ead8a4d84b70ea8f9551a20703a5", row_0_6 = "e6aa571ba5b75f7bf34684ab8000511ed14502b9", row_0_7 = "c2d466f33d2a26a8323772d57f3a77cf5ce67a7c", row_0_8 = "f2a4b5994a454c5d6def88150245cea25e066797" }
+
 [view16_3]
 uid = "uid://ophgwryovtw3"
 template = "texture"
@@ -362,6 +412,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view16_3.from.USA]
+at = [{ stage = 4, folder = 4701, file = 16, slot = "image_1", page = 1 }]
+sha1 = "60df3aaddb62f0a37672421492a64a09b2cb2527"
+palettes = { row_0 = "588bc032619c64422869971111626d1a43150da7", row_1 = "d27e549df5fe884efcb64d386c2f8b00d799a582", row_2 = "d27e549df5fe884efcb64d386c2f8b00d799a582" }
+
+[view16_3.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 16, slot = "image_1", page = 1 }]
 sha1 = "60df3aaddb62f0a37672421492a64a09b2cb2527"
 palettes = { row_0 = "588bc032619c64422869971111626d1a43150da7", row_1 = "d27e549df5fe884efcb64d386c2f8b00d799a582", row_2 = "d27e549df5fe884efcb64d386c2f8b00d799a582" }
@@ -390,6 +445,11 @@ at = [{ stage = 4, folder = 4701, file = 37, slot = "image", page = 0 }]
 sha1 = "9372037ff41f346671f23ea6d75545f762d70ae2"
 palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1", row_0_7 = "a70e3dd96908031e45197e4ed927d62d11af08f0" }
 
+[view37.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 37, slot = "image", page = 0 }]
+sha1 = "9372037ff41f346671f23ea6d75545f762d70ae2"
+palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1", row_0_7 = "a70e3dd96908031e45197e4ed927d62d11af08f0" }
+
 [view37_2]
 uid = "uid://cofgjx3y4qhj"
 template = "texture"
@@ -410,6 +470,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view37_2.from.USA]
+at = [{ stage = 4, folder = 4701, file = 37, slot = "image", page = 1 }]
+sha1 = "5667f91ba281b4b3d9acc0ce5996fef690ac7a93"
+palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1", row_0_7 = "a70e3dd96908031e45197e4ed927d62d11af08f0" }
+
+[view37_2.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 37, slot = "image", page = 1 }]
 sha1 = "5667f91ba281b4b3d9acc0ce5996fef690ac7a93"
 palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1", row_0_7 = "a70e3dd96908031e45197e4ed927d62d11af08f0" }
@@ -437,6 +502,11 @@ at = [{ stage = 4, folder = 4701, file = 38, slot = "image", page = 0 }]
 sha1 = "b98dde5357ad0f28f8ea021a913d942a879cc710"
 palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
 
+[view38.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 38, slot = "image", page = 0 }]
+sha1 = "b98dde5357ad0f28f8ea021a913d942a879cc710"
+palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
 [view38_2]
 uid = "uid://18xhdplnnhgxw"
 template = "texture"
@@ -456,6 +526,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view38_2.from.USA]
+at = [{ stage = 4, folder = 4701, file = 38, slot = "image", page = 1 }]
+sha1 = "6a994cdbfcbf72ef5192f8be5ad793fd8e8b0015"
+palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
+[view38_2.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 38, slot = "image", page = 1 }]
 sha1 = "6a994cdbfcbf72ef5192f8be5ad793fd8e8b0015"
 palettes = { row_0 = "81746346d02d9200e2db6fed2ad2f8b2621aff15", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
@@ -483,6 +558,11 @@ at = [{ stage = 4, folder = 4701, file = 39, slot = "image", page = 0 }]
 sha1 = "76b0c2d3d9e75ab29a6e7bdde2967dfe799786de"
 palettes = { row_0 = "7ceb5c14a7417a2c44e021982c2e7b267101fe47", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
 
+[view39.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 39, slot = "image", page = 0 }]
+sha1 = "76b0c2d3d9e75ab29a6e7bdde2967dfe799786de"
+palettes = { row_0 = "7ceb5c14a7417a2c44e021982c2e7b267101fe47", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
 [view39_2]
 uid = "uid://mtdjnfi8621j"
 template = "texture"
@@ -502,6 +582,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view39_2.from.USA]
+at = [{ stage = 4, folder = 4701, file = 39, slot = "image", page = 1 }]
+sha1 = "094791cfad9ad3892e1eeb7a67c38db8946b689d"
+palettes = { row_0 = "7ceb5c14a7417a2c44e021982c2e7b267101fe47", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
+[view39_2.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 39, slot = "image", page = 1 }]
 sha1 = "094791cfad9ad3892e1eeb7a67c38db8946b689d"
 palettes = { row_0 = "7ceb5c14a7417a2c44e021982c2e7b267101fe47", row_0_1 = "cd917cd31e65902a20cbce847f7f190d37b0d8a0", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
@@ -530,6 +615,11 @@ at = [{ stage = 4, folder = 4701, file = 40, slot = "image_0", page = 0 }]
 sha1 = "95c61282a67d7f540c04ccfc5418b8a6ab5c2e4e"
 palettes = { row_0 = "5bdc7898e3495fb3dd42e8b2f3cd0c9b9e327525", row_0_1 = "e33ff79ac7fb1f22dbae250949e21586234db08a", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1", row_1 = "89979c75286a6e2e2950a6c1b32061e3e3333ff9" }
 
+[view40.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 40, slot = "image_0", page = 0 }]
+sha1 = "95c61282a67d7f540c04ccfc5418b8a6ab5c2e4e"
+palettes = { row_0 = "5bdc7898e3495fb3dd42e8b2f3cd0c9b9e327525", row_0_1 = "e33ff79ac7fb1f22dbae250949e21586234db08a", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1", row_1 = "89979c75286a6e2e2950a6c1b32061e3e3333ff9" }
+
 [view40_2]
 uid = "uid://1tysxtvfm80ya"
 template = "texture"
@@ -549,6 +639,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view40_2.from.USA]
+at = [{ stage = 4, folder = 4701, file = 40, slot = "image_1", page = 0 }]
+sha1 = "6f73b92526dae57164ee9bc2ca4e4937002c4961"
+palettes = { row_0 = "5bdc7898e3495fb3dd42e8b2f3cd0c9b9e327525", row_0_1 = "e33ff79ac7fb1f22dbae250949e21586234db08a", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
+[view40_2.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 40, slot = "image_1", page = 0 }]
 sha1 = "6f73b92526dae57164ee9bc2ca4e4937002c4961"
 palettes = { row_0 = "5bdc7898e3495fb3dd42e8b2f3cd0c9b9e327525", row_0_1 = "e33ff79ac7fb1f22dbae250949e21586234db08a", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
@@ -576,6 +671,11 @@ at = [{ stage = 4, folder = 4701, file = 40, slot = "image_1", page = 1 }]
 sha1 = "1c2c4aaa3874ba81ccbedf95d83273f77fb6d599"
 palettes = { row_0 = "5bdc7898e3495fb3dd42e8b2f3cd0c9b9e327525", row_0_1 = "e33ff79ac7fb1f22dbae250949e21586234db08a", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
 
+[view40_3.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 40, slot = "image_1", page = 1 }]
+sha1 = "1c2c4aaa3874ba81ccbedf95d83273f77fb6d599"
+palettes = { row_0 = "5bdc7898e3495fb3dd42e8b2f3cd0c9b9e327525", row_0_1 = "e33ff79ac7fb1f22dbae250949e21586234db08a", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
 [view41]
 uid = "uid://1vd8cqnml8m6"
 template = "texture"
@@ -599,6 +699,11 @@ at = [{ stage = 4, folder = 4701, file = 41, slot = "image", page = 0 }]
 sha1 = "642de04a0dcb0b33e49f59eadd009b962314bd21"
 palettes = { row_0 = "79ee478767c541ad1851e8817321065cfa9935a5", row_0_1 = "21b998285edccfbab4d5bfaece3c47bf03354ca2", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
 
+[view41.from.EUR]
+at = [{ stage = 4, folder = 4701, file = 41, slot = "image", page = 0 }]
+sha1 = "642de04a0dcb0b33e49f59eadd009b962314bd21"
+palettes = { row_0 = "79ee478767c541ad1851e8817321065cfa9935a5", row_0_1 = "21b998285edccfbab4d5bfaece3c47bf03354ca2", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
 [view41_2]
 uid = "uid://qxjgp9i7c1m4"
 template = "texture"
@@ -618,6 +723,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view41_2.from.USA]
+at = [{ stage = 4, folder = 4701, file = 41, slot = "image", page = 1 }]
+sha1 = "8478ec274619d53a62018fc84064767f1b619ef0"
+palettes = { row_0 = "79ee478767c541ad1851e8817321065cfa9935a5", row_0_1 = "21b998285edccfbab4d5bfaece3c47bf03354ca2", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }
+
+[view41_2.from.EUR]
 at = [{ stage = 4, folder = 4701, file = 41, slot = "image", page = 1 }]
 sha1 = "8478ec274619d53a62018fc84064767f1b619ef0"
 palettes = { row_0 = "79ee478767c541ad1851e8817321065cfa9935a5", row_0_1 = "21b998285edccfbab4d5bfaece3c47bf03354ca2", row_0_2 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_3 = "2dd2a1ad6bc02e6102e8adbc595bfca2751e1c8d", row_0_4 = "85b1ba50f10d24bff74901838660514ec9c007da", row_0_5 = "8a74792e91bcc9961daf99254fb156ce5fa81780", row_0_6 = "b1b1ca8c3afb2442fef6f8ac677acf4e05a657d1" }

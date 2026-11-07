@@ -56,6 +56,10 @@ upload_mode = 0
 at = [{ stage = 5, folder = 301, file = 0 }]
 chunks = { dialogue_0_atlas = "66ad3eabc38134c527db7035d17bc107e231fdab" }
 
+[base.from.EUR]
+at = [{ stage = 5, folder = 301, file = 0 }]
+chunks = { dialogue_0_atlas = "66ad3eabc38134c527db7035d17bc107e231fdab" }
+
 [view1]
 uid = "uid://3t72umhufwuk"
 template = "file"
@@ -66,6 +70,9 @@ slots = [
 [view1.from.USA]
 at = [{ stage = 5, folder = 301, file = 1 }]
 
+[view1.from.EUR]
+at = [{ stage = 5, folder = 301, file = 1 }]
+
 [view2]
 uid = "uid://14b1mae2yppda"
 template = "file"
@@ -74,6 +81,9 @@ slots = [
 ]
 
 [view2.from.USA]
+at = [{ stage = 5, folder = 301, file = 2 }]
+
+[view2.from.EUR]
 at = [{ stage = 5, folder = 301, file = 2 }]
 
 [view3]
@@ -93,5 +103,9 @@ type = "bs"
 asset = { uid = "uid://1uyqqxzxnflgi", path = "res://stages/shelter_neo_ark/rooms/1f_bulwark/views/view3_background.node" }
 
 [view3.from.USA]
+at = [{ stage = 5, folder = 301, file = 3 }]
+chunks = { image = "2f814246b933d38a90a6e87bdbd6d548ae213d9d" }
+
+[view3.from.EUR]
 at = [{ stage = 5, folder = 301, file = 3 }]
 chunks = { image = "2f814246b933d38a90a6e87bdbd6d548ae213d9d" }

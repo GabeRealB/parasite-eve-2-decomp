@@ -24,6 +24,11 @@ at = [{ stage = 0, file = 450200, slot = "dome_backdrops", page = 0 }]
 sha1 = "ad26daf4d610ce07b8081a23161c004864cdd124"
 palettes = { outgoing = "64d4497e5360b737a3dfceb89fa3762f856ca478", incoming = "876b7d0747d8acf6596bb1e978dd23c58d9db741" }
 
+[dome_backdrop.from.EUR]
+at = [{ stage = 0, file = 450200, slot = "dome_backdrops", page = 0 }]
+sha1 = "ad26daf4d610ce07b8081a23161c004864cdd124"
+palettes = { outgoing = "64d4497e5360b737a3dfceb89fa3762f856ca478", incoming = "876b7d0747d8acf6596bb1e978dd23c58d9db741" }
+
 [folder]
 uid = "uid://11i4l73dpnxjb"
 template = "folder"
@@ -55,6 +60,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 5, folder = 701 }]
 
+[folder.from.EUR]
+at = [{ stage = 5, folder = 701 }]
+
 [dialogue_0_atlas]
 uid = "uid://1ihvvoa64f031"
 template = "texture"
@@ -76,6 +84,11 @@ at = [{ stage = 5, folder = 701, file = 0, slot = "dialogue_0_atlas", page = 0 }
 sha1 = "dab2f7ce4beb16b8cb773519103042b0c673c460"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
 
+[dialogue_0_atlas.from.EUR]
+at = [{ stage = 5, folder = 701, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "dab2f7ce4beb16b8cb773519103042b0c673c460"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
 [dialogue_1_atlas]
 uid = "uid://1ldu8gechq6y4"
 template = "texture"
@@ -93,6 +106,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_1_atlas.from.USA]
+at = [{ stage = 5, folder = 701, file = 0, slot = "dialogue_1_atlas", page = 0 }]
+sha1 = "bf8d2d1d6ef3b6392ee2ceca79704591f0be7f56"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_1_atlas.from.EUR]
 at = [{ stage = 5, folder = 701, file = 0, slot = "dialogue_1_atlas", page = 0 }]
 sha1 = "bf8d2d1d6ef3b6392ee2ceca79704591f0be7f56"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

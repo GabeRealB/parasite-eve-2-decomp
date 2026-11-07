@@ -90,6 +90,10 @@ type = "dialogue"
 at = [{ stage = 4, folder = 3501, file = 0 }]
 chunks = { dialogue_0_atlas = "793eeedc67b17b0d94a1afd8de1ec652b21322a1", palette = "a02be22cb3f00c891f13f623e39918ad4f5d9b59", image = "9c0854bec8057ab871d35ba0bb6184728588431a" }
 
+[base.from.EUR]
+at = [{ stage = 4, folder = 3501, file = 0 }]
+chunks = { dialogue_0_atlas = "793eeedc67b17b0d94a1afd8de1ec652b21322a1", palette = "a02be22cb3f00c891f13f623e39918ad4f5d9b59", image = "9c0854bec8057ab871d35ba0bb6184728588431a" }
+
 [view1]
 uid = "uid://3mvajvo2prsw"
 template = "file"
@@ -100,6 +104,9 @@ slots = [
 [view1.from.USA]
 at = [{ stage = 4, folder = 3501, file = 1 }]
 
+[view1.from.EUR]
+at = [{ stage = 4, folder = 3501, file = 1 }]
+
 [view2]
 uid = "uid://jjvasnrklpmu"
 template = "file"
@@ -108,6 +115,9 @@ slots = [
 ]
 
 [view2.from.USA]
+at = [{ stage = 4, folder = 3501, file = 2 }]
+
+[view2.from.EUR]
 at = [{ stage = 4, folder = 3501, file = 2 }]
 
 [view3]
@@ -130,6 +140,10 @@ asset = { uid = "uid://jpnoke4h7abu", path = "res://stages/mine_shelter/rooms/b2
 at = [{ stage = 4, folder = 3501, file = 3 }]
 chunks = { image = "19bdb86fa8b5f9a9c10b367b368282a6acfa9fe2" }
 
+[view3.from.EUR]
+at = [{ stage = 4, folder = 3501, file = 3 }]
+chunks = { image = "19bdb86fa8b5f9a9c10b367b368282a6acfa9fe2" }
+
 [view4]
 uid = "uid://1qdj0lwjxie2v"
 template = "file"
@@ -140,6 +154,9 @@ slots = [
 [view4.from.USA]
 at = [{ stage = 4, folder = 3501, file = 4 }]
 
+[view4.from.EUR]
+at = [{ stage = 4, folder = 3501, file = 4 }]
+
 [view5]
 uid = "uid://637dna3g9fyy"
 template = "file"
@@ -148,6 +165,9 @@ slots = [
 ]
 
 [view5.from.USA]
+at = [{ stage = 4, folder = 3501, file = 5 }]
+
+[view5.from.EUR]
 at = [{ stage = 4, folder = 3501, file = 5 }]
 
 [view6]
@@ -170,6 +190,10 @@ asset = { uid = "uid://e0ecuza86d87", path = "res://stages/mine_shelter/rooms/b2
 at = [{ stage = 4, folder = 3501, file = 6 }]
 chunks = { image = "62a8e9b17671202cba476099226a6db00bd06cd0" }
 
+[view6.from.EUR]
+at = [{ stage = 4, folder = 3501, file = 6 }]
+chunks = { image = "62a8e9b17671202cba476099226a6db00bd06cd0" }
+
 [view7]
 uid = "uid://1af5ztgcdpeai"
 template = "file"
@@ -178,4 +202,7 @@ slots = [
 ]
 
 [view7.from.USA]
+at = [{ stage = 4, folder = 3501, file = 7 }]
+
+[view7.from.EUR]
 at = [{ stage = 4, folder = 3501, file = 7 }]

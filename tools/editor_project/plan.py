@@ -112,7 +112,11 @@ class Plan:
     def check(self, id: str) -> None:
         self.checks.add(id)
 
-    def emit(self, node: str, file: str, id: str, optional: bool = False) -> None:
+    def emit(self, node: str, file: str, id: str | list[str], optional: bool = False) -> None:
+        """A file of a bundle, made by an operation - or by any of several, in preference order, making the same bytes
+        of different releases."""
+        if isinstance(id, list):
+            id = id[0] if len(id) == 1 else id
         self.emits.setdefault(node, {})[file] = id
         if optional:
             self.optional.setdefault(node, set()).add(file)
@@ -121,7 +125,7 @@ class Plan:
         """The plan's lines: what it is, its operations - discs, containers, then reads, each in id order - and the
         bundles, by path."""
         inputs = {release: {"look_in": LOOK_IN, "discs": discs} for release, discs in self.inputs.items()}
-        head = {"plan": VERSION, "requires": self.requires(), "inputs": inputs}
+        head = {"plan": VERSION, "requires": self.requires(), "releases": list(self.inputs), "inputs": inputs}
         emits = []
         for node, files in sorted(self.emits.items()):
             line = {"emit": node, "files": files}
@@ -162,42 +166,71 @@ def joints_of(table: dict, by_path: dict) -> list | None:
     return by_path[named].table.get("joints", []) if named else None
 
 
+def run_groups(table: dict, releases) -> tuple[list[str], list[list[str]]]:
+    """The releases declaring a package's run, and them grouped by what they declare it: its bytes, and where it is
+    loaded - the same bytes loaded elsewhere being another mesh, its pointers resolved there."""
+    declaring = [r for r in releases if table.get("from", {}).get(r)]
+    groups = by_what_they_declare({r: (table["from"][r].get("sha1"), table["from"][r].get("address"))
+                                   for r in declaring})
+    return declaring, groups
+
+
+def run_op(kind: str, path: str, table: dict, release: str, releases) -> str:
+    """The operation making a mesh, a clip or a model of a release: the first group's plain, another's by its first
+    release (`<kind>:<release>:<path>`)."""
+    _, groups = run_groups(table, releases)
+    for n, group in enumerate(groups):
+        if release in group:
+            return f"{kind}:{path}" if n == 0 else f"{kind}:{group[0]}:{path}"
+    raise KeyError(f"{path}: {release} declares no run")
+
+
 def rendered(plan: Plan, path: str, table: dict, node_type: str, by_path: dict, releases, places, containers) -> None:
-    """A mesh, a clip or a model: each release's run of its package held to its sha1, the first's made of."""
-    first = None
-    for release in releases:
-        placed = table.get("from", {}).get(release)
-        if placed:
-            run = stored(plan, path, placed, release, by_path, places, containers)
-            first = first or (run, placed)
-    if first is None:
+    """A mesh, a clip or a model: each release's run of its package held to its sha1; made once for each group of
+    releases declaring it alike, of any of their runs."""
+    declaring, groups = run_groups(table, releases)
+    if not declaring:
         return
-    run, placed = first
+    runs = {r: stored(plan, path, table["from"][r], r, by_path, places, containers) for r in declaring}
+    made_by = {}
+    for group in groups:
+        run, placed = any_of([runs[r] for r in group]), table["from"][group[0]]
+        id = run_op(node_type_kind(node_type), path, table, group[0], releases)
+        for release in group:
+            made_by[release] = id
+        if node_type == MESH:
+            args = {"address": placed["address"], "material_slots": placed.get("material_slots", [])}
+            joints = joints_of(table, by_path)
+            if joints is not None:
+                args["joints"] = joints
+            plan.op(id, "pe2.render@extract_mesh", {"stored": run}, args)
+        elif node_type == CLIP:
+            args = {"address": placed["address"], "joints": joints_of(table, by_path)}
+            plan.op(id, "pe2.render@extract_clip", {"stored": run}, args)
+        else:
+            mesh_path = target(table["mesh"])
+            mesh_table = by_path[mesh_path].table
+            materials = {slot: target(ref) for slot, ref in table.get("materials", {}).items()}
+            material_tables = {m: declared(by_path[m].table) for m in materials.values() if m}
+            images = {i: declared(by_path[i].table) for t in material_tables.values() for i in references(t)
+                      if by_path.get(i) and by_path[i].table.get("template") in ("texture", "background", "font_texture")}
+            slots = {v: declared(by_path[v].table) for t in images.values() for v in references(t)
+                     if by_path.get(v) and by_path[v].table.get("template") == "vram_slot"}
+            args = {"address": placed["address"], "model": {"materials": table.get("materials", {})},
+                    "materials": material_tables, "images": images, "vram_slots": slots}
+            joints = joints_of(mesh_table, by_path)
+            if joints is not None:
+                args["joints"] = joints
+            takes = {"stored": run, "mesh": run_op("mesh", mesh_path, mesh_table, group[0], releases)}
+            plan.check(plan.op(id, "pe2.render@check_model", takes, args))
     if node_type == MESH:
-        args = {"address": placed["address"], "material_slots": placed.get("material_slots", [])}
-        joints = joints_of(table, by_path)
-        if joints is not None:
-            args["joints"] = joints
-        plan.emit(path, "mesh.usda", plan.op(f"mesh:{path}", "pe2.render@extract_mesh", {"stored": run}, args))
+        emit_by_release(plan, path, "mesh.usda", groups, made_by)
     elif node_type == CLIP:
-        args = {"address": placed["address"], "joints": joints_of(table, by_path)}
-        plan.emit(path, "clip.usda", plan.op(f"clip:{path}", "pe2.render@extract_clip", {"stored": run}, args))
-    else:
-        mesh_path = target(table["mesh"])
-        mesh_table = by_path[mesh_path].table
-        materials = {slot: target(ref) for slot, ref in table.get("materials", {}).items()}
-        material_tables = {m: declared(by_path[m].table) for m in materials.values() if m}
-        images = {i: declared(by_path[i].table) for t in material_tables.values() for i in references(t)
-                  if by_path.get(i) and by_path[i].table.get("template") in ("texture", "background", "font_texture")}
-        slots = {v: declared(by_path[v].table) for t in images.values() for v in references(t)
-                 if by_path.get(v) and by_path[v].table.get("template") == "vram_slot"}
-        args = {"address": placed["address"], "model": {"materials": table.get("materials", {})},
-                "materials": material_tables, "images": images, "vram_slots": slots}
-        joints = joints_of(mesh_table, by_path)
-        if joints is not None:
-            args["joints"] = joints
-        takes = {"stored": run, "mesh": f"mesh:{mesh_path}"}
-        plan.check(plan.op(f"model:{path}", "pe2.render@check_model", takes, args))
+        emit_by_release(plan, path, "clip.usda", groups, made_by)
+
+
+def node_type_kind(node_type: str) -> str:
+    return {MESH: "mesh", CLIP: "clip"}.get(node_type, "model")
 
 
 def ordered(ops: dict[str, dict]) -> list[dict]:
@@ -210,13 +243,49 @@ def ordered(ops: dict[str, dict]) -> list[dict]:
         done.add(id)
         for taken in ops[id].get("in", {}).values():
             for t in taken if isinstance(taken, list) else [taken]:
-                place(t)
+                for one in t["any"] if isinstance(t, dict) else [t]:
+                    place(one)
         for t in ops[id].get("after", []):
             place(t)
         out.append(ops[id])
     for id in sorted(ops):
         place(id)
     return out
+
+
+def any_of(ids: list[str]):
+    """What an operation takes at a place: one operation, or any of several making the same bytes of different
+    releases, in preference order."""
+    unique = list(dict.fromkeys(ids))
+    return unique[0] if len(unique) == 1 else {"any": unique}
+
+
+def by_what_they_declare(made: dict) -> list[list[str]]:
+    """The releases grouped by what they declare an asset to be (`made`: release -> what it declares, in release
+    order; none being unlike any other), in release order."""
+    groups: list[tuple[object, list[str]]] = []
+    for release, declared in made.items():
+        group = next((g for key, g in groups if declared is not None and key == declared), None)
+        if group is None:
+            groups.append((declared, [release]))
+        else:
+            group.append(release)
+    return [g for _, g in groups]
+
+
+def emit_by_release(plan: Plan, path: str, name: str, groups: list[list[str]], made_by: dict,
+                    optional: bool = False) -> None:
+    """A file each group of releases makes alike (`by_what_they_declare`, `made_by`: release -> its operation): the
+    first group's the bundle's file, made by any of its releases; each other release's its own, `<release>/<name>`,
+    made by it first, else by the others of its group."""
+    for n, group in enumerate(groups):
+        ids = [made_by[r] for r in group]
+        if n == 0:
+            plan.emit(path, name, ids, optional)
+            continue
+        for release in group:
+            own = made_by[release]
+            plan.emit(path, f"{release}/{name}", [own] + [i for i in ids if i != own], optional)
 
 
 def palette_sources(by_path: dict) -> tuple[dict, dict, dict]:
@@ -267,15 +336,10 @@ def read_at(plan: Plan, release: str, at: dict, by_path: dict, places: dict, con
     return chunk(plan, release, at, by_path, places, containers)
 
 
-def textured(plan: Plan, path: str, table: dict, registry: dict, by_path: dict, releases, places, containers, palettes,
-             discs):
-    """A texture: its native files from the chunks it reads - its first page's, the file's later image chunks holding
-    the rest of it, its palettes' sources - given what it reads of the other declarations; then its source, written and
-    checked to import back."""
+def texture_reads(path: str, table: dict, by_path: dict, release: str, palettes) -> tuple[list[dict], dict]:
+    """What a release's texture reads - its first page's chunk, the file's later image chunks holding the rest of it,
+    its palettes' sources - and the settings its extraction is given."""
     named, runs, files_at = palettes
-    release = next((r for r in releases if table.get("from", {}).get(r)), None)
-    if release is None:
-        return
     placed = table["from"][release]
     at = placed["at"][0]
     reads = [place(at)]
@@ -319,45 +383,82 @@ def textured(plan: Plan, path: str, table: dict, registry: dict, by_path: dict, 
         "places": [{"stage": at.get("stage", 0), "folder": at.get("folder"), "file": at.get("file", 0), "path": file_path}]
         if file_path else [],
     }
-    args = {k: v for k, v in args.items()}
-    chunks = [read_at(plan, release, read, by_path, places, containers, discs) for read in reads]
-    texture = plan.op(f"texture:{path}", "pe2.images@extract_texture", {"chunks": chunks}, json_safe(args))
+    return reads, args
+
+
+def textured(plan: Plan, path: str, table: dict, registry: dict, by_path: dict, releases, places, containers, palettes,
+             discs):
+    """A texture: its native files from the chunks it reads, given what it reads of the other declarations; then its
+    source, written and checked to import back. Made once for each group of releases declaring it alike, of any of
+    their chunks at each place - the extraction holding them to the first's declarations."""
+    declaring = [r for r in releases if table.get("from", {}).get(r)]
+    if not declaring:
+        return
+    read = {r: texture_reads(path, table, by_path, r, palettes) for r in declaring}
+    as_declared = lambda r: json.dumps({k: table["from"][r].get(k) for k in ("sha1", "palettes", "offset", "size")},  # noqa: E731
+                                       sort_keys=True) + str(len(read[r][0]))
+    groups = by_what_they_declare({r: as_declared(r) for r in declaring})
     declared, _ = nodes.stamped_node(path, table, registry, releases)
     source = table.get("import", {}).get("source", "source.ora")
-    # As TOML text: its tables' order - a texture's palettes, its cells - is what its source is written in.
-    made = plan.op(f"source:{path}", "source", {"native": texture},
-                   {"node": path, "uid": table["uid"], "declared": toml_out.document(declared)})
-    plan.emit(path, source, made)
+    made_by = {}
+    for n, group in enumerate(groups):
+        reads, args = read[group[0]]
+        chunks = [any_of([read_at(plan, r, read[r][0][k], by_path, places, containers, discs) for r in group])
+                  for k in range(len(reads))]
+        own = "" if n == 0 else f"{group[0]}:"
+        texture = plan.op(f"texture:{own}{path}", "pe2.images@extract_texture", {"chunks": chunks}, json_safe(args))
+        # As TOML text: its tables' order - a texture's palettes, its cells - is what its source is written in.
+        made = plan.op(f"source:{own}{path}", "source", {"native": texture},
+                       {"node": path, "uid": table["uid"], "declared": toml_out.document(declared)})
+        for release in group:
+            made_by[release] = made
+    emit_by_release(plan, path, source, groups, made_by)
 
 
 def atlased(plan: Plan, path: str, table: dict, by_path: dict, releases, places, containers, discs) -> None:
     """An atlas: its pages and its faces' tables read, and from them its layout, what lies under its glyphs where
-    anything does, and each face's UFO - one operation for all of them, as each face is read through the atlas."""
-    release = next((r for r in releases if table.get("from", {}).get(r)), None)
-    if release is None:
-        return
-    placed = table["from"][release]
-    reads = [place(sheet["at"][0]) for sheet in placed.get("pages", [placed])]
+    anything does, and each face's UFO - one operation for all of them, as each face is read through the atlas. Made
+    once for each group of releases declaring it and its faces alike, of any of their chunks at each place."""
     faces, encodings = {}, {}
     for entry in table.get("faces", []):
         face = target(entry["font"])
-        face_table = by_path[face].table
-        faces[face] = face_table
-        if face_table.get("encoding"):
-            encoding = target(face_table["encoding"])
+        faces[face] = by_path[face].table
+        if faces[face].get("encoding"):
+            encoding = target(faces[face]["encoding"])
             encodings[encoding] = by_path[encoding].table
-        read = place(face_table["from"][release]["at"][0])
-        if read not in reads:
-            reads.append(read)
-    chunks = [read_at(plan, release, read, by_path, places, containers, discs) for read in reads]
-    args = {"atlas": path, "release": release, "atlases": {path: table}, "faces": faces, "encodings": encodings,
-            "reads": reads}
-    made = plan.op(f"atlas:{path}", "pe2.fonts@extract_atlas", {"chunks": chunks}, json_safe(args))
-    plan.emit(path, "layout.toml", made)
-    plan.emit(path, "under.png", made, optional=True)
+    declaring = [r for r in releases if table.get("from", {}).get(r)
+                 and all(f.get("from", {}).get(r) for f in faces.values())]
+    if not declaring:
+        return
+
+    def reads_of(release: str) -> list[dict]:
+        placed = table["from"][release]
+        reads = [place(sheet["at"][0]) for sheet in placed.get("pages", [placed])]
+        for face_table in faces.values():
+            read = place(face_table["from"][release]["at"][0])
+            if read not in reads:
+                reads.append(read)
+        return reads
+    read = {r: reads_of(r) for r in declaring}
+    as_declared = lambda r: json.dumps([table["from"][r]] + [f["from"][r] for f in faces.values()],  # noqa: E731
+                                       sort_keys=True, default=str) + str(len(read[r]))
+    groups = by_what_they_declare({r: as_declared(r) for r in declaring})
+    made_by = {}
+    for n, group in enumerate(groups):
+        chunks = [any_of([read_at(plan, r, read[r][k], by_path, places, containers, discs) for r in group])
+                  for k in range(len(read[group[0]]))]
+        args = {"atlas": path, "release": group[0], "atlases": {path: table}, "faces": faces, "encodings": encodings,
+                "reads": read[group[0]]}
+        own = "" if n == 0 else f"{group[0]}:"
+        made = plan.op(f"atlas:{own}{path}", "pe2.fonts@extract_atlas", {"chunks": chunks}, json_safe(args))
+        for release in group:
+            made_by[release] = made
+    emit_by_release(plan, path, "layout.toml", groups, made_by)
+    emit_by_release(plan, path, "under.png", groups, made_by, optional=True)
     for face in faces:
         name = face.rsplit("/", 1)[-1]
-        plan.emit(face, f"{name}.ufo/", f"{made}#{face}/{name}.ufo/")
+        prefix = f"#{face}/{name}.ufo/"
+        emit_by_release(plan, face, f"{name}.ufo/", groups, {r: id + prefix for r, id in made_by.items()})
 
 
 def json_safe(item):
@@ -425,7 +526,7 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
         if node_type == IMAGE and nodes.extracted(node_type, table):
             textured(plan, path, table, registry, by_path, releases, places, containers, palettes, discs)
             continue
-        emitted = None
+        made_by, declared_as = {}, {}
         for release in releases:
             placed = table.get("from", {}).get(release)
             if not placed:
@@ -465,10 +566,11 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
                     for name in names:
                         disc = discs[(release, at["disc"])]
                         reads.append(plan.op(f"slot:{release}/{at['disc']}/{name}", "slot", {"disc": disc}, {"name": name}, sha1))
-                if reads and emitted is None:
-                    emitted = reads[0]
-        if emitted is not None:
-            plan.emit(path, f"native.{table.get('format', 'bin')}", emitted)
+                if reads and release not in made_by:
+                    made_by[release], declared_as[release] = reads[0], sha1
+        if made_by:
+            name = f"native.{table.get('format', 'bin')}"
+            emit_by_release(plan, path, name, by_what_they_declare(declared_as), made_by)
     # A disc's movie file, joined from the movies it holds as the bundles were given them: held to the disc's.
     for path, d in by_path.items():
         table = d.table
@@ -480,6 +582,7 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
                 continue
             files = {f"clip:{release}/{at['disc']}/{at['slot']}/" for at in placed.get("at", []) if "disc" in at}
             after = sorted(id for id in plan.ops if any(id.startswith(f) for f in files))
-            plan.check(plan.op(f"assembled:{path}", "assembled", None, {"node": path}, placed["sha1"], after))
-            break
+            id = f"assembled:{path}" if release == next(r for r in releases if table.get("from", {}).get(r)) \
+                else f"assembled:{release}:{path}"
+            plan.check(plan.op(id, "assembled", None, {"node": path}, placed["sha1"], after))
     return plan

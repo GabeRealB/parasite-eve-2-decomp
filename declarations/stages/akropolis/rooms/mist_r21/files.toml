@@ -26,6 +26,10 @@ resources = [
 at = [{ stage = 1, folder = 2101, file = 0 }]
 chunks = { dialogue_0_atlas = "ea5c88b21e2aff916b0f955295687e5c2270110c" }
 
+[base.from.EUR]
+at = [{ stage = 1, folder = 2101, file = 0 }]
+chunks = { dialogue_0_atlas = "ea5c88b21e2aff916b0f955295687e5c2270110c" }
+
 [view1]
 uid = "uid://rdyehav8dk68"
 template = "file"
@@ -36,6 +40,9 @@ slots = [
 [view1.from.USA]
 at = [{ stage = 1, folder = 2101, file = 1 }]
 
+[view1.from.EUR]
+at = [{ stage = 1, folder = 2101, file = 1 }]
+
 [view2]
 uid = "uid://1lfefy37v18gb"
 template = "file"
@@ -44,4 +51,7 @@ slots = [
 ]
 
 [view2.from.USA]
+at = [{ stage = 1, folder = 2101, file = 2 }]
+
+[view2.from.EUR]
 at = [{ stage = 1, folder = 2101, file = 2 }]

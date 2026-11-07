@@ -34,6 +34,10 @@ resources = [
 at = [{ stage = 2, folder = 2801, file = 0 }]
 chunks = { dialogue_0_atlas = "a8ee15dd14ce469ac2ab9d35b111a999c045983e" }
 
+[base.from.EUR]
+at = [{ stage = 2, folder = 2801, file = 0 }]
+chunks = { dialogue_0_atlas = "a8ee15dd14ce469ac2ab9d35b111a999c045983e" }
+
 [view1]
 uid = "uid://wabe07vl8nr2"
 template = "file"
@@ -67,6 +71,10 @@ asset = { uid = "uid://28dy52fq5kzn", path = "res://stages/dryfield/rooms/motel_
 at = [{ stage = 2, folder = 2801, file = 1 }]
 chunks = { palette = "93c7f33392f7ec3de5e65bd350b1949459555227", image = "7f101677764624757a16c3c1a75b10c27f2156d5" }
 
+[view1.from.EUR]
+at = [{ stage = 2, folder = 2801, file = 1 }]
+chunks = { palette = "93c7f33392f7ec3de5e65bd350b1949459555227", image = "7f101677764624757a16c3c1a75b10c27f2156d5" }
+
 [view2]
 uid = "uid://1mpxcl2s5yh1o"
 template = "file"
@@ -75,6 +83,9 @@ slots = [
 ]
 
 [view2.from.USA]
+at = [{ stage = 2, folder = 2801, file = 2 }]
+
+[view2.from.EUR]
 at = [{ stage = 2, folder = 2801, file = 2 }]
 
 [view3]
@@ -87,6 +98,9 @@ slots = [
 [view3.from.USA]
 at = [{ stage = 2, folder = 2801, file = 3 }]
 
+[view3.from.EUR]
+at = [{ stage = 2, folder = 2801, file = 3 }]
+
 [view4]
 uid = "uid://33r1tarweogt"
 template = "file"
@@ -95,6 +109,9 @@ slots = [
 ]
 
 [view4.from.USA]
+at = [{ stage = 2, folder = 2801, file = 4 }]
+
+[view4.from.EUR]
 at = [{ stage = 2, folder = 2801, file = 4 }]
 
 [view5]
@@ -107,6 +124,9 @@ slots = [
 [view5.from.USA]
 at = [{ stage = 2, folder = 2801, file = 5 }]
 
+[view5.from.EUR]
+at = [{ stage = 2, folder = 2801, file = 5 }]
+
 [view6]
 uid = "uid://yx54vdzq7484"
 template = "file"
@@ -115,4 +135,7 @@ slots = [
 ]
 
 [view6.from.USA]
+at = [{ stage = 2, folder = 2801, file = 6 }]
+
+[view6.from.EUR]
 at = [{ stage = 2, folder = 2801, file = 6 }]

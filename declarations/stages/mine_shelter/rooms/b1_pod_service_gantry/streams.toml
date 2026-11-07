@@ -9,6 +9,10 @@ format = "mts"
 at = [{ stage = 4, folder = 2301, stream = 1 }]
 sha1 = "b1c2eeb8d92d08575254dcc71a107f5d879ac315"
 
+[scene_8_11.from.EUR]
+at = [{ stage = 4, folder = 2301, stream = 1 }]
+sha1 = "e1332468d64dd015ae5ad9b43f3791bb929a14c7"
+
 [scene_8_21]
 uid = "uid://6f1am76hb486"
 template = "scene_audio"
@@ -17,6 +21,10 @@ format = "mts"
 [scene_8_21.from.USA]
 at = [{ stage = 4, folder = 2301, stream = 2 }]
 sha1 = "bd7df8cef295823f2fad11c264f32251992ba030"
+
+[scene_8_21.from.EUR]
+at = [{ stage = 4, folder = 2301, stream = 2 }]
+sha1 = "0a10ff5429dc0a7f4f9057bebf47e1194e39e14d"
 
 [scene_8_31]
 uid = "uid://f3o9mf5w5ttw"
@@ -27,6 +35,10 @@ format = "mts"
 at = [{ stage = 4, folder = 2301, stream = 3 }]
 sha1 = "060308d32d41646b2f8429059993ac53f795f315"
 
+[scene_8_31.from.EUR]
+at = [{ stage = 4, folder = 2301, stream = 3 }]
+sha1 = "99b681b90bb491edff7fc0fcb0be1ac61b7f9392"
+
 [scene_9]
 uid = "uid://dx7uxtzch9oc"
 template = "scene_audio"
@@ -35,3 +47,7 @@ format = "mts"
 [scene_9.from.USA]
 at = [{ stage = 4, folder = 2301, stream = 4 }]
 sha1 = "a81ac96fc974a10b0bac1357130704fd52ffecc9"
+
+[scene_9.from.EUR]
+at = [{ stage = 4, folder = 2301, stream = 4 }]
+sha1 = "65590149037b89828a3e890fbb5b8dfe58ca199a"

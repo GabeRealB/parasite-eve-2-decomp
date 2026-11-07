@@ -51,6 +51,10 @@ type = "dialogue"
 at = [{ stage = 4, folder = 2701, file = 0 }]
 chunks = { dialogue_0_atlas = "a20c912c82da305482aa18f958b1feb4b087c1ee" }
 
+[base.from.EUR]
+at = [{ stage = 4, folder = 2701, file = 0 }]
+chunks = { dialogue_0_atlas = "a20c912c82da305482aa18f958b1feb4b087c1ee" }
+
 [view1]
 uid = "uid://p4qci4dbbsrm"
 template = "file"
@@ -59,6 +63,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 4, folder = 2701, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 4, folder = 2701, file = 1 }]
 
 [view2]
@@ -71,6 +78,9 @@ slots = [
 [view2.from.USA]
 at = [{ stage = 4, folder = 2701, file = 2 }]
 
+[view2.from.EUR]
+at = [{ stage = 4, folder = 2701, file = 2 }]
+
 [view3]
 uid = "uid://1b8hyn5ktdxn0"
 template = "file"
@@ -79,6 +89,9 @@ slots = [
 ]
 
 [view3.from.USA]
+at = [{ stage = 4, folder = 2701, file = 3 }]
+
+[view3.from.EUR]
 at = [{ stage = 4, folder = 2701, file = 3 }]
 
 [view4]
@@ -98,6 +111,10 @@ type = "bs"
 asset = { uid = "uid://5vkrz3n4veyw", path = "res://stages/mine_shelter/rooms/b2_elevator_hall/views/view4_background.node" }
 
 [view4.from.USA]
+at = [{ stage = 4, folder = 2701, file = 4 }]
+chunks = { image = "b72dfacec48bfe287c479d35712d08ec3102541f" }
+
+[view4.from.EUR]
 at = [{ stage = 4, folder = 2701, file = 4 }]
 chunks = { image = "b72dfacec48bfe287c479d35712d08ec3102541f" }
 
@@ -121,6 +138,10 @@ asset = { uid = "uid://1q4563suvac8z", path = "res://stages/mine_shelter/rooms/b
 at = [{ stage = 4, folder = 2701, file = 5 }]
 chunks = { image = "0b108e6eb0ca6e6656e86563476382b603e2a00c" }
 
+[view5.from.EUR]
+at = [{ stage = 4, folder = 2701, file = 5 }]
+chunks = { image = "0b108e6eb0ca6e6656e86563476382b603e2a00c" }
+
 [view6]
 uid = "uid://rj4g25xfbjf7"
 template = "file"
@@ -131,6 +152,9 @@ slots = [
 [view6.from.USA]
 at = [{ stage = 4, folder = 2701, file = 6 }]
 
+[view6.from.EUR]
+at = [{ stage = 4, folder = 2701, file = 6 }]
+
 [view7]
 uid = "uid://1u4ix2dm47toz"
 template = "file"
@@ -139,4 +163,7 @@ slots = [
 ]
 
 [view7.from.USA]
+at = [{ stage = 4, folder = 2701, file = 7 }]
+
+[view7.from.EUR]
 at = [{ stage = 4, folder = 2701, file = 7 }]

@@ -85,6 +85,10 @@ upload_mode = 0
 at = [{ stage = 5, folder = 2501, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "99e6b9968cb51d96e2d0e19fd4e9c3d8333b31e4" }
 
+[base.from.EUR]
+at = [{ stage = 5, folder = 2501, file = 0 }]
+chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "99e6b9968cb51d96e2d0e19fd4e9c3d8333b31e4" }
+
 [view1]
 uid = "uid://149sgj9wpwdvt"
 template = "file"
@@ -95,6 +99,9 @@ slots = [
 [view1.from.USA]
 at = [{ stage = 5, folder = 2501, file = 1 }]
 
+[view1.from.EUR]
+at = [{ stage = 5, folder = 2501, file = 1 }]
+
 [view2]
 uid = "uid://1bpt0rwmt2x1h"
 template = "file"
@@ -103,6 +110,9 @@ slots = [
 ]
 
 [view2.from.USA]
+at = [{ stage = 5, folder = 2501, file = 2 }]
+
+[view2.from.EUR]
 at = [{ stage = 5, folder = 2501, file = 2 }]
 
 [view3]
@@ -125,6 +135,10 @@ asset = { uid = "uid://1m4lwclmih1jz", path = "res://stages/shelter_neo_ark/room
 at = [{ stage = 5, folder = 2501, file = 3 }]
 chunks = { image = "21f1208740b8befc6694589dc6960a8fdef8fc57" }
 
+[view3.from.EUR]
+at = [{ stage = 5, folder = 2501, file = 3 }]
+chunks = { image = "21f1208740b8befc6694589dc6960a8fdef8fc57" }
+
 [view4]
 uid = "uid://vd85kwi17r5m"
 template = "file"
@@ -133,6 +147,9 @@ slots = [
 ]
 
 [view4.from.USA]
+at = [{ stage = 5, folder = 2501, file = 4 }]
+
+[view4.from.EUR]
 at = [{ stage = 5, folder = 2501, file = 4 }]
 
 [view5]
@@ -145,6 +162,9 @@ slots = [
 [view5.from.USA]
 at = [{ stage = 5, folder = 2501, file = 5 }]
 
+[view5.from.EUR]
+at = [{ stage = 5, folder = 2501, file = 5 }]
+
 [view6]
 uid = "uid://1ly5thiy08z7g"
 template = "file"
@@ -153,6 +173,9 @@ slots = [
 ]
 
 [view6.from.USA]
+at = [{ stage = 5, folder = 2501, file = 6 }]
+
+[view6.from.EUR]
 at = [{ stage = 5, folder = 2501, file = 6 }]
 
 [view7]
@@ -175,6 +198,10 @@ asset = { uid = "uid://1ck8iso9rfqvo", path = "res://stages/shelter_neo_ark/room
 at = [{ stage = 5, folder = 2501, file = 7 }]
 chunks = { image = "49938e1323560537124771b02134e04140b5fe3e" }
 
+[view7.from.EUR]
+at = [{ stage = 5, folder = 2501, file = 7 }]
+chunks = { image = "49938e1323560537124771b02134e04140b5fe3e" }
+
 [view8]
 uid = "uid://9d7t75bhzpuu"
 template = "file"
@@ -183,4 +210,7 @@ slots = [
 ]
 
 [view8.from.USA]
+at = [{ stage = 5, folder = 2501, file = 8 }]
+
+[view8.from.EUR]
 at = [{ stage = 5, folder = 2501, file = 8 }]

@@ -1,0 +1,23 @@
+# A declaration: the disc layout and its slots, no game data.
+
+uid = "uid://18vky3pcn3f6e"
+template = "disc"
+image = { name = "Parasite Eve II (Europe) (Disc 2).bin", cue = "Parasite Eve II (Europe) (Disc 2).cue", size = 622746096, sha1 = "7cada794d5e40c279e57276d0758821266c98d4d" }
+track = { type = "data", xa_edc = true, new_type = false }
+identifiers = { system = "PLAYSTATION", application = "PLAYSTATION", creation_date = "0000050217504700+36" }
+default_attributes = { gmt_offs = 36, xa_attrib = 32, xa_perm = 1365, xa_gid = 0, xa_uid = 0 }
+dummy_sectors = 150
+slots = [
+    { name = "license", type = "license", asset = { uid = "uid://vdx31ffeypvs", path = "res://disc/license.node" } },
+    { name = "SYSTEM.CNF", type = "data", asset = { uid = "uid://jqe4f7yh1mge", path = "res://disc/system_config_2.node" } },
+    { name = "PE_DISK.02", type = "data", asset = { uid = "uid://1g0xo6rrbudqm", path = "res://disc/disc_marker.node" } },
+    { name = "SLES_125.58", type = "data", asset = { uid = "uid://ke96sngcku4f", path = "res://main/executable.node" } },
+    { name = "INIT.BS", type = "data", asset = { uid = "uid://1skpauej8oul1", path = "res://disc/init_image.node" } },
+    { name = "STAGE0.HED", type = "data", asset = { uid = "uid://18bno3jk2vjhw", path = "res://disc/EUR/stage0.node" } },
+    { name = "STAGE0.CDF", type = "data", asset = { uid = "uid://18bno3jk2vjhw", path = "res://disc/EUR/stage0.node" } },
+    { name = "STAGE3.CDF", type = "data", asset = { uid = "uid://110bdpxkau4b0", path = "res://disc/EUR/stage3.node" } },
+    { name = "STAGE4.CDF", type = "data", asset = { uid = "uid://1dnfsscw7o0wp", path = "res://disc/EUR/stage4.node" } },
+    { name = "STAGE5.CDF", type = "data", asset = { uid = "uid://470q1wnyaa3w", path = "res://disc/EUR/stage5.node" } },
+    { name = "INTER1.STR", type = "mixed", asset = { uid = "uid://e5or642we8nj", path = "res://movies/inter_1.node" } },
+    { name = "DUMMY.DMY", type = "data", asset = { uid = "uid://kz8sahthlcdt", path = "res://disc/dummy.node" } },
+]

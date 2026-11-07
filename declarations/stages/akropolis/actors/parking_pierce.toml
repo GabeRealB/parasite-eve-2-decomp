@@ -19,3 +19,8 @@ source = "source.ora"
 at = [{ stage = 1, folder = 1901, file = 0, slot = "image", page = 0 }]
 sha1 = "129cff0426e42b9fc906afcfe5d356cbe8e1ec56"
 palettes = { row_263 = "8d41a77dfd15c9fff69bf21680263f441b641b26", row_264 = "c6e32f6eda7e826f084702afce2b319b994dc07b" }
+
+[props.from.EUR]
+at = [{ stage = 1, folder = 1901, file = 0, slot = "image", page = 0 }]
+sha1 = "129cff0426e42b9fc906afcfe5d356cbe8e1ec56"
+palettes = { row_263 = "8d41a77dfd15c9fff69bf21680263f441b641b26", row_264 = "c6e32f6eda7e826f084702afce2b319b994dc07b" }

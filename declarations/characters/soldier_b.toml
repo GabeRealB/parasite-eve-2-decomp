@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 161500, slot = "rifle_image", page = 0 }, { stage = 5,
 sha1 = "4d54c1f98e93b0dda842a5d2b020ecd301c292b0"
 palettes = { default = "d6e378f2f5ada3581b219b44e01f24e8e229f859" }
 
+[rifle_texture.from.EUR]
+at = [{ stage = 0, file = 161500, slot = "rifle_image", page = 0 }, { stage = 5, folder = 401, file = 4, slot = "rifle_image", page = 0 }]
+sha1 = "4d54c1f98e93b0dda842a5d2b020ecd301c292b0"
+palettes = { default = "d6e378f2f5ada3581b219b44e01f24e8e229f859" }
+
 [texture]
 uid = "uid://yky3uqqb5owm"
 template = "texture"
@@ -33,6 +38,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture.from.USA]
+at = [{ stage = 0, file = 161500, slot = "image", page = 0 }, { stage = 0, file = 660200, slot = "image", page = 0 }]
+sha1 = "37f8aaaf7fda176be080c1cbe4695c7c84b37228"
+palettes = { default = "4a8b93143b0e7f29bcb91b7682bd4c035204c32a", default_2 = "65697f3e268f041b2272faf97f06eeb9c12c506b" }
+
+[texture.from.EUR]
 at = [{ stage = 0, file = 161500, slot = "image", page = 0 }, { stage = 0, file = 660200, slot = "image", page = 0 }]
 sha1 = "37f8aaaf7fda176be080c1cbe4695c7c84b37228"
 palettes = { default = "4a8b93143b0e7f29bcb91b7682bd4c035204c32a", default_2 = "65697f3e268f041b2272faf97f06eeb9c12c506b" }

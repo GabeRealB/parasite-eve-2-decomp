@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 1, folder = 701, file = 0, slot = "image", page = 0 }]
 sha1 = "ea49b8831bf2052b70660d9a7979da6379174d72"
 palettes = { default = "1d43641d9b5ec00d26c3b3beb83470ee90e297db" }
+
+[blue_key.from.EUR]
+at = [{ stage = 1, folder = 701, file = 0, slot = "image", page = 0 }]
+sha1 = "ea49b8831bf2052b70660d9a7979da6379174d72"
+palettes = { default = "1d43641d9b5ec00d26c3b3beb83470ee90e297db" }

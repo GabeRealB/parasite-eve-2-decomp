@@ -19,3 +19,8 @@ source = "source.ora"
 at = [{ stage = 4, folder = 201, file = 0, slot = "image_1", page = 0 }]
 sha1 = "28ed1f7b0a532e6a9dd0d5b68ab6d84cdff024a4"
 palettes = { effect_row_2 = "4742b9e6ec32dc5abe1a80ab9275ded3d4cbe7db", effect_row_9 = "89139a15eb0467ee5cad326fd43feae40138a775" }
+
+[barrels.from.EUR]
+at = [{ stage = 4, folder = 201, file = 0, slot = "image_1", page = 0 }]
+sha1 = "28ed1f7b0a532e6a9dd0d5b68ab6d84cdff024a4"
+palettes = { effect_row_2 = "4742b9e6ec32dc5abe1a80ab9275ded3d4cbe7db", effect_row_9 = "89139a15eb0467ee5cad326fd43feae40138a775" }

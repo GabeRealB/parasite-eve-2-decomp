@@ -20,6 +20,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 4, folder = 3201 }]
 
+[folder.from.EUR]
+at = [{ stage = 4, folder = 3201 }]
+
 [dialogue_0_atlas]
 uid = "uid://ad8rnqjufjs9"
 template = "texture"
@@ -41,6 +44,11 @@ at = [{ stage = 4, folder = 3201, file = 0, slot = "dialogue_0_atlas", page = 0 
 sha1 = "eb31253d455b1100685f3f03f943890eacb6c509"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
 
+[dialogue_0_atlas.from.EUR]
+at = [{ stage = 4, folder = 3201, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "eb31253d455b1100685f3f03f943890eacb6c509"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
 [dialogue_1_atlas]
 uid = "uid://1incvuupn66uu"
 template = "texture"
@@ -58,6 +66,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_1_atlas.from.USA]
+at = [{ stage = 4, folder = 3201, file = 0, slot = "dialogue_1_atlas", page = 0 }]
+sha1 = "bb7fb849eaa580458bbc0e1c0864881f0d0647a9"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_1_atlas.from.EUR]
 at = [{ stage = 4, folder = 3201, file = 0, slot = "dialogue_1_atlas", page = 0 }]
 sha1 = "bb7fb849eaa580458bbc0e1c0864881f0d0647a9"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 104500, slot = "tentacle_image", page = 0 }, { stage =
 sha1 = "573ccd0ba62a4d5d003782b25e9b0d45210eb5cb"
 palettes = { default = "4c024673f8ed86c05a9d8116d5a168f371afd8e0" }
 
+[tentacle_texture.from.EUR]
+at = [{ stage = 0, file = 104500, slot = "tentacle_image", page = 0 }, { stage = 0, file = 135000, slot = "tentacle_image", page = 0 }, { stage = 0, file = 361100, slot = "tentacle_image", page = 0 }]
+sha1 = "573ccd0ba62a4d5d003782b25e9b0d45210eb5cb"
+palettes = { default = "4c024673f8ed86c05a9d8116d5a168f371afd8e0" }
+
 [texture]
 uid = "uid://2xhzgcx754dx"
 template = "texture"
@@ -45,6 +50,11 @@ at = [{ stage = 0, file = 503500, slot = "image", page = 0 }]
 sha1 = "5531f82ac877f3443e62b50aedae1c1b9c9b616c"
 palettes = { default = "05fbdba110765ea088422d8cedaa54046d0fe3d8", default_2 = "e9fa3ca1837281d09a375d84709aa4c93960c9e2", default_3 = "058449e08c915cdce8caedae0aa70d5041c0d63f", default_4 = "450d971d06c3e6761ae64481b1dbaf2651606382", default_5 = "0471b9c233a17c1b05701c3d69981fc91021a1a2", default_6 = "7deffdae7cb05a49ecc75724128a223a44c8e088" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 503500, slot = "image", page = 0 }]
+sha1 = "5531f82ac877f3443e62b50aedae1c1b9c9b616c"
+palettes = { default = "05fbdba110765ea088422d8cedaa54046d0fe3d8", default_2 = "e9fa3ca1837281d09a375d84709aa4c93960c9e2", default_3 = "058449e08c915cdce8caedae0aa70d5041c0d63f", default_4 = "450d971d06c3e6761ae64481b1dbaf2651606382", default_5 = "0471b9c233a17c1b05701c3d69981fc91021a1a2", default_6 = "7deffdae7cb05a49ecc75724128a223a44c8e088" }
+
 [texture_2]
 uid = "uid://13qasu9h06zf7"
 template = "texture"
@@ -58,6 +68,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture_2.from.USA]
+at = [{ stage = 0, file = 503500, slot = "image_2", page = 0 }]
+sha1 = "f456981a3922598295f4209cbb6442540c1cd393"
+palettes = { default = "3b50b8c97a11bcbd32156f1ebd75016abb49e66a" }
+
+[texture_2.from.EUR]
 at = [{ stage = 0, file = 503500, slot = "image_2", page = 0 }]
 sha1 = "f456981a3922598295f4209cbb6442540c1cd393"
 palettes = { default = "3b50b8c97a11bcbd32156f1ebd75016abb49e66a" }

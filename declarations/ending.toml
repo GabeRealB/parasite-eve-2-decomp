@@ -18,6 +18,12 @@ resource = 0
 start = 0
 sha1 = "d56f3164656412c665e21b05f4dbd5b62482202c"
 
+[credits_serif.from.EUR]
+at = [{ stage = 0, file = 21000, slot = "bundle" }]
+resource = 0
+start = 0
+sha1 = "d56f3164656412c665e21b05f4dbd5b62482202c"
+
 [credits_sans]
 uid = "uid://mx60hjc7a9zu"
 template = "font"
@@ -34,6 +40,12 @@ resource = 0
 start = 60
 sha1 = "e8e59b10a9c0641dad3f0841993c8f036eeee44e"
 
+[credits_sans.from.EUR]
+at = [{ stage = 0, file = 21000, slot = "bundle" }]
+resource = 0
+start = 60
+sha1 = "e8e59b10a9c0641dad3f0841993c8f036eeee44e"
+
 [credits_display]
 uid = "uid://vce002bqfcli"
 template = "font"
@@ -45,6 +57,12 @@ family = "Parasite Eve II Credits"
 style = "Display"
 
 [credits_display.from.USA]
+at = [{ stage = 0, file = 21000, slot = "bundle" }]
+resource = 0
+start = 120
+sha1 = "d9608bf74eba8ce9cc2a67800e63354816d7f38e"
+
+[credits_display.from.EUR]
 at = [{ stage = 0, file = 21000, slot = "bundle" }]
 resource = 0
 start = 120
@@ -69,6 +87,12 @@ faces = [
 ]
 
 [credits_atlas.from.USA]
+pages = [
+    { at = [{ stage = 0, file = 21000, slot = "font_image_0", page = 0 }], sha1 = "63ba1ed8efb66671aa36f7f763f7795fea7af854" },
+    { at = [{ stage = 0, file = 21000, slot = "font_image_1", page = 0 }], sha1 = "d37a03a2fd1beee6d644c3bf70340b6521dae95d" },
+]
+
+[credits_atlas.from.EUR]
 pages = [
     { at = [{ stage = 0, file = 21000, slot = "font_image_0", page = 0 }], sha1 = "63ba1ed8efb66671aa36f7f763f7795fea7af854" },
     { at = [{ stage = 0, file = 21000, slot = "font_image_1", page = 0 }], sha1 = "d37a03a2fd1beee6d644c3bf70340b6521dae95d" },
@@ -144,6 +168,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [logos.from.USA]
+at = [{ stage = 0, file = 21000, slot = "logo_image", page = 0 }]
+sha1 = "6b3053768931d7e7aca8fa8ac1b355dffefa78a2"
+palettes = { square = "16cf58357495535d36fd85c1a9cbf148feb066d4", squartz = "c4a6c16b062256f8e2842860efdd16be346aafe6" }
+
+[logos.from.EUR]
 at = [{ stage = 0, file = 21000, slot = "logo_image", page = 0 }]
 sha1 = "6b3053768931d7e7aca8fa8ac1b355dffefa78a2"
 palettes = { square = "16cf58357495535d36fd85c1a9cbf148feb066d4", squartz = "c4a6c16b062256f8e2842860efdd16be346aafe6" }

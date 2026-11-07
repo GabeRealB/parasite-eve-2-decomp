@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 1 }]
 sha1 = "9ce197ff109902f988caf7b77cf7f574277aa891"
 palettes = { default = "1f285756ac2f8ad9b328256cc2b9595223767605" }
+
+[armory_cardkey.from.EUR]
+at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 1 }]
+sha1 = "9ce197ff109902f988caf7b77cf7f574277aa891"
+palettes = { default = "1f285756ac2f8ad9b328256cc2b9595223767605" }

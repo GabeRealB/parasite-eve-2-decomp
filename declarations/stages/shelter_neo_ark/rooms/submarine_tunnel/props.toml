@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 5, folder = 1201, file = 0, slot = "image", page = 0 }]
 sha1 = "715d3db385d6a3d0533fc52afecf2dacc9eb5e1d"
 palettes = { effect_row_10_19 = "b97f359352fc11a2fab0834c45ec718da11ea4fa" }
+
+[keypad.from.EUR]
+at = [{ stage = 5, folder = 1201, file = 0, slot = "image", page = 0 }]
+sha1 = "715d3db385d6a3d0533fc52afecf2dacc9eb5e1d"
+palettes = { effect_row_10_19 = "b97f359352fc11a2fab0834c45ec718da11ea4fa" }

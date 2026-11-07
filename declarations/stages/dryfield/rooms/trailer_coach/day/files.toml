@@ -98,6 +98,10 @@ type = "dialogue"
 at = [{ stage = 2, folder = 2701, file = 0 }]
 chunks = { palette = "8185f05dc401ff3c20eefa98bb339ba00a7e3b56", image = "aee85f413feca9ecc33727ae76582e9d5b700129", dialogue_0_atlas = "7c9d40830c55016a3163211b7edbab73c3b401bf" }
 
+[base.from.EUR]
+at = [{ stage = 2, folder = 2701, file = 0 }]
+chunks = { palette = "8185f05dc401ff3c20eefa98bb339ba00a7e3b56", image = "aee85f413feca9ecc33727ae76582e9d5b700129", dialogue_0_atlas = "7c9d40830c55016a3163211b7edbab73c3b401bf" }
+
 [view1]
 uid = "uid://qk8c7na9a3p0"
 template = "file"
@@ -106,6 +110,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 2, folder = 2701, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 2, folder = 2701, file = 1 }]
 
 [view2]
@@ -125,6 +132,10 @@ type = "bs"
 asset = { uid = "uid://3kir67hvx06l", path = "res://stages/dryfield/rooms/trailer_coach/day/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 2, folder = 2701, file = 2 }]
+chunks = { image = "d975f5bbe8e892081a8d95f89cccf0b9351027b3" }
+
+[view2.from.EUR]
 at = [{ stage = 2, folder = 2701, file = 2 }]
 chunks = { image = "d975f5bbe8e892081a8d95f89cccf0b9351027b3" }
 
@@ -148,6 +159,10 @@ asset = { uid = "uid://szts77420w63", path = "res://stages/dryfield/rooms/traile
 at = [{ stage = 2, folder = 2701, file = 3 }]
 chunks = { image = "8cb801c3c3f1817583974b763b9de611ac857254" }
 
+[view3.from.EUR]
+at = [{ stage = 2, folder = 2701, file = 3 }]
+chunks = { image = "8cb801c3c3f1817583974b763b9de611ac857254" }
+
 [view4]
 uid = "uid://1pkasnyb8sy5u"
 template = "file"
@@ -168,6 +183,10 @@ asset = { uid = "uid://1azd4nlpodk6l", path = "res://stages/dryfield/rooms/trail
 at = [{ stage = 2, folder = 2701, file = 4 }]
 chunks = { image = "81bd3fae9a6b1e093f2e8f7a5abb119f1d42e734" }
 
+[view4.from.EUR]
+at = [{ stage = 2, folder = 2701, file = 4 }]
+chunks = { image = "81bd3fae9a6b1e093f2e8f7a5abb119f1d42e734" }
+
 [view5]
 uid = "uid://1jutqc177f203"
 template = "file"
@@ -176,6 +195,9 @@ slots = [
 ]
 
 [view5.from.USA]
+at = [{ stage = 2, folder = 2701, file = 5 }]
+
+[view5.from.EUR]
 at = [{ stage = 2, folder = 2701, file = 5 }]
 
 [view6]
@@ -188,6 +210,9 @@ slots = [
 [view6.from.USA]
 at = [{ stage = 2, folder = 2701, file = 6 }]
 
+[view6.from.EUR]
+at = [{ stage = 2, folder = 2701, file = 6 }]
+
 [view7]
 uid = "uid://18r479gvew1r8"
 template = "file"
@@ -196,6 +221,9 @@ slots = [
 ]
 
 [view7.from.USA]
+at = [{ stage = 2, folder = 2701, file = 7 }]
+
+[view7.from.EUR]
 at = [{ stage = 2, folder = 2701, file = 7 }]
 
 [view8]
@@ -218,6 +246,10 @@ asset = { uid = "uid://1fhiqr7f2znm2", path = "res://stages/dryfield/rooms/trail
 at = [{ stage = 2, folder = 2701, file = 8 }]
 chunks = { image = "1e71c5a7c8ef796caa68c71062e0e511a68465db" }
 
+[view8.from.EUR]
+at = [{ stage = 2, folder = 2701, file = 8 }]
+chunks = { image = "1e71c5a7c8ef796caa68c71062e0e511a68465db" }
+
 [view9]
 uid = "uid://xh9br0bthp7h"
 template = "file"
@@ -226,6 +258,9 @@ slots = [
 ]
 
 [view9.from.USA]
+at = [{ stage = 2, folder = 2701, file = 9 }]
+
+[view9.from.EUR]
 at = [{ stage = 2, folder = 2701, file = 9 }]
 
 [view10]
@@ -248,6 +283,10 @@ asset = { uid = "uid://1mrfwdrxrm53p", path = "res://stages/dryfield/rooms/trail
 at = [{ stage = 2, folder = 2701, file = 10 }]
 chunks = { dryfield_gas_station_dialogue_1_atlas = "8baeae0128148e771f22610cd478af930d684db7" }
 
+[view10.from.EUR]
+at = [{ stage = 2, folder = 2701, file = 10 }]
+chunks = { dryfield_gas_station_dialogue_1_atlas = "8baeae0128148e771f22610cd478af930d684db7" }
+
 [view11]
 uid = "uid://wcmzm17xb69c"
 template = "file"
@@ -256,4 +295,7 @@ slots = [
 ]
 
 [view11.from.USA]
+at = [{ stage = 2, folder = 2701, file = 11 }]
+
+[view11.from.EUR]
 at = [{ stage = 2, folder = 2701, file = 11 }]

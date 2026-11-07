@@ -19,6 +19,11 @@ at = [{ stage = 4, folder = 4001, file = 0, slot = "image_0", page = 0 }]
 sha1 = "13fb8872d7139e1219bcd1c3fe384e09f9524873"
 palettes = { effect_row_9_19 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d", effect_row_10_19 = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
 
+[smoke.from.EUR]
+at = [{ stage = 4, folder = 4001, file = 0, slot = "image_0", page = 0 }]
+sha1 = "13fb8872d7139e1219bcd1c3fe384e09f9524873"
+palettes = { effect_row_9_19 = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", effect_row_10_16 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d", effect_row_10_19 = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
+
 [incinerator]
 uid = "uid://9mnpv2xm1txw"
 template = "texture"
@@ -35,6 +40,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [incinerator.from.USA]
+at = [{ stage = 4, folder = 4001, file = 0, slot = "image_0", page = 1 }]
+sha1 = "e8408c45a6f959d010af348f0be3e8498cfe5cbc"
+palettes = { effect_row_2 = "c24cd5c5c7351f9b86705729865df3dcaf11e9e0", effect_row_9 = "3827df5302cf771283d24c68f9926f29f4a75a1f", effect_row_10 = "23647cbd421854cf091cf02488b763338f5ae49a" }
+
+[incinerator.from.EUR]
 at = [{ stage = 4, folder = 4001, file = 0, slot = "image_0", page = 1 }]
 sha1 = "e8408c45a6f959d010af348f0be3e8498cfe5cbc"
 palettes = { effect_row_2 = "c24cd5c5c7351f9b86705729865df3dcaf11e9e0", effect_row_9 = "3827df5302cf771283d24c68f9926f29f4a75a1f", effect_row_10 = "23647cbd421854cf091cf02488b763338f5ae49a" }

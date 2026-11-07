@@ -49,3 +49,8 @@ source = "source.ora"
 at = [{ stage = 3, folder = 3401, file = 9, slot = "image", page = 0 }]
 sha1 = "519b4df1ca453f9f31c8cb095f2a892fd67319d7"
 palettes = { row_0 = "f735b87ebd35673b589ff826c5dadce08d934453" }
+
+[view9.from.EUR]
+at = [{ stage = 3, folder = 3401, file = 9, slot = "image", page = 0 }]
+sha1 = "519b4df1ca453f9f31c8cb095f2a892fd67319d7"
+palettes = { row_0 = "f735b87ebd35673b589ff826c5dadce08d934453" }

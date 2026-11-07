@@ -19,6 +19,10 @@ stages = [
 at = [{ disc = "disk1", slot = "INTER0.STR" }]
 sha1 = "34a744a7a9896ff966373b507dd35e95c336b406"
 
+[inter_0.from.EUR]
+at = [{ disc = "disk1", slot = "INTER0.STR" }]
+sha1 = "34a744a7a9896ff966373b507dd35e95c336b406"
+
 [inter_1]                       # INTER1.STR
 uid = "uid://e5or642we8nj"
 template = "stream"
@@ -31,5 +35,9 @@ stages = [
 ]
 
 [inter_1.from.USA]
+at = [{ disc = "disk2", slot = "INTER1.STR" }]
+sha1 = "4ba2435d4a68859cc3d0d97fd2732dcbbfb2ed9f"
+
+[inter_1.from.EUR]
 at = [{ disc = "disk2", slot = "INTER1.STR" }]
 sha1 = "4ba2435d4a68859cc3d0d97fd2732dcbbfb2ed9f"

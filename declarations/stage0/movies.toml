@@ -10,3 +10,7 @@ format = "str"
 [intro.from.USA]
 at = [{ disc = "disk1", slot = "INTER0.STR", clip = 0 }, { disc = "disk2", slot = "INTER1.STR", clip = 0 }]
 sha1 = "29b9db4d12b3b2453595d81cfc69e787f2825a8f"
+
+[intro.from.EUR]
+at = [{ disc = "disk1", slot = "INTER0.STR", clip = 0 }, { disc = "disk2", slot = "INTER1.STR", clip = 0 }]
+sha1 = "29b9db4d12b3b2453595d81cfc69e787f2825a8f"

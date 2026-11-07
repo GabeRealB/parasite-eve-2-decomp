@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20111, slot = "image", page = 0 }]
 sha1 = "7c80bd6fd7be48334f86e3260d77626a433a90ab"
 palettes = { default = "4cf51cb10e09ff6fc77346e249db9d1f14692bd4" }
 
+[preview.from.EUR]
+at = [{ stage = 0, file = 20111, slot = "image", page = 0 }]
+sha1 = "7c80bd6fd7be48334f86e3260d77626a433a90ab"
+palettes = { default = "4cf51cb10e09ff6fc77346e249db9d1f14692bd4" }
+
 [texture]
 uid = "uid://hfgl2pkqzuth"
 template = "texture"
@@ -35,6 +40,11 @@ at = [{ stage = 0, file = 10311, slot = "image", page = 0 }]
 sha1 = "5a564acc484b76c38f384bf12d9b05e571cd8385"
 palettes = { default = "b14b25b1c6d3d2ffea5cfe49bed34ceb15742f13" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10311, slot = "image", page = 0 }]
+sha1 = "5a564acc484b76c38f384bf12d9b05e571cd8385"
+palettes = { default = "b14b25b1c6d3d2ffea5cfe49bed34ceb15742f13" }
+
 [fire]
 uid = "uid://1sz4r9fv9yv4v"
 template = "clip"
@@ -47,6 +57,13 @@ size = 1412
 address = 2148693464
 sha1 = "05c3034be33012778462997e26db2bf93852edbc"
 
+[fire.from.EUR]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 42008
+size = 1412
+address = 2148697832
+sha1 = "6bdd1cc36ac99c3333e22b2eafe369a5b60fbf88"
+
 [reload]
 uid = "uid://ihkigdnqoeny"
 template = "clip"
@@ -58,6 +75,13 @@ offset = 39092
 size = 2916
 address = 2148690548
 sha1 = "d6c48b5933fd1c9e123640b5844ee7c6a471bbc4"
+
+[reload.from.EUR]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 39092
+size = 2916
+address = 2148694916
+sha1 = "afec1c96991dc1019e1e0a33091a617c5a705c79"
 
 [bank]
 uid = "uid://1etra8tl69jha"
@@ -120,6 +144,15 @@ symbol = "gGrenadePistolShellModel"
 material_slots = ["body"]
 sha1 = "5f3d5f238fe1453e00dfe60ddf5ea6312122f809"
 
+[grenade_mesh.from.EUR]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 57980
+size = 396
+address = 2148713804
+symbol = "gGrenadePistolShellModel"
+material_slots = ["body"]
+sha1 = "79805e1a8733b970f3d4a0eafb3105d1d7c35a62"
+
 [grenade_material]
 uid = "uid://1u8gk22jn2hak"
 template = "material"
@@ -141,6 +174,13 @@ size = 396
 address = 2148709436
 sha1 = "5f3d5f238fe1453e00dfe60ddf5ea6312122f809"
 
+[grenade_model.from.EUR]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 57980
+size = 396
+address = 2148713804
+sha1 = "79805e1a8733b970f3d4a0eafb3105d1d7c35a62"
+
 [mesh]
 uid = "uid://40fb2dusx658"
 template = "mesh"
@@ -153,6 +193,15 @@ address = 2148654132
 symbol = "gGrenadePistolWeaponModel"
 material_slots = ["body"]
 sha1 = "4768a2400261b67a9fc96aa2ddfe17c345f699a9"
+
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 2676
+size = 1660
+address = 2148658500
+symbol = "gGrenadePistolWeaponModel"
+material_slots = ["body"]
+sha1 = "20abdb673d62ba4c382404aa0da4921e92b0ed2f"
 
 [material]
 uid = "uid://s6juq8s3esz3"
@@ -174,3 +223,10 @@ offset = 2676
 size = 1660
 address = 2148654132
 sha1 = "4768a2400261b67a9fc96aa2ddfe17c345f699a9"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 2676
+size = 1660
+address = 2148658500
+sha1 = "20abdb673d62ba4c382404aa0da4921e92b0ed2f"

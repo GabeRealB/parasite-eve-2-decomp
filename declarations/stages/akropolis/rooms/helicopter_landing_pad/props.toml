@@ -20,6 +20,11 @@ at = [{ stage = 1, folder = 1601, file = 0, slot = "image", page = 1 }]
 sha1 = "7a807ca1db914d0beb8624d4b1bd2b1bc44b55b2"
 palettes = { lift = "a2431ebdaa9ec7d90aeb70c0cf26f2348ff3de7f", cable = "e9023b6d0ddeea9c47f7ffa8ac23fc71d9cdd015" }
 
+[lift_page.from.EUR]
+at = [{ stage = 1, folder = 1601, file = 0, slot = "image", page = 1 }]
+sha1 = "7a807ca1db914d0beb8624d4b1bd2b1bc44b55b2"
+palettes = { lift = "a2431ebdaa9ec7d90aeb70c0cf26f2348ff3de7f", cable = "e9023b6d0ddeea9c47f7ffa8ac23fc71d9cdd015" }
+
 [radio]
 uid = "uid://17l7x5n7ilkb6"
 template = "texture"
@@ -34,6 +39,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [radio.from.USA]
+at = [{ stage = 1, folder = 1601, file = 18, slot = "image_0", page = 0 }]
+sha1 = "6ecb80afeab2bc9cbb22d59559d89c3ce792e495"
+palettes = { default = "54cb940e5a72a6e048f0554fedd4fc3bb85c00a6" }
+
+[radio.from.EUR]
 at = [{ stage = 1, folder = 1601, file = 18, slot = "image_0", page = 0 }]
 sha1 = "6ecb80afeab2bc9cbb22d59559d89c3ce792e495"
 palettes = { default = "54cb940e5a72a6e048f0554fedd4fc3bb85c00a6" }

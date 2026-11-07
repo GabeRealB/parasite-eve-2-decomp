@@ -12,6 +12,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 2, folder = 401 }]
 
+[folder.from.EUR]
+at = [{ stage = 2, folder = 401 }]
+
 [glyph_page]
 uid = "uid://1iza0f4sg85ej"
 template = "texture"

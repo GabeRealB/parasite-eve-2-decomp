@@ -21,6 +21,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 4, folder = 3601 }]
 
+[folder.from.EUR]
+at = [{ stage = 4, folder = 3601 }]
+
 [dialogue_0_atlas]
 uid = "uid://1pssu8x0jvo3p"
 template = "texture"
@@ -38,6 +41,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "5b85224be71119f356aba397564e88c09df77d98"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "5b85224be71119f356aba397564e88c09df77d98"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
@@ -63,6 +71,11 @@ at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_1_atlas", page = 0 
 sha1 = "e939e5756991941409d348e274ab604453b1ee06"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
 
+[dialogue_1_atlas.from.EUR]
+at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_1_atlas", page = 0 }]
+sha1 = "e939e5756991941409d348e274ab604453b1ee06"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
 [dialogue_2_atlas]
 uid = "uid://sivagjufuxbx"
 template = "texture"
@@ -84,6 +97,11 @@ at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_2_atlas", page = 0 
 sha1 = "d2e2ab779c6ffe41250b0f92e0810780e289d671"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
 
+[dialogue_2_atlas.from.EUR]
+at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_2_atlas", page = 0 }]
+sha1 = "d2e2ab779c6ffe41250b0f92e0810780e289d671"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
 [dialogue_3_atlas]
 uid = "uid://78dhlh34ivjd"
 template = "texture"
@@ -101,6 +119,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_3_atlas.from.USA]
+at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_3_atlas", page = 0 }]
+sha1 = "dd88f53a2c4dadc5a8b719c5e1231f72acdd408b"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_3_atlas.from.EUR]
 at = [{ stage = 4, folder = 3601, file = 0, slot = "dialogue_3_atlas", page = 0 }]
 sha1 = "dd88f53a2c4dadc5a8b719c5e1231f72acdd408b"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

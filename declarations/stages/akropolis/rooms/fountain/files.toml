@@ -235,6 +235,10 @@ upload_mode = 0
 at = [{ stage = 1, folder = 801, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "056dc86ae89ea7ed36fb24884a724f1a880bc152" }
 
+[base.from.EUR]
+at = [{ stage = 1, folder = 801, file = 0 }]
+chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "056dc86ae89ea7ed36fb24884a724f1a880bc152" }
+
 [view1]
 uid = "uid://u3kttd7s9iwa"
 template = "file"
@@ -245,6 +249,9 @@ slots = [
 [view1.from.USA]
 at = [{ stage = 1, folder = 801, file = 1 }]
 
+[view1.from.EUR]
+at = [{ stage = 1, folder = 801, file = 1 }]
+
 [view2]
 uid = "uid://1uypfmco342oj"
 template = "file"
@@ -253,6 +260,9 @@ slots = [
 ]
 
 [view2.from.USA]
+at = [{ stage = 1, folder = 801, file = 2 }]
+
+[view2.from.EUR]
 at = [{ stage = 1, folder = 801, file = 2 }]
 
 [view3]
@@ -276,6 +286,10 @@ asset = { uid = "uid://7d21znk2vw57", path = "res://stages/akropolis/rooms/fount
 at = [{ stage = 1, folder = 801, file = 3 }]
 chunks = { image = "65e58547a3da3f8ca5c1fc6b5c65aff14dece0b6" }
 
+[view3.from.EUR]
+at = [{ stage = 1, folder = 801, file = 3 }]
+chunks = { image = "65e58547a3da3f8ca5c1fc6b5c65aff14dece0b6" }
+
 [view4]
 uid = "uid://1li6d3scbl0ia"
 template = "file"
@@ -293,6 +307,10 @@ type = "bs"
 asset = { uid = "uid://1qb1185023c1e", path = "res://stages/akropolis/rooms/fountain/views/view4_background.node" }
 
 [view4.from.USA]
+at = [{ stage = 1, folder = 801, file = 4 }]
+chunks = { image = "def6a758e9484bcc1aa2b4ab6a0393826b82a7df" }
+
+[view4.from.EUR]
 at = [{ stage = 1, folder = 801, file = 4 }]
 chunks = { image = "def6a758e9484bcc1aa2b4ab6a0393826b82a7df" }
 
@@ -317,6 +335,10 @@ asset = { uid = "uid://1k2djkbr5plw3", path = "res://stages/akropolis/rooms/foun
 at = [{ stage = 1, folder = 801, file = 5 }]
 chunks = { image = "cf5de3c67006c17f7a2fd3c975abb311d1d3c7ed" }
 
+[view5.from.EUR]
+at = [{ stage = 1, folder = 801, file = 5 }]
+chunks = { image = "cf5de3c67006c17f7a2fd3c975abb311d1d3c7ed" }
+
 [view6]
 uid = "uid://244hpm4fmhgq"
 template = "file"
@@ -335,6 +357,10 @@ type = "bs"
 asset = { uid = "uid://t469cmqpbjmg", path = "res://stages/akropolis/rooms/fountain/views/view6_background.node" }
 
 [view6.from.USA]
+at = [{ stage = 1, folder = 801, file = 6 }]
+chunks = { image = "f0775e7a6d03c317de822c4ee7f55549b9427099" }
+
+[view6.from.EUR]
 at = [{ stage = 1, folder = 801, file = 6 }]
 chunks = { image = "f0775e7a6d03c317de822c4ee7f55549b9427099" }
 
@@ -358,6 +384,10 @@ asset = { uid = "uid://5kb1j98qht9z", path = "res://stages/akropolis/rooms/fount
 at = [{ stage = 1, folder = 801, file = 7 }]
 chunks = { image = "98331001389d4ae9297e836c65e7ef4831f78783" }
 
+[view7.from.EUR]
+at = [{ stage = 1, folder = 801, file = 7 }]
+chunks = { image = "98331001389d4ae9297e836c65e7ef4831f78783" }
+
 [view8]
 uid = "uid://1nu9gthxcd5av"
 template = "file"
@@ -378,6 +408,10 @@ asset = { uid = "uid://3g54b4ln11ey", path = "res://stages/akropolis/rooms/fount
 at = [{ stage = 1, folder = 801, file = 8 }]
 chunks = { image = "6deee6bc312b7b5f9cea2e7c01aa784765e5b93a" }
 
+[view8.from.EUR]
+at = [{ stage = 1, folder = 801, file = 8 }]
+chunks = { image = "6deee6bc312b7b5f9cea2e7c01aa784765e5b93a" }
+
 [view9]
 uid = "uid://1rw00ft633e92"
 template = "file"
@@ -388,6 +422,9 @@ slots = [
 [view9.from.USA]
 at = [{ stage = 1, folder = 801, file = 9 }]
 
+[view9.from.EUR]
+at = [{ stage = 1, folder = 801, file = 9 }]
+
 [view10]
 uid = "uid://g1nz98bir9sx"
 template = "file"
@@ -396,6 +433,9 @@ slots = [
 ]
 
 [view10.from.USA]
+at = [{ stage = 1, folder = 801, file = 10 }]
+
+[view10.from.EUR]
 at = [{ stage = 1, folder = 801, file = 10 }]
 
 [view11]
@@ -419,6 +459,10 @@ asset = { uid = "uid://dxfppa4qguxf", path = "res://stages/akropolis/rooms/fount
 at = [{ stage = 1, folder = 801, file = 11 }]
 chunks = { image = "c51409652588e4d3d2d5a07c4d7f228ea48da581" }
 
+[view11.from.EUR]
+at = [{ stage = 1, folder = 801, file = 11 }]
+chunks = { image = "c51409652588e4d3d2d5a07c4d7f228ea48da581" }
+
 [view12]
 uid = "uid://1osdi2lbp58dn"
 template = "file"
@@ -436,6 +480,10 @@ type = "bs"
 asset = { uid = "uid://1da16w1wwbn4f", path = "res://stages/akropolis/rooms/fountain/views/view12_background.node" }
 
 [view12.from.USA]
+at = [{ stage = 1, folder = 801, file = 12 }]
+chunks = { image = "4e8ff1018ec412dcb0547348949670d412628d0f" }
+
+[view12.from.EUR]
 at = [{ stage = 1, folder = 801, file = 12 }]
 chunks = { image = "4e8ff1018ec412dcb0547348949670d412628d0f" }
 
@@ -460,6 +508,10 @@ asset = { uid = "uid://z98s5v5cdvz", path = "res://stages/akropolis/rooms/founta
 at = [{ stage = 1, folder = 801, file = 13 }]
 chunks = { image = "9d2aa2b84bc28cfac66e802173a357eb05b51ed0" }
 
+[view13.from.EUR]
+at = [{ stage = 1, folder = 801, file = 13 }]
+chunks = { image = "9d2aa2b84bc28cfac66e802173a357eb05b51ed0" }
+
 [view14]
 uid = "uid://mjjn93bb7bg4"
 template = "file"
@@ -478,6 +530,10 @@ type = "bs"
 asset = { uid = "uid://1c92c7keczu8p", path = "res://stages/akropolis/rooms/fountain/views/view14_background.node" }
 
 [view14.from.USA]
+at = [{ stage = 1, folder = 801, file = 14 }]
+chunks = { image = "e4eafff6e28a4c6e5d56188f9b44d0f356c1a0a6" }
+
+[view14.from.EUR]
 at = [{ stage = 1, folder = 801, file = 14 }]
 chunks = { image = "e4eafff6e28a4c6e5d56188f9b44d0f356c1a0a6" }
 
@@ -501,6 +557,10 @@ asset = { uid = "uid://1qfkoafhlrgky", path = "res://stages/akropolis/rooms/foun
 at = [{ stage = 1, folder = 801, file = 15 }]
 chunks = { image = "98331001389d4ae9297e836c65e7ef4831f78783" }
 
+[view15.from.EUR]
+at = [{ stage = 1, folder = 801, file = 15 }]
+chunks = { image = "98331001389d4ae9297e836c65e7ef4831f78783" }
+
 [view16]
 uid = "uid://1xaiper30m5v2"
 template = "file"
@@ -509,6 +569,9 @@ slots = [
 ]
 
 [view16.from.USA]
+at = [{ stage = 1, folder = 801, file = 16 }]
+
+[view16.from.EUR]
 at = [{ stage = 1, folder = 801, file = 16 }]
 
 [view17]
@@ -532,6 +595,10 @@ asset = { uid = "uid://1x3syvv7cfkib", path = "res://stages/akropolis/rooms/foun
 at = [{ stage = 1, folder = 801, file = 17 }]
 chunks = { image = "ba255651ab3d77c2840064606aeb3f82c6edd627" }
 
+[view17.from.EUR]
+at = [{ stage = 1, folder = 801, file = 17 }]
+chunks = { image = "ba255651ab3d77c2840064606aeb3f82c6edd627" }
+
 [view18]
 uid = "uid://1q7yavznbyxn6"
 template = "file"
@@ -542,6 +609,9 @@ slots = [
 [view18.from.USA]
 at = [{ stage = 1, folder = 801, file = 18 }]
 
+[view18.from.EUR]
+at = [{ stage = 1, folder = 801, file = 18 }]
+
 [view19]
 uid = "uid://xgr9itsi6vds"
 template = "file"
@@ -550,6 +620,9 @@ slots = [
 ]
 
 [view19.from.USA]
+at = [{ stage = 1, folder = 801, file = 19 }]
+
+[view19.from.EUR]
 at = [{ stage = 1, folder = 801, file = 19 }]
 
 [view20]
@@ -573,6 +646,10 @@ asset = { uid = "uid://ofwllj7czf7e", path = "res://stages/akropolis/rooms/fount
 at = [{ stage = 1, folder = 801, file = 20 }]
 chunks = { image = "116676fe42f3ea7deb986e1d5e8c2e9c7b79e98a" }
 
+[view20.from.EUR]
+at = [{ stage = 1, folder = 801, file = 20 }]
+chunks = { image = "116676fe42f3ea7deb986e1d5e8c2e9c7b79e98a" }
+
 [view21]
 uid = "uid://1it07lr02azgw"
 template = "file"
@@ -583,6 +660,9 @@ slots = [
 [view21.from.USA]
 at = [{ stage = 1, folder = 801, file = 21 }]
 
+[view21.from.EUR]
+at = [{ stage = 1, folder = 801, file = 21 }]
+
 [view22]
 uid = "uid://cai3vhjzgemj"
 template = "file"
@@ -591,4 +671,7 @@ slots = [
 ]
 
 [view22.from.USA]
+at = [{ stage = 1, folder = 801, file = 22 }]
+
+[view22.from.EUR]
 at = [{ stage = 1, folder = 801, file = 22 }]

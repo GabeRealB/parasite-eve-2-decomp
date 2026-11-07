@@ -20,3 +20,8 @@ source = "source.ora"
 at = [{ stage = 5, folder = 2201, file = 0, slot = "image", page = 0 }]
 sha1 = "8dcb9cd54421a6bb8b0819e3dbe3866cfc4e799a"
 palettes = { effect_row_9_3 = "5262403eeb1d4f0b7a4c7f8471114e24742d19c4", effect_row_9_4 = "d3c6ef995e13ea2801819e115e207a15bff4509c", effect_row_9_5 = "68689990d80c9152affd7e1b8167041bddaa3de5", effect_row_9_6 = "19e3e692fff42d71415375a310c402718704ed69" }
+
+[spores.from.EUR]
+at = [{ stage = 5, folder = 2201, file = 0, slot = "image", page = 0 }]
+sha1 = "8dcb9cd54421a6bb8b0819e3dbe3866cfc4e799a"
+palettes = { effect_row_9_3 = "5262403eeb1d4f0b7a4c7f8471114e24742d19c4", effect_row_9_4 = "d3c6ef995e13ea2801819e115e207a15bff4509c", effect_row_9_5 = "68689990d80c9152affd7e1b8167041bddaa3de5", effect_row_9_6 = "19e3e692fff42d71415375a310c402718704ed69" }

@@ -17,3 +17,8 @@ source = "source.ora"
 at = [{ stage = 4, folder = 1401, file = 0, slot = "image", page = 0 }]
 sha1 = "b1c7ea11341d60884128567abaae38edcb6540bd"
 palettes = { effect_row_1 = "9f6043a636cb4f84e7a53855a6be3d62d909c9ee" }
+
+[magazine.from.EUR]
+at = [{ stage = 4, folder = 1401, file = 0, slot = "image", page = 0 }]
+sha1 = "b1c7ea11341d60884128567abaae38edcb6540bd"
+palettes = { effect_row_1 = "9f6043a636cb4f84e7a53855a6be3d62d909c9ee" }

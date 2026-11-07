@@ -19,6 +19,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 3, folder = 801 }]
 
+[folder.from.EUR]
+at = [{ stage = 3, folder = 801 }]
+
 [image_0]
 uid = "uid://1mrvolthankos"
 template = "texture"
@@ -36,6 +39,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [image_0.from.USA]
+at = [{ stage = 3, folder = 801, file = 0, slot = "image_0", page = 0 }]
+sha1 = "e099d3c5e4a3d88f84105cdf2c461cf3b8ab4ab2"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[image_0.from.EUR]
 at = [{ stage = 3, folder = 801, file = 0, slot = "image_0", page = 0 }]
 sha1 = "e099d3c5e4a3d88f84105cdf2c461cf3b8ab4ab2"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

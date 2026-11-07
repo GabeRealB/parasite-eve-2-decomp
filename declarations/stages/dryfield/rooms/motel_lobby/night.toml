@@ -17,6 +17,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 3, folder = 1701 }]
 
+[folder.from.EUR]
+at = [{ stage = 3, folder = 1701 }]
+
 [dialogue_0_atlas]
 uid = "uid://104ljwyq1ofvo"
 template = "texture"
@@ -34,6 +37,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 3, folder = 1701, file = 0, slot = "dryfield_motel_lobby_dialogue_0_atlas", page = 0 }]
+sha1 = "a0c8ab17f240c30dd86dc96f0664ef02f5b4fd13"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 3, folder = 1701, file = 0, slot = "dryfield_motel_lobby_dialogue_0_atlas", page = 0 }]
 sha1 = "a0c8ab17f240c30dd86dc96f0664ef02f5b4fd13"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
@@ -59,6 +67,11 @@ at = [{ stage = 3, folder = 1701, file = 5, slot = "image", page = 0 }, { stage 
 sha1 = "f878e75c4bf759e7b20df804455a90331d27c8a7"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
 
+[dialogue_1_atlas.from.EUR]
+at = [{ stage = 3, folder = 1701, file = 5, slot = "image", page = 0 }, { stage = 3, folder = 2701, file = 8, slot = "image", page = 0 }, { stage = 3, folder = 3001, file = 12, slot = "image", page = 0 }]
+sha1 = "f878e75c4bf759e7b20df804455a90331d27c8a7"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
 [dialogue_2_atlas]
 uid = "uid://tofj6iahxkyj"
 template = "texture"
@@ -76,6 +89,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_2_atlas.from.USA]
+at = [{ stage = 3, folder = 1701, file = 5, slot = "dialogue_2_atlas", page = 0 }, { stage = 4, folder = 601, file = 6, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 1601, file = 19, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 2001, file = 20, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 3101, file = 13, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 4101, file = 8, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 4701, file = 44, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 5, folder = 2201, file = 6, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 5, folder = 2801, file = 5, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }]
+sha1 = "295945018b8cd9a1464ab89391d31b765884322a"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_2_atlas.from.EUR]
 at = [{ stage = 3, folder = 1701, file = 5, slot = "dialogue_2_atlas", page = 0 }, { stage = 4, folder = 601, file = 6, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 1601, file = 19, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 2001, file = 20, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 3101, file = 13, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 4101, file = 8, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 4, folder = 4701, file = 44, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 5, folder = 2201, file = 6, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }, { stage = 5, folder = 2801, file = 5, slot = "dryfield_night_motel_lobby_dialogue_2_atlas", page = 0 }]
 sha1 = "295945018b8cd9a1464ab89391d31b765884322a"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

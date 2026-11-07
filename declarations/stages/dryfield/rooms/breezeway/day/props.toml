@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 2, folder = 2201, file = 0, slot = "image", page = 0 }]
 sha1 = "80ab0378cc39480c602e9fa0ff9216718ab7694a"
 palettes = { effect_row_10 = "f51e0de496bd1aae95a6d3965f1d53cc16854269" }
+
+[debris.from.EUR]
+at = [{ stage = 2, folder = 2201, file = 0, slot = "image", page = 0 }]
+sha1 = "80ab0378cc39480c602e9fa0ff9216718ab7694a"
+palettes = { effect_row_10 = "f51e0de496bd1aae95a6d3965f1d53cc16854269" }

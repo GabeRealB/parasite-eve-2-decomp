@@ -75,6 +75,10 @@ type = "dialogue"
 at = [{ stage = 2, folder = 2201, file = 0 }]
 chunks = { dialogue_0_atlas = "ddbb53895fc4700b85b3d4b839910383be9ad59c", palette = "554a019868663e6ab1564be428873d2b6c2ed914", image = "e0e3caeadba4d70e252554ea297b5a1bb5823f8c" }
 
+[base.from.EUR]
+at = [{ stage = 2, folder = 2201, file = 0 }]
+chunks = { dialogue_0_atlas = "ddbb53895fc4700b85b3d4b839910383be9ad59c", palette = "554a019868663e6ab1564be428873d2b6c2ed914", image = "e0e3caeadba4d70e252554ea297b5a1bb5823f8c" }
+
 [view1]
 uid = "uid://1292exb0cm71e"
 template = "file"
@@ -83,6 +87,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 2, folder = 2201, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 2, folder = 2201, file = 1 }]
 
 [view2]
@@ -102,6 +109,10 @@ type = "bs"
 asset = { uid = "uid://dbx241kfnsg2", path = "res://stages/dryfield/rooms/breezeway/day/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 2, folder = 2201, file = 2 }]
+chunks = { image = "d64e4fb38f8bb0b9d170995bbc14d53607f17ac6" }
+
+[view2.from.EUR]
 at = [{ stage = 2, folder = 2201, file = 2 }]
 chunks = { image = "d64e4fb38f8bb0b9d170995bbc14d53607f17ac6" }
 
@@ -125,6 +136,10 @@ asset = { uid = "uid://1ihb092fmaqhl", path = "res://stages/dryfield/rooms/breez
 at = [{ stage = 2, folder = 2201, file = 3 }]
 chunks = { image = "9ed696802a4e98304799e50ff29b00c7851692c4" }
 
+[view3.from.EUR]
+at = [{ stage = 2, folder = 2201, file = 3 }]
+chunks = { image = "9ed696802a4e98304799e50ff29b00c7851692c4" }
+
 [view4]
 uid = "uid://1kf8w94d3uiie"
 template = "file"
@@ -135,6 +150,9 @@ slots = [
 [view4.from.USA]
 at = [{ stage = 2, folder = 2201, file = 4 }]
 
+[view4.from.EUR]
+at = [{ stage = 2, folder = 2201, file = 4 }]
+
 [view5]
 uid = "uid://emrp3icda9ra"
 template = "file"
@@ -143,6 +161,9 @@ slots = [
 ]
 
 [view5.from.USA]
+at = [{ stage = 2, folder = 2201, file = 5 }]
+
+[view5.from.EUR]
 at = [{ stage = 2, folder = 2201, file = 5 }]
 
 [view6]
@@ -177,5 +198,9 @@ type = "bs"
 asset = { uid = "uid://1hvoaqwctuknn", path = "res://stages/dryfield/rooms/breezeway/day/views/view6_background.node" }
 
 [view6.from.USA]
+at = [{ stage = 2, folder = 2201, file = 6 }]
+chunks = { palette = "8fd0b23a9790ef34b1d6b56fc4cdea9f47802904", image_0 = "459838da3d614ea001d4682f5ecf9dc77095f3d4", image_1 = "1b70dbef65831bc770fa75d00b23ac3a8ba45cce" }
+
+[view6.from.EUR]
 at = [{ stage = 2, folder = 2201, file = 6 }]
 chunks = { palette = "8fd0b23a9790ef34b1d6b56fc4cdea9f47802904", image_0 = "459838da3d614ea001d4682f5ecf9dc77095f3d4", image_1 = "1b70dbef65831bc770fa75d00b23ac3a8ba45cce" }

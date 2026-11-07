@@ -28,6 +28,10 @@ page_slots = 6
 at = [{ stage = 0, file = 604100 }]
 chunks = { image = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e", palette = "852234bb3d2a63cbd07314a10ddf7622513fee52" }
 
+[bass_sounds.from.EUR]
+at = [{ stage = 0, file = 604100 }]
+chunks = { image = "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e", palette = "852234bb3d2a63cbd07314a10ddf7622513fee52" }
+
 [mad_image]
 uid = "uid://1m1005myzn5js"
 template = "file"
@@ -49,6 +53,10 @@ palettes = [
 ]
 
 [mad_image.from.USA]
+at = [{ stage = 0, file = 604400 }]
+chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a207608986d6ac5c3c98dc5e2bfacce652128" }
+
+[mad_image.from.EUR]
 at = [{ stage = 0, file = 604400 }]
 chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a207608986d6ac5c3c98dc5e2bfacce652128" }
 
@@ -76,6 +84,10 @@ page_slots = 6
 at = [{ stage = 0, file = 605200 }]
 chunks = { palette = "53b42eed79ee377d528b0ef902efac03eb1b9702", image = "8f26a21c4a35a786f31a30f96502f5b9022aa7c1" }
 
+[rupert_texture.from.EUR]
+at = [{ stage = 0, file = 605200 }]
+chunks = { palette = "53b42eed79ee377d528b0ef902efac03eb1b9702", image = "8f26a21c4a35a786f31a30f96502f5b9022aa7c1" }
+
 [aya_texture_605300]
 uid = "uid://ujqy28je5gus"
 template = "file"
@@ -97,6 +109,10 @@ pages = [
 page_slots = 6
 
 [aya_texture_605300.from.USA]
+at = [{ stage = 0, file = 605300 }]
+chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2" }
+
+[aya_texture_605300.from.EUR]
 at = [{ stage = 0, file = 605300 }]
 chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2" }
 
@@ -124,6 +140,10 @@ page_slots = 6
 at = [{ stage = 0, file = 605600 }]
 chunks = { palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
 
+[gary_texture.from.EUR]
+at = [{ stage = 0, file = 605600 }]
+chunks = { palette = "9dffbaa92f14ba4b77442cfb23ac73cf8488d9c8", image = "eb4ee0c6746af7178ac3899fe658788d7bcdd316" }
+
 [swat_member_1_texture]
 uid = "uid://zyb68wqej196"
 template = "file"
@@ -145,6 +165,10 @@ pages = [
 page_slots = 6
 
 [swat_member_1_texture.from.USA]
+at = [{ stage = 0, file = 605700 }]
+chunks = { palette = "2bd9873cebf853700b9ef8dc0ba75264a4a872bb", image = "eb7fef9c65554d09d4175fe5c9edef7b44c09f82" }
+
+[swat_member_1_texture.from.EUR]
 at = [{ stage = 0, file = 605700 }]
 chunks = { palette = "2bd9873cebf853700b9ef8dc0ba75264a4a872bb", image = "eb7fef9c65554d09d4175fe5c9edef7b44c09f82" }
 
@@ -172,6 +196,10 @@ page_slots = 6
 at = [{ stage = 0, file = 606000 }]
 chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e" }
 
+[swat_member_2_texture_2.from.EUR]
+at = [{ stage = 0, file = 606000 }]
+chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e" }
+
 [president_texture]
 uid = "uid://19hlqp1el0yoi"
 template = "file"
@@ -193,6 +221,10 @@ pages = [
 page_slots = 6
 
 [president_texture.from.USA]
+at = [{ stage = 0, file = 606100 }]
+chunks = { palette = "8039a156dff3b552a6d730faee32c3771a529ae7", image = "a688ff49a0fda56833c901b642db9b495d559020" }
+
+[president_texture.from.EUR]
 at = [{ stage = 0, file = 606100 }]
 chunks = { palette = "8039a156dff3b552a6d730faee32c3771a529ae7", image = "a688ff49a0fda56833c901b642db9b495d559020" }
 
@@ -220,6 +252,10 @@ page_slots = 6
 at = [{ stage = 0, file = 606200 }]
 chunks = { palette = "b0bf2f158dc679670f33b8344d873ad2ca001dfe", image = "1e702ec2398ad46455841056d103e39a70c2808b" }
 
+[staff_officer_texture_2.from.EUR]
+at = [{ stage = 0, file = 606200 }]
+chunks = { palette = "b0bf2f158dc679670f33b8344d873ad2ca001dfe", image = "1e702ec2398ad46455841056d103e39a70c2808b" }
+
 [flint_texture]
 uid = "uid://144sssalk55op"
 template = "file"
@@ -241,6 +277,10 @@ pages = [
 page_slots = 6
 
 [flint_texture.from.USA]
+at = [{ stage = 0, file = 606400 }]
+chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd705d3ff9ebad301c211b732060e1b08508" }
+
+[flint_texture.from.EUR]
 at = [{ stage = 0, file = 606400 }]
 chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd705d3ff9ebad301c211b732060e1b08508" }
 
@@ -268,6 +308,10 @@ page_slots = 6
 at = [{ stage = 0, file = 608100 }]
 chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_image = "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5" }
 
+[eve_masked_texture.from.EUR]
+at = [{ stage = 0, file = 608100 }]
+chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_image = "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5" }
+
 [aya_casual_texture]
 uid = "uid://ac1zi5xt9s5v"
 template = "file"
@@ -289,6 +333,10 @@ pages = [
 page_slots = 6
 
 [aya_casual_texture.from.USA]
+at = [{ stage = 0, file = 609100 }]
+chunks = { casual_palette = "0d1ee4c40459adc1999cc662f1711448762b7603", casual_image = "27dbbb718218617a6b55a834fed308774a4ce38b" }
+
+[aya_casual_texture.from.EUR]
 at = [{ stage = 0, file = 609100 }]
 chunks = { casual_palette = "0d1ee4c40459adc1999cc662f1711448762b7603", casual_image = "27dbbb718218617a6b55a834fed308774a4ce38b" }
 
@@ -316,6 +364,10 @@ page_slots = 6
 at = [{ stage = 0, file = 609400 }]
 chunks = { bloodied_palette = "f204981b9e88c3f37270d0f3c97480bada0e97a4", bloodied_image = "fce42cdf1e6d9352880eedc51205251b10684fb1" }
 
+[rupert_bloodied_texture.from.EUR]
+at = [{ stage = 0, file = 609400 }]
+chunks = { bloodied_palette = "f204981b9e88c3f37270d0f3c97480bada0e97a4", bloodied_image = "fce42cdf1e6d9352880eedc51205251b10684fb1" }
+
 [swat_member_2_texture]
 uid = "uid://nh8b8dys04rl"
 template = "file"
@@ -337,6 +389,10 @@ pages = [
 page_slots = 6
 
 [swat_member_2_texture.from.USA]
+at = [{ stage = 0, file = 611900 }]
+chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e" }
+
+[swat_member_2_texture.from.EUR]
 at = [{ stage = 0, file = 611900 }]
 chunks = { palette = "653bd7035a58488800c3d28b6772f05e3dfeb3b1", image = "f02a8cb489907c0a2f324658227082f7164eef0e" }
 
@@ -364,6 +420,10 @@ page_slots = 6
 at = [{ stage = 0, file = 635400 }]
 chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd705d3ff9ebad301c211b732060e1b08508" }
 
+[flint_texture_night_garage.from.EUR]
+at = [{ stage = 0, file = 635400 }]
+chunks = { palette = "bbf598b5647bbd31c65b8989b7b3f4670edee8e0", image = "9e1cdd705d3ff9ebad301c211b732060e1b08508" }
+
 [actor_640400]
 uid = "uid://17pjy1wzqvlk8"
 template = "file"
@@ -388,6 +448,10 @@ name = "actor_640400"
 type = "package"
 
 [actor_640400.from.USA]
+at = [{ stage = 0, file = 640400 }]
+chunks = { image = "c4b9a0832268d5d549734a007616788254db3ec3", palette = "04f0cf8b58bd23eb56d75bca218899d54ea75425" }
+
+[actor_640400.from.EUR]
 at = [{ stage = 0, file = 640400 }]
 chunks = { image = "c4b9a0832268d5d549734a007616788254db3ec3", palette = "04f0cf8b58bd23eb56d75bca218899d54ea75425" }
 
@@ -421,6 +485,10 @@ pages = [
 at = [{ stage = 0, file = 641700 }]
 chunks = { image_0 = "4fecf8d94772cb3e7d93707d558ca8366fa22046", image_1 = "1b2547769117dbbab71ef0a7459d579a5e533862", palette = "3ab8065cb052d9f4be796c88587217b0ed47b67a" }
 
+[actor_641700.from.EUR]
+at = [{ stage = 0, file = 641700 }]
+chunks = { image_0 = "4fecf8d94772cb3e7d93707d558ca8366fa22046", image_1 = "1b2547769117dbbab71ef0a7459d579a5e533862", palette = "3ab8065cb052d9f4be796c88587217b0ed47b67a" }
+
 [mad_image_642200]
 uid = "uid://1xrkoic2ld67x"
 template = "file"
@@ -445,6 +513,10 @@ palettes = [
 at = [{ stage = 0, file = 642200 }]
 chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a207608986d6ac5c3c98dc5e2bfacce652128" }
 
+[mad_image_642200.from.EUR]
+at = [{ stage = 0, file = 642200 }]
+chunks = { image = "58f4707f5bb89d7906ed936280f4ed33790f7d9d", palette = "348a207608986d6ac5c3c98dc5e2bfacce652128" }
+
 [eve_masked_texture_training_room]
 uid = "uid://qz97pf3eo1bq"
 template = "file"
@@ -466,6 +538,10 @@ pages = [
 page_slots = 6
 
 [eve_masked_texture_training_room.from.USA]
+at = [{ stage = 0, file = 650700 }]
+chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_image = "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5" }
+
+[eve_masked_texture_training_room.from.EUR]
 at = [{ stage = 0, file = 650700 }]
 chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_image = "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5" }
 
@@ -500,6 +576,10 @@ page_slots = 6
 at = [{ stage = 0, file = 651100 }]
 chunks = { palette_dryfield = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea", palette_dryfield_2 = "e4e29496800573db7db990426c4145198368e756", image_dryfield = "1e8ccf9275d5dae9c7bbab09c60a6b06acee1e98" }
 
+[no_9_texture_submarine_tunnel.from.EUR]
+at = [{ stage = 0, file = 651100 }]
+chunks = { palette_dryfield = "6807da259f0902b8c8c91c65ca8d47b530d7a6ea", palette_dryfield_2 = "e4e29496800573db7db990426c4145198368e756", image_dryfield = "1e8ccf9275d5dae9c7bbab09c60a6b06acee1e98" }
+
 [staff_officer_texture]
 uid = "uid://ytha3sdqxpi6"
 template = "file"
@@ -521,6 +601,10 @@ pages = [
 page_slots = 6
 
 [staff_officer_texture.from.USA]
+at = [{ stage = 0, file = 660100 }]
+chunks = { palette = "b0bf2f158dc679670f33b8344d873ad2ca001dfe", image = "1e702ec2398ad46455841056d103e39a70c2808b" }
+
+[staff_officer_texture.from.EUR]
 at = [{ stage = 0, file = 660100 }]
 chunks = { palette = "b0bf2f158dc679670f33b8344d873ad2ca001dfe", image = "1e702ec2398ad46455841056d103e39a70c2808b" }
 
@@ -548,6 +632,10 @@ page_slots = 6
 at = [{ stage = 0, file = 660200 }]
 chunks = { palette = "af9896ed481a9cdb5e82a6b082fde34dd46d1db5", image = "dc3bb5578c72c89a656c10e98cc049da68bd7eae" }
 
+[soldier_b_texture.from.EUR]
+at = [{ stage = 0, file = 660200 }]
+chunks = { palette = "af9896ed481a9cdb5e82a6b082fde34dd46d1db5", image = "dc3bb5578c72c89a656c10e98cc049da68bd7eae" }
+
 [soldier_a_texture]
 uid = "uid://8c0noizjbmxn"
 template = "file"
@@ -569,6 +657,10 @@ pages = [
 page_slots = 6
 
 [soldier_a_texture.from.USA]
+at = [{ stage = 0, file = 660300 }]
+chunks = { palette = "f610e227cdce58ee8d4bed087353614e2ae370b5", image = "74a07401484a33561b46704550eb442753558ae2" }
+
+[soldier_a_texture.from.EUR]
 at = [{ stage = 0, file = 660300 }]
 chunks = { palette = "f610e227cdce58ee8d4bed087353614e2ae370b5", image = "74a07401484a33561b46704550eb442753558ae2" }
 
@@ -596,6 +688,10 @@ page_slots = 6
 at = [{ stage = 0, file = 660800 }, { stage = 0, file = 660801 }]
 chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_image = "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5" }
 
+[eve_masked_texture_2.from.EUR]
+at = [{ stage = 0, file = 660800 }, { stage = 0, file = 660801 }]
+chunks = { masked_palette = "d310738d1d0601a96e6ec68fc530030e4485464a", masked_image = "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5" }
+
 [kyle_gas_mask_texture]
 uid = "uid://f4cnysgmxz2v"
 template = "file"
@@ -617,6 +713,10 @@ pages = [
 page_slots = 6
 
 [kyle_gas_mask_texture.from.USA]
+at = [{ stage = 0, file = 660802 }]
+chunks = { gas_mask_palette = "a9a9ac3a39a92929f526f20c8f23b58297424d84", gas_mask_image = "4244394d816f3a7cd62fea7e4287d40dd3c44520" }
+
+[kyle_gas_mask_texture.from.EUR]
 at = [{ stage = 0, file = 660802 }]
 chunks = { gas_mask_palette = "a9a9ac3a39a92929f526f20c8f23b58297424d84", gas_mask_image = "4244394d816f3a7cd62fea7e4287d40dd3c44520" }
 
@@ -643,6 +743,10 @@ upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_s
 at = [{ stage = 0, file = 660803 }]
 chunks = { image = "366df2ae38a5cc5ec66a5bcf3207a3517a25d5ee", palette = "0d91bcdb0bb751ec8fd3e0780ec5bbd6645a4961" }
 
+[actor_660803.from.EUR]
+at = [{ stage = 0, file = 660803 }]
+chunks = { image = "366df2ae38a5cc5ec66a5bcf3207a3517a25d5ee", palette = "0d91bcdb0bb751ec8fd3e0780ec5bbd6645a4961" }
+
 [kyle_p229_texture]
 uid = "uid://7w1gz6qexojt"
 template = "file"
@@ -662,6 +766,10 @@ pages = [
 ]
 
 [kyle_p229_texture.from.USA]
+at = [{ stage = 0, file = 660804 }]
+chunks = { p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
+
+[kyle_p229_texture.from.EUR]
 at = [{ stage = 0, file = 660804 }]
 chunks = { p229_palette = "3265702a42e6a0a8e327ca49288d432470524e67", p229_image = "f45b3f8399678cf4aaeb88c4721bc788850034a8" }
 
@@ -689,6 +797,10 @@ page_slots = 6
 at = [{ stage = 0, file = 661100 }]
 chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
 
+[eve_texture_pod_bottom.from.EUR]
+at = [{ stage = 0, file = 661100 }]
+chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
+
 [eve_texture_r31]
 uid = "uid://14jssch7ht3fy"
 template = "file"
@@ -710,5 +822,9 @@ pages = [
 page_slots = 6
 
 [eve_texture_r31.from.USA]
+at = [{ stage = 0, file = 661800 }]
+chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }
+
+[eve_texture_r31.from.EUR]
 at = [{ stage = 0, file = 661800 }]
 chunks = { palette = "4e494b2511ab103b260a8156e5ca06e474c45213", image = "7393230cffdcfd32f2db49059471144571c4712b" }

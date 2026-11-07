@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20114, slot = "image", page = 0 }]
 sha1 = "7aacde1dde0419ee1b1fd5de086c5fd7fa6e4f30"
 palettes = { default = "95d9203e233964e46a7e9f12aaea08be1436ac04" }
 
+[preview.from.EUR]
+at = [{ stage = 0, file = 20114, slot = "image", page = 0 }]
+sha1 = "7aacde1dde0419ee1b1fd5de086c5fd7fa6e4f30"
+palettes = { default = "95d9203e233964e46a7e9f12aaea08be1436ac04" }
+
 [texture]
 uid = "uid://m4x6qkrzrxqq"
 template = "texture"
@@ -35,6 +40,11 @@ at = [{ stage = 0, file = 10314, slot = "image", page = 0 }]
 sha1 = "36da79023d1974042a90b93699170a794a2b2df5"
 palettes = { default = "7622aa9139f98fe85518d0e84be31004db6f22d5" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10314, slot = "image", page = 0 }]
+sha1 = "36da79023d1974042a90b93699170a794a2b2df5"
+palettes = { default = "7622aa9139f98fe85518d0e84be31004db6f22d5" }
+
 [fire]
 uid = "uid://xx0fra7qbm72"
 template = "clip"
@@ -47,6 +57,13 @@ size = 2676
 address = 2148699180
 sha1 = "dec2230e30aba6ce17d9e65cb93f0fd7ab2bdc2f"
 
+[fire.from.EUR]
+at = [{ stage = 0, file = 10314, slot = "package" }]
+offset = 47724
+size = 2676
+address = 2148703548
+sha1 = "ad22a1e341fa1f916b360c4be113db3ee7a12034"
+
 [reload]
 uid = "uid://o554t18x5szb"
 template = "clip"
@@ -58,6 +75,13 @@ offset = 42540
 size = 5184
 address = 2148693996
 sha1 = "9ff13c7364aff2c591fec770270da950e93a493c"
+
+[reload.from.EUR]
+at = [{ stage = 0, file = 10314, slot = "package" }]
+offset = 42540
+size = 5184
+address = 2148698364
+sha1 = "b47674aca616a6f7feb0477c2ec6280620d50b93"
 
 [bank]
 uid = "uid://mwgri2akyzpv"
@@ -120,6 +144,15 @@ symbol = "gSp12Model"
 material_slots = ["body"]
 sha1 = "4d5afbd4ec4928a50dea05541587ebf9f261d77b"
 
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10314, slot = "package" }]
+offset = 932
+size = 1540
+address = 2148656756
+symbol = "gSp12Model"
+material_slots = ["body"]
+sha1 = "500277122ccf1b46b87336b33b6ee6b95f3df420"
+
 [material]
 uid = "uid://1kwtm6djtspya"
 template = "material"
@@ -140,3 +173,10 @@ offset = 932
 size = 1540
 address = 2148652388
 sha1 = "4d5afbd4ec4928a50dea05541587ebf9f261d77b"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10314, slot = "package" }]
+offset = 932
+size = 1540
+address = 2148656756
+sha1 = "500277122ccf1b46b87336b33b6ee6b95f3df420"

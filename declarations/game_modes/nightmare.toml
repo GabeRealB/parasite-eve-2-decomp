@@ -11,3 +11,7 @@ source = "native.bs"
 [splash.from.USA]
 at = [{ stage = 0, file = 44, slot = "splash" }]
 sha1 = "475c7d16f2275ee013977f101c0374d1f2b3f927"
+
+[splash.from.EUR]
+at = [{ stage = 0, file = 44, slot = "splash" }]
+sha1 = "475c7d16f2275ee013977f101c0374d1f2b3f927"

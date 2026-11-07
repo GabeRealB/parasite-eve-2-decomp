@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 4, folder = 3601, file = 0, slot = "image", page = 0 }]
 sha1 = "972f10e278cee106b706d12aa8c22d9840bb18e8"
 palettes = { effect_row_1 = "35d847f3335dc33a342e3dc488c9ae3eda36ea9d" }
+
+[clipboard.from.EUR]
+at = [{ stage = 4, folder = 3601, file = 0, slot = "image", page = 0 }]
+sha1 = "972f10e278cee106b706d12aa8c22d9840bb18e8"
+palettes = { effect_row_1 = "35d847f3335dc33a342e3dc488c9ae3eda36ea9d" }

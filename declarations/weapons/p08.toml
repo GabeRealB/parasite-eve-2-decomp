@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20104, slot = "image", page = 0 }]
 sha1 = "dadac626f490fc079e6bb9dca1a65fa849bb0ac0"
 palettes = { default = "f9b42f8d2918532241bb6a3bfa549438912a26e5" }
 
+[preview.from.EUR]
+at = [{ stage = 0, file = 20104, slot = "image", page = 0 }]
+sha1 = "dadac626f490fc079e6bb9dca1a65fa849bb0ac0"
+palettes = { default = "f9b42f8d2918532241bb6a3bfa549438912a26e5" }
+
 [snail_preview]
 uid = "uid://14vom3or2y9yk"
 template = "texture"
@@ -30,6 +35,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [snail_preview.from.USA]
+at = [{ stage = 0, file = 20101, slot = "image", page = 0 }]
+sha1 = "afec9b5b3ab01c3b596ef5c76f967b7212bd21b3"
+palettes = { default = "25f0262cb87f5ee76613960bb9fffe377e6832c3" }
+
+[snail_preview.from.EUR]
 at = [{ stage = 0, file = 20101, slot = "image", page = 0 }]
 sha1 = "afec9b5b3ab01c3b596ef5c76f967b7212bd21b3"
 palettes = { default = "25f0262cb87f5ee76613960bb9fffe377e6832c3" }
@@ -48,6 +58,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture.from.USA]
+at = [{ stage = 0, file = 10301, slot = "image", page = 0 }, { stage = 0, file = 10304, slot = "image", page = 0 }, { stage = 0, file = 10318, slot = "image", page = 0 }, { stage = 0, file = 10324, slot = "image", page = 0 }]
+sha1 = "8eb95298049517d72122394b3c6889c37698e6dd"
+palettes = { default = "818f8d950dcfa775f93e4081cd7e5ffeae3a3543" }
+
+[texture.from.EUR]
 at = [{ stage = 0, file = 10301, slot = "image", page = 0 }, { stage = 0, file = 10304, slot = "image", page = 0 }, { stage = 0, file = 10318, slot = "image", page = 0 }, { stage = 0, file = 10324, slot = "image", page = 0 }]
 sha1 = "8eb95298049517d72122394b3c6889c37698e6dd"
 palettes = { default = "818f8d950dcfa775f93e4081cd7e5ffeae3a3543" }
@@ -108,6 +123,15 @@ symbol = "gP08WeaponModel"
 material_slots = ["body"]
 sha1 = "426ed2d54650570f70cd9ed36a7f5db6f629812c"
 
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 616
+size = 1312
+address = 2148656440
+symbol = "gP08WeaponModel"
+material_slots = ["body"]
+sha1 = "64140714885815b7034648cc0e9fad1294c06820"
+
 [material]
 uid = "uid://1028xx74udo06"
 template = "material"
@@ -128,3 +152,10 @@ offset = 616
 size = 1312
 address = 2148652072
 sha1 = "426ed2d54650570f70cd9ed36a7f5db6f629812c"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 616
+size = 1312
+address = 2148656440
+sha1 = "64140714885815b7034648cc0e9fad1294c06820"

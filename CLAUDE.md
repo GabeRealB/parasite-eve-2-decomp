@@ -252,7 +252,22 @@ The project itself is made by the editor's commands (`pe2-cli project new`, `lay
 add`, `layer add --generated --fills`, `mount add`, `mount locate`, `config add`),
 never by writing its `project.toml` - and every asset tool defaults to it
 (`tools/peassets/project.py`). The editor knows nothing of the declarations: it runs
-the plan it is given. The old full Python extraction (`tools/peassets/extract.py`:
+the plan it is given.
+
+**A project is of every release declared: USA and Europe.** Europe's discs have
+USA's structure, so each asset's `[<asset>.from.EUR]` is written by
+`tools/editor_project/release.py declare EUR --like USA`, which surveys both
+releases' discs through the plan the USA's declarations make (`pe2-cli plan
+observe`, USA's reads held to what it declares): an asset read alike takes USA's
+placement; one read differently takes Europe's sha1; a package's run is USA's
+rebased (Europe loads its packages 0x1110 higher); a texture or font is held by its
+extractor to the declaration for Europe's bytes; what fits none is left out and
+listed. What releases declare alike is one file of a node, made of any of them in
+order (`files: {"native.bin": [USA's read, Europe's]}`, an input `{"any": [...]}`),
+keyed by all; what differs is `<release>/<file>`, which the node's file step reads
+when the active config is of that release. `pe2-cli project extract` reads the
+releases whose discs are found (`--releases all|available|USA,EUR`); a layer of
+some is `partial`. The old full Python extraction (`tools/peassets/extract.py`:
 `stages.json` and the ISO manifests, which the viewer, `dump_asset_db.py` and the
 repack read) is run by hand.
 `ninja_config.py --project [DIR]` builds a project's data instead of

@@ -20,6 +20,11 @@ at = [{ stage = 0, file = 111800, slot = "image_2", page = 0 }, { stage = 0, fil
 sha1 = "a282da9b05e80b85aa4ec04d823ea465f9c33b1d"
 palettes = { default = "a7ec287d23630776a9a5964c94fde595aacc140c", default_2 = "2eb6ac1fbb95ac7a95450b26e2a4472759d0a865" }
 
+[texture_2.from.EUR]
+at = [{ stage = 0, file = 111800, slot = "image_2", page = 0 }, { stage = 0, file = 201800, slot = "image", page = 0 }, { stage = 0, file = 301800, slot = "image", page = 0 }]
+sha1 = "a282da9b05e80b85aa4ec04d823ea465f9c33b1d"
+palettes = { default = "a7ec287d23630776a9a5964c94fde595aacc140c", default_2 = "2eb6ac1fbb95ac7a95450b26e2a4472759d0a865" }
+
 [texture_4]
 uid = "uid://10ebzmerax310"
 template = "texture"
@@ -36,6 +41,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture_4.from.USA]
+at = [{ stage = 0, file = 401800, slot = "image", page = 0 }]
+sha1 = "937b08eb67946b01a50e4dd0577ff3d0167d2aee"
+palettes = { default = "925c86205dee86524839bab54783d6e6aa5ca312", default_2 = "5db4ac85e654744088efda9d2e8f79a2a3a1ccf6" }
+
+[texture_4.from.EUR]
 at = [{ stage = 0, file = 401800, slot = "image", page = 0 }]
 sha1 = "937b08eb67946b01a50e4dd0577ff3d0167d2aee"
 palettes = { default = "925c86205dee86524839bab54783d6e6aa5ca312", default_2 = "5db4ac85e654744088efda9d2e8f79a2a3a1ccf6" }
@@ -57,6 +67,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture_b_1.from.USA]
+at = [{ stage = 0, file = 101000, slot = "image", page = 0 }, { stage = 0, file = 201000, slot = "image", page = 0 }, { stage = 0, file = 301000, slot = "image", page = 0 }, { stage = 0, file = 401000, slot = "image", page = 0 }]
+sha1 = "375ea9f9ce1bcfead52dff5f299f36db69737bbe"
+palettes = { default = "b738c2f110255d77283fa074c299c2852945d597", row_1 = "39c88886de880188c90c2252a69c2da57a392b50" }
+
+[texture_b_1.from.EUR]
 at = [{ stage = 0, file = 101000, slot = "image", page = 0 }, { stage = 0, file = 201000, slot = "image", page = 0 }, { stage = 0, file = 301000, slot = "image", page = 0 }, { stage = 0, file = 401000, slot = "image", page = 0 }]
 sha1 = "375ea9f9ce1bcfead52dff5f299f36db69737bbe"
 palettes = { default = "b738c2f110255d77283fa074c299c2852945d597", row_1 = "39c88886de880188c90c2252a69c2da57a392b50" }

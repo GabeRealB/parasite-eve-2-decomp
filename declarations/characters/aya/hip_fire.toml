@@ -12,6 +12,13 @@ size = 1264
 address = 2148708348
 sha1 = "10d6dbb82827fc922eff57b387cac4ddf0b384d5"
 
+[aim_enter.from.EUR]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 56892
+size = 1264
+address = 2148712716
+sha1 = "1c3bdc9282ced14dfe1c2f3c50227614249e13c0"
+
 [aim_exit]
 uid = "uid://6hctobdxvqh0"
 template = "clip"
@@ -23,6 +30,13 @@ offset = 58156
 size = 1420
 address = 2148709612
 sha1 = "fd3e79baef49780b47deeefd2838082670e6089a"
+
+[aim_exit.from.EUR]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 58156
+size = 1420
+address = 2148713980
+sha1 = "48e42be5616a2f903d8f2562ae3c7c4aba3ae364"
 
 [aim_idle]
 uid = "uid://1advamzw1m3ja"
@@ -36,6 +50,13 @@ size = 472
 address = 2148697732
 sha1 = "51024b3bcd3d4fe45e8bec8da18ba6433f458d9b"
 
+[aim_idle.from.EUR]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 46276
+size = 472
+address = 2148702100
+sha1 = "a91a8cbad3bd1c23764f895cfff03a7140a23e09"
+
 [aim_backward]
 uid = "uid://1jkx15v77jd7t"
 template = "clip"
@@ -48,6 +69,13 @@ size = 1844
 address = 2148698204
 sha1 = "d188b1e89737aab4b5669375b1f5cc98f18a2811"
 
+[aim_backward.from.EUR]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 46748
+size = 1844
+address = 2148702572
+sha1 = "1f991081154ff1e8ca1de262d6b616a83dd0c8b7"
+
 [fire]
 uid = "uid://1q4w2kzef3sbr"
 template = "clip"
@@ -59,6 +87,13 @@ offset = 55612
 size = 1280
 address = 2148707068
 sha1 = "452c2b9064e1c18e3b8073fa1f576159fe3339cb"
+
+[fire.from.EUR]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 55612
+size = 1280
+address = 2148711436
+sha1 = "a79c6045ece08c5af369752f81ff3787585feb58"
 
 [bank]
 uid = "uid://uittbqgrio3r"

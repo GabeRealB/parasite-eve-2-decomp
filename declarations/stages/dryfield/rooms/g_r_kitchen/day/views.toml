@@ -12,6 +12,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 1901, file = 1, slot = "background" }, { stage = 3, folder = 1901, file = 1, slot = "background" }]
 sha1 = "d3cc7b2c0e5c17dc9be04d50b3d7d1f9b3a52083"
 
+[view1_background.from.EUR]
+at = [{ stage = 2, folder = 1901, file = 1, slot = "background" }, { stage = 3, folder = 1901, file = 1, slot = "background" }]
+sha1 = "d3cc7b2c0e5c17dc9be04d50b3d7d1f9b3a52083"
+
 [view2_background]
 uid = "uid://19hex6dfgidn1"
 template = "background"
@@ -24,6 +28,10 @@ source = "native.bs"
 at = [{ stage = 2, folder = 1901, file = 2, slot = "background" }]
 sha1 = "7e74badc98f47914273140ba3b94b26d1785b15a"
 
+[view2_background.from.EUR]
+at = [{ stage = 2, folder = 1901, file = 2, slot = "background" }]
+sha1 = "7e74badc98f47914273140ba3b94b26d1785b15a"
+
 [view3_background]
 uid = "uid://1w1venm5abspy"
 template = "background"
@@ -33,6 +41,10 @@ format = "bs"
 source = "native.bs"
 
 [view3_background.from.USA]
+at = [{ stage = 2, folder = 1901, file = 3, slot = "background" }]
+sha1 = "1800d4c04b38924e2e765f819c2135abeaf04092"
+
+[view3_background.from.EUR]
 at = [{ stage = 2, folder = 1901, file = 3, slot = "background" }]
 sha1 = "1800d4c04b38924e2e765f819c2135abeaf04092"
 
@@ -56,6 +68,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [view2.from.USA]
+at = [{ stage = 2, folder = 1901, file = 2, slot = "image", page = 0 }]
+sha1 = "7ad653b258661e12c488ee4515db92ae3782ebfa"
+palettes = { row_0 = "ef7b7a9f7067e866b345e7539bfc70517ccb5735" }
+
+[view2.from.EUR]
 at = [{ stage = 2, folder = 1901, file = 2, slot = "image", page = 0 }]
 sha1 = "7ad653b258661e12c488ee4515db92ae3782ebfa"
 palettes = { row_0 = "ef7b7a9f7067e866b345e7539bfc70517ccb5735" }

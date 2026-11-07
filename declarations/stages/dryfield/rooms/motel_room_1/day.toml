@@ -19,6 +19,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 2, folder = 1101 }]
 
+[folder.from.EUR]
+at = [{ stage = 2, folder = 1101 }]
+
 [dialogue_0_atlas]
 uid = "uid://1t7svmzwhkmw5"
 template = "texture"
@@ -36,6 +39,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 2, folder = 1101, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "e651581a223b68eb8f6d8518f9e7c6787b79f940"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 2, folder = 1101, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "e651581a223b68eb8f6d8518f9e7c6787b79f940"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

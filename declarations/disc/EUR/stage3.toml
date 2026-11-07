@@ -1,0 +1,42 @@
+# A declaration: the disc layout and its slots, no game data.
+
+uid = "uid://110bdpxkau4b0"
+template = "stage"
+at = [
+    { disc = "disk1", slots = ["STAGE3.CDF"] },
+    { disc = "disk2", slots = ["STAGE3.CDF"] },
+]
+folders = [
+    { name = "night_gas_station", id = 101, asset = { uid = "uid://1n80ta7z4gey5", path = "res://stages/dryfield/rooms/gas_station/night/folder.node" } },
+    { name = "night_main_street", id = 201, asset = { uid = "uid://146kdjlo6h2ah", path = "res://stages/dryfield/rooms/main_street/night/folder.node" } },
+    { name = "night_general_store", id = 301, asset = { uid = "uid://198byo3vqf2pm", path = "res://stages/dryfield/rooms/general_store/night/folder.node" } },
+    { name = "night_back_street", id = 501, asset = { uid = "uid://1mcsmfmdij3ni", path = "res://stages/dryfield/rooms/back_street/night/folder.node" } },
+    { name = "night_souvenir_shop", id = 601, asset = { uid = "uid://1s2lk8chlmei8", path = "res://stages/dryfield/rooms/souvenir_shop/night/folder.node" } },
+    { name = "night_warehouse", id = 701, asset = { uid = "uid://pv8ns5phqlkv", path = "res://stages/dryfield/rooms/warehouse/night/folder.node" } },
+    { name = "night_r08", id = 801, asset = { uid = "uid://1p91bgewv84ew", path = "res://stages/dryfield/rooms/r08/night/folder.node" } },
+    { name = "night_dilapidated_house", id = 901, asset = { uid = "uid://f5339sriqvnp", path = "res://stages/dryfield/rooms/dilapidated_house/night/folder.node" } },
+    { name = "night_motel_room_1", id = 1101, asset = { uid = "uid://1n1fwev3qwyrs", path = "res://stages/dryfield/rooms/motel_room_1/night/folder.node" } },
+    { name = "night_motel_room_2", id = 1201, asset = { uid = "uid://nbdi2oy4rznu", path = "res://stages/dryfield/rooms/motel_room_2/night/folder.node" } },
+    { name = "night_motel_room_3", id = 1301, asset = { uid = "uid://1a1ld262djq5p", path = "res://stages/dryfield/rooms/motel_room_3/night/folder.node" } },
+    { name = "night_motel_room_4", id = 1401, asset = { uid = "uid://1o0k3pjotitjn", path = "res://stages/dryfield/rooms/motel_room_4/night/folder.node" } },
+    { name = "night_parking_lot", id = 1501, asset = { uid = "uid://1mpsnd57tvf0z", path = "res://stages/dryfield/rooms/parking_lot/night/folder.node" } },
+    { name = "night_toilet", id = 1601, asset = { uid = "uid://f7my0wn90509", path = "res://stages/dryfield/rooms/toilet/night/folder.node" } },
+    { name = "night_motel_lobby", id = 1701, asset = { uid = "uid://sr8su72ivmkh", path = "res://stages/dryfield/rooms/motel_lobby/night/folder.node" } },
+    { name = "night_saloon_g_r", id = 1801, asset = { uid = "uid://17bs3gun6rzkg", path = "res://stages/dryfield/rooms/saloon_g_r/night/folder.node" } },
+    { name = "night_g_r_kitchen", id = 1901, asset = { uid = "uid://8qw6t8px1hn3", path = "res://stages/dryfield/rooms/g_r_kitchen/night/folder.node" } },
+    { name = "night_water_tower", id = 2001, asset = { uid = "uid://e8hfn9ahqy46", path = "res://stages/dryfield/rooms/water_tower/night/folder.node" } },
+    { name = "night_water_tank", id = 2101, asset = { uid = "uid://1fjalgzvqr5pt", path = "res://stages/dryfield/rooms/water_tank/night/folder.node" } },
+    { name = "night_breezeway", id = 2201, asset = { uid = "uid://zrz75adykv5l", path = "res://stages/dryfield/rooms/breezeway/night/folder.node" } },
+    { name = "night_factory", id = 2301, asset = { uid = "uid://1o2xd5pkiaq0p", path = "res://stages/dryfield/rooms/factory/night/folder.node" } },
+    { name = "night_garage", id = 2401, asset = { uid = "uid://ktvpmvdeqm5k", path = "res://stages/dryfield/rooms/garage/night/folder.node" } },
+    { name = "night_driveway", id = 2501, asset = { uid = "uid://g9b56i2ip3i6", path = "res://stages/dryfield/rooms/driveway/night/folder.node" } },
+    { name = "night_junk_yard", id = 2601, asset = { uid = "uid://1fp54w8qx0e0a", path = "res://stages/dryfield/rooms/junk_yard/night/folder.node" } },
+    { name = "night_trailer_coach", id = 2701, asset = { uid = "uid://10s4q1mb1ianp", path = "res://stages/dryfield/rooms/trailer_coach/night/folder.node" } },
+    { name = "night_motel_room_5", id = 2801, asset = { uid = "uid://8fhrn8f3h5pr", path = "res://stages/dryfield/rooms/motel_room_5/night/folder.node" } },
+    { name = "night_motel_balcony", id = 2901, asset = { uid = "uid://138doxnivf1hn", path = "res://stages/dryfield/rooms/motel_balcony/night/folder.node" } },
+    { name = "night_motel_room_6", id = 3001, asset = { uid = "uid://183te0tkeb2l7", path = "res://stages/dryfield/rooms/motel_room_6/night/folder.node" } },
+    { name = "night_motel_loft", id = 3101, asset = { uid = "uid://kquej70063l0", path = "res://stages/dryfield/rooms/motel_loft/night/folder.node" } },
+    { name = "night_water_hole", id = 3201, asset = { uid = "uid://uxsj6cya2kk8", path = "res://stages/dryfield/rooms/water_hole/night/folder.node" } },
+    { name = "night_cellar", id = 3401, asset = { uid = "uid://2x0dvy7hyzj7", path = "res://stages/dryfield/rooms/cellar/night/folder.node" } },
+    { name = "night_underpass", id = 3801, asset = { uid = "uid://1pk01qjh546e6", path = "res://stages/dryfield/rooms/underpass/night/folder.node" } },
+]

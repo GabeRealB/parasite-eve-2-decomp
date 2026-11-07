@@ -20,6 +20,11 @@ at = [{ stage = 0, file = 10300, slot = "image", page = 0 }, { stage = 0, file =
 sha1 = "d74542a9e2492578bed1a540c35356da5e042449"
 palettes = { default = "b577e8c57e9b10fd96d55de2234ba0b736838650", default_2 = "658084590ffe376f514f4e21c5a320c6f1af1dfe" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "image", page = 0 }, { stage = 0, file = 605300, slot = "image", page = 0 }]
+sha1 = "d74542a9e2492578bed1a540c35356da5e042449"
+palettes = { default = "b577e8c57e9b10fd96d55de2234ba0b736838650", default_2 = "658084590ffe376f514f4e21c5a320c6f1af1dfe" }
+
 # The stored models: a mesh with its slots filled.
 
 [body]
@@ -37,6 +42,14 @@ address = 2148620148
 symbol = "gAyaDryfieldBodyModel"
 sha1 = "930d45098d5d38a8f057e7fd4357ee09b75efcfe"
 
+[body.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 4
+size = 21912
+address = 2148624516
+symbol = "gAyaDryfieldBodyModel"
+sha1 = "72c36c39a6b3417a796cd7cecb98f3a7362db521"
+
 [hand_left_open]
 uid = "uid://15nmha2hfi98n"
 template = "model"
@@ -50,6 +63,14 @@ size = 1088
 address = 2148642060
 symbol = "gAyaDryfieldFirstPairHand0Model"
 sha1 = "59a46b3e9728a35bfdd04cdc9981bee7a7bb4ec8"
+
+[hand_left_open.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 21916
+size = 1088
+address = 2148646428
+symbol = "gAyaDryfieldFirstPairHand0Model"
+sha1 = "ba098eb688250bdab02cb70223812de1551fa1ca"
 
 [hand_right_open]
 uid = "uid://pn0nqlxq7qy1"
@@ -65,6 +86,14 @@ address = 2148644236
 symbol = "gAyaDryfieldFirstPairHand1Model"
 sha1 = "9c15358ad6abe64894b620c32da5c66bfd633ff6"
 
+[hand_right_open.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 24092
+size = 1264
+address = 2148648604
+symbol = "gAyaDryfieldFirstPairHand1Model"
+sha1 = "83000542d3be709099d65d30e17d6b46ab693377"
+
 [hand_left_closed]
 uid = "uid://13zgdpqtqfmkf"
 template = "model"
@@ -78,6 +107,14 @@ size = 1088
 address = 2148643148
 symbol = "gAyaDryfieldSecondPairHand0Model"
 sha1 = "7a8a0bf0efc83732f44f10ecc47c59891b4c53eb"
+
+[hand_left_closed.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 23004
+size = 1088
+address = 2148647516
+symbol = "gAyaDryfieldSecondPairHand0Model"
+sha1 = "82eed07a9357cc828423fe0d5d71e0375ad23a6c"
 
 [hand_right_closed]
 uid = "uid://19ylu10rcv2jz"
@@ -93,6 +130,14 @@ address = 2148645500
 symbol = "gAyaDryfieldSecondPairHand1Model"
 sha1 = "ae5fef081cc0d1d1e8d98cf65e2b876b8296734a"
 
+[hand_right_closed.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 25356
+size = 1088
+address = 2148649868
+symbol = "gAyaDryfieldSecondPairHand1Model"
+sha1 = "2ac211a85f1fa2016bc44ba0170c75058af28700"
+
 # The frames the game uploads over the face at run time: stored in the package, palettes those of the head's cell.
 
 [eyes_open]
@@ -106,6 +151,12 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [eyes_open.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 26444
+size = 800
+sha1 = "8271c0ff3d4761c1462cf026eff6a94ed96d49d7"
+
+[eyes_open.from.EUR]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 26444
 size = 800
@@ -127,6 +178,12 @@ offset = 27276
 size = 800
 sha1 = "640b34187d8851f0a6490baad51aba94d0c28986"
 
+[eyes_half_closed.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 27276
+size = 800
+sha1 = "640b34187d8851f0a6490baad51aba94d0c28986"
+
 [eyes_closed]
 uid = "uid://klal2y9l8ael"
 template = "texture"
@@ -138,6 +195,12 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [eyes_closed.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 28108
+size = 800
+sha1 = "25730932ade07e117fe7cde77f48d70f55f655e2"
+
+[eyes_closed.from.EUR]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 28108
 size = 800
@@ -159,6 +222,12 @@ offset = 28940
 size = 560
 sha1 = "682f7a493078402eadeb8ea6f5889e0553836042"
 
+[mouth_rest.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 28940
+size = 560
+sha1 = "682f7a493078402eadeb8ea6f5889e0553836042"
+
 [mouth_alternate]
 uid = "uid://1pf66u5vaq3ux"
 template = "texture"
@@ -170,6 +239,12 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [mouth_alternate.from.USA]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 29532
+size = 560
+sha1 = "e0d5c1fce45ea27e5815f1acf4c66bd14a07faf3"
+
+[mouth_alternate.from.EUR]
 at = [{ stage = 0, file = 10300, slot = "package" }]
 offset = 29532
 size = 560

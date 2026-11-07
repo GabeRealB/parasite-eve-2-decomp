@@ -25,3 +25,8 @@ source = "source.ora"
 at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 0 }]
 sha1 = "49e6ac61316f66f9180abd24ab140f2c43e46c26"
 palettes = { glow_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", glow_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", glow_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", leaf = "47ef1fdc4ec12a7332ff1eae3a70a48323bce75a", radio = "782c7b13bc3fe36f35a6f0dde00a5f0c0121880e" }
+
+[glows.from.EUR]
+at = [{ stage = 1, folder = 1301, file = 0, slot = "image", page = 0 }]
+sha1 = "49e6ac61316f66f9180abd24ab140f2c43e46c26"
+palettes = { glow_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", glow_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", glow_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", leaf = "47ef1fdc4ec12a7332ff1eae3a70a48323bce75a", radio = "782c7b13bc3fe36f35a6f0dde00a5f0c0121880e" }

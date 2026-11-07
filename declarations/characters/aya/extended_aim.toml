@@ -12,6 +12,13 @@ size = 1660
 address = 2148703252
 sha1 = "a10cb9576010102c75490ca56e80df099c3bbc09"
 
+[aim_enter.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 51796
+size = 1660
+address = 2148707620
+sha1 = "d684b6ed2d4e77e4af6aa86154ead53630a139bd"
+
 [aim_exit]
 uid = "uid://bzusqgzrxinb"
 template = "clip"
@@ -23,6 +30,13 @@ offset = 53456
 size = 1484
 address = 2148704912
 sha1 = "5b7a47ff2d89627b92096071987ac0ebdd252c6d"
+
+[aim_exit.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 53456
+size = 1484
+address = 2148709280
+sha1 = "f86b7f003d355d5489e6b84b584bf9bf9836593e"
 
 [aim_idle]
 uid = "uid://1487a0hij8qab"
@@ -36,6 +50,13 @@ size = 476
 address = 2148694628
 sha1 = "982c15801daed2ecda0665074013c730b007f984"
 
+[aim_idle.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 43172
+size = 476
+address = 2148698996
+sha1 = "29b4b08fcfcf6b0fc40e04353840deee1317032d"
+
 [fire]
 uid = "uid://19p6ljp0wrxkr"
 template = "clip"
@@ -47,6 +68,13 @@ offset = 50820
 size = 976
 address = 2148702276
 sha1 = "7273ce567ba1d7d0b1d227d9a18442c056006e63"
+
+[fire.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 50820
+size = 976
+address = 2148706644
+sha1 = "1ff9394f45049cf50b5cef665b5d553783ae80fb"
 
 [aim_backward]
 uid = "uid://yqngli5do5rq"
@@ -60,6 +88,13 @@ size = 1776
 address = 2148695104
 sha1 = "8cf9c17d4f47d10ffcc4ec57cccbc9c723631723"
 
+[aim_backward.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 43648
+size = 1776
+address = 2148699472
+sha1 = "3049bdb1bcd086b31d2a2f0cd972c3292b32c245"
+
 [reload]
 uid = "uid://1pa7spbt8ws6u"
 template = "clip"
@@ -71,6 +106,13 @@ offset = 48476
 size = 2344
 address = 2148699932
 sha1 = "99126f1d185748b11d009de77cf012a2bf3d5850"
+
+[reload.from.EUR]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 48476
+size = 2344
+address = 2148704300
+sha1 = "0fc34b1bdefe87ed82eff1d94c4c120d2424d342"
 
 [bank]
 uid = "uid://13bmkpffm32ar"

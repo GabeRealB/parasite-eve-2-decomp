@@ -27,6 +27,11 @@ at = [{ stage = 0, file = 801000, slot = "logo", page = 0 }, { stage = 0, file =
 sha1 = "9773576ae8f973ca2902e4e782b28a740925a25a"
 palettes = { default = "9b1bf0cd993dfb8bdfc03951b20b24ae1ba75fd0" }
 
+[logo.from.EUR]
+at = [{ stage = 0, file = 801000, slot = "logo", page = 0 }, { stage = 0, file = 801100, slot = "logo", page = 0 }, { stage = 0, file = 801200, slot = "logo", page = 0 }, { stage = 0, file = 900000, slot = "logo", page = 0 }, { stage = 0, file = 900001, slot = "logo", page = 0 }, { stage = 0, file = 900002, slot = "logo", page = 0 }, { stage = 0, file = 900003, slot = "logo", page = 0 }]
+sha1 = "9773576ae8f973ca2902e4e782b28a740925a25a"
+palettes = { default = "9b1bf0cd993dfb8bdfc03951b20b24ae1ba75fd0" }
+
 [logo_shadow]
 uid = "uid://owlpds0b4ml8"
 template = "texture"
@@ -40,6 +45,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [logo_shadow.from.USA]
+at = [{ stage = 0, file = 801000, slot = "logo_shadow", page = 0 }, { stage = 0, file = 801100, slot = "logo_shadow", page = 0 }, { stage = 0, file = 801200, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900000, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900001, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900002, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900003, slot = "logo_shadow", page = 0 }]
+sha1 = "f7976ab5fcead2dd827ff5393bbf38900490a192"
+palettes = { default = "1ab3908452837d15c84dc82a849101a9c4f9ed73" }
+
+[logo_shadow.from.EUR]
 at = [{ stage = 0, file = 801000, slot = "logo_shadow", page = 0 }, { stage = 0, file = 801100, slot = "logo_shadow", page = 0 }, { stage = 0, file = 801200, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900000, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900001, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900002, slot = "logo_shadow", page = 0 }, { stage = 0, file = 900003, slot = "logo_shadow", page = 0 }]
 sha1 = "f7976ab5fcead2dd827ff5393bbf38900490a192"
 palettes = { default = "1ab3908452837d15c84dc82a849101a9c4f9ed73" }

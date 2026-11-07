@@ -21,3 +21,8 @@ source = "source.ora"
 at = [{ stage = 5, folder = 2301, file = 0, slot = "image", page = 0 }]
 sha1 = "e64498797d437bf27a81174383a0f19b845efe76"
 palettes = { effect_row_9 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", effect_row_9_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", effect_row_9_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", effect_row_9_4 = "d3c6ef995e13ea2801819e115e207a15bff4509c", effect_row_9_5 = "68689990d80c9152affd7e1b8167041bddaa3de5", effect_row_9_6 = "19e3e692fff42d71415375a310c402718704ed69" }
+
+[spores.from.EUR]
+at = [{ stage = 5, folder = 2301, file = 0, slot = "image", page = 0 }]
+sha1 = "e64498797d437bf27a81174383a0f19b845efe76"
+palettes = { effect_row_9 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", effect_row_9_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", effect_row_9_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", effect_row_9_4 = "d3c6ef995e13ea2801819e115e207a15bff4509c", effect_row_9_5 = "68689990d80c9152affd7e1b8167041bddaa3de5", effect_row_9_6 = "19e3e692fff42d71415375a310c402718704ed69" }

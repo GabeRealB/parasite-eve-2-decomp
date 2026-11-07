@@ -19,3 +19,8 @@ source = "source.ora"
 at = [{ stage = 3, folder = 201, file = 0, slot = "image", page = 0 }]
 sha1 = "f777fe3aff7b9b56396a54d2dae1cfc5a2ab0f5a"
 palettes = { effect_row_9 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", effect_row_9_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", effect_row_9_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", effect_row_9_3 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }
+
+[flash_smoke.from.EUR]
+at = [{ stage = 3, folder = 201, file = 0, slot = "image", page = 0 }]
+sha1 = "f777fe3aff7b9b56396a54d2dae1cfc5a2ab0f5a"
+palettes = { effect_row_9 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", effect_row_9_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", effect_row_9_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8", effect_row_9_3 = "3f22cf813f7e8c5618ddfefe7951fcb9a260420d" }

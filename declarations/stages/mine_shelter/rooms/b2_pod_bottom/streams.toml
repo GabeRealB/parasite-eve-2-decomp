@@ -9,6 +9,10 @@ format = "mts"
 at = [{ stage = 4, folder = 2201, stream = 0 }]
 sha1 = "7649b9b92aebd42e56c6edfbeee9efa78bf8b124"
 
+[scene_11.from.EUR]
+at = [{ stage = 4, folder = 2201, stream = 0 }]
+sha1 = "de8063fbe59aabd6201746d6d138604aca290d7a"
+
 [scene_12]
 uid = "uid://bdl8tdxbrox1"
 template = "scene_audio"
@@ -17,3 +21,7 @@ format = "mts"
 [scene_12.from.USA]
 at = [{ stage = 4, folder = 2201, stream = 1 }]
 sha1 = "276960707b3ed53c6f92ec9b0494e189ef37ec4a"
+
+[scene_12.from.EUR]
+at = [{ stage = 4, folder = 2201, stream = 1 }]
+sha1 = "440abf22cf3a81cae47490720761ea56bc98493a"

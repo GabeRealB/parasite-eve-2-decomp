@@ -26,6 +26,10 @@ resources = [
 at = [{ stage = 4, folder = 3701, file = 0 }]
 chunks = { image = "e552bc467aaa7ce828beda01c11e91d28da69a37" }
 
+[base.from.EUR]
+at = [{ stage = 4, folder = 3701, file = 0 }]
+chunks = { image = "e552bc467aaa7ce828beda01c11e91d28da69a37" }
+
 [view1]
 uid = "uid://1dmiercikrtre"
 template = "file"
@@ -34,6 +38,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 4, folder = 3701, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 4, folder = 3701, file = 1 }]
 
 [view2]
@@ -46,6 +53,9 @@ slots = [
 [view2.from.USA]
 at = [{ stage = 4, folder = 3701, file = 2 }]
 
+[view2.from.EUR]
+at = [{ stage = 4, folder = 3701, file = 2 }]
+
 [view3]
 uid = "uid://1nbucfmhdzzf1"
 template = "file"
@@ -54,4 +64,7 @@ slots = [
 ]
 
 [view3.from.USA]
+at = [{ stage = 4, folder = 3701, file = 3 }]
+
+[view3.from.EUR]
 at = [{ stage = 4, folder = 3701, file = 3 }]

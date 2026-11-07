@@ -20,6 +20,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 1, folder = 1401 }]
 
+[folder.from.EUR]
+at = [{ stage = 1, folder = 1401 }]
+
 [stars]
 uid = "uid://vumigiddedh2"
 template = "texture"
@@ -54,6 +57,11 @@ at = [{ stage = 1, folder = 1401, file = 0, slot = "image", page = 0 }]
 sha1 = "92ed0322c63d1a3a0cceecacd2916660aea40fc5"
 palettes = { star_core = "11e11b5f8f227b37796c175a5547ebe8598e51d4", star_flare = "c3089110d4b2d59c3b4ad39ed4fb5b7a49c21cd6", lamp_0 = "a344c6277b1b3b4f113ebea38dd27fd5584c2a8f", lamp_1 = "62bdbfeae4708d7729dbfc982d88832087fffcc8", lamp_2 = "ce047c7fa39fca1f8c2d698936267ad93b859636", ripple = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", debris = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", spray = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
 
+[stars.from.EUR]
+at = [{ stage = 1, folder = 1401, file = 0, slot = "image", page = 0 }]
+sha1 = "92ed0322c63d1a3a0cceecacd2916660aea40fc5"
+palettes = { star_core = "11e11b5f8f227b37796c175a5547ebe8598e51d4", star_flare = "c3089110d4b2d59c3b4ad39ed4fb5b7a49c21cd6", lamp_0 = "a344c6277b1b3b4f113ebea38dd27fd5584c2a8f", lamp_1 = "62bdbfeae4708d7729dbfc982d88832087fffcc8", lamp_2 = "ce047c7fa39fca1f8c2d698936267ad93b859636", ripple = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", debris = "0ce9f2cc888e5a973f8142442a1f755dd699f00a", spray = "ab2ca41f4e99b35904ffb4de2e3e0c37db9dfa85" }
+
 [dialogue_0_atlas]
 uid = "uid://6fyg1u3vhglp"
 template = "texture"
@@ -71,6 +79,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 1, folder = 1401, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "3f733daa4e4660afd170e54c71e704a6ec0ae4c6"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 1, folder = 1401, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "3f733daa4e4660afd170e54c71e704a6ec0ae4c6"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

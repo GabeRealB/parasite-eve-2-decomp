@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20125, slot = "image", page = 0 }]
 sha1 = "de088abb45a225c85b8047ef508f5bde6f3e6b2c"
 palettes = { default = "c5b8dcf6281acdb55ea7f4d20ccd6107a6d99973" }
 
+[preview.from.EUR]
+at = [{ stage = 0, file = 20125, slot = "image", page = 0 }]
+sha1 = "de088abb45a225c85b8047ef508f5bde6f3e6b2c"
+palettes = { default = "c5b8dcf6281acdb55ea7f4d20ccd6107a6d99973" }
+
 [texture]
 uid = "uid://1thc0xio15tpz"
 template = "texture"
@@ -35,6 +40,11 @@ at = [{ stage = 0, file = 10325, slot = "image", page = 0 }]
 sha1 = "79fee9754e3962873431d638d30c6ccfdbd23015"
 palettes = { default = "703cf88b280188add77a63e3b2bee6e037e058cd" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10325, slot = "image", page = 0 }]
+sha1 = "79fee9754e3962873431d638d30c6ccfdbd23015"
+palettes = { default = "703cf88b280188add77a63e3b2bee6e037e058cd" }
+
 [discharge]
 uid = "uid://1ub7abrfpi44f"
 template = "clip"
@@ -46,6 +56,13 @@ offset = 54688
 size = 1764
 address = 2148706144
 sha1 = "d448719e144a1e5d2d01f47a9eb4d90a2b2ac666"
+
+[discharge.from.EUR]
+at = [{ stage = 0, file = 10325, slot = "package" }]
+offset = 54688
+size = 1764
+address = 2148710512
+sha1 = "815f240aa18da33f72a07842217413c37568b2ca"
 
 [bank]
 uid = "uid://10x93bz1yae9t"
@@ -105,6 +122,15 @@ symbol = "gM4a1HammerModel"
 material_slots = ["body"]
 sha1 = "2a3c4252ce2717f9167a9378bb89a27cd6ede961"
 
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10325, slot = "package" }]
+offset = 6568
+size = 3124
+address = 2148662392
+symbol = "gM4a1HammerModel"
+material_slots = ["body"]
+sha1 = "24cf563537d761703f279ce0e1d7d9707977205b"
+
 [material]
 uid = "uid://1wxxrn70u2g2r"
 template = "material"
@@ -125,3 +151,10 @@ offset = 6568
 size = 3124
 address = 2148658024
 sha1 = "2a3c4252ce2717f9167a9378bb89a27cd6ede961"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10325, slot = "package" }]
+offset = 6568
+size = 3124
+address = 2148662392
+sha1 = "24cf563537d761703f279ce0e1d7d9707977205b"

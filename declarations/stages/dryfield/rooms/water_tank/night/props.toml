@@ -18,3 +18,8 @@ source = "source.ora"
 at = [{ stage = 3, folder = 2101, file = 0, slot = "image", page = 0 }]
 sha1 = "63826217a16c570cd4bb8ee61ef1035cb1556247"
 palettes = { effect_row_3 = "a7684cdc6344500667094250e930a20e501de8fb", effect_row_2 = "dac79bd32e10a973d1ecadda0502b7dd5f88f855" }
+
+[fence.from.EUR]
+at = [{ stage = 3, folder = 2101, file = 0, slot = "image", page = 0 }]
+sha1 = "63826217a16c570cd4bb8ee61ef1035cb1556247"
+palettes = { effect_row_3 = "a7684cdc6344500667094250e930a20e501de8fb", effect_row_2 = "dac79bd32e10a973d1ecadda0502b7dd5f88f855" }

@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20131, slot = "image", page = 0 }]
 sha1 = "d238e9c306709c3cec30837add6f1a56033c1a69"
 palettes = { default = "988f6c6fcc7c73e558a873e22791348541f0abd2" }
 
+[p1_preview.from.EUR]
+at = [{ stage = 0, file = 20131, slot = "image", page = 0 }]
+sha1 = "d238e9c306709c3cec30837add6f1a56033c1a69"
+palettes = { default = "988f6c6fcc7c73e558a873e22791348541f0abd2" }
+
 [p2_preview]
 uid = "uid://sktehfw6df8k"
 template = "texture"
@@ -34,6 +39,11 @@ at = [{ stage = 0, file = 20132, slot = "image", page = 0 }]
 sha1 = "1f27f59536165fa902faea9b139fc202cd54ace9"
 palettes = { default = "aaf0c9c16202e21c93b67f7f6241c10fa61892df" }
 
+[p2_preview.from.EUR]
+at = [{ stage = 0, file = 20132, slot = "image", page = 0 }]
+sha1 = "1f27f59536165fa902faea9b139fc202cd54ace9"
+palettes = { default = "aaf0c9c16202e21c93b67f7f6241c10fa61892df" }
+
 [preview]
 uid = "uid://1foz71yhs0rd2"
 template = "texture"
@@ -47,6 +57,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [preview.from.USA]
+at = [{ stage = 0, file = 20130, slot = "image", page = 0 }]
+sha1 = "932e49344c14abf8301ba177e14512ed4dd94b09"
+palettes = { default = "49d135fd4cfc9ad69b26ba60c8960ae03cd9cbcd" }
+
+[preview.from.EUR]
 at = [{ stage = 0, file = 20130, slot = "image", page = 0 }]
 sha1 = "932e49344c14abf8301ba177e14512ed4dd94b09"
 palettes = { default = "49d135fd4cfc9ad69b26ba60c8960ae03cd9cbcd" }
@@ -69,6 +84,11 @@ at = [{ stage = 0, file = 10330, slot = "image", page = 0 }, { stage = 0, file =
 sha1 = "49f71eb6a2a994933ced7b18d08a644858cbd3f5"
 palettes = { default = "deeed981f51fab2f71bf40e41f683c5270fa87a0" }
 
+[texture.from.EUR]
+at = [{ stage = 0, file = 10330, slot = "image", page = 0 }, { stage = 0, file = 10331, slot = "image", page = 0 }, { stage = 0, file = 10332, slot = "image", page = 0 }]
+sha1 = "49f71eb6a2a994933ced7b18d08a644858cbd3f5"
+palettes = { default = "deeed981f51fab2f71bf40e41f683c5270fa87a0" }
+
 [reload]
 uid = "uid://1q23ixwia9o25"
 template = "clip"
@@ -80,6 +100,13 @@ offset = 50404
 size = 3500
 address = 2148701860
 sha1 = "ca298921694eec9f1b6dc44aa633091f9719ae39"
+
+[reload.from.EUR]
+at = [{ stage = 0, file = 10330, slot = "package" }]
+offset = 50404
+size = 3500
+address = 2148706228
+sha1 = "2d2d3042162d4114d4aef36ce21e9e8908ba75b2"
 
 [bank]
 uid = "uid://12mqdhaltsxf9"
@@ -140,6 +167,15 @@ symbol = "gMp5a5WeaponModel"
 material_slots = ["body"]
 sha1 = "430c6bd367370049be96dc47a67d529bc3cfcb2d"
 
+[mesh.from.EUR]
+at = [{ stage = 0, file = 10330, slot = "package" }]
+offset = 3952
+size = 2544
+address = 2148659776
+symbol = "gMp5a5WeaponModel"
+material_slots = ["body"]
+sha1 = "bd34668f7fbf3e06a7c8b742ee46b1ebf09bbbe5"
+
 [material]
 uid = "uid://l7qmxbjex2vz"
 template = "material"
@@ -160,3 +196,10 @@ offset = 3952
 size = 2544
 address = 2148655408
 sha1 = "430c6bd367370049be96dc47a67d529bc3cfcb2d"
+
+[model.from.EUR]
+at = [{ stage = 0, file = 10330, slot = "package" }]
+offset = 3952
+size = 2544
+address = 2148659776
+sha1 = "bd34668f7fbf3e06a7c8b742ee46b1ebf09bbbe5"

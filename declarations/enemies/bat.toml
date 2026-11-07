@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 20604, slot = "preview_image", page = 0 }]
 sha1 = "94eeff32908d9093c19e725c0f2e34c8a4566404"
 palettes = { default = "22f2c83df42d4fbb74e2b031d5772d7e69c83fe8" }
 
+[preview.from.EUR]
+at = [{ stage = 0, file = 20604, slot = "preview_image", page = 0 }]
+sha1 = "94eeff32908d9093c19e725c0f2e34c8a4566404"
+palettes = { default = "22f2c83df42d4fbb74e2b031d5772d7e69c83fe8" }
+
 [texture]
 uid = "uid://1k0ztf5figx6m"
 template = "texture"
@@ -30,6 +35,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture.from.USA]
+at = [{ stage = 0, file = 103700, slot = "image", page = 0 }, { stage = 0, file = 203700, slot = "image", page = 0 }, { stage = 0, file = 303700, slot = "image", page = 0 }]
+sha1 = "5b0cdc00612c4fa46514655a4404ba6ab5376c9a"
+palettes = { default = "37ba82435971488cbf4d57b2286353865faba8a1" }
+
+[texture.from.EUR]
 at = [{ stage = 0, file = 103700, slot = "image", page = 0 }, { stage = 0, file = 203700, slot = "image", page = 0 }, { stage = 0, file = 303700, slot = "image", page = 0 }]
 sha1 = "5b0cdc00612c4fa46514655a4404ba6ab5376c9a"
 palettes = { default = "37ba82435971488cbf4d57b2286353865faba8a1" }

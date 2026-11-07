@@ -17,6 +17,11 @@ at = [{ stage = 0, file = 110300, slot = "submachine_gun_image", page = 0 }]
 sha1 = "3c1df522d7a66851826618bc8e7aa1d3dcb0b0a4"
 palettes = { default = "c81918b1fd5bd798a4919f02b65f747e9526b476" }
 
+[submachine_gun_texture.from.EUR]
+at = [{ stage = 0, file = 110300, slot = "submachine_gun_image", page = 0 }]
+sha1 = "3c1df522d7a66851826618bc8e7aa1d3dcb0b0a4"
+palettes = { default = "c81918b1fd5bd798a4919f02b65f747e9526b476" }
+
 [texture]
 uid = "uid://1qhzxpnhp576i"
 template = "texture"
@@ -33,6 +38,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [texture.from.USA]
+at = [{ stage = 0, file = 110300, slot = "image", page = 0 }, { stage = 0, file = 110800, slot = "image", page = 0 }, { stage = 0, file = 606000, slot = "image", page = 0 }, { stage = 0, file = 611900, slot = "image", page = 0 }]
+sha1 = "c35457e76d92ba8bbb605f2cd3fe0a072d6938aa"
+palettes = { default = "3fe16515b1c1888ddd44b1ac119c37d7db1b5625", default_2 = "4825450def831c7d0e3c0ba168d10deff0f80644" }
+
+[texture.from.EUR]
 at = [{ stage = 0, file = 110300, slot = "image", page = 0 }, { stage = 0, file = 110800, slot = "image", page = 0 }, { stage = 0, file = 606000, slot = "image", page = 0 }, { stage = 0, file = 611900, slot = "image", page = 0 }]
 sha1 = "c35457e76d92ba8bbb605f2cd3fe0a072d6938aa"
 palettes = { default = "3fe16515b1c1888ddd44b1ac119c37d7db1b5625", default_2 = "4825450def831c7d0e3c0ba168d10deff0f80644" }

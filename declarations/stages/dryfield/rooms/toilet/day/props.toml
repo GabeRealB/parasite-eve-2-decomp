@@ -16,3 +16,8 @@ source = "source.ora"
 at = [{ stage = 2, folder = 1601, file = 0, slot = "image", page = 0 }]
 sha1 = "81343e4d4df3a6174d809705d25ba6bb4d4249a7"
 palettes = { effect_row_10 = "df6b9ab9485f1a97178c7792097c0971320bafbb" }
+
+[flames.from.EUR]
+at = [{ stage = 2, folder = 1601, file = 0, slot = "image", page = 0 }]
+sha1 = "81343e4d4df3a6174d809705d25ba6bb4d4249a7"
+palettes = { effect_row_10 = "df6b9ab9485f1a97178c7792097c0971320bafbb" }

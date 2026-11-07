@@ -22,6 +22,11 @@ at = [{ stage = 1, folder = 301, file = 0, slot = "image", page = 0 }, { stage =
 sha1 = "06a072a33a7c1bc559d03ade253a1f60aec87410"
 palettes = { flare_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flare_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", flare_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8" }
 
+[flare.from.EUR]
+at = [{ stage = 1, folder = 301, file = 0, slot = "image", page = 0 }, { stage = 1, folder = 801, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 1801, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 3401, file = 0, slot = "image", page = 0 }, { stage = 2, folder = 3801, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 101, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 501, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 801, file = 0, slot = "image_1", page = 0 }, { stage = 3, folder = 1101, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1201, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1301, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1401, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1501, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1601, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 1701, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2001, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2201, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2601, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 2801, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3001, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3401, file = 0, slot = "image", page = 0 }, { stage = 3, folder = 3801, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 101, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 201, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 301, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 401, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 501, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 601, file = 0, slot = "image_0", page = 0 }, { stage = 4, folder = 701, file = 0, slot = "image_1", page = 0 }, { stage = 4, folder = 801, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 901, file = 0, slot = "image", page = 0 }, { stage = 4, folder = 1501, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 701, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 2101, file = 0, slot = "image", page = 0 }, { stage = 5, folder = 2501, file = 0, slot = "image", page = 0 }]
+sha1 = "06a072a33a7c1bc559d03ade253a1f60aec87410"
+palettes = { flare_0 = "337a33e4dbd4de15c0e9f89e2f23b0e6eec2aa14", flare_1 = "62cbf1e8262956b38d743cf155cc2966d4db24ec", flare_2 = "5791b36edb09d9f9db85b66e05693125f2e692a8" }
+
 [story_calls_atlas]
 uid = "uid://5xcamop92axh"
 template = "texture"
@@ -39,6 +44,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [story_calls_atlas.from.USA]
+at = [{ stage = 1, folder = 101, file = 9, slot = "dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1501, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1901, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }]
+sha1 = "e620dbb7b4c19bfea908fbb85c9fdd81a02defdd"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[story_calls_atlas.from.EUR]
 at = [{ stage = 1, folder = 101, file = 9, slot = "dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1501, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }, { stage = 1, folder = 1901, file = 9, slot = "akropolis_square_dialogue_1_atlas", page = 0 }]
 sha1 = "e620dbb7b4c19bfea908fbb85c9fdd81a02defdd"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

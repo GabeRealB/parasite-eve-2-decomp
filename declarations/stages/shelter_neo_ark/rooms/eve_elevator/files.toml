@@ -48,6 +48,10 @@ upload_mode = 0
 at = [{ stage = 5, folder = 901, file = 0 }]
 chunks = { dialogue_0_atlas = "c224e093174d24ea54347f79ffaabed632fe64fb" }
 
+[base.from.EUR]
+at = [{ stage = 5, folder = 901, file = 0 }]
+chunks = { dialogue_0_atlas = "c224e093174d24ea54347f79ffaabed632fe64fb" }
+
 [view1]
 uid = "uid://12m0w7bt9hnm1"
 template = "file"
@@ -56,6 +60,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 5, folder = 901, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 5, folder = 901, file = 1 }]
 
 [view2]
@@ -68,6 +75,9 @@ slots = [
 [view2.from.USA]
 at = [{ stage = 5, folder = 901, file = 2 }]
 
+[view2.from.EUR]
+at = [{ stage = 5, folder = 901, file = 2 }]
+
 [view3]
 uid = "uid://x1k5ddc82qc4"
 template = "file"
@@ -78,6 +88,9 @@ slots = [
 [view3.from.USA]
 at = [{ stage = 5, folder = 901, file = 3 }]
 
+[view3.from.EUR]
+at = [{ stage = 5, folder = 901, file = 3 }]
+
 [view4]
 uid = "uid://12elk57r5jzvb"
 template = "file"
@@ -86,4 +99,7 @@ slots = [
 ]
 
 [view4.from.USA]
+at = [{ stage = 5, folder = 901, file = 4 }]
+
+[view4.from.EUR]
 at = [{ stage = 5, folder = 901, file = 4 }]

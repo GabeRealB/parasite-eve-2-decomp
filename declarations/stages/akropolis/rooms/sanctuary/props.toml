@@ -19,3 +19,8 @@ source = "source.ora"
 at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 1 }]
 sha1 = "3c1ffcac03cb3f34ce3c6a367737da99b3ff5db5"
 palettes = { default = "668b0a188b74c3b57cb96c460ebfb64b91a44ac3", row_263 = "4878f24487887942eb78ed3763c4e9623fe797a6" }
+
+[mosaic_page_1.from.EUR]
+at = [{ stage = 1, folder = 1201, file = 0, slot = "image_0", page = 1 }]
+sha1 = "3c1ffcac03cb3f34ce3c6a367737da99b3ff5db5"
+palettes = { default = "668b0a188b74c3b57cb96c460ebfb64b91a44ac3", row_263 = "4878f24487887942eb78ed3763c4e9623fe797a6" }

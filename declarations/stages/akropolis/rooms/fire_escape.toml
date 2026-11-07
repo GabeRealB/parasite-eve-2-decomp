@@ -20,6 +20,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 1, folder = 1501 }]
 
+[folder.from.EUR]
+at = [{ stage = 1, folder = 1501 }]
+
 [dialogue_0_atlas]
 uid = "uid://e4neverd7zr7"
 template = "texture"

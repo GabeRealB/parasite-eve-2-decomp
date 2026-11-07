@@ -11,11 +11,19 @@ format = "str"
 at = [{ disc = "disk1", slot = "INTER0.STR", clip = 5 }]
 sha1 = "2134a9b5186876543db9cad2d03429f4b7b2014a"
 
+[movie_7.from.EUR]
+at = [{ disc = "disk1", slot = "INTER0.STR", clip = 5 }]
+sha1 = "2134a9b5186876543db9cad2d03429f4b7b2014a"
+
 [movie_8]
 uid = "uid://1rfrkovczep0n"
 template = "movie"
 format = "str"
 
 [movie_8.from.USA]
+at = [{ disc = "disk1", slot = "INTER0.STR", clip = 6 }]
+sha1 = "7f8fb73dc3fd192bb58b1a3bbb1dce74af06c8d5"
+
+[movie_8.from.EUR]
 at = [{ disc = "disk1", slot = "INTER0.STR", clip = 6 }]
 sha1 = "7f8fb73dc3fd192bb58b1a3bbb1dce74af06c8d5"

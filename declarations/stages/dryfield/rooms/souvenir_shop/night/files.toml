@@ -53,6 +53,10 @@ type = "dialogue"
 at = [{ stage = 3, folder = 601, file = 0 }]
 chunks = { dryfield_souvenir_shop_dialogue_0_atlas = "cb61a680e7df8702d894ef00582220bce92c9cb8" }
 
+[base.from.EUR]
+at = [{ stage = 3, folder = 601, file = 0 }]
+chunks = { dryfield_souvenir_shop_dialogue_0_atlas = "cb61a680e7df8702d894ef00582220bce92c9cb8" }
+
 [view1]
 uid = "uid://w0x2f0fc0qzk"
 template = "file"
@@ -61,6 +65,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 3, folder = 601, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 3, folder = 601, file = 1 }]
 
 [view2]
@@ -83,6 +90,10 @@ asset = { uid = "uid://3yl47khwzjxk", path = "res://stages/dryfield/rooms/souven
 at = [{ stage = 3, folder = 601, file = 2 }]
 chunks = { image = "9cc869ac6d4bf7f44ec23ce9dbde7287e488e4d4" }
 
+[view2.from.EUR]
+at = [{ stage = 3, folder = 601, file = 2 }]
+chunks = { image = "9cc869ac6d4bf7f44ec23ce9dbde7287e488e4d4" }
+
 [view3]
 uid = "uid://9by1slcru2q"
 template = "file"
@@ -100,5 +111,9 @@ type = "bs"
 asset = { uid = "uid://esmlatazdgit", path = "res://stages/dryfield/rooms/souvenir_shop/night/views/view3_background.node" }
 
 [view3.from.USA]
+at = [{ stage = 3, folder = 601, file = 3 }]
+chunks = { image = "cd4a1d7ff87e9196ea421ce65f2a935a41e09360" }
+
+[view3.from.EUR]
 at = [{ stage = 3, folder = 601, file = 3 }]
 chunks = { image = "cd4a1d7ff87e9196ea421ce65f2a935a41e09360" }

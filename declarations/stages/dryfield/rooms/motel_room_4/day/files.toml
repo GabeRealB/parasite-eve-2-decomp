@@ -34,6 +34,10 @@ resources = [
 at = [{ stage = 2, folder = 1401, file = 0 }]
 chunks = { dialogue_0_atlas = "54ffcaba82ce535c1eb24f8db1456afee09b0699" }
 
+[base.from.EUR]
+at = [{ stage = 2, folder = 1401, file = 0 }]
+chunks = { dialogue_0_atlas = "54ffcaba82ce535c1eb24f8db1456afee09b0699" }
+
 [view1]
 uid = "uid://xnas5rikbnnn"
 template = "file"
@@ -42,6 +46,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 2, folder = 1401, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 2, folder = 1401, file = 1 }]
 
 [view2]
@@ -54,6 +61,9 @@ slots = [
 [view2.from.USA]
 at = [{ stage = 2, folder = 1401, file = 2 }]
 
+[view2.from.EUR]
+at = [{ stage = 2, folder = 1401, file = 2 }]
+
 [view3]
 uid = "uid://1wx4b8zwbt4eo"
 template = "file"
@@ -62,6 +72,9 @@ slots = [
 ]
 
 [view3.from.USA]
+at = [{ stage = 2, folder = 1401, file = 3 }]
+
+[view3.from.EUR]
 at = [{ stage = 2, folder = 1401, file = 3 }]
 
 [view4]
@@ -74,6 +87,9 @@ slots = [
 [view4.from.USA]
 at = [{ stage = 2, folder = 1401, file = 4 }]
 
+[view4.from.EUR]
+at = [{ stage = 2, folder = 1401, file = 4 }]
+
 [view5]
 uid = "uid://1njxlwfbvz5qn"
 template = "file"
@@ -84,6 +100,9 @@ slots = [
 [view5.from.USA]
 at = [{ stage = 2, folder = 1401, file = 5 }]
 
+[view5.from.EUR]
+at = [{ stage = 2, folder = 1401, file = 5 }]
+
 [view6]
 uid = "uid://1fwuvhfbmng8a"
 template = "file"
@@ -92,4 +111,7 @@ slots = [
 ]
 
 [view6.from.USA]
+at = [{ stage = 2, folder = 1401, file = 6 }]
+
+[view6.from.EUR]
 at = [{ stage = 2, folder = 1401, file = 6 }]

@@ -121,6 +121,10 @@ type = "dialogue"
 at = [{ stage = 3, folder = 2601, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dryfield_junk_yard_dialogue_0_atlas = "22828376080b3b4ae001d7fdd6c7569c4f538071" }
 
+[base.from.EUR]
+at = [{ stage = 3, folder = 2601, file = 0 }]
+chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dryfield_junk_yard_dialogue_0_atlas = "22828376080b3b4ae001d7fdd6c7569c4f538071" }
+
 [view1]
 uid = "uid://lulrtuq8pjns"
 template = "file"
@@ -129,6 +133,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 3, folder = 2601, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 3, folder = 2601, file = 1 }]
 
 [view2]
@@ -148,6 +155,10 @@ type = "bs"
 asset = { uid = "uid://c5dmxfmdzc2t", path = "res://stages/dryfield/rooms/junk_yard/night/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 3, folder = 2601, file = 2 }]
+chunks = { image = "b8180b9b9308fdc6713e74a2c0ba80e318504e4b" }
+
+[view2.from.EUR]
 at = [{ stage = 3, folder = 2601, file = 2 }]
 chunks = { image = "b8180b9b9308fdc6713e74a2c0ba80e318504e4b" }
 
@@ -171,6 +182,10 @@ asset = { uid = "uid://1qhxzred5oak", path = "res://stages/dryfield/rooms/junk_y
 at = [{ stage = 3, folder = 2601, file = 3 }]
 chunks = { image = "d00364d63a84a9a2c791aee44fe34600b70639c0" }
 
+[view3.from.EUR]
+at = [{ stage = 3, folder = 2601, file = 3 }]
+chunks = { image = "d00364d63a84a9a2c791aee44fe34600b70639c0" }
+
 [view4]
 uid = "uid://1sg37m9gewq3z"
 template = "file"
@@ -188,6 +203,10 @@ type = "bs"
 asset = { uid = "uid://1denqkrzz2f6", path = "res://stages/dryfield/rooms/junk_yard/night/views/view4_background.node" }
 
 [view4.from.USA]
+at = [{ stage = 3, folder = 2601, file = 4 }]
+chunks = { image = "2b233e205962b71cb042087093a2147d34d5d2dc" }
+
+[view4.from.EUR]
 at = [{ stage = 3, folder = 2601, file = 4 }]
 chunks = { image = "2b233e205962b71cb042087093a2147d34d5d2dc" }
 
@@ -211,6 +230,10 @@ asset = { uid = "uid://1df40829oo0ee", path = "res://stages/dryfield/rooms/junk_
 at = [{ stage = 3, folder = 2601, file = 5 }]
 chunks = { image = "5090802d2a19548fc800e280ff579601907a3c36" }
 
+[view5.from.EUR]
+at = [{ stage = 3, folder = 2601, file = 5 }]
+chunks = { image = "5090802d2a19548fc800e280ff579601907a3c36" }
+
 [view7]
 uid = "uid://rix22hukxxbo"
 template = "file"
@@ -228,6 +251,10 @@ type = "bs"
 asset = { uid = "uid://11cjsahnkfo9k", path = "res://stages/dryfield/rooms/junk_yard/night/views/view7_background.node" }
 
 [view7.from.USA]
+at = [{ stage = 3, folder = 2601, file = 7 }]
+chunks = { image = "79183797d5f631fdbb508457d998483fdfd8c6c8" }
+
+[view7.from.EUR]
 at = [{ stage = 3, folder = 2601, file = 7 }]
 chunks = { image = "79183797d5f631fdbb508457d998483fdfd8c6c8" }
 
@@ -251,6 +278,10 @@ asset = { uid = "uid://1ku6daw3z56u4", path = "res://stages/dryfield/rooms/junk_
 at = [{ stage = 3, folder = 2601, file = 8 }]
 chunks = { image = "2cd12d1854046ee4b8616545e4f06cd4679f6f1c" }
 
+[view8.from.EUR]
+at = [{ stage = 3, folder = 2601, file = 8 }]
+chunks = { image = "2cd12d1854046ee4b8616545e4f06cd4679f6f1c" }
+
 [view9]
 uid = "uid://1ph8rwa34fd79"
 template = "file"
@@ -271,6 +302,10 @@ asset = { uid = "uid://6y1zavf80hds", path = "res://stages/dryfield/rooms/junk_y
 at = [{ stage = 3, folder = 2601, file = 9 }]
 chunks = { image = "13401363a422989ca1a801dca65c12151a4098db" }
 
+[view9.from.EUR]
+at = [{ stage = 3, folder = 2601, file = 9 }]
+chunks = { image = "13401363a422989ca1a801dca65c12151a4098db" }
+
 [view10]
 uid = "uid://1i8g0yfavsd4y"
 template = "file"
@@ -288,5 +323,9 @@ type = "bs"
 asset = { uid = "uid://195zzfhrmt9j8", path = "res://stages/dryfield/rooms/junk_yard/night/views/view10_background.node" }
 
 [view10.from.USA]
+at = [{ stage = 3, folder = 2601, file = 10 }]
+chunks = { image = "a0370216e0c3a3ec12f68e94782135b2c0566352" }
+
+[view10.from.EUR]
 at = [{ stage = 3, folder = 2601, file = 10 }]
 chunks = { image = "a0370216e0c3a3ec12f68e94782135b2c0566352" }

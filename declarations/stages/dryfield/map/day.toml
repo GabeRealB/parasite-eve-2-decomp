@@ -44,6 +44,11 @@ at = [{ stage = 0, file = 30200, slot = "image", page = 0 }, { stage = 0, file =
 sha1 = "261a2bfc8d0d0730bf8706b56ee99ecfb7d8e66a"
 palettes = { pattern = "8c4370958aa66757aea765d6dd5d6dcdb0b61bd1", picture = "7b44e3bbfd555a78b1d6e8d33021068b5bb43224", cursor = "fe1f74ebd9848eb4663dee12bbc7890f216a9219", telephone = "1c5956ce599e47e88400ec01e72a30c0d524ed36", box = "72128bef2c203cd776022593aba8acac2ff159dd", marker_key = "c6e69ae5d4555fc8383def8f4586a13d629cee82", objective = "02509c388153634aef38849273933a1626727054", arrow = "47ff3b5d5d17d79a23313c1910e6d227461c5d64", marker_cross = "21e42843da88413fe260e39363c1594625ce9797", help = "fc60f54047d17737be3a0465ced7a5d6d36de9f2" }
 
+[page_0.from.EUR]
+at = [{ stage = 0, file = 30200, slot = "image", page = 0 }, { stage = 0, file = 30201, slot = "image", page = 0 }]
+sha1 = "261a2bfc8d0d0730bf8706b56ee99ecfb7d8e66a"
+palettes = { pattern = "8c4370958aa66757aea765d6dd5d6dcdb0b61bd1", picture = "7b44e3bbfd555a78b1d6e8d33021068b5bb43224", cursor = "fe1f74ebd9848eb4663dee12bbc7890f216a9219", telephone = "1c5956ce599e47e88400ec01e72a30c0d524ed36", box = "72128bef2c203cd776022593aba8acac2ff159dd", marker_key = "c6e69ae5d4555fc8383def8f4586a13d629cee82", objective = "02509c388153634aef38849273933a1626727054", arrow = "47ff3b5d5d17d79a23313c1910e6d227461c5d64", marker_cross = "21e42843da88413fe260e39363c1594625ce9797", help = "fc60f54047d17737be3a0465ced7a5d6d36de9f2" }
+
 [page_2]
 uid = "uid://7we0pwfzp966"
 template = "texture"
@@ -88,6 +93,11 @@ at = [{ stage = 0, file = 30202, slot = "image", page = 0 }]
 sha1 = "9d89d09b1339b660ef0273477013d464cdd7136b"
 palettes = { pattern = "8c4370958aa66757aea765d6dd5d6dcdb0b61bd1", picture = "ae7c006a19ce3f90edfe16b6e2b98f87b4e177a2", cursor = "fe1f74ebd9848eb4663dee12bbc7890f216a9219", telephone = "1c5956ce599e47e88400ec01e72a30c0d524ed36", box = "72128bef2c203cd776022593aba8acac2ff159dd", marker_key = "c6e69ae5d4555fc8383def8f4586a13d629cee82", objective = "02509c388153634aef38849273933a1626727054", arrow = "47ff3b5d5d17d79a23313c1910e6d227461c5d64", marker_cross = "21e42843da88413fe260e39363c1594625ce9797", help = "fc60f54047d17737be3a0465ced7a5d6d36de9f2" }
 
+[page_2.from.EUR]
+at = [{ stage = 0, file = 30202, slot = "image", page = 0 }]
+sha1 = "9d89d09b1339b660ef0273477013d464cdd7136b"
+palettes = { pattern = "8c4370958aa66757aea765d6dd5d6dcdb0b61bd1", picture = "ae7c006a19ce3f90edfe16b6e2b98f87b4e177a2", cursor = "fe1f74ebd9848eb4663dee12bbc7890f216a9219", telephone = "1c5956ce599e47e88400ec01e72a30c0d524ed36", box = "72128bef2c203cd776022593aba8acac2ff159dd", marker_key = "c6e69ae5d4555fc8383def8f4586a13d629cee82", objective = "02509c388153634aef38849273933a1626727054", arrow = "47ff3b5d5d17d79a23313c1910e6d227461c5d64", marker_cross = "21e42843da88413fe260e39363c1594625ce9797", help = "fc60f54047d17737be3a0465ced7a5d6d36de9f2" }
+
 [page_3]
 uid = "uid://195v473e0uisn"
 template = "texture"
@@ -128,6 +138,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [page_3.from.USA]
+at = [{ stage = 0, file = 30203, slot = "image", page = 0 }]
+sha1 = "889745d37802bb02243ab01df3e3bfc53dcd9385"
+palettes = { pattern = "122cce8726f9f5d8750aa4318bf7f913e7fb93a9", picture = "8d8279d36ea30c99fe3011c484dab6f575277368", cursor = "fe1f74ebd9848eb4663dee12bbc7890f216a9219", telephone = "1c5956ce599e47e88400ec01e72a30c0d524ed36", box = "72128bef2c203cd776022593aba8acac2ff159dd", marker_key = "c6e69ae5d4555fc8383def8f4586a13d629cee82", objective = "02509c388153634aef38849273933a1626727054", arrow = "47ff3b5d5d17d79a23313c1910e6d227461c5d64", marker_cross = "21e42843da88413fe260e39363c1594625ce9797", help = "fc60f54047d17737be3a0465ced7a5d6d36de9f2" }
+
+[page_3.from.EUR]
 at = [{ stage = 0, file = 30203, slot = "image", page = 0 }]
 sha1 = "889745d37802bb02243ab01df3e3bfc53dcd9385"
 palettes = { pattern = "122cce8726f9f5d8750aa4318bf7f913e7fb93a9", picture = "8d8279d36ea30c99fe3011c484dab6f575277368", cursor = "fe1f74ebd9848eb4663dee12bbc7890f216a9219", telephone = "1c5956ce599e47e88400ec01e72a30c0d524ed36", box = "72128bef2c203cd776022593aba8acac2ff159dd", marker_key = "c6e69ae5d4555fc8383def8f4586a13d629cee82", objective = "02509c388153634aef38849273933a1626727054", arrow = "47ff3b5d5d17d79a23313c1910e6d227461c5d64", marker_cross = "21e42843da88413fe260e39363c1594625ce9797", help = "fc60f54047d17737be3a0465ced7a5d6d36de9f2" }

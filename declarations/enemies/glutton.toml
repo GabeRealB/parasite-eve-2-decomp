@@ -25,3 +25,8 @@ source = "source.ora"
 at = [{ stage = 0, file = 403200, slot = "image", page = 0 }, { stage = 0, file = 444000, slot = "image", page = 0 }]
 sha1 = "2485552b813ffc3d7f17ff7ca88d71752e55e4ba"
 palettes = { default = "c04e88149aaff0bd59a9dddbae26145011fa647d", default_2 = "cf34bf95b7e9b408cd7a4596d24316943cd85977", default_3 = "425df0f3e2a3bc0866f71b0e78bfb7d7cba9061e", default_4 = "9ab12c1d087bf9f4996f5e74d1869ddd5dae72e3", default_5 = "defec21343bed8f0eaa95f8d692793f1afe6b519" }
+
+[texture.from.EUR]
+at = [{ stage = 0, file = 403200, slot = "image", page = 0 }, { stage = 0, file = 444000, slot = "image", page = 0 }]
+sha1 = "2485552b813ffc3d7f17ff7ca88d71752e55e4ba"
+palettes = { default = "c04e88149aaff0bd59a9dddbae26145011fa647d", default_2 = "cf34bf95b7e9b408cd7a4596d24316943cd85977", default_3 = "425df0f3e2a3bc0866f71b0e78bfb7d7cba9061e", default_4 = "9ab12c1d087bf9f4996f5e74d1869ddd5dae72e3", default_5 = "defec21343bed8f0eaa95f8d692793f1afe6b519" }

@@ -83,6 +83,10 @@ upload_mode = 0
 at = [{ stage = 2, folder = 101, file = 0 }]
 chunks = { dialogue_0_atlas = "7a334be252c02598cc4efb1b69c6e07191a71a88" }
 
+[base.from.EUR]
+at = [{ stage = 2, folder = 101, file = 0 }]
+chunks = { dialogue_0_atlas = "7a334be252c02598cc4efb1b69c6e07191a71a88" }
+
 [view1]
 uid = "uid://fyaxt2davws0"
 template = "file"
@@ -91,6 +95,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 2, folder = 101, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 2, folder = 101, file = 1 }]
 
 [view2]
@@ -110,6 +117,10 @@ type = "bs"
 asset = { uid = "uid://rqkl2pxcizlv", path = "res://stages/dryfield/rooms/gas_station/day/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 2, folder = 101, file = 2 }]
+chunks = { image = "89df95b9c84d37d76e3545ba9b56498f8bdc2b7d" }
+
+[view2.from.EUR]
 at = [{ stage = 2, folder = 101, file = 2 }]
 chunks = { image = "89df95b9c84d37d76e3545ba9b56498f8bdc2b7d" }
 
@@ -133,6 +144,10 @@ asset = { uid = "uid://1py6ld3lqu9oq", path = "res://stages/dryfield/rooms/gas_s
 at = [{ stage = 2, folder = 101, file = 3 }]
 chunks = { image = "f6bf59cdba3e7079ac25fbddf5de1b94ed8f3b16" }
 
+[view3.from.EUR]
+at = [{ stage = 2, folder = 101, file = 3 }]
+chunks = { image = "f6bf59cdba3e7079ac25fbddf5de1b94ed8f3b16" }
+
 [view4]
 uid = "uid://1i6tqus0b0r2v"
 template = "file"
@@ -141,6 +156,9 @@ slots = [
 ]
 
 [view4.from.USA]
+at = [{ stage = 2, folder = 101, file = 4 }]
+
+[view4.from.EUR]
 at = [{ stage = 2, folder = 101, file = 4 }]
 
 [view5]
@@ -153,6 +171,9 @@ slots = [
 [view5.from.USA]
 at = [{ stage = 2, folder = 101, file = 5 }]
 
+[view5.from.EUR]
+at = [{ stage = 2, folder = 101, file = 5 }]
+
 [view6]
 uid = "uid://1l0p2519wm8u5"
 template = "file"
@@ -163,6 +184,9 @@ slots = [
 [view6.from.USA]
 at = [{ stage = 2, folder = 101, file = 6 }]
 
+[view6.from.EUR]
+at = [{ stage = 2, folder = 101, file = 6 }]
+
 [view7]
 uid = "uid://109flf9d6f7i9"
 template = "file"
@@ -171,6 +195,9 @@ slots = [
 ]
 
 [view7.from.USA]
+at = [{ stage = 2, folder = 101, file = 7 }]
+
+[view7.from.EUR]
 at = [{ stage = 2, folder = 101, file = 7 }]
 
 [view8]
@@ -193,6 +220,10 @@ asset = { uid = "uid://1ae2rz47v3a73", path = "res://stages/dryfield/rooms/gas_s
 at = [{ stage = 2, folder = 101, file = 8 }]
 chunks = { dialogue_1_atlas = "8baeae0128148e771f22610cd478af930d684db7" }
 
+[view8.from.EUR]
+at = [{ stage = 2, folder = 101, file = 8 }]
+chunks = { dialogue_1_atlas = "8baeae0128148e771f22610cd478af930d684db7" }
+
 [view9]
 uid = "uid://y0tk6d0iu5hx"
 template = "file"
@@ -201,6 +232,9 @@ slots = [
 ]
 
 [view9.from.USA]
+at = [{ stage = 2, folder = 101, file = 9 }]
+
+[view9.from.EUR]
 at = [{ stage = 2, folder = 101, file = 9 }]
 
 [view10]
@@ -213,6 +247,9 @@ slots = [
 [view10.from.USA]
 at = [{ stage = 2, folder = 101, file = 10 }]
 
+[view10.from.EUR]
+at = [{ stage = 2, folder = 101, file = 10 }]
+
 [view11]
 uid = "uid://jzbc5e3wb5gn"
 template = "file"
@@ -221,6 +258,9 @@ slots = [
 ]
 
 [view11.from.USA]
+at = [{ stage = 2, folder = 101, file = 11 }]
+
+[view11.from.EUR]
 at = [{ stage = 2, folder = 101, file = 11 }]
 
 [view12]
@@ -233,6 +273,9 @@ slots = [
 [view12.from.USA]
 at = [{ stage = 2, folder = 101, file = 12 }]
 
+[view12.from.EUR]
+at = [{ stage = 2, folder = 101, file = 12 }]
+
 [view13]
 uid = "uid://lhy9jiykwp5o"
 template = "file"
@@ -243,6 +286,9 @@ slots = [
 [view13.from.USA]
 at = [{ stage = 2, folder = 101, file = 13 }]
 
+[view13.from.EUR]
+at = [{ stage = 2, folder = 101, file = 13 }]
+
 [view14]
 uid = "uid://1133aaip4mqe1"
 template = "file"
@@ -251,4 +297,7 @@ slots = [
 ]
 
 [view14.from.USA]
+at = [{ stage = 2, folder = 101, file = 14 }]
+
+[view14.from.EUR]
 at = [{ stage = 2, folder = 101, file = 14 }]

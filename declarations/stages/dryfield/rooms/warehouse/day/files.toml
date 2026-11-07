@@ -75,6 +75,10 @@ type = "dialogue"
 at = [{ stage = 2, folder = 701, file = 0 }]
 chunks = { dialogue_0_atlas = "bf113ea197d89d74c7ab0fd726c829936a70845a" }
 
+[base.from.EUR]
+at = [{ stage = 2, folder = 701, file = 0 }]
+chunks = { dialogue_0_atlas = "bf113ea197d89d74c7ab0fd726c829936a70845a" }
+
 [view1]
 uid = "uid://1vby84qi1b3wi"
 template = "file"
@@ -83,6 +87,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 2, folder = 701, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 2, folder = 701, file = 1 }]
 
 [view2]
@@ -102,6 +109,10 @@ type = "bs"
 asset = { uid = "uid://cjk5v6duyhqw", path = "res://stages/dryfield/rooms/warehouse/day/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 2, folder = 701, file = 2 }]
+chunks = { image = "44b9d9451f69c62ba2b2f501da557a186aa27da2" }
+
+[view2.from.EUR]
 at = [{ stage = 2, folder = 701, file = 2 }]
 chunks = { image = "44b9d9451f69c62ba2b2f501da557a186aa27da2" }
 
@@ -125,6 +136,10 @@ asset = { uid = "uid://l90sv55ahm00", path = "res://stages/dryfield/rooms/wareho
 at = [{ stage = 2, folder = 701, file = 3 }]
 chunks = { image = "96c3d156689b29a19b42d933d092f3fe5e3c631e" }
 
+[view3.from.EUR]
+at = [{ stage = 2, folder = 701, file = 3 }]
+chunks = { image = "96c3d156689b29a19b42d933d092f3fe5e3c631e" }
+
 [view4]
 uid = "uid://1c10ya6qgrdn8"
 template = "file"
@@ -145,6 +160,10 @@ asset = { uid = "uid://1o284fmcns1wv", path = "res://stages/dryfield/rooms/wareh
 at = [{ stage = 2, folder = 701, file = 4 }]
 chunks = { image = "2ab6f786c9b6e1f951bc4fb5e1d1aae97c1b8fde" }
 
+[view4.from.EUR]
+at = [{ stage = 2, folder = 701, file = 4 }]
+chunks = { image = "2ab6f786c9b6e1f951bc4fb5e1d1aae97c1b8fde" }
+
 [view5]
 uid = "uid://1po8ofkmmn6fl"
 template = "file"
@@ -153,6 +172,9 @@ slots = [
 ]
 
 [view5.from.USA]
+at = [{ stage = 2, folder = 701, file = 5 }]
+
+[view5.from.EUR]
 at = [{ stage = 2, folder = 701, file = 5 }]
 
 [view6]
@@ -172,6 +194,10 @@ type = "bs"
 asset = { uid = "uid://1qc3xt42bji4m", path = "res://stages/dryfield/rooms/warehouse/day/views/view6_background.node" }
 
 [view6.from.USA]
+at = [{ stage = 2, folder = 701, file = 6 }]
+chunks = { image = "96c3d156689b29a19b42d933d092f3fe5e3c631e" }
+
+[view6.from.EUR]
 at = [{ stage = 2, folder = 701, file = 6 }]
 chunks = { image = "96c3d156689b29a19b42d933d092f3fe5e3c631e" }
 
@@ -195,6 +221,10 @@ asset = { uid = "uid://riiujk02ifbi", path = "res://stages/dryfield/rooms/wareho
 at = [{ stage = 2, folder = 701, file = 7 }]
 chunks = { image = "2ab6f786c9b6e1f951bc4fb5e1d1aae97c1b8fde" }
 
+[view7.from.EUR]
+at = [{ stage = 2, folder = 701, file = 7 }]
+chunks = { image = "2ab6f786c9b6e1f951bc4fb5e1d1aae97c1b8fde" }
+
 [view8]
 uid = "uid://8b01cyyhxljb"
 template = "file"
@@ -205,6 +235,9 @@ slots = [
 [view8.from.USA]
 at = [{ stage = 2, folder = 701, file = 8 }]
 
+[view8.from.EUR]
+at = [{ stage = 2, folder = 701, file = 8 }]
+
 [view9]
 uid = "uid://dxwu53sa8u7x"
 template = "file"
@@ -213,4 +246,7 @@ slots = [
 ]
 
 [view9.from.USA]
+at = [{ stage = 2, folder = 701, file = 9 }]
+
+[view9.from.EUR]
 at = [{ stage = 2, folder = 701, file = 9 }]

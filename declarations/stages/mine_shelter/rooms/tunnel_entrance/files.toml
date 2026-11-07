@@ -88,6 +88,10 @@ type = "dialogue"
 at = [{ stage = 4, folder = 301, file = 0 }]
 chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "7e29e9709b271714850920b2c265e3f387e9ca4d" }
 
+[base.from.EUR]
+at = [{ stage = 4, folder = 301, file = 0 }]
+chunks = { palette = "11f13d3614ea702762a1173c116f478133fb96e1", image = "d79499a872c4488b4528176f94b638599d414fb5", dialogue_0_atlas = "7e29e9709b271714850920b2c265e3f387e9ca4d" }
+
 [view1]
 uid = "uid://7tmj2p8ajvaf"
 template = "file"
@@ -96,6 +100,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 4, folder = 301, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 4, folder = 301, file = 1 }]
 
 [view2]
@@ -115,6 +122,10 @@ type = "bs"
 asset = { uid = "uid://10smmbvg2vluo", path = "res://stages/mine_shelter/rooms/tunnel_entrance/views/view2_background.node" }
 
 [view2.from.USA]
+at = [{ stage = 4, folder = 301, file = 2 }]
+chunks = { image = "4d60398fe2250a9fd144b63b355630b0e0de2219" }
+
+[view2.from.EUR]
 at = [{ stage = 4, folder = 301, file = 2 }]
 chunks = { image = "4d60398fe2250a9fd144b63b355630b0e0de2219" }
 
@@ -138,6 +149,10 @@ asset = { uid = "uid://1ky5rmgw34ki3", path = "res://stages/mine_shelter/rooms/t
 at = [{ stage = 4, folder = 301, file = 3 }]
 chunks = { image = "eee89a30cccbf48166cac36e9a70157de2dc8be0" }
 
+[view3.from.EUR]
+at = [{ stage = 4, folder = 301, file = 3 }]
+chunks = { image = "eee89a30cccbf48166cac36e9a70157de2dc8be0" }
+
 [view4]
 uid = "uid://bfuasny34d66"
 template = "file"
@@ -158,6 +173,10 @@ asset = { uid = "uid://khpcyys38wba", path = "res://stages/mine_shelter/rooms/tu
 at = [{ stage = 4, folder = 301, file = 4 }]
 chunks = { image = "40c4f9d6704bee408bc23a6cabdfac4e7736fa48" }
 
+[view4.from.EUR]
+at = [{ stage = 4, folder = 301, file = 4 }]
+chunks = { image = "40c4f9d6704bee408bc23a6cabdfac4e7736fa48" }
+
 [view5]
 uid = "uid://1mbp9lj6pqfx6"
 template = "file"
@@ -166,6 +185,9 @@ slots = [
 ]
 
 [view5.from.USA]
+at = [{ stage = 4, folder = 301, file = 5 }]
+
+[view5.from.EUR]
 at = [{ stage = 4, folder = 301, file = 5 }]
 
 [view6]
@@ -185,5 +207,9 @@ type = "bs"
 asset = { uid = "uid://14okwujjyhhvp", path = "res://stages/mine_shelter/rooms/tunnel_entrance/views/view6_background.node" }
 
 [view6.from.USA]
+at = [{ stage = 4, folder = 301, file = 6 }]
+chunks = { image = "9ccb3da799f14250a7a6d804c15aaec5f64a9fb5" }
+
+[view6.from.EUR]
 at = [{ stage = 4, folder = 301, file = 6 }]
 chunks = { image = "9ccb3da799f14250a7a6d804c15aaec5f64a9fb5" }

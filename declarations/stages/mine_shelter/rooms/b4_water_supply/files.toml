@@ -76,6 +76,10 @@ type = "dialogue"
 at = [{ stage = 4, folder = 4601, file = 0 }]
 chunks = { dialogue_0_atlas = "a300455b832331282467898bf3f32a6e333f51b8", palette = "d075502a29d26a9c93bd4634ffbba4079748f6cf", image = "56cce9befed1fd56380fd615c27a60971b93930b" }
 
+[base.from.EUR]
+at = [{ stage = 4, folder = 4601, file = 0 }]
+chunks = { dialogue_0_atlas = "a300455b832331282467898bf3f32a6e333f51b8", palette = "d075502a29d26a9c93bd4634ffbba4079748f6cf", image = "56cce9befed1fd56380fd615c27a60971b93930b" }
+
 [view1]
 uid = "uid://1que2sd4luwlf"
 template = "file"
@@ -84,6 +88,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 4, folder = 4601, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 4, folder = 4601, file = 1 }]
 
 [view2]
@@ -96,6 +103,9 @@ slots = [
 [view2.from.USA]
 at = [{ stage = 4, folder = 4601, file = 2 }]
 
+[view2.from.EUR]
+at = [{ stage = 4, folder = 4601, file = 2 }]
+
 [view3]
 uid = "uid://e79en5xkfgip"
 template = "file"
@@ -104,6 +114,9 @@ slots = [
 ]
 
 [view3.from.USA]
+at = [{ stage = 4, folder = 4601, file = 3 }]
+
+[view3.from.EUR]
 at = [{ stage = 4, folder = 4601, file = 3 }]
 
 [view4]
@@ -126,6 +139,10 @@ asset = { uid = "uid://1q4vb9lsao593", path = "res://stages/mine_shelter/rooms/b
 at = [{ stage = 4, folder = 4601, file = 4 }]
 chunks = { image = "1af58eddaa089073903ff21911229d0956e8ab50" }
 
+[view4.from.EUR]
+at = [{ stage = 4, folder = 4601, file = 4 }]
+chunks = { image = "1af58eddaa089073903ff21911229d0956e8ab50" }
+
 [view5]
 uid = "uid://1vzyel1k58sng"
 template = "file"
@@ -136,6 +153,9 @@ slots = [
 [view5.from.USA]
 at = [{ stage = 4, folder = 4601, file = 5 }]
 
+[view5.from.EUR]
+at = [{ stage = 4, folder = 4601, file = 5 }]
+
 [view6]
 uid = "uid://13uftzy63va0i"
 template = "file"
@@ -144,6 +164,9 @@ slots = [
 ]
 
 [view6.from.USA]
+at = [{ stage = 4, folder = 4601, file = 6 }]
+
+[view6.from.EUR]
 at = [{ stage = 4, folder = 4601, file = 6 }]
 
 [view7]
@@ -163,6 +186,10 @@ type = "bs"
 asset = { uid = "uid://1i94c2i3hkqne", path = "res://stages/mine_shelter/rooms/b4_water_supply/views/view7_background.node" }
 
 [view7.from.USA]
+at = [{ stage = 4, folder = 4601, file = 7 }]
+chunks = { image = "26f393ce7274aace49b225e5cb5af7bcd1b4bad2" }
+
+[view7.from.EUR]
 at = [{ stage = 4, folder = 4601, file = 7 }]
 chunks = { image = "26f393ce7274aace49b225e5cb5af7bcd1b4bad2" }
 
@@ -186,6 +213,10 @@ asset = { uid = "uid://vpyhhq3uv30y", path = "res://stages/mine_shelter/rooms/b4
 at = [{ stage = 4, folder = 4601, file = 8 }]
 chunks = { image = "2d0dd8ba59c6b2efc3f23904167ffaf2ae0a1d97" }
 
+[view8.from.EUR]
+at = [{ stage = 4, folder = 4601, file = 8 }]
+chunks = { image = "2d0dd8ba59c6b2efc3f23904167ffaf2ae0a1d97" }
+
 [view9]
 uid = "uid://1gf9gxmu9jt08"
 template = "file"
@@ -194,6 +225,9 @@ slots = [
 ]
 
 [view9.from.USA]
+at = [{ stage = 4, folder = 4601, file = 9 }]
+
+[view9.from.EUR]
 at = [{ stage = 4, folder = 4601, file = 9 }]
 
 [view10]
@@ -206,6 +240,9 @@ slots = [
 [view10.from.USA]
 at = [{ stage = 4, folder = 4601, file = 10 }]
 
+[view10.from.EUR]
+at = [{ stage = 4, folder = 4601, file = 10 }]
+
 [view11]
 uid = "uid://173lf4wjfjnjg"
 template = "file"
@@ -214,4 +251,7 @@ slots = [
 ]
 
 [view11.from.USA]
+at = [{ stage = 4, folder = 4601, file = 11 }]
+
+[view11.from.EUR]
 at = [{ stage = 4, folder = 4601, file = 11 }]

@@ -11,6 +11,10 @@ format = "str"
 at = [{ disc = "disk1", slot = "INTER0.STR", clip = 19 }, { disc = "disk2", slot = "INTER1.STR", clip = 4 }]
 sha1 = "491d70209aee7791d692bb93a0ace76e1b0e2eb9"
 
+[movie_100.from.EUR]
+at = [{ disc = "disk1", slot = "INTER0.STR", clip = 19 }, { disc = "disk2", slot = "INTER1.STR", clip = 4 }]
+sha1 = "491d70209aee7791d692bb93a0ace76e1b0e2eb9"
+
 [movie_101]
 uid = "uid://wl7hy1jd4plr"
 template = "movie"
@@ -20,11 +24,19 @@ format = "str"
 at = [{ disc = "disk1", slot = "INTER0.STR", clip = 20 }]
 sha1 = "ec533f8ed87a98aeebac0ac0ff43c8cfa3b35b78"
 
+[movie_101.from.EUR]
+at = [{ disc = "disk1", slot = "INTER0.STR", clip = 20 }]
+sha1 = "ec533f8ed87a98aeebac0ac0ff43c8cfa3b35b78"
+
 [movie_103]
 uid = "uid://s557ou9v8enq"
 template = "movie"
 format = "str"
 
 [movie_103.from.USA]
+at = [{ disc = "disk2", slot = "INTER1.STR", clip = 5 }]
+sha1 = "31d8b4ae1630e3a8907f342effa535aaf9885053"
+
+[movie_103.from.EUR]
 at = [{ disc = "disk2", slot = "INTER1.STR", clip = 5 }]
 sha1 = "31d8b4ae1630e3a8907f342effa535aaf9885053"

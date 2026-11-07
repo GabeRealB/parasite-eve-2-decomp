@@ -43,6 +43,10 @@ type = "dialogue"
 at = [{ stage = 2, folder = 1901, file = 0 }]
 chunks = { dialogue_0_atlas = "7e419747df96f8ba84600b5bce9b66efeaf91ef8" }
 
+[base.from.EUR]
+at = [{ stage = 2, folder = 1901, file = 0 }]
+chunks = { dialogue_0_atlas = "7e419747df96f8ba84600b5bce9b66efeaf91ef8" }
+
 [view1]
 uid = "uid://14at4woj7fznw"
 template = "file"
@@ -51,6 +55,9 @@ slots = [
 ]
 
 [view1.from.USA]
+at = [{ stage = 2, folder = 1901, file = 1 }]
+
+[view1.from.EUR]
 at = [{ stage = 2, folder = 1901, file = 1 }]
 
 [view2]
@@ -73,6 +80,10 @@ asset = { uid = "uid://19hex6dfgidn1", path = "res://stages/dryfield/rooms/g_r_k
 at = [{ stage = 2, folder = 1901, file = 2 }]
 chunks = { image = "8790463b01a782b64d1cf9780277c7b5cacbb2ae" }
 
+[view2.from.EUR]
+at = [{ stage = 2, folder = 1901, file = 2 }]
+chunks = { image = "8790463b01a782b64d1cf9780277c7b5cacbb2ae" }
+
 [view3]
 uid = "uid://m2oflkzduybh"
 template = "file"
@@ -81,4 +92,7 @@ slots = [
 ]
 
 [view3.from.USA]
+at = [{ stage = 2, folder = 1901, file = 3 }]
+
+[view3.from.EUR]
 at = [{ stage = 2, folder = 1901, file = 3 }]

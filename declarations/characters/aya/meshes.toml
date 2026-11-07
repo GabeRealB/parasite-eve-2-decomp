@@ -14,6 +14,15 @@ symbol = "gAyaMistBodyModel"
 material_slots = ["page_1", "page_0"]
 sha1 = "fb1a9ffefe6dd310d76e5df87aa4e9f21a5af394"
 
+[body_mist.from.EUR]
+at = [{ stage = 0, file = 10200, slot = "package" }]
+offset = 4532
+size = 22800
+address = 2148629044
+symbol = "gAyaMistBodyModel"
+material_slots = ["page_1", "page_0"]
+sha1 = "a95603b44bcd221a5d26a0391f8ee74cd4afce19"
+
 [hand_left_open_mist]
 uid = "uid://157y6p12tuiv3"
 template = "mesh"
@@ -26,6 +35,15 @@ address = 2148620148
 symbol = "gAyaMistFirstPairHand0Model"
 material_slots = ["page_0"]
 sha1 = "d72c809f9c1f9ceaee1832535ddb88c37cc6272f"
+
+[hand_left_open_mist.from.EUR]
+at = [{ stage = 0, file = 10200, slot = "package" }]
+offset = 4
+size = 1088
+address = 2148624516
+symbol = "gAyaMistFirstPairHand0Model"
+material_slots = ["page_0"]
+sha1 = "613e29b670d26468283d2e7d766ea3be63575873"
 
 [hand_right_open_mist]
 uid = "uid://1wqqv81bmkc2q"
@@ -40,6 +58,15 @@ symbol = "gAyaMistFirstPairHand1Model"
 material_slots = ["page_0"]
 sha1 = "da48dbc3aef8a16fbf0ff16f3c8cde2f6b35bdef"
 
+[hand_right_open_mist.from.EUR]
+at = [{ stage = 0, file = 10200, slot = "package" }]
+offset = 2180
+size = 1264
+address = 2148626692
+symbol = "gAyaMistFirstPairHand1Model"
+material_slots = ["page_0"]
+sha1 = "d8a72c1805fb2d90afadd00c4a67f73dcd280c85"
+
 [hand_right_closed_mist]
 uid = "uid://1ty6lldf785kc"
 template = "mesh"
@@ -52,6 +79,15 @@ address = 2148623588
 symbol = "gAyaMistSecondPairHand1Model"
 material_slots = ["page_0"]
 sha1 = "3626947c0411c7a16db84f581ab88fa00062fb83"
+
+[hand_right_closed_mist.from.EUR]
+at = [{ stage = 0, file = 10200, slot = "package" }]
+offset = 3444
+size = 1088
+address = 2148627956
+symbol = "gAyaMistSecondPairHand1Model"
+material_slots = ["page_0"]
+sha1 = "7177e5727c1b8ebea5795bcad719505102d587db"
 
 [body_dryfield]
 uid = "uid://1x23myeyxaqlq"
@@ -67,6 +103,15 @@ symbol = "gAyaDryfieldBodyModel"
 material_slots = ["page_1", "page_0"]
 sha1 = "930d45098d5d38a8f057e7fd4357ee09b75efcfe"
 
+[body_dryfield.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 4
+size = 21912
+address = 2148624516
+symbol = "gAyaDryfieldBodyModel"
+material_slots = ["page_1", "page_0"]
+sha1 = "72c36c39a6b3417a796cd7cecb98f3a7362db521"
+
 [hand_left_open_dryfield]
 uid = "uid://10fwi70p8xjv4"
 template = "mesh"
@@ -79,6 +124,15 @@ address = 2148642060
 symbol = "gAyaDryfieldFirstPairHand0Model"
 material_slots = ["page_0"]
 sha1 = "59a46b3e9728a35bfdd04cdc9981bee7a7bb4ec8"
+
+[hand_left_open_dryfield.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 21916
+size = 1088
+address = 2148646428
+symbol = "gAyaDryfieldFirstPairHand0Model"
+material_slots = ["page_0"]
+sha1 = "ba098eb688250bdab02cb70223812de1551fa1ca"
 
 [hand_right_open_dryfield]
 uid = "uid://14e46fpwxxoj3"
@@ -93,6 +147,15 @@ symbol = "gAyaDryfieldFirstPairHand1Model"
 material_slots = ["page_0"]
 sha1 = "9c15358ad6abe64894b620c32da5c66bfd633ff6"
 
+[hand_right_open_dryfield.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 24092
+size = 1264
+address = 2148648604
+symbol = "gAyaDryfieldFirstPairHand1Model"
+material_slots = ["page_0"]
+sha1 = "83000542d3be709099d65d30e17d6b46ab693377"
+
 [hand_right_closed_dryfield]
 uid = "uid://tu55n0w44lk4"
 template = "mesh"
@@ -105,6 +168,15 @@ address = 2148645500
 symbol = "gAyaDryfieldSecondPairHand1Model"
 material_slots = ["page_0"]
 sha1 = "ae5fef081cc0d1d1e8d98cf65e2b876b8296734a"
+
+[hand_right_closed_dryfield.from.EUR]
+at = [{ stage = 0, file = 10300, slot = "package" }]
+offset = 25356
+size = 1088
+address = 2148649868
+symbol = "gAyaDryfieldSecondPairHand1Model"
+material_slots = ["page_0"]
+sha1 = "2ac211a85f1fa2016bc44ba0170c75058af28700"
 
 [body_akropolis]
 uid = "uid://1nev1wbgiepbs"
@@ -120,6 +192,15 @@ symbol = "gAyaAkropolisBodyModel"
 material_slots = ["page_1", "page_0"]
 sha1 = "615383b89362817a7a8470df1d76342ba7609f29"
 
+[body_akropolis.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 4
+size = 22824
+address = 2148624516
+symbol = "gAyaAkropolisBodyModel"
+material_slots = ["page_1", "page_0"]
+sha1 = "8ffc792441a1b7f67b4363342083edb9fcb2957b"
+
 [hand_right_open_akropolis]
 uid = "uid://835rokayshhu"
 template = "mesh"
@@ -132,6 +213,15 @@ address = 2148644080
 symbol = "gAyaAkropolisFirstPairHand1Model"
 material_slots = ["page_0"]
 sha1 = "7b1261e1320a1a6e2373aa1002b8faced6fba5e0"
+
+[hand_right_open_akropolis.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 23936
+size = 1264
+address = 2148648448
+symbol = "gAyaAkropolisFirstPairHand1Model"
+material_slots = ["page_0"]
+sha1 = "8c60f510845757d7b00e282c271c3936bca2c5d6"
 
 [hand_left_both_akropolis]
 uid = "uid://1k4l5qp7outm9"
@@ -146,6 +236,15 @@ symbol = "gAyaAkropolisHand0Model"
 material_slots = ["page_0"]
 sha1 = "0a810c3ad6ba2050a2df6ca392fd1c4c4eea9a5c"
 
+[hand_left_both_akropolis.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 22828
+size = 1108
+address = 2148647340
+symbol = "gAyaAkropolisHand0Model"
+material_slots = ["page_0"]
+sha1 = "dda45927a82034d01167842741d4f8ba508d1865"
+
 [hand_right_closed_akropolis]
 uid = "uid://dxb6hla7f8u4"
 template = "mesh"
@@ -158,6 +257,15 @@ address = 2148645344
 symbol = "gAyaAkropolisSecondPairHand1Model"
 material_slots = ["page_0"]
 sha1 = "f3c4d4e907f0530f428ae4fd19c62c4ef67d7daa"
+
+[hand_right_closed_akropolis.from.EUR]
+at = [{ stage = 0, file = 10400, slot = "package" }]
+offset = 25200
+size = 1108
+address = 2148649712
+symbol = "gAyaAkropolisSecondPairHand1Model"
+material_slots = ["page_0"]
+sha1 = "2288007f5bf4d75f3781a57adeed428645935567"
 
 [body_range]
 uid = "uid://9xhqdc4zh495"
@@ -172,3 +280,12 @@ address = 2148624676
 symbol = "gAyaRangeBodyModel"
 material_slots = ["page_1", "page_0"]
 sha1 = "50410575dda756d0efe1bf969eb25b1d2ea0b02f"
+
+[body_range.from.EUR]
+at = [{ stage = 0, file = 10500, slot = "aya_range" }]
+offset = 4532
+size = 23012
+address = 2148629044
+symbol = "gAyaRangeBodyModel"
+material_slots = ["page_1", "page_0"]
+sha1 = "d4ebd40e4f23b8e7831627f88dcffab2f8cabf16"

@@ -28,6 +28,10 @@ type = "package"
 at = [{ stage = 0, file = 10200 }]
 chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
 
+[aya_mist.from.EUR]
+at = [{ stage = 0, file = 10200 }]
+chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
+
 [aya_dryfield]
 uid = "uid://sjomc8qdhlrz"
 template = "file"
@@ -53,6 +57,10 @@ name = "package"
 type = "package"
 
 [aya_dryfield.from.USA]
+at = [{ stage = 0, file = 10300 }]
+chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2" }
+
+[aya_dryfield.from.EUR]
 at = [{ stage = 0, file = 10300 }]
 chunks = { palette = "6046c8d1c5ebec9dc1af88d159055ee633ad76e4", image = "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2" }
 
@@ -87,6 +95,10 @@ package = { uid = "uid://b7rdtd73le15", path = "res://packages/weapons/p08.node"
 at = [{ stage = 0, file = 10301 }]
 chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
 
+[p08_snail.from.EUR]
+at = [{ stage = 0, file = 10301 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
 [m93r]
 uid = "uid://13l72aniqazqw"
 template = "file"
@@ -115,6 +127,10 @@ type = "package"
 package = { uid = "uid://1wrqha5t1tske", path = "res://packages/weapons/m93r.node" }
 
 [m93r.from.USA]
+at = [{ stage = 0, file = 10302 }]
+chunks = { palette = "cbdb817ed582b80cf2ddc81dd4acce7625598ab3", image = "4d34d0b2ad6a3202548d3e3880aaa1063a48fc99" }
+
+[m93r.from.EUR]
 at = [{ stage = 0, file = 10302 }]
 chunks = { palette = "cbdb817ed582b80cf2ddc81dd4acce7625598ab3", image = "4d34d0b2ad6a3202548d3e3880aaa1063a48fc99" }
 
@@ -149,6 +165,10 @@ package = { uid = "uid://1t5n9w29e3mx7", path = "res://packages/weapons/m950.nod
 at = [{ stage = 0, file = 10303 }]
 chunks = { palette = "7af0e4f61272c9120136d8a6dbf7ef9737795554", image = "7ef774a59f634b849c01b16e4b48a2f49f53f25d" }
 
+[m950.from.EUR]
+at = [{ stage = 0, file = 10303 }]
+chunks = { palette = "7af0e4f61272c9120136d8a6dbf7ef9737795554", image = "7ef774a59f634b849c01b16e4b48a2f49f53f25d" }
+
 [p08]
 uid = "uid://1ax2nb1f4t4qx"
 template = "file"
@@ -177,6 +197,10 @@ type = "package"
 package = { uid = "uid://b7rdtd73le15", path = "res://packages/weapons/p08.node" }
 
 [p08.from.USA]
+at = [{ stage = 0, file = 10304 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
+[p08.from.EUR]
 at = [{ stage = 0, file = 10304 }]
 chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
 
@@ -212,6 +236,10 @@ package = { uid = "uid://boogbtqh12io", path = "res://packages/weapons/p229.node
 at = [{ stage = 0, file = 10305 }]
 chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "cd04b81c03e2cb7eeaa5758bbfd7e4ba17096e98" }
 
+[p229.from.EUR]
+at = [{ stage = 0, file = 10305 }]
+chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "cd04b81c03e2cb7eeaa5758bbfd7e4ba17096e98" }
+
 [unused_85]
 uid = "uid://12l46ignzxpbr"
 template = "file"
@@ -237,6 +265,10 @@ type = "package"
 package = { uid = "uid://1poovdux1izi1", path = "res://packages/weapons/unused_85.node" }
 
 [unused_85.from.USA]
+at = [{ stage = 0, file = 10306 }]
+chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "9722b11c74e6bb2a707b3afbd40144ec7b3100f1" }
+
+[unused_85.from.EUR]
 at = [{ stage = 0, file = 10306 }]
 chunks = { palette = "b593fae5c2b9e34c67b56fcc5cb2ec4dd74d9ef1", image = "9722b11c74e6bb2a707b3afbd40144ec7b3100f1" }
 
@@ -267,6 +299,10 @@ package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86
 at = [{ stage = 0, file = 10307 }]
 chunks = { palette = "da2d8baa91983a79dac70ca357f83df96839a4a4", image = "c56adfa9e01e9fe8ae95d726f7b4f05c3ead6846" }
 
+[unused_86.from.EUR]
+at = [{ stage = 0, file = 10307 }]
+chunks = { palette = "da2d8baa91983a79dac70ca357f83df96839a4a4", image = "c56adfa9e01e9fe8ae95d726f7b4f05c3ead6846" }
+
 [unused_87]
 uid = "uid://1rzs9jypp1l3r"
 template = "file"
@@ -291,6 +327,10 @@ type = "package"
 package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_87" }
 
 [unused_87.from.USA]
+at = [{ stage = 0, file = 10308 }]
+chunks = { palette = "b66536429b67b7481f2427b7d0714eac904fc384", image = "a475f85da7ce020e04b3ea5b93f5a52ba96bc692" }
+
+[unused_87.from.EUR]
 at = [{ stage = 0, file = 10308 }]
 chunks = { palette = "b66536429b67b7481f2427b7d0714eac904fc384", image = "a475f85da7ce020e04b3ea5b93f5a52ba96bc692" }
 
@@ -325,6 +365,10 @@ package = { uid = "uid://b7rdtd73le15", path = "res://packages/weapons/p08.node"
 at = [{ stage = 0, file = 10309 }]
 chunks = { palette = "349ba8d02d31996f3cb94ad56586f7a65acb742b", image = "b27b2b70e25672659629ee739e34866eb1d2f985" }
 
+[mongoose.from.EUR]
+at = [{ stage = 0, file = 10309 }]
+chunks = { palette = "349ba8d02d31996f3cb94ad56586f7a65acb742b", image = "b27b2b70e25672659629ee739e34866eb1d2f985" }
+
 [unused_89]
 uid = "uid://1eq2c32g2p215"
 template = "file"
@@ -349,6 +393,10 @@ type = "package"
 package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_89" }
 
 [unused_89.from.USA]
+at = [{ stage = 0, file = 10310 }]
+chunks = { palette = "94542d61f068d9992653f5736789bbb59f565cda", image = "d715dcdb2a9198357caa919f8137104318248642" }
+
+[unused_89.from.EUR]
 at = [{ stage = 0, file = 10310 }]
 chunks = { palette = "94542d61f068d9992653f5736789bbb59f565cda", image = "d715dcdb2a9198357caa919f8137104318248642" }
 
@@ -379,6 +427,10 @@ package = { uid = "uid://1km7xtgr2u4cz", path = "res://packages/weapons/grenade_
 at = [{ stage = 0, file = 10311 }]
 chunks = { palette = "436620fc4e182be25cd7249f0674e4b7ea0469ec", image = "ac6c6dbf227c68a2576431832567b886ffc449d8" }
 
+[grenade_pistol.from.EUR]
+at = [{ stage = 0, file = 10311 }]
+chunks = { palette = "436620fc4e182be25cd7249f0674e4b7ea0469ec", image = "ac6c6dbf227c68a2576431832567b886ffc449d8" }
+
 [mm1]
 uid = "uid://ke88m76kgukg"
 template = "file"
@@ -403,6 +455,10 @@ type = "package"
 package = { uid = "uid://1km7xtgr2u4cz", path = "res://packages/weapons/grenade_pistol.node", output = "mm1" }
 
 [mm1.from.USA]
+at = [{ stage = 0, file = 10312 }]
+chunks = { palette = "88f4446b3d3c6e68056d4ca07bedd163c168626f", image = "e1c242525f4ca2c0eb4d5e7bd901dce7924dfabb" }
+
+[mm1.from.EUR]
 at = [{ stage = 0, file = 10312 }]
 chunks = { palette = "88f4446b3d3c6e68056d4ca07bedd163c168626f", image = "e1c242525f4ca2c0eb4d5e7bd901dce7924dfabb" }
 
@@ -433,6 +489,10 @@ package = { uid = "uid://184vbqt1w2qd", path = "res://packages/weapons/pa3.node"
 at = [{ stage = 0, file = 10313 }]
 chunks = { palette = "4472c8b45388ed0feb13847e91c1d00702f644f4", image = "877cd824c3988c6ac19016388f6c766f0772c854" }
 
+[pa3.from.EUR]
+at = [{ stage = 0, file = 10313 }]
+chunks = { palette = "4472c8b45388ed0feb13847e91c1d00702f644f4", image = "877cd824c3988c6ac19016388f6c766f0772c854" }
+
 [sp12]
 uid = "uid://dlyukd5ee45h"
 template = "file"
@@ -460,6 +520,10 @@ package = { uid = "uid://184vbqt1w2qd", path = "res://packages/weapons/pa3.node"
 at = [{ stage = 0, file = 10314 }]
 chunks = { palette = "8a22dd0b6e15cd2f6dd89444da42860347f0157e", image = "f07fc4a875b1f08e2be894d4619ad7f4609a1498" }
 
+[sp12.from.EUR]
+at = [{ stage = 0, file = 10314 }]
+chunks = { palette = "8a22dd0b6e15cd2f6dd89444da42860347f0157e", image = "f07fc4a875b1f08e2be894d4619ad7f4609a1498" }
+
 [as12]
 uid = "uid://j13fyfjn1x9m"
 template = "file"
@@ -484,6 +548,10 @@ type = "package"
 package = { uid = "uid://1w1z9f1u7tvln", path = "res://packages/weapons/as12.node" }
 
 [as12.from.USA]
+at = [{ stage = 0, file = 10315 }]
+chunks = { palette = "86d70a4d4b75b8d9e5093fb849e1ca54b960f380", image = "c225e1581436768fdb835c4c2d64e9f766f9a3f2" }
+
+[as12.from.EUR]
 at = [{ stage = 0, file = 10315 }]
 chunks = { palette = "86d70a4d4b75b8d9e5093fb849e1ca54b960f380", image = "c225e1581436768fdb835c4c2d64e9f766f9a3f2" }
 
@@ -519,6 +587,10 @@ package = { uid = "uid://axipoco933bx", path = "res://packages/weapons/m4a1.node
 at = [{ stage = 0, file = 10316 }]
 chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
 
+[m4a1.from.EUR]
+at = [{ stage = 0, file = 10316 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
+
 [m249]
 uid = "uid://5xpkwrn34ymk"
 template = "file"
@@ -550,6 +622,10 @@ package = { uid = "uid://169wpdhe61mvw", path = "res://packages/weapons/m249.nod
 at = [{ stage = 0, file = 10317 }]
 chunks = { palette = "cc3e3d112d0a653fea5af28c7fac85fa0c13f9a4", image = "34049fe39e246ac356a6dfcad3a38224cd40166f" }
 
+[m249.from.EUR]
+at = [{ stage = 0, file = 10317 }]
+chunks = { palette = "cc3e3d112d0a653fea5af28c7fac85fa0c13f9a4", image = "34049fe39e246ac356a6dfcad3a38224cd40166f" }
+
 [unused_91]
 uid = "uid://naxnuo2ox9x9"
 template = "file"
@@ -574,6 +650,10 @@ type = "package"
 package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_91" }
 
 [unused_91.from.USA]
+at = [{ stage = 0, file = 10318 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
+[unused_91.from.EUR]
 at = [{ stage = 0, file = 10318 }]
 chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
 
@@ -605,6 +685,10 @@ type = "package"
 package = { uid = "uid://1608hpzc40zcl", path = "res://packages/weapons/tonfa_baton.node" }
 
 [tonfa_baton.from.USA]
+at = [{ stage = 0, file = 10319 }]
+chunks = { palette = "87358b9d4309237fd64ae8a52f475f2f0f3463ba", image = "4f133d590448bfe752593b8385b3accab668228a" }
+
+[tonfa_baton.from.EUR]
 at = [{ stage = 0, file = 10319 }]
 chunks = { palette = "87358b9d4309237fd64ae8a52f475f2f0f3463ba", image = "4f133d590448bfe752593b8385b3accab668228a" }
 
@@ -640,6 +724,10 @@ package = { uid = "uid://axipoco933bx", path = "res://packages/weapons/m4a1.node
 at = [{ stage = 0, file = 10320 }]
 chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
 
+[m4a1_p1.from.EUR]
+at = [{ stage = 0, file = 10320 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
+
 [m4a1_p2]
 uid = "uid://m6qtarjsz5a8"
 template = "file"
@@ -669,6 +757,10 @@ type = "package"
 package = { uid = "uid://axipoco933bx", path = "res://packages/weapons/m4a1.node", output = "m4a1_p2" }
 
 [m4a1_p2.from.USA]
+at = [{ stage = 0, file = 10321 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
+
+[m4a1_p2.from.EUR]
 at = [{ stage = 0, file = 10321 }]
 chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a" }
 
@@ -703,6 +795,10 @@ package = { uid = "uid://bahvmrty58", path = "res://packages/weapons/hyperveloci
 at = [{ stage = 0, file = 10322 }]
 chunks = { palette = "0dc2885eb39aca4f61c421c41c175e2a05fb3312", image = "76025d77dc8e1c651cd624b5797adcda9e3e8108" }
 
+[hypervelocity.from.EUR]
+at = [{ stage = 0, file = 10322 }]
+chunks = { palette = "0dc2885eb39aca4f61c421c41c175e2a05fb3312", image = "76025d77dc8e1c651cd624b5797adcda9e3e8108" }
+
 [gunblade]
 uid = "uid://1dro29mkga3aw"
 template = "file"
@@ -730,6 +826,10 @@ package = { uid = "uid://1q5ho5i422dtk", path = "res://packages/weapons/gunblade
 at = [{ stage = 0, file = 10323 }]
 chunks = { palette = "3222ddbed8bd982d2a97697358c03aa7126149f9", image = "f788b0886719afb2a9883282496d01e421a63614" }
 
+[gunblade.from.EUR]
+at = [{ stage = 0, file = 10323 }]
+chunks = { palette = "3222ddbed8bd982d2a97697358c03aa7126149f9", image = "f788b0886719afb2a9883282496d01e421a63614" }
+
 [unused_97]
 uid = "uid://hioxi0kf7lvv"
 template = "file"
@@ -754,6 +854,10 @@ type = "package"
 package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_97" }
 
 [unused_97.from.USA]
+at = [{ stage = 0, file = 10324 }]
+chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
+
+[unused_97.from.EUR]
 at = [{ stage = 0, file = 10324 }]
 chunks = { palette = "49f18b6558a40ae37e91182e8a66626de05a613f", image = "595a735a08dd854894c95a6269def6533b52d08b" }
 
@@ -785,6 +889,10 @@ type = "package"
 package = { uid = "uid://wdiv0eu4mel9", path = "res://packages/weapons/m4a1_hammer.node" }
 
 [m4a1_hammer.from.USA]
+at = [{ stage = 0, file = 10325 }]
+chunks = { palette = "038b8dccbe9b54b8854cbf4f9c77d06d6c5097ec", image = "6b3ae70448e7a13b7ce42cc2881f39fc09c0aa1d" }
+
+[m4a1_hammer.from.EUR]
 at = [{ stage = 0, file = 10325 }]
 chunks = { palette = "038b8dccbe9b54b8854cbf4f9c77d06d6c5097ec", image = "6b3ae70448e7a13b7ce42cc2881f39fc09c0aa1d" }
 
@@ -820,6 +928,10 @@ package = { uid = "uid://vuongu1qfeng", path = "res://packages/weapons/m4a1_bayo
 at = [{ stage = 0, file = 10326 }]
 chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3c3484964979b56edb9d0dbaa84c87697d261f62" }
 
+[m4a1_bayonet.from.EUR]
+at = [{ stage = 0, file = 10326 }]
+chunks = { palette = "1c635e134b09b6c48fe5c078fe694d65c4311a07", image = "3c3484964979b56edb9d0dbaa84c87697d261f62" }
+
 [m4a1_grenade]
 uid = "uid://gvwrw649t787"
 template = "file"
@@ -844,6 +956,10 @@ type = "package"
 package = { uid = "uid://iavjcx8irddv", path = "res://packages/weapons/m4a1_grenade.node" }
 
 [m4a1_grenade.from.USA]
+at = [{ stage = 0, file = 10327 }]
+chunks = { palette = "49482dc80bc9171707325c233e007cd9f0c8ca77", image = "c35c68593db14bf9bb522313c0c36761148af7f1" }
+
+[m4a1_grenade.from.EUR]
 at = [{ stage = 0, file = 10327 }]
 chunks = { palette = "49482dc80bc9171707325c233e007cd9f0c8ca77", image = "c35c68593db14bf9bb522313c0c36761148af7f1" }
 
@@ -878,6 +994,10 @@ package = { uid = "uid://1e4cy7zo0eg6l", path = "res://packages/weapons/m4a1_pyk
 at = [{ stage = 0, file = 10328 }]
 chunks = { palette = "acf6a4054ccde8e3966ac16536b8f5601bfb627d", image = "d0ba123ce7f142ec1874d8ee52533ef13b2161f3" }
 
+[m4a1_pyke.from.EUR]
+at = [{ stage = 0, file = 10328 }]
+chunks = { palette = "acf6a4054ccde8e3966ac16536b8f5601bfb627d", image = "d0ba123ce7f142ec1874d8ee52533ef13b2161f3" }
+
 [m4a1_javelin]
 uid = "uid://1iyw2dtyf2o2z"
 template = "file"
@@ -906,6 +1026,10 @@ type = "package"
 package = { uid = "uid://98xzi8q9kjhy", path = "res://packages/weapons/m4a1_javelin.node" }
 
 [m4a1_javelin.from.USA]
+at = [{ stage = 0, file = 10329 }]
+chunks = { palette = "0e2a3313836605cd6d047f6fb89dfeb61f946e8a", image = "fd15cf39294b4adbed239aa4e3b1062ac8100c0a" }
+
+[m4a1_javelin.from.EUR]
 at = [{ stage = 0, file = 10329 }]
 chunks = { palette = "0e2a3313836605cd6d047f6fb89dfeb61f946e8a", image = "fd15cf39294b4adbed239aa4e3b1062ac8100c0a" }
 
@@ -940,6 +1064,10 @@ package = { uid = "uid://1bh3tnigifo9w", path = "res://packages/weapons/mp5a5.no
 at = [{ stage = 0, file = 10330 }]
 chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
 
+[mp5a5.from.EUR]
+at = [{ stage = 0, file = 10330 }]
+chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
+
 [mp5a5_p1]
 uid = "uid://1cjjwyrgwd85z"
 template = "file"
@@ -968,6 +1096,10 @@ type = "package"
 package = { uid = "uid://1bh3tnigifo9w", path = "res://packages/weapons/mp5a5.node", output = "mp5a5_p1" }
 
 [mp5a5_p1.from.USA]
+at = [{ stage = 0, file = 10331 }]
+chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
+
+[mp5a5_p1.from.EUR]
 at = [{ stage = 0, file = 10331 }]
 chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
 
@@ -1002,6 +1134,10 @@ package = { uid = "uid://1bh3tnigifo9w", path = "res://packages/weapons/mp5a5.no
 at = [{ stage = 0, file = 10332 }]
 chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
 
+[mp5a5_p2.from.EUR]
+at = [{ stage = 0, file = 10332 }]
+chunks = { palette = "979260d0f5e74379e46951abae016f4550b12753", image = "703522e81db4e575af786bf5065a161bd60bf4bc" }
+
 [aya_akropolis]
 uid = "uid://1teumqyjo551d"
 template = "file"
@@ -1026,6 +1162,10 @@ name = "package"
 type = "package"
 
 [aya_akropolis.from.USA]
+at = [{ stage = 0, file = 10400 }]
+chunks = { image = "61f4b513814507d49d32932f2f46ae4f6bb2ba88", palette = "060e8dea2a0231536204a8a83956a8f90f7a145f" }
+
+[aya_akropolis.from.EUR]
 at = [{ stage = 0, file = 10400 }]
 chunks = { image = "61f4b513814507d49d32932f2f46ae4f6bb2ba88", palette = "060e8dea2a0231536204a8a83956a8f90f7a145f" }
 
@@ -1057,6 +1197,10 @@ type = "package"
 at = [{ stage = 0, file = 10500 }, { stage = 0, file = 10600 }]
 chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
 
+[aya_range.from.EUR]
+at = [{ stage = 0, file = 10500 }, { stage = 0, file = 10600 }]
+chunks = { palette = "e60cbd12a3db18d303d7e78e762536fa3339bee0", image = "195bbc6bf54e1ad43f58aa097499486b1935ec2c" }
+
 [grenade_pistol_fragmentation_sounds]
 uid = "uid://2evjom07asuv"
 template = "file"
@@ -1065,6 +1209,9 @@ slots = [
 ]
 
 [grenade_pistol_fragmentation_sounds.from.USA]
+at = [{ stage = 0, file = 11000 }, { stage = 0, file = 11001 }]
+
+[grenade_pistol_fragmentation_sounds.from.EUR]
 at = [{ stage = 0, file = 11000 }, { stage = 0, file = 11001 }]
 
 [grenade_pistol_airburst_sounds]
@@ -1077,6 +1224,9 @@ slots = [
 [grenade_pistol_airburst_sounds.from.USA]
 at = [{ stage = 0, file = 11002 }]
 
+[grenade_pistol_airburst_sounds.from.EUR]
+at = [{ stage = 0, file = 11002 }]
+
 [grenade_pistol_riot_sounds]
 uid = "uid://625hl4kgofp4"
 template = "file"
@@ -1085,6 +1235,9 @@ slots = [
 ]
 
 [grenade_pistol_riot_sounds.from.USA]
+at = [{ stage = 0, file = 11003 }]
+
+[grenade_pistol_riot_sounds.from.EUR]
 at = [{ stage = 0, file = 11003 }]
 
 [mm1_fragmentation_sounds]
@@ -1097,6 +1250,9 @@ slots = [
 [mm1_fragmentation_sounds.from.USA]
 at = [{ stage = 0, file = 11004 }]
 
+[mm1_fragmentation_sounds.from.EUR]
+at = [{ stage = 0, file = 11004 }]
+
 [mm1_airburst_sounds]
 uid = "uid://cms69puu8hhe"
 template = "file"
@@ -1105,6 +1261,9 @@ slots = [
 ]
 
 [mm1_airburst_sounds.from.USA]
+at = [{ stage = 0, file = 11005 }]
+
+[mm1_airburst_sounds.from.EUR]
 at = [{ stage = 0, file = 11005 }]
 
 [mm1_riot_sounds]
@@ -1117,6 +1276,9 @@ slots = [
 [mm1_riot_sounds.from.USA]
 at = [{ stage = 0, file = 11006 }]
 
+[mm1_riot_sounds.from.EUR]
+at = [{ stage = 0, file = 11006 }]
+
 [pa3_buckshot_sounds]
 uid = "uid://9i6ue7hev2pn"
 template = "file"
@@ -1125,6 +1287,9 @@ slots = [
 ]
 
 [pa3_buckshot_sounds.from.USA]
+at = [{ stage = 0, file = 11007 }]
+
+[pa3_buckshot_sounds.from.EUR]
 at = [{ stage = 0, file = 11007 }]
 
 [pa3_firefly_sounds]
@@ -1137,6 +1302,9 @@ slots = [
 [pa3_firefly_sounds.from.USA]
 at = [{ stage = 0, file = 11008 }]
 
+[pa3_firefly_sounds.from.EUR]
+at = [{ stage = 0, file = 11008 }]
+
 [pa3_rifled_slug_sounds]
 uid = "uid://w0r9o749nvio"
 template = "file"
@@ -1145,6 +1313,9 @@ slots = [
 ]
 
 [pa3_rifled_slug_sounds.from.USA]
+at = [{ stage = 0, file = 11009 }]
+
+[pa3_rifled_slug_sounds.from.EUR]
 at = [{ stage = 0, file = 11009 }]
 
 [sp12_buckshot_sounds]
@@ -1157,6 +1328,9 @@ slots = [
 [sp12_buckshot_sounds.from.USA]
 at = [{ stage = 0, file = 11010 }]
 
+[sp12_buckshot_sounds.from.EUR]
+at = [{ stage = 0, file = 11010 }]
+
 [sp12_firefly_sounds]
 uid = "uid://1pxtkso2dglln"
 template = "file"
@@ -1165,6 +1339,9 @@ slots = [
 ]
 
 [sp12_firefly_sounds.from.USA]
+at = [{ stage = 0, file = 11011 }]
+
+[sp12_firefly_sounds.from.EUR]
 at = [{ stage = 0, file = 11011 }]
 
 [sp12_rifled_slug_sounds]
@@ -1177,6 +1354,9 @@ slots = [
 [sp12_rifled_slug_sounds.from.USA]
 at = [{ stage = 0, file = 11012 }]
 
+[sp12_rifled_slug_sounds.from.EUR]
+at = [{ stage = 0, file = 11012 }]
+
 [as12_buckshot_sounds]
 uid = "uid://gm8f3y7ehujc"
 template = "file"
@@ -1185,6 +1365,9 @@ slots = [
 ]
 
 [as12_buckshot_sounds.from.USA]
+at = [{ stage = 0, file = 11013 }]
+
+[as12_buckshot_sounds.from.EUR]
 at = [{ stage = 0, file = 11013 }]
 
 [as12_firefly_sounds]
@@ -1197,6 +1380,9 @@ slots = [
 [as12_firefly_sounds.from.USA]
 at = [{ stage = 0, file = 11014 }]
 
+[as12_firefly_sounds.from.EUR]
+at = [{ stage = 0, file = 11014 }]
+
 [as12_rifled_slug_sounds]
 uid = "uid://1xx5kk13ydeim"
 template = "file"
@@ -1205,6 +1391,9 @@ slots = [
 ]
 
 [as12_rifled_slug_sounds.from.USA]
+at = [{ stage = 0, file = 11015 }]
+
+[as12_rifled_slug_sounds.from.EUR]
 at = [{ stage = 0, file = 11015 }]
 
 [m4a1_grenade_fragmentation_sounds]
@@ -1217,6 +1406,9 @@ slots = [
 [m4a1_grenade_fragmentation_sounds.from.USA]
 at = [{ stage = 0, file = 11016 }]
 
+[m4a1_grenade_fragmentation_sounds.from.EUR]
+at = [{ stage = 0, file = 11016 }]
+
 [m4a1_grenade_airburst_sounds]
 uid = "uid://111zv5uy091jo"
 template = "file"
@@ -1225,6 +1417,9 @@ slots = [
 ]
 
 [m4a1_grenade_airburst_sounds.from.USA]
+at = [{ stage = 0, file = 11017 }]
+
+[m4a1_grenade_airburst_sounds.from.EUR]
 at = [{ stage = 0, file = 11017 }]
 
 [m4a1_grenade_riot_sounds]
@@ -1237,6 +1432,9 @@ slots = [
 [m4a1_grenade_riot_sounds.from.USA]
 at = [{ stage = 0, file = 11018 }]
 
+[m4a1_grenade_riot_sounds.from.EUR]
+at = [{ stage = 0, file = 11018 }]
+
 [gunblade_buckshot_sounds]
 uid = "uid://1lrkjomv66i8e"
 template = "file"
@@ -1245,6 +1443,9 @@ slots = [
 ]
 
 [gunblade_buckshot_sounds.from.USA]
+at = [{ stage = 0, file = 11019 }]
+
+[gunblade_buckshot_sounds.from.EUR]
 at = [{ stage = 0, file = 11019 }]
 
 [gunblade_firefly_sounds]
@@ -1257,6 +1458,9 @@ slots = [
 [gunblade_firefly_sounds.from.USA]
 at = [{ stage = 0, file = 11020 }]
 
+[gunblade_firefly_sounds.from.EUR]
+at = [{ stage = 0, file = 11020 }]
+
 [gunblade_rifled_slug_sounds]
 uid = "uid://y1ddrztci22u"
 template = "file"
@@ -1265,4 +1469,7 @@ slots = [
 ]
 
 [gunblade_rifled_slug_sounds.from.USA]
+at = [{ stage = 0, file = 11021 }]
+
+[gunblade_rifled_slug_sounds.from.EUR]
 at = [{ stage = 0, file = 11021 }]

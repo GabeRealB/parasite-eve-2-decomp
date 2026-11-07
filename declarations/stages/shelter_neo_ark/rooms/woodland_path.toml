@@ -20,6 +20,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 5, folder = 2901 }]
 
+[folder.from.EUR]
+at = [{ stage = 5, folder = 2901 }]
+
 [dryfield_r04_glyph_page]
 uid = "uid://1hrup48fdbvp8"
 template = "texture"
@@ -37,6 +40,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dryfield_r04_glyph_page.from.USA]
+at = [{ stage = 5, folder = 2901, file = 0, slot = "dryfield_r04_glyph_page", page = 0 }]
+sha1 = "6d0ee3f29584791b420f32f2a85cd73336f0276c"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dryfield_r04_glyph_page.from.EUR]
 at = [{ stage = 5, folder = 2901, file = 0, slot = "dryfield_r04_glyph_page", page = 0 }]
 sha1 = "6d0ee3f29584791b420f32f2a85cd73336f0276c"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }

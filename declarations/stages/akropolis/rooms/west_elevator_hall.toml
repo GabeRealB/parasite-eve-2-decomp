@@ -55,6 +55,11 @@ at = [{ stage = 0, file = 900000, slot = "image", page = 1 }, { stage = 0, file 
 sha1 = "ace9f8184e59d88c148e967215b091fcae4055b4"
 palettes = { default = "d1b2af14ed3e1b0cecfbe5c3d6f2621f7fbcb1dc", explosion_0 = "93c756610e63aa340a5060ff63909767c7508377", explosion_1 = "30b15d490ec047d9e115951f71c52b0eef51d7c3", explosion_2 = "bd2e9661d5e45d264d25057a338405c469cab384", explosion_3 = "099a1144e2b460bdcf817c442704e05651d59b17", explosion_4 = "f0a2c5d6dbeec42f0e0d77e5b91ffc2c8046dc97", explosion_5 = "3459f26f14ab36d281b319a0b63c347fc1efab1d", explosion_6 = "481b0a9c2877b3a138a53fcaef153025bb0e2efa", explosion_7 = "b641eb679d157b329dbf005ef013d29df895dd06", explosion_8 = "22682ad86da5024b46e0cf6941ec0e6f628d09b5", explosion_9 = "8e1fef729d753ad4d9f6b25eb9d5d95239555a9c", explosion_10 = "5718b2b4c8753032ccad454ed21b772f79bca99e", explosion_11 = "dbe447f814cd3f03dd984d83b44cc82edbf96d83", fireball_0 = "dfee22f32dd1b325b6332acd476fffcfac8f7b09", fireball_1 = "dd062c2c2746588a52007f4bf280d3195b7180d4", fireball_2 = "805b98d302aab40524e92966fba9ce2584eda2d0", fireball_3 = "85fcc2b07fa14fa8b0bcd47c29809410000e4e29", fireball_4 = "ea3e4b22bcfe572500c88cf39640034868ac33f7", fireball_5 = "b89236eb9956bdd0bdfb05b456f2041a731c0a26", fireball_6 = "83b44e0dc3ddf6c40423ff65da4baed122e7c273", fireball_7 = "fb532904cbd7e925e176f6fa998140c948e7afe3", fireball_8 = "4c33e7be2a7a4a28a94a248ea85e90cfa4fd4d86", fireball_9 = "900ec1d22165b8d8b72d5f36384eaac138e9853a", fireball_10 = "96dc9c4249cad6c39560d3437067a379a424b43f", fireball_11 = "d1886f02910af775dfbf6ba930bee063edcd2940" }
 
+[effect_atlas.from.EUR]
+at = [{ stage = 0, file = 900000, slot = "image", page = 1 }, { stage = 0, file = 900001, slot = "image", page = 1 }, { stage = 0, file = 900002, slot = "image", page = 1 }, { stage = 0, file = 900003, slot = "image", page = 1 }, { stage = 0, file = 900004, slot = "image", page = 1 }, { stage = 0, file = 900005, slot = "image", page = 1 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 1 }]
+sha1 = "ace9f8184e59d88c148e967215b091fcae4055b4"
+palettes = { default = "d1b2af14ed3e1b0cecfbe5c3d6f2621f7fbcb1dc", explosion_0 = "93c756610e63aa340a5060ff63909767c7508377", explosion_1 = "30b15d490ec047d9e115951f71c52b0eef51d7c3", explosion_2 = "bd2e9661d5e45d264d25057a338405c469cab384", explosion_3 = "099a1144e2b460bdcf817c442704e05651d59b17", explosion_4 = "f0a2c5d6dbeec42f0e0d77e5b91ffc2c8046dc97", explosion_5 = "3459f26f14ab36d281b319a0b63c347fc1efab1d", explosion_6 = "481b0a9c2877b3a138a53fcaef153025bb0e2efa", explosion_7 = "b641eb679d157b329dbf005ef013d29df895dd06", explosion_8 = "22682ad86da5024b46e0cf6941ec0e6f628d09b5", explosion_9 = "8e1fef729d753ad4d9f6b25eb9d5d95239555a9c", explosion_10 = "5718b2b4c8753032ccad454ed21b772f79bca99e", explosion_11 = "dbe447f814cd3f03dd984d83b44cc82edbf96d83", fireball_0 = "dfee22f32dd1b325b6332acd476fffcfac8f7b09", fireball_1 = "dd062c2c2746588a52007f4bf280d3195b7180d4", fireball_2 = "805b98d302aab40524e92966fba9ce2584eda2d0", fireball_3 = "85fcc2b07fa14fa8b0bcd47c29809410000e4e29", fireball_4 = "ea3e4b22bcfe572500c88cf39640034868ac33f7", fireball_5 = "b89236eb9956bdd0bdfb05b456f2041a731c0a26", fireball_6 = "83b44e0dc3ddf6c40423ff65da4baed122e7c273", fireball_7 = "fb532904cbd7e925e176f6fa998140c948e7afe3", fireball_8 = "4c33e7be2a7a4a28a94a248ea85e90cfa4fd4d86", fireball_9 = "900ec1d22165b8d8b72d5f36384eaac138e9853a", fireball_10 = "96dc9c4249cad6c39560d3437067a379a424b43f", fireball_11 = "d1886f02910af775dfbf6ba930bee063edcd2940" }
+
 [folder]
 uid = "uid://mvo5lqho5q3c"
 template = "folder"
@@ -70,6 +75,9 @@ files = [
 [folder.from.USA]
 at = [{ stage = 1, folder = 1701 }]
 
+[folder.from.EUR]
+at = [{ stage = 1, folder = 1701 }]
+
 [glow]
 uid = "uid://124ufzod5epf0"
 template = "texture"
@@ -83,6 +91,10 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [glow.from.USA]
+at = [{ stage = 1, folder = 1701, file = 0, slot = "image_1", page = 0 }]
+sha1 = "b7e21664afc9e7260522fe59f23c1fdef1af416b"
+
+[glow.from.EUR]
 at = [{ stage = 1, folder = 1701, file = 0, slot = "image_1", page = 0 }]
 sha1 = "b7e21664afc9e7260522fe59f23c1fdef1af416b"
 
@@ -106,6 +118,11 @@ at = [{ stage = 0, file = 900000, slot = "image", page = 0 }, { stage = 0, file 
 sha1 = "29338eae67ced661edaa378baad701afb3218f27"
 palettes = { spark_1 = "565ef713f97c30b723b8a51c07eb674db3805f43", spark_2 = "e291fad6e01abaa00a00bf9059e27fef9ccc7aa7" }
 
+[sparks_page_1.from.EUR]
+at = [{ stage = 0, file = 900000, slot = "image", page = 0 }, { stage = 0, file = 900001, slot = "image", page = 0 }, { stage = 0, file = 900002, slot = "image", page = 0 }, { stage = 0, file = 900003, slot = "image", page = 0 }, { stage = 0, file = 900004, slot = "image", page = 0 }, { stage = 0, file = 900005, slot = "image", page = 0 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 0 }]
+sha1 = "29338eae67ced661edaa378baad701afb3218f27"
+palettes = { spark_1 = "565ef713f97c30b723b8a51c07eb674db3805f43", spark_2 = "e291fad6e01abaa00a00bf9059e27fef9ccc7aa7" }
+
 [sparks_page_3]
 uid = "uid://1qad21dtmpi7r"
 template = "texture"
@@ -119,6 +136,10 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [sparks_page_3.from.USA]
+at = [{ stage = 0, file = 900000, slot = "image", page = 2 }, { stage = 0, file = 900001, slot = "image", page = 2 }, { stage = 0, file = 900002, slot = "image", page = 2 }, { stage = 0, file = 900003, slot = "image", page = 2 }, { stage = 0, file = 900004, slot = "image", page = 2 }, { stage = 0, file = 900005, slot = "image", page = 2 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 2 }]
+sha1 = "f2c65cd0e7df9c424b4815f2b3f2ea9747e1062f"
+
+[sparks_page_3.from.EUR]
 at = [{ stage = 0, file = 900000, slot = "image", page = 2 }, { stage = 0, file = 900001, slot = "image", page = 2 }, { stage = 0, file = 900002, slot = "image", page = 2 }, { stage = 0, file = 900003, slot = "image", page = 2 }, { stage = 0, file = 900004, slot = "image", page = 2 }, { stage = 0, file = 900005, slot = "image", page = 2 }, { stage = 1, folder = 1701, file = 0, slot = "image_0", page = 2 }]
 sha1 = "f2c65cd0e7df9c424b4815f2b3f2ea9747e1062f"
 
@@ -139,6 +160,11 @@ importer = "pe2.images@ora"
 source = "source.ora"
 
 [dialogue_0_atlas.from.USA]
+at = [{ stage = 1, folder = 1701, file = 0, slot = "dialogue_0_atlas", page = 0 }]
+sha1 = "5c68be72f674d1b58cc065575612b385e692b96b"
+palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0_atlas.from.EUR]
 at = [{ stage = 1, folder = 1701, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "5c68be72f674d1b58cc065575612b385e692b96b"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
