@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """What a package compiles from, in two steps around the first pass, as the editor's `extensions/packages/src/gather.rs`.
 
-    gen_package_values.py options PACKAGE OUT --release USA --config usa --target psx
+    gen_package_values.py options PACKAGE OUT --release USA --config usa --target psx     PACKAGE: its name (a variant's own)
     gen_package_values.py values PACKAGE OUT --release USA [--rom rom] FIRST...
 
 `options` reads text, following includes whichever branch they are in, as what it finds decides what the preprocessor is
@@ -516,9 +516,9 @@ def main() -> None:
     args = parser.parse_args()
 
     declarations = Declarations()
-    package = next((one for one in declarations.packages(args.target) if one.path == args.package), None)
+    package = next((one for one in declarations.packages(args.target) if one.name == args.package), None)
     if package is None:
-        raise SystemExit(f"{args.package}: no package of that path is declared")
+        raise SystemExit(f"{args.package}: no package of that name is declared")
     if args.step == "options":
         options, read = gathered(package, declarations, args.target)
         config = {"name": args.config or args.release.lower(), "release": args.release, "target": args.target}

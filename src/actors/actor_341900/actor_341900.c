@@ -47,7 +47,7 @@
 #include "screen/fade/fade.h"
 #include "../../shared/actor/actor_messages.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// `_Actor341900EventWork::playerAction`: the one-shot request the event script
 /// hands the player.

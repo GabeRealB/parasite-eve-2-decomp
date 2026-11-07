@@ -145,7 +145,6 @@ embedded = [
     { name = "bank", offset = 0x0E20C, size = 0x13C, address = 0x8012B3CC },
 ]
 package_name = "mp5a5"
-required = true
 sha1 = "42898dc7e1487d39f16be5a9c14ac905ee284c07"
 
 [preview]
@@ -236,7 +235,6 @@ embedded = [
     { name = "bank", offset = 0x0E20C, size = 0x13C, address = 0x8012B3CC },
 ]
 package_name = "mp5a5_p1"
-required = true
 sha1 = "f1420a79b03b4f7a6c2491920dee202f905c6495"
 
 [p1_preview]
@@ -292,7 +290,6 @@ embedded = [
     { name = "bank", offset = 0x0E20C, size = 0x13C, address = 0x8012B3CC },
 ]
 package_name = "mp5a5_p2"
-required = true
 sha1 = "21a98c8e6721bf391984592701b84713899b618b"
 
 [p2_preview]

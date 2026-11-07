@@ -130,7 +130,6 @@ embedded = [
     { name = "bank", offset = 0x11C10, size = 0x13C, address = 0x8012EDD0 },
 ]
 package_name = "hypervelocity"
-required = true
 sha1 = "0871ef7800c9fc6df526cf45dcb6f5d773c9a76c"
 
 [preview]

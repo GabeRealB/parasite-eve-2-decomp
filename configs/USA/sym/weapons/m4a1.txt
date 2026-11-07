@@ -1,2 +1,0 @@
-// Overlay-local symbols for M4A1 Rifle (file 10316).
-m4a1AttackState = 0x8011d1c4; // type:func

@@ -36,7 +36,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
-#include "weapons/weapon.h"
+#include "weapons/weapon/weapon.h"
 
 #include "engine/coord.h"
 #include "engine/display.h"
@@ -56,7 +56,7 @@
 #include "engine/tmd_types.h"
 #include "engine/wipsys.h"
 #include "engine/wipsys_types.h"
-#include "../../shared/projectiles/flamethrower_flame.h"
+#include "projectiles/flamethrower_flame/flamethrower_flame.h"
 
 static void _actor800100UpdateMove(Task* task);
 static void _actor800100TickTextureSequences(Task* task);
@@ -887,7 +887,7 @@ enum { FLAMETHROWER_FLAME_ATTACK_KEY = FLAMETHROWER_FLAME_KEY | FLAMETHROWER_FLA
 ///
 /// Consumed and undefined by `flamethrower_flame.inc.c`; flight remains stopped.
 #define FLAMETHROWER_FLAME_REDRAW_UPDATES_COORD 1
-#include "../../shared/projectiles/flamethrower_flame.inc.c"
+#include "projectiles/flamethrower_flame/flamethrower_flame.inc.c"
 
 DEFINE_ALIAS(_flamethrowerFlameTask, actor800100PykeFlameTask);
 

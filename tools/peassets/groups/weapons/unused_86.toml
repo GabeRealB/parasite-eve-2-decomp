@@ -64,7 +64,6 @@ embedded = [
     { name = "bank", offset = 0x0CF18, size = 0x13C, address = 0x8012A0D8 },
 ]
 package_name = "unused_86"
-required = true
 sha1 = "a13df82d8dd21ab99ec0462c320385eb910f9a08"
 
 [texture]
@@ -164,7 +163,6 @@ embedded = [
     { name = "bank", offset = 0x0CF18, size = 0x13C, address = 0x8012A0D8 },
 ]
 package_name = "unused_87"
-required = true
 sha1 = "d9cae15460749b89be41e00da296124b4bc5a85c"
 
 [unused_87_texture]
@@ -216,7 +214,6 @@ embedded = [
     { name = "bank", offset = 0x0CF18, size = 0x13C, address = 0x8012A0D8 },
 ]
 package_name = "unused_89"
-required = true
 sha1 = "ea1287165b7995b2f330dab57c48426dbbf854d2"
 
 [unused_89_texture]
@@ -268,7 +265,6 @@ embedded = [
     { name = "bank", offset = 0x0CF18, size = 0x13C, address = 0x8012A0D8 },
 ]
 package_name = "unused_91"
-required = true
 sha1 = "29d7c6d21c10b069bd8bef3a38d2f2988264684a"
 
 [unused_97_package]
@@ -313,5 +309,4 @@ embedded = [
     { name = "bank", offset = 0x0CF18, size = 0x13C, address = 0x8012A0D8 },
 ]
 package_name = "unused_97"
-required = true
 sha1 = "8a1f9ce517ab7fabe36168a569a078851fc33715"

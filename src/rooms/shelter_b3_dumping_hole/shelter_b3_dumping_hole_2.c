@@ -84,7 +84,7 @@
 #include "screen/fade/fade.h"
 #include "effects/glow/glow.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Selects this room's billboard declaration with `s32` frame and size arguments.
 ///

@@ -56,7 +56,7 @@
 #include "effects/falling_leaves/falling_leaves.h"
 
 #include "assets/stages/akropolis/rooms/forked_road/declarations.inc"
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 static void _akropolisForkedRoadOutboundMoviePathTask(Task* task);
 static void _akropolisForkedRoadReturnMoviePathTask(Task* task);

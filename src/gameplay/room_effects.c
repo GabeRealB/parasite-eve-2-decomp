@@ -381,23 +381,23 @@
 
 #include "rooms/shelter_r49.h"
 
-#include "weapons/gunblade.h"
+#include "weapons/gunblade/gunblade.h"
 
-#include "weapons/hypervelocity.h"
+#include "weapons/hypervelocity/hypervelocity.h"
 
-#include "weapons/m4a1_bayonet.h"
+#include "weapons/m4a1_bayonet/m4a1_bayonet.h"
 
-#include "weapons/m4a1_hammer.h"
+#include "weapons/m4a1_hammer/m4a1_hammer.h"
 
-#include "weapons/m4a1_javelin.h"
+#include "weapons/m4a1_javelin/m4a1_javelin.h"
 
-#include "weapons/m4a1_pyke.h"
+#include "weapons/m4a1_pyke/m4a1_pyke.h"
 
-#include "weapons/mp5a5.h"
+#include "weapons/mp5a5/mp5a5.h"
 
-#include "weapons/p229.h"
+#include "weapons/p229/p229.h"
 
-#include "weapons/tonfa_baton.h"
+#include "weapons/tonfa_baton/tonfa_baton.h"
 
 /// World +Y distance of a ground probe, in game-coordinate units.
 enum { WORLD_COLLISION_GROUND_PROBE_LENGTH = 0x1000 };

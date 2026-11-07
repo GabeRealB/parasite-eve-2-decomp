@@ -45,35 +45,35 @@
 
 #include "stages/akropolis/rooms/security_room.h"
 
-#include "weapons/as12.h"
+#include "weapons/as12/as12.h"
 
-#include "weapons/grenade_pistol.h"
+#include "weapons/grenade_pistol/grenade_pistol.h"
 
-#include "weapons/hypervelocity.h"
+#include "weapons/hypervelocity/hypervelocity.h"
 
-#include "weapons/m249.h"
+#include "weapons/m249/m249.h"
 
-#include "weapons/m4a1.h"
+#include "weapons/m4a1/m4a1.h"
 
-#include "weapons/m4a1_grenade.h"
+#include "weapons/m4a1_grenade/m4a1_grenade.h"
 
-#include "weapons/m4a1_hammer.h"
+#include "weapons/m4a1_hammer/m4a1_hammer.h"
 
-#include "weapons/m4a1_javelin.h"
+#include "weapons/m4a1_javelin/m4a1_javelin.h"
 
-#include "weapons/m4a1_pyke.h"
+#include "weapons/m4a1_pyke/m4a1_pyke.h"
 
-#include "weapons/m93r.h"
+#include "weapons/m93r/m93r.h"
 
-#include "weapons/m950.h"
+#include "weapons/m950/m950.h"
 
-#include "weapons/p08.h"
+#include "weapons/p08/p08.h"
 
-#include "weapons/pa3.h"
+#include "weapons/pa3/pa3.h"
 
-#include "weapons/tonfa_baton.h"
+#include "weapons/tonfa_baton/tonfa_baton.h"
 
-#include "weapons/weapon.h"
+#include "weapons/weapon/weapon.h"
 
 /// Header of one block in the sound heap.
 ///

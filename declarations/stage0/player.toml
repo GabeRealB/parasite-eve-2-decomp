@@ -81,6 +81,7 @@ type = "sound_bank"
 [[p08_snail.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://b7rdtd73le15", path = "res://packages/weapons/p08.node", output = "p08_snail" }
 
 [p08_snail.from.USA]
 at = [{ stage = 0, file = 10301 }]
@@ -111,6 +112,7 @@ type = "sound_bank"
 [[m93r.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1wrqha5t1tske", path = "res://packages/weapons/m93r.node" }
 
 [m93r.from.USA]
 at = [{ stage = 0, file = 10302 }]
@@ -141,6 +143,7 @@ type = "sound_bank"
 [[m950.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1t5n9w29e3mx7", path = "res://packages/weapons/m950.node" }
 
 [m950.from.USA]
 at = [{ stage = 0, file = 10303 }]
@@ -171,6 +174,7 @@ type = "sound_bank"
 [[p08.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://b7rdtd73le15", path = "res://packages/weapons/p08.node" }
 
 [p08.from.USA]
 at = [{ stage = 0, file = 10304 }]
@@ -202,6 +206,7 @@ type = "sound_bank"
 [[p229.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://boogbtqh12io", path = "res://packages/weapons/p229.node" }
 
 [p229.from.USA]
 at = [{ stage = 0, file = 10305 }]
@@ -229,6 +234,7 @@ pages = [
 [[unused_85.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1poovdux1izi1", path = "res://packages/weapons/unused_85.node" }
 
 [unused_85.from.USA]
 at = [{ stage = 0, file = 10306 }]
@@ -255,6 +261,7 @@ pages = [
 [[unused_86.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node" }
 
 [unused_86.from.USA]
 at = [{ stage = 0, file = 10307 }]
@@ -281,6 +288,7 @@ pages = [
 [[unused_87.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_87" }
 
 [unused_87.from.USA]
 at = [{ stage = 0, file = 10308 }]
@@ -311,6 +319,7 @@ type = "sound_bank"
 [[mongoose.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://b7rdtd73le15", path = "res://packages/weapons/p08.node", output = "mongoose" }
 
 [mongoose.from.USA]
 at = [{ stage = 0, file = 10309 }]
@@ -337,6 +346,7 @@ pages = [
 [[unused_89.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_89" }
 
 [unused_89.from.USA]
 at = [{ stage = 0, file = 10310 }]
@@ -363,6 +373,7 @@ pages = [
 [[grenade_pistol.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1km7xtgr2u4cz", path = "res://packages/weapons/grenade_pistol.node" }
 
 [grenade_pistol.from.USA]
 at = [{ stage = 0, file = 10311 }]
@@ -389,6 +400,7 @@ pages = [
 [[mm1.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1km7xtgr2u4cz", path = "res://packages/weapons/grenade_pistol.node", output = "mm1" }
 
 [mm1.from.USA]
 at = [{ stage = 0, file = 10312 }]
@@ -415,6 +427,7 @@ pages = [
 [[pa3.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://184vbqt1w2qd", path = "res://packages/weapons/pa3.node" }
 
 [pa3.from.USA]
 at = [{ stage = 0, file = 10313 }]
@@ -441,6 +454,7 @@ pages = [
 [[sp12.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://184vbqt1w2qd", path = "res://packages/weapons/pa3.node", output = "sp12" }
 
 [sp12.from.USA]
 at = [{ stage = 0, file = 10314 }]
@@ -467,6 +481,7 @@ pages = [
 [[as12.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1w1z9f1u7tvln", path = "res://packages/weapons/as12.node" }
 
 [as12.from.USA]
 at = [{ stage = 0, file = 10315 }]
@@ -498,6 +513,7 @@ type = "sound_bank"
 [[m4a1.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://axipoco933bx", path = "res://packages/weapons/m4a1.node" }
 
 [m4a1.from.USA]
 at = [{ stage = 0, file = 10316 }]
@@ -528,6 +544,7 @@ type = "sound_bank"
 [[m249.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://169wpdhe61mvw", path = "res://packages/weapons/m249.node" }
 
 [m249.from.USA]
 at = [{ stage = 0, file = 10317 }]
@@ -554,6 +571,7 @@ pages = [
 [[unused_91.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_91" }
 
 [unused_91.from.USA]
 at = [{ stage = 0, file = 10318 }]
@@ -584,6 +602,7 @@ type = "sound_bank"
 [[tonfa_baton.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1608hpzc40zcl", path = "res://packages/weapons/tonfa_baton.node" }
 
 [tonfa_baton.from.USA]
 at = [{ stage = 0, file = 10319 }]
@@ -615,6 +634,7 @@ type = "sound_bank"
 [[m4a1_p1.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://axipoco933bx", path = "res://packages/weapons/m4a1.node", output = "m4a1_p1" }
 
 [m4a1_p1.from.USA]
 at = [{ stage = 0, file = 10320 }]
@@ -646,6 +666,7 @@ type = "sound_bank"
 [[m4a1_p2.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://axipoco933bx", path = "res://packages/weapons/m4a1.node", output = "m4a1_p2" }
 
 [m4a1_p2.from.USA]
 at = [{ stage = 0, file = 10321 }]
@@ -676,6 +697,7 @@ type = "sound_bank"
 [[hypervelocity.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://bahvmrty58", path = "res://packages/weapons/hypervelocity.node" }
 
 [hypervelocity.from.USA]
 at = [{ stage = 0, file = 10322 }]
@@ -702,6 +724,7 @@ pages = [
 [[gunblade.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1q5ho5i422dtk", path = "res://packages/weapons/gunblade.node" }
 
 [gunblade.from.USA]
 at = [{ stage = 0, file = 10323 }]
@@ -728,6 +751,7 @@ pages = [
 [[unused_97.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://phvzyg4kb7sa", path = "res://packages/weapons/unused_86.node", output = "unused_97" }
 
 [unused_97.from.USA]
 at = [{ stage = 0, file = 10324 }]
@@ -758,6 +782,7 @@ type = "sound_bank"
 [[m4a1_hammer.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://wdiv0eu4mel9", path = "res://packages/weapons/m4a1_hammer.node" }
 
 [m4a1_hammer.from.USA]
 at = [{ stage = 0, file = 10325 }]
@@ -789,6 +814,7 @@ type = "sound_bank"
 [[m4a1_bayonet.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://vuongu1qfeng", path = "res://packages/weapons/m4a1_bayonet.node" }
 
 [m4a1_bayonet.from.USA]
 at = [{ stage = 0, file = 10326 }]
@@ -815,6 +841,7 @@ pages = [
 [[m4a1_grenade.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://iavjcx8irddv", path = "res://packages/weapons/m4a1_grenade.node" }
 
 [m4a1_grenade.from.USA]
 at = [{ stage = 0, file = 10327 }]
@@ -845,6 +872,7 @@ type = "sound_bank"
 [[m4a1_pyke.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1e4cy7zo0eg6l", path = "res://packages/weapons/m4a1_pyke.node" }
 
 [m4a1_pyke.from.USA]
 at = [{ stage = 0, file = 10328 }]
@@ -875,6 +903,7 @@ type = "sound_bank"
 [[m4a1_javelin.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://98xzi8q9kjhy", path = "res://packages/weapons/m4a1_javelin.node" }
 
 [m4a1_javelin.from.USA]
 at = [{ stage = 0, file = 10329 }]
@@ -905,6 +934,7 @@ type = "sound_bank"
 [[mp5a5.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1bh3tnigifo9w", path = "res://packages/weapons/mp5a5.node" }
 
 [mp5a5.from.USA]
 at = [{ stage = 0, file = 10330 }]
@@ -935,6 +965,7 @@ type = "sound_bank"
 [[mp5a5_p1.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1bh3tnigifo9w", path = "res://packages/weapons/mp5a5.node", output = "mp5a5_p1" }
 
 [mp5a5_p1.from.USA]
 at = [{ stage = 0, file = 10331 }]
@@ -965,6 +996,7 @@ type = "sound_bank"
 [[mp5a5_p2.slots]]
 name = "package"
 type = "package"
+package = { uid = "uid://1bh3tnigifo9w", path = "res://packages/weapons/mp5a5.node", output = "mp5a5_p2" }
 
 [mp5a5_p2.from.USA]
 at = [{ stage = 0, file = 10332 }]

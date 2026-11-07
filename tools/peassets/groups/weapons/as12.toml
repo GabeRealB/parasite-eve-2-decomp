@@ -101,7 +101,6 @@ embedded = [
     { name = "bank", offset = 0x0F140, size = 0x13C, address = 0x8012C300 },
 ]
 package_name = "as12"
-required = true
 sha1 = "82fde2298be3310b7bbfc4a5b07c2aab4f3dc3eb"
 
 [preview]

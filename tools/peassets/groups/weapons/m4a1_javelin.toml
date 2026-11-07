@@ -123,7 +123,6 @@ embedded = [
     { name = "bank", offset = 0x11860, size = 0x13C, address = 0x8012EA20 },
 ]
 package_name = "m4a1_javelin"
-required = true
 sha1 = "02c4ebcce5f28939a9a3ec884aa1e7e1d40adb77"
 
 [preview]

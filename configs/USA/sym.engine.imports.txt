@@ -164,39 +164,39 @@ gAyaAkropolisSecondPairHand1Model = 0x8011BE10; // absolute:True owner=aya_akrop
 gAyaDryfieldSecondPairHand1Model = 0x8011BE98; // absolute:True owner=aya_dryfield
 gAyaMistBodyModel = 0x8011C210; // absolute:True owner=aya_mist
 gAyaRangeBodyModel = 0x8011C2E4; // absolute:True owner=aya_range
-gUnused85HeldWeaponModel = 0x8011D53C; // absolute:True owner=unused_85
-gP08WeaponModel = 0x8011D924; // absolute:True owner=p08
-gMongooseModel = 0x8011D934; // absolute:True owner=mongoose
-gPa3WeaponModel = 0x8011DA04; // absolute:True owner=pa3
-gM93rWeaponModel = 0x8011DA74; // absolute:True owner=m93r
-gM950WeaponModel = 0x8011DA9C; // absolute:True owner=m950
-gSp12Model = 0x8011DB44; // absolute:True owner=sp12
-tonfaBatonModelTask = 0x8011DB98; // type:func absolute:True owner=tonfa_baton
-grenadePistolShellTask = 0x8011DBD0; // type:func absolute:True owner=grenade_pistol
-mm1ShellTask = 0x8011DBD8; // type:func absolute:True owner=mm1
-gAs12Model = 0x8011DCF0; // absolute:True owner=as12
-m4a1GrenadeShellTask = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
-gM249WeaponModel = 0x8011DE74; // absolute:True owner=m249
-gM4a1RifleModel = 0x8011DEC4; // absolute:True owner=m4a1
-gGrenadePistolWeaponModel = 0x8011E28C; // absolute:True owner=grenade_pistol
-gTonfaBatonWeaponModel = 0x8011E460; // absolute:True owner=tonfa_baton
-gMm1WeaponModel = 0x8011E494; // absolute:True owner=mm1
-gP229WeaponModel = 0x8011E5E4; // absolute:True owner=p229
-gTonfaBatonShaftModel = 0x8011E5EC; // absolute:True owner=tonfa_baton
-gM4a1BayonetWeaponModel = 0x8011E9FC; // absolute:True owner=m4a1_bayonet
-gM4a1GrenadeWeaponModel = 0x8011EA2C; // absolute:True owner=m4a1_grenade
-gMp5a5WeaponModel = 0x8011EAFC; // absolute:True owner=mp5a5
-gGunbladeModel = 0x8011EEB0; // absolute:True owner=gunblade
-gM4a1PykeWeaponModel = 0x8011F56C; // absolute:True owner=m4a1_pyke
-hypervelocityWeaponModelTask = 0x8011F6C0; // type:func absolute:True owner=hypervelocity
-gM4a1HammerModel = 0x8011F778; // absolute:True owner=m4a1_hammer
-gHypervelocityRootModel = 0x801202F8; // absolute:True owner=hypervelocity
-gHypervelocitySlideModel = 0x801205E4; // absolute:True owner=hypervelocity
-gM4a1JavelinWeaponModel = 0x8012071C; // absolute:True owner=m4a1_javelin
-gHypervelocityHingeModel = 0x80120860; // absolute:True owner=hypervelocity
-gGrenadePistolShellModel = 0x8012B5A4; // absolute:True owner=grenade_pistol
-gMm1ShellModel = 0x8012D444; // absolute:True owner=mm1
-gM4a1GrenadeProjectileModel = 0x8012E1FC; // absolute:True owner=m4a1_grenade
+gUnused85HeldWeaponModel = 0x8011D53C; // absolute:True
+gP08WeaponModel = 0x8011D924; // absolute:True
+gMongooseModel = 0x8011D934; // absolute:True
+gPa3WeaponModel = 0x8011DA04; // absolute:True
+gM93rWeaponModel = 0x8011DA74; // absolute:True
+gM950WeaponModel = 0x8011DA9C; // absolute:True
+gSp12Model = 0x8011DB44; // absolute:True
+tonfaBatonModelTask = 0x8011DB98; // type:func absolute:True
+grenadePistolShellTask = 0x8011DBD0; // type:func absolute:True
+mm1ShellTask = 0x8011DBD8; // type:func absolute:True
+gAs12Model = 0x8011DCF0; // absolute:True
+m4a1GrenadeShellTask = 0x8011DE68; // type:func absolute:True
+gM249WeaponModel = 0x8011DE74; // absolute:True
+gM4a1RifleModel = 0x8011DEC4; // absolute:True
+gGrenadePistolWeaponModel = 0x8011E28C; // absolute:True
+gTonfaBatonWeaponModel = 0x8011E460; // absolute:True
+gMm1WeaponModel = 0x8011E494; // absolute:True
+gP229WeaponModel = 0x8011E5E4; // absolute:True
+gTonfaBatonShaftModel = 0x8011E5EC; // absolute:True
+gM4a1BayonetWeaponModel = 0x8011E9FC; // absolute:True
+gM4a1GrenadeWeaponModel = 0x8011EA2C; // absolute:True
+gMp5a5WeaponModel = 0x8011EAFC; // absolute:True
+gGunbladeModel = 0x8011EEB0; // absolute:True
+gM4a1PykeWeaponModel = 0x8011F56C; // absolute:True
+hypervelocityWeaponModelTask = 0x8011F6C0; // type:func absolute:True
+gM4a1HammerModel = 0x8011F778; // absolute:True
+gHypervelocityRootModel = 0x801202F8; // absolute:True
+gHypervelocitySlideModel = 0x801205E4; // absolute:True
+gM4a1JavelinWeaponModel = 0x8012071C; // absolute:True
+gHypervelocityHingeModel = 0x80120860; // absolute:True
+gGrenadePistolShellModel = 0x8012B5A4; // absolute:True
+gMm1ShellModel = 0x8012D444; // absolute:True
+gM4a1GrenadeProjectileModel = 0x8012E1FC; // absolute:True
 actor800300Task = 0x801625F4; // type:func absolute:True owner=actor_800300
 actor800200Task = 0x801626EC; // type:func absolute:True owner=actor_800200
 actor800100Task = 0x80163CF0; // type:func absolute:True owner=actor_800100

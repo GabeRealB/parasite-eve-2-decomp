@@ -54,27 +54,27 @@
 #include "kyle/kyle.h"
 #include "kyle/kyle_800102.h"
 
-#include "weapons/as12.h"
-#include "weapons/m249.h"
-#include "weapons/m4a1.h"
-#include "weapons/gunblade.h"
-#include "weapons/grenade_pistol.h"
-#include "weapons/m4a1_bayonet.h"
-#include "weapons/hypervelocity.h"
-#include "weapons/m4a1_hammer.h"
-#include "weapons/m4a1_grenade.h"
-#include "weapons/m4a1_javelin.h"
-#include "weapons/sounds.h"
-#include "weapons/m4a1_pyke.h"
-#include "weapons/m93r.h"
-#include "weapons/m950.h"
-#include "weapons/mp5a5.h"
-#include "weapons/p08.h"
-#include "weapons/p229.h"
-#include "weapons/pa3.h"
-#include "weapons/tonfa_baton.h"
-#include "weapons/unused_85.h"
-#include "weapons/unused_86.h"
+#include "weapons/as12/as12.h"
+#include "weapons/m249/m249.h"
+#include "weapons/m4a1/m4a1.h"
+#include "weapons/gunblade/gunblade.h"
+#include "weapons/grenade_pistol/grenade_pistol.h"
+#include "weapons/m4a1_bayonet/m4a1_bayonet.h"
+#include "weapons/hypervelocity/hypervelocity.h"
+#include "weapons/m4a1_hammer/m4a1_hammer.h"
+#include "weapons/m4a1_grenade/m4a1_grenade.h"
+#include "weapons/m4a1_javelin/m4a1_javelin.h"
+#include "weapons/weapon/sounds.h"
+#include "weapons/m4a1_pyke/m4a1_pyke.h"
+#include "weapons/m93r/m93r.h"
+#include "weapons/m950/m950.h"
+#include "weapons/mp5a5/mp5a5.h"
+#include "weapons/p08/p08.h"
+#include "weapons/p229/p229.h"
+#include "weapons/pa3/pa3.h"
+#include "weapons/tonfa_baton/tonfa_baton.h"
+#include "weapons/unused_85/unused_85.h"
+#include "weapons/unused_86/unused_86.h"
 
 #include "engine/areas.h"
 #include "engine/task_types.h"
@@ -188,7 +188,7 @@ STATIC_ASSERT_SIZEOF(_PlayerActorWeaponAttacks, sizeof(TaskFunc) * PLAYER_ACTOR_
 #include <psyq/abs.h>
 #include <psyq/rand.h>
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Encodings used by the effect drawers in this translation unit.
 enum {
@@ -554,16 +554,6 @@ static void _playerActorTickBodyBlastHit(Task* task);
 /// sets `recoveryTicks` to 0x12 and restarts the state machine in the base state
 /// for its `state` mode.
 static inline void _gpResumeBaseState(Task* arg0);
-
-/// Weapon overlay entry points, at fixed addresses.
-
-void func_p08_snail_8011D1D8(Task* arg0);
-void func_mongoose_8011D1D8(Task* arg0);
-
-void func_sp12_8011D1DC(Task* arg0);
-
-void func_mp5a5_p1_8011DDA4(Task* arg0);
-void func_mp5a5_p2_8011DDA4(Task* arg0);
 
 /// PE cast/charge task ids used by the attachment effect lookup tables.
 enum {
@@ -8047,7 +8037,7 @@ s8 playerActorReadAttackButton(Task* task)
 /// the selected handler; the table has no terminator.
 static const _PlayerActorWeaponAttacks _gPlayerActorWeaponAttacks = { {
     _playerActorNoWeaponAttack,
-    func_p08_snail_8011D1D8,
+    p08SnailAttackState,
     m93rAttackState,
     m950AttackState,
     p08AttackState,
@@ -8055,12 +8045,12 @@ static const _PlayerActorWeaponAttacks _gPlayerActorWeaponAttacks = { {
     _playerActorNoWeaponAttack,
     _playerActorNoWeaponAttack,
     _playerActorNoWeaponAttack,
-    func_mongoose_8011D1D8,
+    mongooseAttackState,
     _playerActorNoWeaponAttack,
     grenadePistolAttackState,
     mm1AttackState,
     pa3AttackState,
-    func_sp12_8011D1DC,
+    sp12AttackState,
     as12AttackState,
     m4a1AttackState,
     m249AttackState,
@@ -8077,8 +8067,8 @@ static const _PlayerActorWeaponAttacks _gPlayerActorWeaponAttacks = { {
     m4a1PykeAttackState,
     m4a1JavelinAttackState,
     mp5a5AttackState,
-    func_mp5a5_p1_8011DDA4,
-    func_mp5a5_p2_8011DDA4,
+    mp5a5P1AttackState,
+    mp5a5P2AttackState,
 } };
 
 /// Runs the equipped weapon's attack handler, both on entry and on subsequent attack ticks.

@@ -1,2 +1,0 @@
-_muzzleFlashDrawCore = 0x8011D468; // type:func
-_muzzleFlashDrawStreak = 0x8011D864; // type:func

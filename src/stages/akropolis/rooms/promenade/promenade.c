@@ -64,7 +64,7 @@
 #include "effects/acropolis_glows/acropolis_glows.h"
 
 #include "assets/stages/akropolis/rooms/promenade/declarations.inc"
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 static void _akropolisPromenadeInitializeRoomTask(Task* task);
 static void _akropolisPromenadeUpdateRoomProgress(Task* unusedTask);

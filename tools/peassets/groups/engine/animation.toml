@@ -3,6 +3,7 @@
 
 [player_schema]
 type = "animation_schema"
+header = "gameplay/player_animation.h"
 slots = [
     "",
     "idle",

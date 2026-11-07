@@ -1,0 +1,8 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[player_schema]
+uid = "uid://1kjv0lj81h3ut"
+template = "animation_schema"
+prefix = "PLAYER_ANIMATION_"
+capacity = 79
+names = ["", "idle", "walk", "backward_walk", "run", "turn_left", "turn_right", "aim_enter", "aim_exit", "aim_idle", "fire", "secondary_fire", "aim_forward", "aim_backward", "reload", "secondary_reload", "hit_head", "hit_body", "death", "unarmed_walk", "reload_battle_end", "slot_21", "slot_22", "high_health_idle", "mid_health_idle", "low_health_idle", "parasite_energy_begin_0", "parasite_energy_charge_0", "parasite_energy_cast_0", "parasite_energy_begin_1", "parasite_energy_charge_1", "parasite_energy_cast_1", "examine_enter", "examine_exit", "slot_34", "slot_35", "stair_ascent", "stair_descent", "stair_ascent_finish_even", "stair_ascent_finish_odd", "item_use", "slot_41", "parasite_energy_begin_2", "parasite_energy_charge_2", "parasite_energy_cast_2", "", ""]

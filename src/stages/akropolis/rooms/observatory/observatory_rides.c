@@ -29,7 +29,7 @@
 
 #include "rooms/room.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 static void _akropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task);
 static void _akropolisObservatoryPromenadeArrivalMoviePathTask(Task* task);

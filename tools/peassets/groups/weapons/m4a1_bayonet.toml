@@ -111,7 +111,6 @@ embedded = [
     { name = "bank", offset = 0x1009C, size = 0x13C, address = 0x8012D25C },
 ]
 package_name = "m4a1_bayonet"
-required = true
 sha1 = "84992355f1cdbe37f1dc391b40624c7e7d9a959f"
 
 [preview]

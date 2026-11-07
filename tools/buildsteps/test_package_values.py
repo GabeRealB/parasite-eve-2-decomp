@@ -288,5 +288,29 @@ class Tokens(unittest.TestCase):
             answer(self.declared, slots, {"file": "uid://h"}, Query("file", "holds", ("self",)))
 
 
+class Clips(unittest.TestCase):
+    def test_a_clip_is_its_arrays_then_its_set_as_the_editor_writes_it(self) -> None:
+        import struct
+        from package_tokenizers import clip_definition, clip_name
+        address = 0x80100000
+        bank1 = struct.pack("<6h", 0, -928, 0, 0, 0, 0)
+        bank4 = struct.pack("<I", (1 & 0x7FF) | (-2 & 0x3FF) << 11 | (3 & 0x7FF) << 21)
+        records = b"".join(struct.pack("<HBB", *r) for r in ((0, 1, 0x01), (0, 128, 0xC0), (0, 4, 0x14), (0, 128, 0xC0)))
+        starts = struct.pack("<2H", 0, 2)
+        at = len(bank1) + len(bank4)
+        pointers = [address + at, address + at + len(records), 0, address, 0, 0, address + len(bank1), 0, 0, 0]
+        stored = bank1 + bank4 + records + starts + struct.pack("<10I", *pointers)
+        self.assertEqual(clip_name("characters/aya/handgun/walk"), "_gAyaHandgunWalkClip")
+        self.assertEqual(
+            clip_definition("_gIdleClip", stored, address),
+            "static AnimationPackedPose _gIdleClipBank1[] = { { 0, -928, 0, 0, 0, 0 } }; "
+            "static AnimationPackedRotation _gIdleClipBank4[] = { { 1, -2, 3 } }; "
+            "static AnimationRecord _gIdleClipRecords[] = { { 0, 1, 0x01 }, { 0, 128, 0xC0 }, { 0, 4, 0x14 }, { 0, 128, 0xC0 } }; "
+            "static u16 _gIdleClipTrackStarts[] = { 0, 2 }; "
+            "static AnimationSet _gIdleClip = { .records = _gIdleClipRecords, .trackStartIndices = _gIdleClipTrackStarts, "
+            ".poseBanks = { [1] = _gIdleClipBank1, [4] = _gIdleClipBank4 } };",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

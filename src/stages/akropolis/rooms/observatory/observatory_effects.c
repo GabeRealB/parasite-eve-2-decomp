@@ -38,7 +38,7 @@
 #include "engine/wipsys_types.h"
 
 #include "assets/stages/akropolis/rooms/observatory/declarations.inc"
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Work block of the observatory's one-time scripted player scene, owned by the scene task through `Task::work`.
 typedef struct {

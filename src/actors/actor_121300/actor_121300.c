@@ -53,7 +53,7 @@
 #include "../../shared/actor/actor_messages.h"
 #include "screen/fade/fade.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Scene step of Eve, stored in `_Actor121300EveWork::step`.
 ///

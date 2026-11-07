@@ -49,7 +49,7 @@
 
 #include "mapui/map_dryfield.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Commands in the motel room 1 actors' stage/area namespace.
 ///

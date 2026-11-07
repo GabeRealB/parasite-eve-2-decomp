@@ -108,7 +108,8 @@ def texture_of(reader: Reader, material: Declaration) -> tuple[Declaration, dict
 
 def material_tpage(reader: Reader, material: Declaration, _: Args) -> str:
     image, cell, _ = texture_of(reader, material)
-    bits = BITS.get(image.table.get("mode"), 16)
+    # The faces may read the texture deeper than its image is stored, where the material says (`bits`).
+    bits = material.table.get("bits", BITS.get(image.table.get("mode"), 16))
     if bits == 16:
         raise ValueError("a 16 bit image is no texture of a face")
     page_x, page_y = reader.placed(image.table["page"])
@@ -262,6 +263,82 @@ def of_member(make: Callable[[Reader, Declaration, Args], str]) -> Callable[[Rea
     return lambda reader, prefab, args: make(reader, reader.member(prefab, one(args, "member")), args)
 
 
+def clip_name(path: str) -> str:
+    """A clip's C name, from its path: its steps after the first, in words (`characters/aya/handgun/walk` ->
+    `_gAyaHandgunWalkClip`)."""
+    words = [word for step in path.split("/")[1:] for word in step.split("_")]
+    return "_g" + "".join(word[:1].upper() + word[1:] for word in words) + "Clip"
+
+
+SET_SIZE = 0x28
+ANGLE_STEP = 8
+
+
+def _signed(value: int, bits: int) -> int:
+    value &= (1 << bits) - 1
+    return value - (1 << bits) if value & (1 << (bits - 1)) else value
+
+
+def clip_definition(name: str, stored: bytes, address: int) -> str:
+    """A clip's arrays and its `AnimationSet`, as one line of C, its arrays named after it: what the disc stores, read
+    as its pointers lay it out."""
+    at = len(stored) - SET_SIZE
+    words = struct.unpack_from("<10I", stored, at)
+    records_at, starts_at = words[0] - address, words[1] - address
+    banks = {kind: words[2 + kind] - address for kind in range(8) if words[2 + kind]}
+    ends = sorted([*banks.values(), records_at])
+    out, named = [], []
+    for kind in sorted(banks, key=banks.get):
+        start = banks[kind]
+        end = ends[ends.index(start) + 1]
+        if kind == 1:
+            rows = ["{ " + ", ".join(map(str, pose)) + " }" for pose in struct.iter_unpack("<6h", stored[start:end])]
+            out.append(f"static AnimationPackedPose {name}Bank1[] = {{ {', '.join(rows)} }};")
+        else:
+            rows = ["{ " + ", ".join(str(_signed(word >> shift, bits)) for shift, bits in ((0, 11), (11, 10), (21, 11)))
+                    + " }" for word, in struct.iter_unpack("<I", stored[start:end])]
+            out.append(f"static AnimationPackedRotation {name}Bank{kind}[] = {{ {', '.join(rows)} }};")
+        named.append(f"[{kind}] = {name}Bank{kind}")
+    records = [f"{{ {offset}, {frames}, 0x{flags:02X} }}"
+               for offset, frames, flags in struct.iter_unpack("<HBB", stored[records_at:starts_at])]
+    out.append(f"static AnimationRecord {name}Records[] = {{ {', '.join(records)} }};")
+    starts = struct.unpack_from(f"<{(at - starts_at) // 2}H", stored, starts_at)
+    out.append(f"static u16 {name}TrackStarts[] = {{ {', '.join(map(str, starts))} }};")
+    out.append(f"static AnimationSet {name} = {{ .records = {name}Records, .trackStartIndices = {name}TrackStarts, "
+               f".poseBanks = {{ {', '.join(named)} }} }};")
+    return " ".join(out)
+
+
+def bank_whole(reader: Reader, bank: Declaration, args: Args) -> str:
+    """A bank as the game stores it: every clip it stores, then `AnimationSet* <symbol>[capacity]` naming each slot's.
+    Its slots are its schema's, each filled by the nearest bank of its chain (itself, then its `base`s) binding it; it
+    stores its `order`, then what its slots reach that the order leaves out."""
+    chain = [bank]
+    while "base" in chain[-1].table:
+        if len(chain) > 32:
+            raise ValueError("its bases go round")
+        chain.append(reader.declarations.named(chain[-1].table["base"]))
+    schema = next((reader.declarations.named(b.table["schema"]) for b in chain if "schema" in b.table), None)
+    if schema is None:
+        raise ValueError("no bank it is laid over names a schema")
+    filled = []
+    for slot in (name for name in schema.table.get("names", []) if name):
+        clip = next((b.table["clips"][slot] for b in chain if slot in b.table.get("clips", {})), None)
+        if clip is not None:
+            filled.append((slot, uid_of(clip)[0]))
+    stored = [uid_of(clip)[0] for clip in bank.table.get("order", [])]
+    stored += [clip for clip in dict.fromkeys(clip for _, clip in filled) if clip not in stored]
+    names, out = {}, []
+    for clip in stored:
+        declaration = reader.declarations.named(clip)
+        names[clip] = clip_name(declaration.path)
+        out.append(clip_definition(names[clip], *reader.stored(declaration)))
+    prefix, capacity = schema.table.get("prefix", ""), schema.table["capacity"]
+    entries = ", ".join(f"[{prefix}{slot.upper()}] = &{names[clip]}" for slot, clip in filled)
+    out.append(f"AnimationSet* {one(args, 'symbol')}[{capacity}] = {{ {entries} }};")
+    return " ".join(out)
+
+
 def model_buffer(reader: Reader, held: Declaration, _: Args) -> str:
     return record_field(reader, held, 4)
 
@@ -291,6 +368,7 @@ TOKENIZERS = {
         whole=Entry(of_member(model_definition), ("symbol", "member")),
         derived={"buffer": Entry(of_member(model_buffer), ("member",)), "seam": Entry(of_member(model_seam), ("member",))},
     ),
+    "animation_bank": Tokenizer(whole=Entry(bank_whole, ("symbol",))),
     "list": Tokenizer(derived={"count": Entry(list_count), "step": Entry(list_step)}),
     "file_group": Tokenizer(derived={"id": Entry(group_file_id, ("file",))}),
     "file": Tokenizer(derived={"id": Entry(file_stream_id, ("stream",))}),

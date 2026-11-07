@@ -1,2 +1,0 @@
-// Overlay-local symbols for AS12 (file 10315).
-as12AttackState = 0x8011d1dc; // type:func

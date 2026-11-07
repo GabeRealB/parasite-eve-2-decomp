@@ -107,7 +107,11 @@ Choose the owner before composing the name:
   overlay manifest (`aliases = { definition = "public name" }`) and emitted by
   the `PACKAGE_ALIASES` line that ends the source, as `DEFINE_ALIAS`
   statements. Both names are renamed like any symbol: `rename_item.py
-  --sidecars` rewrites the manifest with the symbol maps.
+  --sidecars` rewrites the manifest with the symbol maps. A package's
+  variants need no alias: each image defines the handler under the source's
+  one name, and what reaches a variant's copy names it by its own in its
+  imports, declared in the package's public header beside the source's
+  (`p08SnailAttackState` and `mongooseAttackState` beside `p08AttackState`).
 
 A TU or a header may contain several subsystems, and one subsystem may span
 several TUs. For example, an effect handler in `player_actor.c` still belongs to

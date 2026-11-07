@@ -101,7 +101,6 @@ embedded = [
     { name = "bank", offset = 0x10334, size = 0x13C, address = 0x8012D4F4 },
 ]
 package_name = "m4a1_hammer"
-required = true
 sha1 = "f8dd7cec7813029d73970a9aac0b3ee2e696e973"
 
 [preview]

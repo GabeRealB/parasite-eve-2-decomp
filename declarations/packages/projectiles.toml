@@ -1,0 +1,28 @@
+# The modules of projectiles: one library each, so that what includes one depends on it alone.
+
+# A grenade launcher's round: its arc, its contacts and its burst - the grenade pistol's, the MM1's, the M4A1's grenade
+# launcher's and Kyle's.
+[launcher_grenade]
+uid = "uid://k9kzbyrcc51x"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+# A flamethrower's flame: the M4A1's Pyke and an enemy's.
+[flamethrower_flame]
+uid = "uid://1x171kodvnran"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]

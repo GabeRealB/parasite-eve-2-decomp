@@ -299,32 +299,32 @@ func_80724714 = 0x80724714; // type:func absolute:True
 func_80724748 = 0x80724748; // type:func absolute:True
 func_80724E2C = 0x80724E2C; // type:func absolute:True
 D_80760618 = 0x80760618; // absolute:True
-m93rAttackState = 0x8011D1C4; // type:func absolute:True owner=m93r shared=weapons
-m4a1AttackState = 0x8011D1C4; // type:func absolute:True owner=m4a1 shared=weapons
-m4a1P1AttackState = 0x8011D1C4; // type:func absolute:True owner=m4a1_p1 shared=weapons
-m4a1P2AttackState = 0x8011D1C4; // type:func absolute:True owner=m4a1_p2 shared=weapons
-grenadePistolAttackState = 0x8011D1D4; // type:func absolute:True owner=grenade_pistol
-mm1AttackState = 0x8011D1D4; // type:func absolute:True owner=mm1
-p08AttackState = 0x8011D1D8; // type:func absolute:True owner=p08
-func_p08_snail_8011D1D8 = 0x8011D1D8; // type:func absolute:True owner=p08_snail
-func_mongoose_8011D1D8 = 0x8011D1D8; // type:func absolute:True owner=mongoose
-m950AttackState = 0x8011D1DC; // type:func absolute:True owner=m950 shared=weapons
-pa3AttackState = 0x8011D1DC; // type:func absolute:True owner=pa3 shared=weapons
-func_sp12_8011D1DC = 0x8011D1DC; // type:func absolute:True owner=sp12 shared=weapons
-as12AttackState = 0x8011D1DC; // type:func absolute:True owner=as12 shared=weapons
-m249AttackState = 0x8011D1DC; // type:func absolute:True owner=m249 shared=weapons
-m4a1GrenadeAttackState = 0x8011D1EC; // type:func absolute:True owner=m4a1_grenade shared=weapons
-m4a1BayonetAttackState = 0x8011DA34; // type:func absolute:True owner=m4a1_bayonet
-tonfaBatonAttackState = 0x8011DBFC; // type:func absolute:True owner=tonfa_baton
-p229AttackState = 0x8011DDA0; // type:func absolute:True owner=p229
-mp5a5AttackState = 0x8011DDA4; // type:func absolute:True owner=mp5a5
-func_mp5a5_p1_8011DDA4 = 0x8011DDA4; // type:func absolute:True owner=mp5a5_p1
-func_mp5a5_p2_8011DDA4 = 0x8011DDA4; // type:func absolute:True owner=mp5a5_p2
-gunbladeAttackState = 0x8011E040; // type:func absolute:True owner=gunblade
-m4a1PykeAttackState = 0x8011E4F8; // type:func absolute:True owner=m4a1_pyke
-m4a1HammerAttackState = 0x8011E710; // type:func absolute:True owner=m4a1_hammer
-m4a1JavelinAttackState = 0x8011F5D4; // type:func absolute:True owner=m4a1_javelin
-hypervelocityAttackState = 0x8011F724; // type:func absolute:True owner=hypervelocity
+m93rAttackState = 0x8011D1C4; // type:func absolute:True
+m4a1AttackState = 0x8011D1C4; // type:func absolute:True
+m4a1P1AttackState = 0x8011D1C4; // type:func absolute:True
+m4a1P2AttackState = 0x8011D1C4; // type:func absolute:True
+grenadePistolAttackState = 0x8011D1D4; // type:func absolute:True
+mm1AttackState = 0x8011D1D4; // type:func absolute:True
+p08AttackState = 0x8011D1D8; // type:func absolute:True
+p08SnailAttackState = 0x8011D1D8; // type:func absolute:True
+mongooseAttackState = 0x8011D1D8; // type:func absolute:True
+m950AttackState = 0x8011D1DC; // type:func absolute:True
+pa3AttackState = 0x8011D1DC; // type:func absolute:True
+sp12AttackState = 0x8011D1DC; // type:func absolute:True
+as12AttackState = 0x8011D1DC; // type:func absolute:True
+m249AttackState = 0x8011D1DC; // type:func absolute:True
+m4a1GrenadeAttackState = 0x8011D1EC; // type:func absolute:True
+m4a1BayonetAttackState = 0x8011DA34; // type:func absolute:True
+tonfaBatonAttackState = 0x8011DBFC; // type:func absolute:True
+p229AttackState = 0x8011DDA0; // type:func absolute:True
+mp5a5AttackState = 0x8011DDA4; // type:func absolute:True
+mp5a5P1AttackState = 0x8011DDA4; // type:func absolute:True
+mp5a5P2AttackState = 0x8011DDA4; // type:func absolute:True
+gunbladeAttackState = 0x8011E040; // type:func absolute:True
+m4a1PykeAttackState = 0x8011E4F8; // type:func absolute:True
+m4a1HammerAttackState = 0x8011E710; // type:func absolute:True
+m4a1JavelinAttackState = 0x8011F5D4; // type:func absolute:True
+hypervelocityAttackState = 0x8011F724; // type:func absolute:True
 gShelterB6NurseryModel07BAC = 0x801852D0; // absolute:True owner=shelter_b6_nursery
 gAkropolisCafeteriaWanderingCreatureModel = 0x80184E5C; // absolute:True owner=akropolis_cafeteria
 
@@ -371,7 +371,7 @@ gMapDryfieldFullHardBattleRewards = 0x8017D1CC; // absolute:True owner=map_dryfi
 gMapShelterHardBattleRewards = 0x8017BD8C; // absolute:True owner=map_shelter shared=mapui
 gMapNeoArkHardBattleRewards = 0x8017CB0C; // absolute:True owner=map_neo_ark
 akropolisEastElevatorHallPointTileTask = 0x8017FAAC; // type:func absolute:True owner=akropolis_east_elevator_hall shared=rooms
-func_8011D1E0 = 0x8011D1E0; // type:func absolute:True shared=weapons effect-bank slots 0xBB/0xBD, owner unproven
+func_8011D1E0 = 0x8011D1E0; // type:func absolute:True effect-bank slots 0xBB/0xBD in the weapon slot, owner unproven
 gAkropolisStageRoomTaskDescriptors = 0x8017A8AC; // absolute:True owner=akropolis_stage
 gMapDryfieldRoomTaskDescriptors = 0x8017A6A4; // absolute:True owner=map_dryfield
 gMapDryfieldFullRoomTaskDescriptors = 0x8017A5AC; // absolute:True owner=map_dryfield_full
@@ -425,29 +425,29 @@ gMapDryfieldObjectRooms = 0x8017A564; // absolute:True owner=map_dryfield
 gMapDryfieldFullObjectRooms = 0x8017A46C; // absolute:True owner=map_dryfield_full
 gMapShelterObjectRooms = 0x8017A998; // absolute:True owner=map_shelter
 gMapNeoArkObjectRooms = 0x8017A6EC; // absolute:True owner=map_neo_ark
-gP08PlayerAnimationBank = 0x8012A85C; // absolute:True owner=p08
-gM93rPlayerAnimationBank = 0x8012ADF8; // absolute:True owner=m93r
-gM950PlayerAnimationBank = 0x8012BA78; // absolute:True owner=m950
-gP229PlayerAnimationBank = 0x8012B51C; // absolute:True owner=p229
-gUnused85PlayerAnimationBank = 0x8012A474; // absolute:True owner=unused_85
-gUnused86PlayerAnimationBank = 0x8012A0D8; // absolute:True owner=unused_86
-gMongoosePlayerAnimationBank = 0x8012A9C0; // absolute:True owner=mongoose
-gGrenadePistolPlayerAnimationBank = 0x8012B2E4; // absolute:True owner=grenade_pistol
-gMm1PlayerAnimationBank = 0x8012D184; // absolute:True owner=mm1
-gPa3PlayerAnimationBank = 0x8012C18C; // absolute:True owner=pa3
-gSp12PlayerAnimationBank = 0x8012BCC8; // absolute:True owner=sp12
-gAs12PlayerAnimationBank = 0x8012C300; // absolute:True owner=as12
-gM4a1PlayerAnimationBank = 0x8012B9E4; // absolute:True owner=m4a1
-gM249PlayerAnimationBank = 0x8012CF58; // absolute:True owner=m249
-gTonfaBatonPlayerAnimationBank = 0x8012BAB0; // absolute:True owner=tonfa_baton
-gHypervelocityPlayerAnimationBank = 0x8012EDD0; // absolute:True owner=hypervelocity
-gGunbladePlayerAnimationBank = 0x8012E108; // absolute:True owner=gunblade
-gM4a1HammerPlayerAnimationBank = 0x8012D4F4; // absolute:True owner=m4a1_hammer
-gM4a1BayonetPlayerAnimationBank = 0x8012D25C; // absolute:True owner=m4a1_bayonet
-gM4a1GrenadePlayerAnimationBank = 0x8012DF50; // absolute:True owner=m4a1_grenade
-gM4a1PykePlayerAnimationBank = 0x8012D500; // absolute:True owner=m4a1_pyke
-gM4a1JavelinPlayerAnimationBank = 0x8012EA20; // absolute:True owner=m4a1_javelin
-gMp5a5PlayerAnimationBank = 0x8012B3CC; // absolute:True owner=mp5a5
+gP08PlayerAnimationBank = 0x8012A85C; // absolute:True
+gM93rPlayerAnimationBank = 0x8012ADF8; // absolute:True
+gM950PlayerAnimationBank = 0x8012BA78; // absolute:True
+gP229PlayerAnimationBank = 0x8012B51C; // absolute:True
+gUnused85PlayerAnimationBank = 0x8012A474; // absolute:True
+gUnused86PlayerAnimationBank = 0x8012A0D8; // absolute:True
+gMongoosePlayerAnimationBank = 0x8012A9C0; // absolute:True
+gGrenadePistolPlayerAnimationBank = 0x8012B2E4; // absolute:True
+gMm1PlayerAnimationBank = 0x8012D184; // absolute:True
+gPa3PlayerAnimationBank = 0x8012C18C; // absolute:True
+gSp12PlayerAnimationBank = 0x8012BCC8; // absolute:True
+gAs12PlayerAnimationBank = 0x8012C300; // absolute:True
+gM4a1PlayerAnimationBank = 0x8012B9E4; // absolute:True
+gM249PlayerAnimationBank = 0x8012CF58; // absolute:True
+gTonfaBatonPlayerAnimationBank = 0x8012BAB0; // absolute:True
+gHypervelocityPlayerAnimationBank = 0x8012EDD0; // absolute:True
+gGunbladePlayerAnimationBank = 0x8012E108; // absolute:True
+gM4a1HammerPlayerAnimationBank = 0x8012D4F4; // absolute:True
+gM4a1BayonetPlayerAnimationBank = 0x8012D25C; // absolute:True
+gM4a1GrenadePlayerAnimationBank = 0x8012DF50; // absolute:True
+gM4a1PykePlayerAnimationBank = 0x8012D500; // absolute:True
+gM4a1JavelinPlayerAnimationBank = 0x8012EA20; // absolute:True
+gMp5a5PlayerAnimationBank = 0x8012B3CC; // absolute:True
 gAyaAkropolisEyesRestSequence = 0x8011CC94; // absolute:True owner=aya_akropolis
 gAyaDryfieldEyesRestSequence = 0x8011CD1C; // absolute:True owner=aya_dryfield
 gAyaMistEyesRestSequence = 0x8011D094; // absolute:True owner=aya_mist
@@ -1965,11 +1965,11 @@ neoArkWoodlandPathLeafFallTask = 0x8017ED00; // type:func absolute:True owner=ne
 
 mistParkingContinueDepartureChoiceTask = 0x8018345C; // type:func absolute:True owner=mist_parking
 
-hypervelocityDischargeConeTask = 0x8011F270; // type:func absolute:True owner=hypervelocity
+hypervelocityDischargeConeTask = 0x8011F270; // type:func absolute:True
 
-hypervelocityRoundTask = 0x8011D830; // type:func absolute:True owner=hypervelocity
+hypervelocityRoundTask = 0x8011D830; // type:func absolute:True
 
-hypervelocityShockRingTask = 0x8011F168; // type:func absolute:True owner=hypervelocity
+hypervelocityShockRingTask = 0x8011F168; // type:func absolute:True
 
 pyrokinesisCastTask = 0x8012EF48; // type:func absolute:True owner=pyrokinesis shared=pe
 
@@ -1989,19 +1989,19 @@ combustionFlameEmitterTask = 0x8012EF34; // type:func absolute:True owner=combus
 
 combustionFlameTask = 0x8012F2BC; // type:func absolute:True owner=combustion
 
-hypervelocityChargeEffectTask = 0x8011D1E8; // type:func absolute:True owner=hypervelocity
+hypervelocityChargeEffectTask = 0x8011D1E8; // type:func absolute:True
 
-m4a1PykeNozzleTask = 0x8011D1F8; // type:func absolute:True owner=m4a1_pyke
+m4a1PykeNozzleTask = 0x8011D1F8; // type:func absolute:True
 
-m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_javelin shared=weapons
+m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func absolute:True
 
-tonfaBatonSwingTrailTask = 0x8011D1EC; // type:func absolute:True owner=tonfa_baton shared=weapons
+tonfaBatonSwingTrailTask = 0x8011D1EC; // type:func absolute:True
 
-m4a1BayonetTrailTask = 0x8011D1E4; // type:func absolute:True owner=m4a1_bayonet shared=weapons
+m4a1BayonetTrailTask = 0x8011D1E4; // type:func absolute:True
 
-p229MuzzleFlashTask = 0x8011D1DC; // type:func absolute:True owner=p229 shared=weapons
+p229MuzzleFlashTask = 0x8011D1DC; // type:func absolute:True
 
-mp5a5MuzzleFlashTask = 0x8011D1E0; // type:func absolute:True owner=mp5a5 shared=weapons
+mp5a5MuzzleFlashTask = 0x8011D1E0; // type:func absolute:True
 
 helicopterLandingPadNo9FlameJetTask = 0x80131F24; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
@@ -2045,27 +2045,27 @@ energyballImpactRingTask = 0x8013107C; // type:func absolute:True owner=energyba
 
 pyrokinesisVolleyTask = 0x8012FAC8; // type:func absolute:True owner=pyrokinesis
 
-m4a1PykeFlameTask = 0x8011D7D4; // type:func absolute:True owner=m4a1_pyke
+m4a1PykeFlameTask = 0x8011D7D4; // type:func absolute:True
 
 actor800100PykeEmitterTask = 0x80161F20; // type:func absolute:True owner=actor_800100
 
 actor800100PykeFlameTask = 0x801624F0; // type:func absolute:True owner=actor_800100
 
-m4a1HammerImpactFlashTask = 0x8011DD08; // type:func absolute:True owner=m4a1_hammer
+m4a1HammerImpactFlashTask = 0x8011DD08; // type:func absolute:True
 
-m4a1JavelinContactFlashTask = 0x8011F4E8; // type:func absolute:True owner=m4a1_javelin
+m4a1JavelinContactFlashTask = 0x8011F4E8; // type:func absolute:True
 
 helicopterLandingPadNo9ExplosionFireballTask = 0x8013482C; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
 helicopterLandingPadNo9ImpactBurstTask = 0x801346D4; // type:func absolute:True owner=helicopter_landing_pad_no_9
 
-gunbladeTrailTask = 0x8011D1E4; // type:func absolute:True owner=gunblade shared=weapons
+gunbladeTrailTask = 0x8011D1E4; // type:func absolute:True
 
 pepperSpraySparkTask = 0x8012F0B8; // type:func absolute:True owner=pepper_spray
 
 combustionCastTask = 0x801308E0; // type:func absolute:True owner=combustion
 
-gunbladeChargeFlashTask = 0x8011DAA4; // type:func absolute:True owner=gunblade
+gunbladeChargeFlashTask = 0x8011DAA4; // type:func absolute:True
 
 metabolismCastTask = 0x8012EF34; // type:func absolute:True owner=metabolism shared=pe
 
@@ -2089,6 +2089,6 @@ flareEffectTask = 0x8012EF34; // type:func absolute:True owner=flare shared=pe
 
 pepperSprayEffectTask = 0x8012EF34; // type:func absolute:True owner=pepper_spray shared=pe
 
-m4a1HammerGlowTask = 0x8011D1E0; // type:func absolute:True owner=m4a1_hammer shared=weapons
+m4a1HammerGlowTask = 0x8011D1E0; // type:func absolute:True
 
 lifedrainMoteTask = 0x8012FAF8; // type:func absolute:True owner=lifedrain shared=pe

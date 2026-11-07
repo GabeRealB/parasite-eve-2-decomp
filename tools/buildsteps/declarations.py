@@ -135,7 +135,10 @@ class Package:
     target: str
     # What others include it by (`<engine/fs.h>`) and its objects are named by: its folder's name, after the name of the
     # package its folder is in, if one is (`aya/mist`); folders that are no package's do not count (`Declarations.names`).
+    # A variant's is its own, beside its package's (`weapons/mp5a5_p1`).
     name: str
+    # The variant of its package it is (`variants.<name>`): the package built again with what the variant sets over it.
+    variant: str | None = None
 
     @property
     def path(self) -> str:
@@ -168,8 +171,11 @@ class Package:
 
     @property
     def fields(self) -> dict:
-        """Its declaration as its target reads it (`targeted`)."""
-        return targeted(self.declaration.table, self.target)
+        """Its declaration as its target reads it (`targeted`): a variant's set over its package's."""
+        own = {key: value for key, value in self.declaration.table.items() if key != "variants"}
+        if self.variant is not None:
+            own = merged(own, self.declaration.table["variants"][self.variant])
+        return targeted(own, self.target)
 
     @property
     def bound(self) -> dict:
@@ -384,12 +390,23 @@ class Declarations:
         return self.named(member["model"]["slot"])
 
     def packages(self, target: str = "psx") -> list[Package]:
-        """The packages a target links, which its link script says."""
+        """The packages a target links, which its link script says: each with its variants, each built as a package of its
+        own."""
         return [
-            self.package(declaration, target)
+            built
             for declaration in self.by_path.values()
             if declaration.template == "package" and "link_script" in declaration.table.get("target", {}).get(target, {})
+            for built in self.with_variants(declaration, target)
         ]
+
+    def with_variants(self, declaration: Declaration, target: str = "psx") -> list[Package]:
+        """A package, and each of its variants (`variants.<name>`): a sibling of its package's name."""
+        package = self.package(declaration, target)
+        parent = package.name.rpartition("/")[0]
+        return [package, *(
+            Package(declaration, target, f"{parent}/{variant}" if parent else variant, variant)
+            for variant in declaration.table.get("variants", {})
+        )]
 
     def compiled(self, target: str = "psx") -> list[Package]:
         """Every package and library a target has something to make of: sources to compile or objects to link."""
@@ -397,7 +414,7 @@ class Declarations:
             package
             for declaration in self.by_path.values()
             if declaration.template in ("package", "library")
-            for package in [self.package(declaration, target)]
+            for package in self.with_variants(declaration, target)
             if package.kind("sources") or package.kind("objects")
         ]
 

@@ -59,7 +59,7 @@
 #include "../../shared/actor/actor_messages.h"
 #include "screen/fade/fade.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Work block of the task that runs the package's cutscene, allocated zeroed at
 /// its full size by that task's first state and kept at its `Task::work`.

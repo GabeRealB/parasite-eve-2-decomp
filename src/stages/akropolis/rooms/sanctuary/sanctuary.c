@@ -65,7 +65,7 @@
 #include "../../../../shared/actor/actor_contacts.h"
 
 #include "assets/stages/akropolis/rooms/sanctuary/declarations.inc"
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Task-owned state for the sanctuary cutscene's script-cued player placement.
 typedef struct {

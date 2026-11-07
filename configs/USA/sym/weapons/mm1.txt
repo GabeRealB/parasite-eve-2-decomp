@@ -1,1 +1,0 @@
-// Overlay-local model records for the MM1 variant.

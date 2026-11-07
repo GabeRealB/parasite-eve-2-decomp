@@ -19,7 +19,7 @@
 
 #include "stages/akropolis/rooms/mist_shooting_gallery.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 #include "assets/stages/akropolis/actors/shooting_gallery_pierce/schema.h"
 
 TaskDesc gShootingGalleryPierceGalleryDecisionTaskDescs[2] = {

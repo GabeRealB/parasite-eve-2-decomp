@@ -24,6 +24,7 @@ page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_
 mode = "indexed_4bpp"
 size = [256, 64]
 palettes.default = { slot = { uid = "uid://1s46guge2y3r0", path = "res://engine/vram/weapon_palette.node" }, at = [0, 0] }
+cells.body = { rect = [0, 0, 256, 64], palette = "default" }
 
 [texture.import]
 importer = "pe2.images@ora"
@@ -33,3 +34,282 @@ source = "source.ora"
 at = [{ stage = 0, file = 10322, slot = "image", page = 0 }]
 sha1 = "1be103e751a22c8ba3f753f964f48c26613451a0"
 palettes = { default = "d935459f3d931ac217119b137fd2a1017165d210" }
+
+[run]
+uid = "uid://17ckkfw9bg0s7"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[run.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 70168
+size = 2552
+address = 2148721624
+sha1 = "1bb187650921f4482526cb755a72989c58d8e969"
+
+[aim_enter]
+uid = "uid://xo94rj2tv1uj"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_enter.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 60836
+size = 3048
+address = 2148712292
+sha1 = "8c93ec7e68d6a2ecd99bf15f5a4afffabb4f4964"
+
+[aim_exit]
+uid = "uid://1r4ai65q6yj9t"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_exit.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 63884
+size = 2100
+address = 2148715340
+sha1 = "d55003f086e6240d871379e87eb32bc0568916e0"
+
+[aim_idle]
+uid = "uid://1u92u1nppv3jj"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_idle.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 51040
+size = 476
+address = 2148702496
+sha1 = "ed9d05e9f2c0d385e2502b6a010df0eb5c789895"
+
+[fire]
+uid = "uid://qi4odn7juez"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[fire.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 56120
+size = 2016
+address = 2148707576
+sha1 = "a65b548a0a0622d4e0a5b6f8ae263e72931fdca7"
+
+[aim_forward]
+uid = "uid://ocxrszfojfei"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_forward.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 52700
+size = 2068
+address = 2148704156
+sha1 = "465a5ee6b02f4eee84c14bbfcb963067554e4b6c"
+
+[aim_backward]
+uid = "uid://10n2fa5fap5oh"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_backward.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 51516
+size = 1184
+address = 2148702972
+sha1 = "75c2ec58a3e116a5723e6e80b4d095e7887c1943"
+
+[charge]
+uid = "uid://jz7u1tfo6e20"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[charge.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 58136
+size = 1352
+address = 2148709592
+sha1 = "4d6347defaeea8aa8c885ff74d9781f42f7e5f32"
+
+[charge_cancel]
+uid = "uid://2657tnqyi3gr"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[charge_cancel.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 59488
+size = 1348
+address = 2148710944
+sha1 = "a99396a5a916e577bbb4ef9bbd723938260956fb"
+
+[reload_battle_end]
+uid = "uid://1xmlnpk79sphg"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[reload_battle_end.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 54768
+size = 1352
+address = 2148706224
+sha1 = "0d429e30fc1381e4d259df17a7ea65267e737134"
+
+[bank]
+uid = "uid://3lmeeti0yc5j"
+template = "animation_bank"
+base = { uid = "uid://1r6g09zd1kikf", path = "res://characters/aya/rifle/bank.node" }
+clips.run = { uid = "uid://17ckkfw9bg0s7", path = "res://weapons/hypervelocity/run.node" }
+clips.aim_enter = { uid = "uid://xo94rj2tv1uj", path = "res://weapons/hypervelocity/aim_enter.node" }
+clips.aim_exit = { uid = "uid://1r4ai65q6yj9t", path = "res://weapons/hypervelocity/aim_exit.node" }
+clips.aim_idle = { uid = "uid://1u92u1nppv3jj", path = "res://weapons/hypervelocity/aim_idle.node" }
+clips.fire = { uid = "uid://qi4odn7juez", path = "res://weapons/hypervelocity/fire.node" }
+clips.secondary_fire = { uid = "uid://qi4odn7juez", path = "res://weapons/hypervelocity/fire.node" }
+clips.aim_forward = { uid = "uid://ocxrszfojfei", path = "res://weapons/hypervelocity/aim_forward.node" }
+clips.aim_backward = { uid = "uid://10n2fa5fap5oh", path = "res://weapons/hypervelocity/aim_backward.node" }
+clips.reload = { uid = "uid://jz7u1tfo6e20", path = "res://weapons/hypervelocity/charge.node" }
+clips.secondary_reload = { uid = "uid://2657tnqyi3gr", path = "res://weapons/hypervelocity/charge_cancel.node" }
+clips.reload_battle_end = { uid = "uid://1xmlnpk79sphg", path = "res://weapons/hypervelocity/reload_battle_end.node" }
+order = [
+    { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
+    { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },
+    { uid = "uid://14ntxbbbgd13g", path = "res://characters/aya/handgun/backward_walk.node" },
+    { uid = "uid://vwnykcs79i3d", path = "res://characters/aya/turn_left.node" },
+    { uid = "uid://12jqtqkjpe6hn", path = "res://characters/aya/turn_right.node" },
+    { uid = "uid://bl1ghfilnh8s", path = "res://characters/aya/item_use.node" },
+    { uid = "uid://10vf9m8ut8jzs", path = "res://characters/aya/stair_ascent.node" },
+    { uid = "uid://18peocykh6lex", path = "res://characters/aya/stair_descent.node" },
+    { uid = "uid://1cmcyl6q31k4v", path = "res://characters/aya/stair_ascent_finish_odd.node" },
+    { uid = "uid://1hyutnhveo2l7", path = "res://characters/aya/stair_ascent_finish_even.node" },
+    { uid = "uid://ljeipl156tt8", path = "res://characters/aya/parasite_energy_begin_0.node" },
+    { uid = "uid://x8yply922mq2", path = "res://characters/aya/parasite_energy_charge_0.node" },
+    { uid = "uid://wu1n3ibix6jv", path = "res://characters/aya/parasite_energy_cast_0.node" },
+    { uid = "uid://167r0tbwem6b7", path = "res://characters/aya/parasite_energy_begin_1.node" },
+    { uid = "uid://165qrj4dv57l5", path = "res://characters/aya/parasite_energy_charge_1.node" },
+    { uid = "uid://1jcfsl6xtw3fr", path = "res://characters/aya/parasite_energy_cast_1.node" },
+    { uid = "uid://1nrh7yonk4wdi", path = "res://characters/aya/hit_head.node" },
+    { uid = "uid://zspuotz2j143", path = "res://characters/aya/hit_body.node" },
+    { uid = "uid://pw0v00f46jrj", path = "res://characters/aya/death.node" },
+    { uid = "uid://a4uz7oxmvjkk", path = "res://characters/aya/high_health_idle.node" },
+    { uid = "uid://lvtbhelhg0dq", path = "res://characters/aya/low_health_idle.node" },
+    { uid = "uid://rfjp7q1ko41g", path = "res://characters/aya/mid_health_idle.node" },
+    { uid = "uid://a1j0xx9z290l", path = "res://characters/aya/examine_enter.node" },
+    { uid = "uid://ew1m82usbi4p", path = "res://characters/aya/examine_exit.node" },
+    { uid = "uid://ygo680hlki7h", path = "res://characters/aya/parasite_energy_begin_2.node" },
+    { uid = "uid://1kwb8cgel3doe", path = "res://characters/aya/parasite_energy_charge_2.node" },
+    { uid = "uid://9lzv6q4u0mhz", path = "res://characters/aya/parasite_energy_cast_2.node" },
+    { uid = "uid://1u92u1nppv3jj", path = "res://weapons/hypervelocity/aim_idle.node" },
+    { uid = "uid://10n2fa5fap5oh", path = "res://weapons/hypervelocity/aim_backward.node" },
+    { uid = "uid://ocxrszfojfei", path = "res://weapons/hypervelocity/aim_forward.node" },
+    { uid = "uid://1xmlnpk79sphg", path = "res://weapons/hypervelocity/reload_battle_end.node" },
+    { uid = "uid://qi4odn7juez", path = "res://weapons/hypervelocity/fire.node" },
+    { uid = "uid://jz7u1tfo6e20", path = "res://weapons/hypervelocity/charge.node" },
+    { uid = "uid://2657tnqyi3gr", path = "res://weapons/hypervelocity/charge_cancel.node" },
+    { uid = "uid://xo94rj2tv1uj", path = "res://weapons/hypervelocity/aim_enter.node" },
+    { uid = "uid://1r4ai65q6yj9t", path = "res://weapons/hypervelocity/aim_exit.node" },
+    { uid = "uid://1s5b6ostxg4uw", path = "res://characters/aya/rifle/walk.node" },
+    { uid = "uid://19nip6ec4j8az", path = "res://characters/aya/rifle/backward_walk.node" },
+    { uid = "uid://17ckkfw9bg0s7", path = "res://weapons/hypervelocity/run.node" },
+]
+
+[hinge_mesh]
+uid = "uid://e42ddrlri1fn"
+template = "mesh"
+
+[hinge_mesh.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 13384
+size = 636
+address = 2148664840
+symbol = "gHypervelocityHingeModel"
+material_slots = ["body"]
+sha1 = "39152dd920cc7fb9bb2f9531b571cf97ceae32dc"
+
+[hinge_material]
+uid = "uid://uztzcf4izni"
+template = "material"
+shader = "textured"
+surface = "opaque"
+blend = "add"
+main = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.node", output = "cells/body@default" }
+
+[hinge_model]
+uid = "uid://1fj5b5l9fwomh"
+template = "model"
+mesh = { slot = { uid = "uid://e42ddrlri1fn", path = "res://weapons/hypervelocity/hinge_mesh.node" } }
+materials.body = { slot = { uid = "uid://uztzcf4izni", path = "res://weapons/hypervelocity/hinge_material.node" } }
+
+[hinge_model.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 13384
+size = 636
+address = 2148664840
+sha1 = "39152dd920cc7fb9bb2f9531b571cf97ceae32dc"
+
+[root_mesh]
+uid = "uid://mdiv6lovt5p4"
+template = "mesh"
+
+[root_mesh.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 10684
+size = 1952
+address = 2148662140
+symbol = "gHypervelocityRootModel"
+material_slots = ["body"]
+sha1 = "32b516da0709e653b2988c588f628bdb351f0bca"
+
+[root_material]
+uid = "uid://iy1390453lpj"
+template = "material"
+shader = "textured"
+surface = "opaque"
+blend = "add"
+main = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.node", output = "cells/body@default" }
+
+[root_model]
+uid = "uid://1pdb82bm1zkcv"
+template = "model"
+mesh = { slot = { uid = "uid://mdiv6lovt5p4", path = "res://weapons/hypervelocity/root_mesh.node" } }
+materials.body = { slot = { uid = "uid://iy1390453lpj", path = "res://weapons/hypervelocity/root_material.node" } }
+
+[root_model.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 10684
+size = 1952
+address = 2148662140
+sha1 = "32b516da0709e653b2988c588f628bdb351f0bca"
+
+[slide_mesh]
+uid = "uid://j5cd1vsgjtft"
+template = "mesh"
+
+[slide_mesh.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 12636
+size = 748
+address = 2148664092
+symbol = "gHypervelocitySlideModel"
+material_slots = ["body"]
+sha1 = "d9e51e51a4edb02d725cdab2fdd650f1542f6a0c"
+
+[slide_material]
+uid = "uid://7yk478ypxsp6"
+template = "material"
+shader = "textured"
+surface = "opaque"
+blend = "add"
+main = { uid = "uid://1o3hjqi9hokyq", path = "res://weapons/hypervelocity/texture.node", output = "cells/body@default" }
+
+[slide_model]
+uid = "uid://62snmdelcba3"
+template = "model"
+mesh = { slot = { uid = "uid://j5cd1vsgjtft", path = "res://weapons/hypervelocity/slide_mesh.node" } }
+materials.body = { slot = { uid = "uid://7yk478ypxsp6", path = "res://weapons/hypervelocity/slide_material.node" } }
+
+[slide_model.from.USA]
+at = [{ stage = 0, file = 10322, slot = "package" }]
+offset = 12636
+size = 748
+address = 2148664092
+sha1 = "d9e51e51a4edb02d725cdab2fdd650f1542f6a0c"

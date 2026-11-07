@@ -119,7 +119,6 @@ embedded = [
     { name = "bank", offset = 0x0D800, size = 0x13C, address = 0x8012A9C0 },
 ]
 package_name = "mongoose"
-required = true
 sha1 = "a6619fa870c5e545235fa1b8174757e06e85c4df"
 
 [preview]

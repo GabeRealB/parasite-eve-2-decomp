@@ -117,7 +117,6 @@ embedded = [
     { name = "bank", offset = 0x0FD98, size = 0x13C, address = 0x8012CF58 },
 ]
 package_name = "m249"
-required = true
 sha1 = "c788e1e43559479fffb7f6baa850fde9b0389855"
 
 [preview]

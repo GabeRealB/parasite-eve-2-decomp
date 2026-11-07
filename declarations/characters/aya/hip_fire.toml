@@ -1,0 +1,73 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[aim_enter]
+uid = "uid://fm6mg7vgqvjx"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_enter.from.USA]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 56892
+size = 1264
+address = 2148708348
+sha1 = "10d6dbb82827fc922eff57b387cac4ddf0b384d5"
+
+[aim_exit]
+uid = "uid://6hctobdxvqh0"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_exit.from.USA]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 58156
+size = 1420
+address = 2148709612
+sha1 = "fd3e79baef49780b47deeefd2838082670e6089a"
+
+[aim_idle]
+uid = "uid://1advamzw1m3ja"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_idle.from.USA]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 46276
+size = 472
+address = 2148697732
+sha1 = "51024b3bcd3d4fe45e8bec8da18ba6433f458d9b"
+
+[aim_backward]
+uid = "uid://1jkx15v77jd7t"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_backward.from.USA]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 46748
+size = 1844
+address = 2148698204
+sha1 = "d188b1e89737aab4b5669375b1f5cc98f18a2811"
+
+[fire]
+uid = "uid://1q4w2kzef3sbr"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[fire.from.USA]
+at = [{ stage = 0, file = 10303, slot = "package" }]
+offset = 55612
+size = 1280
+address = 2148707068
+sha1 = "452c2b9064e1c18e3b8073fa1f576159fe3339cb"
+
+[bank]
+uid = "uid://uittbqgrio3r"
+template = "animation_bank"
+base = { uid = "uid://146uebys7wyb3", path = "res://characters/aya/handgun/bank.node" }
+clips.aim_enter = { uid = "uid://fm6mg7vgqvjx", path = "res://characters/aya/hip_fire/aim_enter.node" }
+clips.aim_exit = { uid = "uid://6hctobdxvqh0", path = "res://characters/aya/hip_fire/aim_exit.node" }
+clips.aim_idle = { uid = "uid://1advamzw1m3ja", path = "res://characters/aya/hip_fire/aim_idle.node" }
+clips.aim_backward = { uid = "uid://1jkx15v77jd7t", path = "res://characters/aya/hip_fire/aim_backward.node" }
+clips.fire = { uid = "uid://1q4w2kzef3sbr", path = "res://characters/aya/hip_fire/fire.node" }
+clips.secondary_fire = { uid = "uid://1q4w2kzef3sbr", path = "res://characters/aya/hip_fire/fire.node" }
+clips.aim_forward = { uid = "uid://1olweyx96r8n0", path = "res://characters/aya/rifle/aim_forward.node" }

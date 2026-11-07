@@ -66,7 +66,7 @@
 #include "effects/glow/glow.h"
 #include "screen/fade/fade.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 #include "assets/stages/akropolis/actors/police_officers/rookie_schema.h"
 #include "assets/stages/akropolis/actors/police_officers/scene_player_schema.h"
 

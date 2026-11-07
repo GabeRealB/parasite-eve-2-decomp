@@ -62,7 +62,7 @@
 
 #include "rooms/room_common.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Selects the private hotspot test used by the key-item cursor and line tip.
 ///

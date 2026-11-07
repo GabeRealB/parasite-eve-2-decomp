@@ -12,7 +12,7 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
   `src/<family>/<overlay>` for the generated overlay families (`src/weapons/m93r`, …)
 - `packages/` overlays migrated out of splat, and the libraries they share, written by hand (see "Packages"
   below)
-- `include/<overlay>` headers for that unit (`include/weapons`, `include/rooms`, …); a package's public headers are
+- `include/<overlay>` headers for that unit (`include/rooms`, `include/actors`, …); a package's public headers are
   its own `include/` (`packages/engine/include`, `packages/gameplay/include`), which split units include by the
   package's name (`engine/fs.h`)
 - `asm/<ver>/<overlay>/nonmatchings` unmatched functions (one `.s` per function). Overlays may be nested (e.g. `asm/USA/stage1/101/nonmatchings`).
@@ -26,13 +26,17 @@ A fully decompiled overlay leaves splat and becomes a package. So far: the title
 (`packages/title`), Aya's costumes (`packages/aya/{mist,dryfield,akropolis,range}`),
 the options menu and the package after it (`packages/options`,
 `packages/stub_20200`), the enemy name table (`packages/debug/enemy_names`), the
-Parasite Energies (`pe/pyrokinesis`, ..., under the umbrella `pe`) and the items cast like them
-(`packages/items/*`). Code the overlays share is a library per module, which a
+Parasite Energies (`pe/pyrokinesis`, ..., under the umbrella `pe`), the items cast like them
+(`packages/items/*`) and the player's 32 weapons (`packages/weapons/*`, each with its own header,
+`<weapons/m93r/m93r.h>`; the M4A1's and MP5A5's upgrades, the P08's snail magazine and the Mongoose,
+the SP12, the MM1 and the four unused slots are variants). Code the overlays share is a library per module, which a
 package depends on alone: the fragments it includes where its copy sits, with the
 types they use, under the umbrellas `effects` (`effects/glow`,
-`effects/sprite_quad`, ...) and `screen` (`screen/fade`, ...), which have no files
-of their own. A module lives at the lowest level holding all its users: what
-only the Parasite Energies share is `pe/effects/*`, and a module shared within
+`effects/sprite_quad`, ...), `screen` (`screen/fade`, ...), `projectiles`
+(`projectiles/launcher_grenade`, ...) and `weapons` (`weapons/weapon`, the indices,
+sound slots and types the player's code and every weapon share, `weapons/attack`,
+...), which have no files of their own. A module lives at the lowest level holding all its users: what
+only the Parasite Energies share is `pe/effects/*`, what only the weapons draw `weapons/effects/*`, and a module shared within
 one stage says so, to go under that stage once it is a package. Its folder is its
 source, and its declaration (`declarations/packages/`, the path being the
 folder) says what of it is built and what fills its slots. The same files are
@@ -50,6 +54,10 @@ does, and nothing is assumed: what is not declared is not built.
 what links it - Psy-Q's members and libsn's start-up (`sources.public`) go to
 the executable that links Psy-Q. A target adds under `target.<name>`, its
 tables merged and its lists appended (`targeted`).
+A package of one source names it `src/package.c`, since only its declaration
+names it; its public header is named after the package (`<weapons/pa3/pa3.h>`,
+never `package.h`), since every file including it names it, and diagnostics,
+tabs and searches show only the file's name.
 
 | File | Role |
 |---|---|
@@ -124,6 +132,18 @@ follow from (`title`'s black fade: its length and brightness step both come from
 `BLACK_FADE_STEP_SHIFT`). What stays in C is hardware and asset facts and wiring
 such as task slots. A limit an option's uses put on it is a `STATIC_ASSERT` beside
 them (`title`'s fade step divides full brightness), so a bad value fails by name.
+
+**A package may be built several times: its variants.** A declaration's
+`variants.<name>` tables each make another image of the package's one source, named
+as a sibling of the package (`weapons/mp5a5` and its `mp5a5_p1`: the image
+`weapons_mp5a5_p1`), with what the variant sets over the package's - its options,
+its bindings, its dependencies appended, its link script (`target.psx.link_script`,
+which writes its own id). The source does not know its variants: what only some of
+them have is `#if PE2_OPTION(...)`, and a variant binds only what its live code
+reaches. A file slot names a variant as the package's output of its name
+(`output = "mp5a5_p1"`). In the editor the package's stack builds each variant
+through its whole chain (an `each` output with `branch`, the layer it starts from);
+in ninja each is a package of its own (`Declarations.with_variants`).
 
 **A table of tuning is one option of a registered type.** `PE2_TYPE(Name)`, after a
 typedef, registers it with the build: an alias of an integer primitive, or a struct
@@ -410,9 +430,9 @@ Do not switch `ld_bss_is_noload` globally in `overlay.template.yaml`: empty BSS
 sections can also introduce alignment and break packages that end flush against
 their last data byte. Establish the section layout separately for each image.
 
-**Several packages can be one source built with different parameters.** The
-MP5A5 and its two upgrades differ only in their weapon index; the M4A1, P08,
-shotgun and grenade families are the same. Such an entry lists its packages in
+**Several packages can be one source built with different parameters.** Once
+packages, these are variants (above); in splat, as some actors still are, such an
+entry lists its packages in
 `slots`, each with its own `id`, `label` and `defines` (`{ WEAPON_INDEX = 0x1F }`),
 and marks the code unit `variant = true`: the unit is then named per package,
 so each gets its own object, but all compile the entry's one source with that
@@ -423,7 +443,7 @@ that package's copy of a definition (`DEFINE_ALIAS` in
 `include/decomp/common.h`; the alias has to be made in the object that defines
 the symbol, so the source ends with `PACKAGE_ALIASES`). Declare a parameter only where the bytes show it varies, derive what
 follows from it (a weapon's item is always its index + 0x7F, `WEAPON_ITEM_ID` in
-`include/weapons/weapon.h`), and keep a value that merely looks derivable as a
+`<weapons/weapon.h>`), and keep a value that merely looks derivable as a
 declared one when the original did not follow the pattern.
 
 **Every overlay starts with its own id: a `u16` at offset 0, in a `u32` slot.**

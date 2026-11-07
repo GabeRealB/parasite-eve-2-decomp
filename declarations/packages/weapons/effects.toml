@@ -1,0 +1,28 @@
+# The modules of weapons/effects: one library each, the effects only the weapons draw.
+
+# A handgun's muzzle flash, the task and its draws: the MP5A5's and the P229's.
+[muzzle_flash]
+uid = "uid://lcgz1m49nbi8"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+# A blade's swing trail: the Gunblade's, the Bayonet's and the Tonfa Baton's.
+[blade_trail]
+uid = "uid://1sxpab9tbqof3"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]

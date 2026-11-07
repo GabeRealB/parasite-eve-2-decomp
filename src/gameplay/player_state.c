@@ -45,7 +45,7 @@
 #include "engine/task.h"
 #include "engine/wipsys.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Duration of each timed player ailment, in active status updates.
 enum { PLAYER_STATE_STATUS_DURATION_TICKS = 600 };

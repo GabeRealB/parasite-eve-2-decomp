@@ -118,7 +118,6 @@ embedded = [
     { name = "bank", offset = 0x0E8F0, size = 0x13C, address = 0x8012BAB0 },
 ]
 package_name = "tonfa_baton"
-required = true
 sha1 = "039a1abc47fa6a2e89fee65c8d0e6d9b4c997781"
 
 [preview]

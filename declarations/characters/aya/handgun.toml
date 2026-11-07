@@ -1,0 +1,58 @@
+# Declarations: where extraction finds each asset on the discs (pe2-cli project extract); slots name the assets that fill them.
+
+[backward_walk]
+uid = "uid://14ntxbbbgd13g"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[backward_walk.from.USA]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 6448
+size = 2264
+address = 2148657904
+sha1 = "50405dac4a74bda467d3335facc2e1392927a3a3"
+
+[walk]
+uid = "uid://ijzapbksy7fs"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[walk.from.USA]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 4068
+size = 2380
+address = 2148655524
+sha1 = "e2eeab041f4f3311983b690754cbf07f8e9a5879"
+
+[run]
+uid = "uid://1atdtfyzjlnks"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[run.from.USA]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 8712
+size = 1844
+address = 2148660168
+sha1 = "655219d14f214f0c28085530834b9fd5ea334e62"
+
+[aim_forward]
+uid = "uid://if98j54iia9p"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[aim_forward.from.USA]
+at = [{ stage = 0, file = 10301, slot = "package" }]
+offset = 45424
+size = 3052
+address = 2148696880
+sha1 = "82ed4b20549b21f33ffe2a43de4163317829968b"
+
+[bank]
+uid = "uid://146uebys7wyb3"
+template = "animation_bank"
+base = { uid = "uid://2modxwho7cpf", path = "res://characters/aya/bank.node" }
+clips.walk = { uid = "uid://ijzapbksy7fs", path = "res://characters/aya/handgun/walk.node" }
+clips.backward_walk = { uid = "uid://14ntxbbbgd13g", path = "res://characters/aya/handgun/backward_walk.node" }
+clips.run = { uid = "uid://1atdtfyzjlnks", path = "res://characters/aya/handgun/run.node" }
+clips.aim_forward = { uid = "uid://if98j54iia9p", path = "res://characters/aya/handgun/aim_forward.node" }

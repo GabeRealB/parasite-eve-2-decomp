@@ -499,14 +499,16 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
 
 
 def declared_animation_sources(version: str) -> tuple[list, list]:
-    """What gen_animation_source.py writes: per package that places declared clips, (package, the clips' stored bytes,
+    """What gen_animation_source.py writes: per package splat builds that places declared clips, (package, the clips' stored bytes,
     `<package group>/clips.inc`, or `<group>/<variant>_clips.inc` for a group's package `<variant>_package`); per
     declared bank, (name, `<group>/<local name>.inc`)."""
     data, schema = asset_tables()
     tables = (data.ASSETS, data.EMBEDDED_ASSETS)
     clips, banks = [], []
+    # Only what splat still builds includes them: a package the declarations build binds its bank as a slot.
+    built = {rec.get("package_name", key) for key, rec in data.ASSETS.items() if rec.get("required")}
     for key, rec in data.ASSETS.items():
-        if rec.get("type") in ("pe2pkg", "room", "stage", "package"):
+        if rec.get("type") in ("pe2pkg", "room", "stage", "package") and rec.get("required"):
             placed = [p["name"] for p in rec.get("embedded", ()) if isinstance(p, dict)
                       and data.ASSETS[p["name"]]["type"] == "clip"]
             if placed:
@@ -521,7 +523,8 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
                     name = rec.get("package_name", key) + (f":{k}" if len(runs) > 1 else "")
                     inc = f"{stem}.inc" if len(runs) == 1 else f"{stem}_{k}.inc"
                     clips.append((name, usd, BUILD_DIR / "include" / "assets" / rec["group"] / inc))
-        elif rec.get("type") == "animation_bank" and key in data.EMBEDDED_ASSETS:      # a layer is not a table
+        elif (rec.get("type") == "animation_bank" and key in data.EMBEDDED_ASSETS    # a layer is not a table
+              and data.EMBEDDED_ASSETS[key]["source"].removesuffix(".pe2pkg") in built):
             banks.append((key, BUILD_DIR / "include" / "assets" / include_path(key, rec)))
     return clips, banks
 
@@ -1310,7 +1313,7 @@ def ninja_packages(
     # it builds link.
     provided: dict[str, tuple[list[str], list[str]]] = {}
     # What the packages built link, and every library with something to compile: the split executable links psyq's.
-    linked = {package.path: package.linked(declarations) for package in packages}
+    linked = {package.name: package.linked(declarations) for package in packages}
     wanted = {p.path for p in packages} | {library.path for objects, _ in linked.values() for library in objects}
     wanted |= {p.path for p in declarations.compiled() if p.declaration.template == "library"}
     for package in declarations.compiled():
@@ -1322,7 +1325,7 @@ def ninja_packages(
         c_units = [unit for unit in units if unit.suffix == ".c"]
         options, values = (out / "pe2_options.h").as_posix(), (out / "pe2_values.h").as_posix()
         steps = [str(GEN_PACKAGE_VALUES), *(str(TOOLS_DIR / "buildsteps" / name) for name in ("declarations.py", "package_tokenizers.py", "stage0.py"))]
-        own = {"package": package.path, "release": version}
+        own = {"package": package.name, "release": version}
         # What its units include of other packages, each under its name: what it depends on, and what those expose.
         deps = out / "deps"
         # Made again at every run: it holds links alone, which rmtree removes without following.
@@ -1387,7 +1390,7 @@ def ninja_packages(
     # libraries it takes and against the symbols of the images it depends on (`Package.linked`).
     for package in packages:
         out = root / package.name
-        objects, against = linked[package.path]
+        objects, against = linked[package.name]
         inputs = provided.get(package.name, ([], []))[0] + [obj for library in objects for obj in provided.get(library.name, ([], []))[1]]
         image = (images / package.name.replace("/", "_")).as_posix()
         layout, own_symbols = (out / "layout.elf").as_posix(), (out / "symbols.ld").as_posix()
@@ -1755,9 +1758,10 @@ def ninja_build(
             writer.build(outputs=str(inc), rule="animation-source", implicit=animation_deps,
                          variables={"kind": "bank", "name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
-    # A schema's slots as constants (`assets/<schema>.h`): the indices code plays clips by.
+    # A schema's slots as constants (`assets/<schema>.h`): the indices code plays clips by. A schema whose slots a
+    # package's public header writes by hand (`header`, the player's in gameplay) has none made.
     data, _schema = asset_tables()
-    for name in sorted(k for k, r in data.ASSETS.items() if r.get("type") == "animation_schema"):
+    for name in sorted(k for k, r in data.ASSETS.items() if r.get("type") == "animation_schema" and "header" not in r):
         header = BUILD_DIR / "include" / "assets" / f"{name}.h"
         for writer in asset_writers:
             writer.build(outputs=str(header), rule="animation-source", implicit=animation_deps,

@@ -149,7 +149,6 @@ embedded = [
     { name = "bank", offset = 0x0E824, size = 0x13C, address = 0x8012B9E4 },
 ]
 package_name = "m4a1"
-required = true
 sha1 = "57752c9dcf66e1a5b3f9410edb901cbc4434e93b"
 
 [preview]
@@ -241,7 +240,6 @@ embedded = [
     { name = "bank", offset = 0x0E824, size = 0x13C, address = 0x8012B9E4 },
 ]
 package_name = "m4a1_p1"
-required = true
 sha1 = "57d6c4ac5203b490f096041aa92c18551d4850f9"
 
 [p1_preview]
@@ -298,7 +296,6 @@ embedded = [
     { name = "bank", offset = 0x0E824, size = 0x13C, address = 0x8012B9E4 },
 ]
 package_name = "m4a1_p2"
-required = true
 sha1 = "5912aef6d2cb7346b2b74228ea928da581b7a2bd"
 
 [p2_preview]

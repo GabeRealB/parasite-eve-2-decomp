@@ -24,6 +24,7 @@ page = { slot = { uid = "uid://1gzaw7h5s737g", path = "res://engine/vram/weapon_
 mode = "indexed_4bpp"
 size = [256, 64]
 palettes.default = { slot = { uid = "uid://1s46guge2y3r0", path = "res://engine/vram/weapon_palette.node" }, at = [0, 0] }
+cells.body = { rect = [0, 0, 256, 64], palette = "default" }
 
 [texture.import]
 importer = "pe2.images@ora"
@@ -33,3 +34,143 @@ source = "source.ora"
 at = [{ stage = 0, file = 10311, slot = "image", page = 0 }]
 sha1 = "5a564acc484b76c38f384bf12d9b05e571cd8385"
 palettes = { default = "b14b25b1c6d3d2ffea5cfe49bed34ceb15742f13" }
+
+[fire]
+uid = "uid://1sz4r9fv9yv4v"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[fire.from.USA]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 42008
+size = 1412
+address = 2148693464
+sha1 = "05c3034be33012778462997e26db2bf93852edbc"
+
+[reload]
+uid = "uid://ihkigdnqoeny"
+template = "clip"
+skeleton = { slot = { uid = "uid://1f2rkjlfoicx3", path = "res://characters/aya/skeleton.node" } }
+
+[reload.from.USA]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 39092
+size = 2916
+address = 2148690548
+sha1 = "d6c48b5933fd1c9e123640b5844ee7c6a471bbc4"
+
+[bank]
+uid = "uid://1etra8tl69jha"
+template = "animation_bank"
+base = { uid = "uid://uittbqgrio3r", path = "res://characters/aya/hip_fire/bank.node" }
+clips.fire = { uid = "uid://1sz4r9fv9yv4v", path = "res://weapons/grenade_pistol/fire.node" }
+clips.secondary_fire = { uid = "uid://1sz4r9fv9yv4v", path = "res://weapons/grenade_pistol/fire.node" }
+clips.reload = { uid = "uid://ihkigdnqoeny", path = "res://weapons/grenade_pistol/reload.node" }
+clips.secondary_reload = { uid = "uid://ihkigdnqoeny", path = "res://weapons/grenade_pistol/reload.node" }
+clips.reload_battle_end = { uid = "uid://ihkigdnqoeny", path = "res://weapons/grenade_pistol/reload.node" }
+order = [
+    { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
+    { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },
+    { uid = "uid://vwnykcs79i3d", path = "res://characters/aya/turn_left.node" },
+    { uid = "uid://12jqtqkjpe6hn", path = "res://characters/aya/turn_right.node" },
+    { uid = "uid://bl1ghfilnh8s", path = "res://characters/aya/item_use.node" },
+    { uid = "uid://10vf9m8ut8jzs", path = "res://characters/aya/stair_ascent.node" },
+    { uid = "uid://18peocykh6lex", path = "res://characters/aya/stair_descent.node" },
+    { uid = "uid://1cmcyl6q31k4v", path = "res://characters/aya/stair_ascent_finish_odd.node" },
+    { uid = "uid://1hyutnhveo2l7", path = "res://characters/aya/stair_ascent_finish_even.node" },
+    { uid = "uid://ljeipl156tt8", path = "res://characters/aya/parasite_energy_begin_0.node" },
+    { uid = "uid://x8yply922mq2", path = "res://characters/aya/parasite_energy_charge_0.node" },
+    { uid = "uid://wu1n3ibix6jv", path = "res://characters/aya/parasite_energy_cast_0.node" },
+    { uid = "uid://167r0tbwem6b7", path = "res://characters/aya/parasite_energy_begin_1.node" },
+    { uid = "uid://165qrj4dv57l5", path = "res://characters/aya/parasite_energy_charge_1.node" },
+    { uid = "uid://1jcfsl6xtw3fr", path = "res://characters/aya/parasite_energy_cast_1.node" },
+    { uid = "uid://1nrh7yonk4wdi", path = "res://characters/aya/hit_head.node" },
+    { uid = "uid://zspuotz2j143", path = "res://characters/aya/hit_body.node" },
+    { uid = "uid://pw0v00f46jrj", path = "res://characters/aya/death.node" },
+    { uid = "uid://a4uz7oxmvjkk", path = "res://characters/aya/high_health_idle.node" },
+    { uid = "uid://lvtbhelhg0dq", path = "res://characters/aya/low_health_idle.node" },
+    { uid = "uid://rfjp7q1ko41g", path = "res://characters/aya/mid_health_idle.node" },
+    { uid = "uid://a1j0xx9z290l", path = "res://characters/aya/examine_enter.node" },
+    { uid = "uid://ew1m82usbi4p", path = "res://characters/aya/examine_exit.node" },
+    { uid = "uid://ygo680hlki7h", path = "res://characters/aya/parasite_energy_begin_2.node" },
+    { uid = "uid://1kwb8cgel3doe", path = "res://characters/aya/parasite_energy_charge_2.node" },
+    { uid = "uid://9lzv6q4u0mhz", path = "res://characters/aya/parasite_energy_cast_2.node" },
+    { uid = "uid://ihkigdnqoeny", path = "res://weapons/grenade_pistol/reload.node" },
+    { uid = "uid://1sz4r9fv9yv4v", path = "res://weapons/grenade_pistol/fire.node" },
+    { uid = "uid://1olweyx96r8n0", path = "res://characters/aya/rifle/aim_forward.node" },
+    { uid = "uid://1advamzw1m3ja", path = "res://characters/aya/hip_fire/aim_idle.node" },
+    { uid = "uid://1jkx15v77jd7t", path = "res://characters/aya/hip_fire/aim_backward.node" },
+    { uid = "uid://fm6mg7vgqvjx", path = "res://characters/aya/hip_fire/aim_enter.node" },
+    { uid = "uid://6hctobdxvqh0", path = "res://characters/aya/hip_fire/aim_exit.node" },
+    { uid = "uid://ijzapbksy7fs", path = "res://characters/aya/handgun/walk.node" },
+    { uid = "uid://14ntxbbbgd13g", path = "res://characters/aya/handgun/backward_walk.node" },
+    { uid = "uid://1atdtfyzjlnks", path = "res://characters/aya/handgun/run.node" },
+]
+
+[grenade_mesh]
+uid = "uid://qzxbvvzc692j"
+template = "mesh"
+
+[grenade_mesh.from.USA]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 57980
+size = 396
+address = 2148709436
+symbol = "gGrenadePistolShellModel"
+material_slots = ["body"]
+sha1 = "5f3d5f238fe1453e00dfe60ddf5ea6312122f809"
+
+[grenade_material]
+uid = "uid://1u8gk22jn2hak"
+template = "material"
+shader = "textured"
+surface = "opaque"
+blend = "mix"
+main = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.node", output = "cells/body@default" }
+
+[grenade_model]
+uid = "uid://jf6rqotve2qh"
+template = "model"
+mesh = { slot = { uid = "uid://qzxbvvzc692j", path = "res://weapons/grenade_pistol/grenade_mesh.node" } }
+materials.body = { slot = { uid = "uid://1u8gk22jn2hak", path = "res://weapons/grenade_pistol/grenade_material.node" } }
+
+[grenade_model.from.USA]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 57980
+size = 396
+address = 2148709436
+sha1 = "5f3d5f238fe1453e00dfe60ddf5ea6312122f809"
+
+[mesh]
+uid = "uid://40fb2dusx658"
+template = "mesh"
+
+[mesh.from.USA]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 2676
+size = 1660
+address = 2148654132
+symbol = "gGrenadePistolWeaponModel"
+material_slots = ["body"]
+sha1 = "4768a2400261b67a9fc96aa2ddfe17c345f699a9"
+
+[material]
+uid = "uid://s6juq8s3esz3"
+template = "material"
+shader = "textured"
+surface = "opaque"
+blend = "add"
+main = { uid = "uid://hfgl2pkqzuth", path = "res://weapons/grenade_pistol/texture.node", output = "cells/body@default" }
+
+[model]
+uid = "uid://667xvubvl6gj"
+template = "model"
+mesh = { slot = { uid = "uid://40fb2dusx658", path = "res://weapons/grenade_pistol/mesh.node" } }
+materials.body = { slot = { uid = "uid://s6juq8s3esz3", path = "res://weapons/grenade_pistol/material.node" } }
+
+[model.from.USA]
+at = [{ stage = 0, file = 10311, slot = "package" }]
+offset = 2676
+size = 1660
+address = 2148654132
+sha1 = "4768a2400261b67a9fc96aa2ddfe17c345f699a9"

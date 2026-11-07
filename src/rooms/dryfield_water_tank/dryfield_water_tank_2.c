@@ -51,7 +51,7 @@
 #include "../../shared/actor/actor_messages.h"
 #include "screen/fade/fade.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Requests the room's event script leaves for the event task, each carried
 /// out on the task's next update.

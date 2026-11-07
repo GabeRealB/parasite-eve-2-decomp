@@ -76,7 +76,6 @@ embedded = [
     { name = "bank", offset = 0x0D2B4, size = 0x13C, address = 0x8012A474 },
 ]
 package_name = "unused_85"
-required = true
 sha1 = "643a49eb7bbb1cd2224a027d396c97043dca8db7"
 
 [texture]

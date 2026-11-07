@@ -27,7 +27,7 @@
 #include "engine/session.h"
 #include "engine/tmd_types.h"
 
-#include "weapons/weapon.h"
+#include "weapons/weapon/weapon.h"
 
 /// GPU packet commands, angle units and spawn fields used by these drawers.
 ///

@@ -1,0 +1,499 @@
+# The player's weapons: each a package loaded into the weapon slot as it is equipped, with its own header, and what
+# they share, a library per module.
+
+# What the player's code and every weapon know of weapons: their indices, their sounds' slots, what a launched grenade
+# carries.
+[weapon]
+uid = "uid://8fuooz076vi3"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+# The effects only the weapons draw: no files of its own, its modules under it (declarations/packages/weapons/effects.toml).
+[effects]
+uid = "uid://bnl5uhqzkq2e"
+template = "library"
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+]
+
+# The helpers the guns' attack states share: their shot's impact, and the end of an attack's recovery.
+[attack]
+uid = "uid://ulkloeu8tdxt"
+template = "library"
+headers.public = "include"
+dependencies = [
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+# The M93R: a handgun firing three-round bursts.
+[m93r]
+uid = "uid://1wrqha5t1tske"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://njivods2vrvk", path = "res://weapons/m93r/model.node" }
+bind.bank = { uid = "uid://zqdbpc7a7jmb", path = "res://weapons/m93r/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m93r.target.psx]
+link_script = "psx/link.ld"
+
+# The MP5A5: a submachine gun with a second load, a spread burst; its two upgrades are the same source.
+[mp5a5]
+uid = "uid://1bh3tnigifo9w"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+option.WEAPON_INDEX = 0x1E
+bind.model = { uid = "uid://1lxu810saplnp", path = "res://weapons/mp5a5/model.node" }
+bind.bank = { uid = "uid://12mqdhaltsxf9", path = "res://weapons/mp5a5/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://lcgz1m49nbi8", path = "res://packages/weapons/effects/muzzle_flash.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[mp5a5.target.psx]
+link_script = "psx/link.ld"
+
+[mp5a5.variants.mp5a5_p1]
+option.WEAPON_INDEX = 0x1F
+target.psx.link_script = "psx/mp5a5_p1.ld"
+
+[mp5a5.variants.mp5a5_p2]
+option.WEAPON_INDEX = 0x20
+target.psx.link_script = "psx/mp5a5_p2.ld"
+
+[as12]
+uid = "uid://1w1z9f1u7tvln"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://1uitut4b4rke2", path = "res://weapons/as12/model.node" }
+bind.bank = { uid = "uid://1v1uz0zlqj1cr", path = "res://weapons/as12/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[as12.target.psx]
+link_script = "psx/link.ld"
+
+[m249]
+uid = "uid://169wpdhe61mvw"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://5upx66qol9dz", path = "res://weapons/m249/model.node" }
+bind.bank = { uid = "uid://p43n33r56hk6", path = "res://weapons/m249/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m249.target.psx]
+link_script = "psx/link.ld"
+
+[m950]
+uid = "uid://1t5n9w29e3mx7"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://1vzgenacr5abs", path = "res://weapons/m950/model.node" }
+bind.bank = { uid = "uid://1q7co80uzncio", path = "res://weapons/m950/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m950.target.psx]
+link_script = "psx/link.ld"
+
+[unused_85]
+uid = "uid://1poovdux1izi1"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://162xmzc3bbi1u", path = "res://weapons/unused_85/model.node" }
+bind.bank = { uid = "uid://1hsqp8mbac7i1", path = "res://weapons/unused_85/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[unused_85.target.psx]
+link_script = "psx/link.ld"
+
+[gunblade]
+uid = "uid://1q5ho5i422dtk"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://1no9zrpepp7uz", path = "res://weapons/gunblade/model.node" }
+bind.bank = { uid = "uid://arfi8q9bcq7w", path = "res://weapons/gunblade/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://1sxpab9tbqof3", path = "res://packages/weapons/effects/blade_trail.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[gunblade.target.psx]
+link_script = "psx/link.ld"
+
+[m4a1_bayonet]
+uid = "uid://vuongu1qfeng"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://e044tvyv3w12", path = "res://weapons/m4a1_bayonet/model.node" }
+bind.bank = { uid = "uid://1bxrvkps8ojdj", path = "res://weapons/m4a1_bayonet/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://1sxpab9tbqof3", path = "res://packages/weapons/effects/blade_trail.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m4a1_bayonet.target.psx]
+link_script = "psx/link.ld"
+
+[m4a1_hammer]
+uid = "uid://wdiv0eu4mel9"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://17kj3lte6446z", path = "res://weapons/m4a1_hammer/model.node" }
+bind.bank = { uid = "uid://10x93bz1yae9t", path = "res://weapons/m4a1_hammer/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ckuya2f1mzuw", path = "res://packages/effects/beam_strip.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m4a1_hammer.target.psx]
+link_script = "psx/link.ld"
+
+[tonfa_baton]
+uid = "uid://1608hpzc40zcl"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://181mhvme2hpjg", path = "res://weapons/tonfa_baton/model.node" }
+bind.shaft_model = { uid = "uid://1iyhka1gb95az", path = "res://weapons/tonfa_baton/shaft_model.node" }
+bind.bank = { uid = "uid://1612w2m0bdtms", path = "res://weapons/tonfa_baton/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1sxpab9tbqof3", path = "res://packages/weapons/effects/blade_trail.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[tonfa_baton.target.psx]
+link_script = "psx/link.ld"
+
+[p229]
+uid = "uid://boogbtqh12io"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://1f0xfm1x9kwy3", path = "res://weapons/p229/model.node" }
+bind.bank = { uid = "uid://hvp68u3h2f7a", path = "res://weapons/p229/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://lcgz1m49nbi8", path = "res://packages/weapons/effects/muzzle_flash.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[p229.target.psx]
+link_script = "psx/link.ld"
+
+[m4a1_pyke]
+uid = "uid://1e4cy7zo0eg6l"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://1ntph7vhz4ny7", path = "res://weapons/m4a1_pyke/model.node" }
+bind.bank = { uid = "uid://iiabw5g1ntkq", path = "res://weapons/m4a1_pyke/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1x171kodvnran", path = "res://packages/projectiles/flamethrower_flame.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m4a1_pyke.target.psx]
+link_script = "psx/link.ld"
+
+[m4a1_grenade]
+uid = "uid://iavjcx8irddv"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://520lh0b6foaz", path = "res://weapons/m4a1_grenade/model.node" }
+bind.bank = { uid = "uid://qa7jetmwteno", path = "res://weapons/m4a1_grenade/bank.node" }
+bind.grenade_model = { uid = "uid://1ucw04p00patr", path = "res://weapons/m4a1_grenade/grenade_model.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://k9kzbyrcc51x", path = "res://packages/projectiles/launcher_grenade.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m4a1_grenade.target.psx]
+link_script = "psx/link.ld"
+
+[hypervelocity]
+uid = "uid://bahvmrty58"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.root_model = { uid = "uid://1pdb82bm1zkcv", path = "res://weapons/hypervelocity/root_model.node" }
+bind.slide_model = { uid = "uid://62snmdelcba3", path = "res://weapons/hypervelocity/slide_model.node" }
+bind.hinge_model = { uid = "uid://1fj5b5l9fwomh", path = "res://weapons/hypervelocity/hinge_model.node" }
+bind.bank = { uid = "uid://3lmeeti0yc5j", path = "res://weapons/hypervelocity/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://1cvvl3dl69thi", path = "res://packages/effects/ground_glow.node" },
+    { uid = "uid://18pegqpw6yd4j", path = "res://packages/effects/jet_cone.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[hypervelocity.target.psx]
+link_script = "psx/link.ld"
+
+[m4a1_javelin]
+uid = "uid://98xzi8q9kjhy"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.model = { uid = "uid://45afihoe7e99", path = "res://weapons/m4a1_javelin/model.node" }
+bind.bank = { uid = "uid://8d7poxa5wjy3", path = "res://weapons/m4a1_javelin/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://zx23wj30enza", path = "res://packages/effects/glow.node" },
+    { uid = "uid://1iqwfb7fj1ein", path = "res://packages/effects/sprite_quad.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m4a1_javelin.target.psx]
+link_script = "psx/link.ld"
+
+[m4a1]
+uid = "uid://axipoco933bx"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+option.WEAPON_INDEX = 0x10
+bind.model = { uid = "uid://yv0hi8n9wj9m", path = "res://weapons/m4a1/model.node" }
+bind.bank = { uid = "uid://1p9i0bf8a7qpa", path = "res://weapons/m4a1/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[m4a1.target.psx]
+link_script = "psx/link.ld"
+
+[m4a1.variants.m4a1_p1]
+option.WEAPON_INDEX = 0x14
+target.psx.link_script = "psx/m4a1_p1.ld"
+
+[m4a1.variants.m4a1_p2]
+option.WEAPON_INDEX = 0x15
+target.psx.link_script = "psx/m4a1_p2.ld"
+
+[p08]
+uid = "uid://b7rdtd73le15"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+option.WEAPON_INDEX = 0x4
+option.FLASH = "handgun"
+bind.model = { uid = "uid://khzgidu3er9e", path = "res://weapons/p08/model.node" }
+bind.bank = { uid = "uid://364y3i8qatbb", path = "res://weapons/p08/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[p08.target.psx]
+link_script = "psx/link.ld"
+
+[p08.variants.p08_snail]
+option.WEAPON_INDEX = 0x1
+target.psx.link_script = "psx/p08_snail.ld"
+
+[p08.variants.mongoose]
+option.WEAPON_INDEX = 0x9
+option.RECOVERY_COOLDOWN_FRAMES = 15
+option.FLASH = "mongoose"
+bind.model = { uid = "uid://13246ibt2l5sm", path = "res://weapons/mongoose/model.node" }
+bind.bank = { uid = "uid://104qcebfymrt9", path = "res://weapons/mongoose/bank.node" }
+target.psx.link_script = "psx/mongoose.ld"
+
+[pa3]
+uid = "uid://184vbqt1w2qd"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+option.WEAPON_INDEX = 0xD
+bind.model = { uid = "uid://jreojj7ljyvk", path = "res://weapons/pa3/model.node" }
+bind.bank = { uid = "uid://190asmg7x6iqw", path = "res://weapons/pa3/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://ulkloeu8tdxt", path = "res://packages/weapons/attack.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[pa3.target.psx]
+link_script = "psx/link.ld"
+
+[pa3.variants.sp12]
+option.WEAPON_INDEX = 0xE
+option.ATTACK_CANCEL_FRAMES = 36
+bind.model = { uid = "uid://xdgu00wt6i0c", path = "res://weapons/sp12/model.node" }
+bind.bank = { uid = "uid://mwgri2akyzpv", path = "res://weapons/sp12/bank.node" }
+target.psx.link_script = "psx/sp12.ld"
+
+[grenade_pistol]
+uid = "uid://1km7xtgr2u4cz"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+option.LAUNCHER = 0
+bind.model = { uid = "uid://667xvubvl6gj", path = "res://weapons/grenade_pistol/model.node" }
+bind.bank = { uid = "uid://1etra8tl69jha", path = "res://weapons/grenade_pistol/bank.node" }
+bind.grenade_model = { uid = "uid://jf6rqotve2qh", path = "res://weapons/grenade_pistol/grenade_model.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://6xwnsgn9562h", path = "res://packages/psyq.node" },
+    { uid = "uid://11pxyk2e9y3yt", path = "res://packages/math.node" },
+    { uid = "uid://1gge5rcau98eq", path = "res://packages/engine.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+    { uid = "uid://k9kzbyrcc51x", path = "res://packages/projectiles/launcher_grenade.node" },
+    { uid = "uid://8fuooz076vi3", path = "res://packages/weapons/weapon.node" },
+]
+
+[grenade_pistol.target.psx]
+link_script = "psx/link.ld"
+
+[grenade_pistol.variants.mm1]
+option.LAUNCHER = 1
+bind.model = { uid = "uid://sko4uwk7xz9v", path = "res://weapons/mm1/model.node" }
+bind.bank = { uid = "uid://bxxawbmanj7v", path = "res://weapons/mm1/bank.node" }
+bind.grenade_model = { uid = "uid://jh2rvt8x4gfp", path = "res://weapons/mm1/grenade_model.node" }
+target.psx.link_script = "psx/mm1.ld"
+
+[unused_86]
+uid = "uid://phvzyg4kb7sa"
+template = "package"
+headers.public = "include"
+sources.private = ["src/package.c"]
+bind.bank = { uid = "uid://1ra4cvoa4flze", path = "res://weapons/unused_86/bank.node" }
+dependencies = [
+    { uid = "uid://1hq6535kv7l92", path = "res://packages/core.node" },
+    { uid = "uid://1xmru45vx7ejy", path = "res://packages/gameplay.node" },
+]
+
+[unused_86.target.psx]
+link_script = "psx/link.ld"
+
+[unused_86.variants.unused_87]
+target.psx.link_script = "psx/unused_87.ld"
+
+[unused_86.variants.unused_89]
+target.psx.link_script = "psx/unused_89.ld"
+
+[unused_86.variants.unused_91]
+target.psx.link_script = "psx/unused_91.ld"
+
+[unused_86.variants.unused_97]
+target.psx.link_script = "psx/unused_97.ld"

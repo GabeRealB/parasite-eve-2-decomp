@@ -114,7 +114,6 @@ embedded = [
     { name = "grenade_model", offset = 0x1011C, size = 0x18C, address = 0x8012D2DC },
 ]
 package_name = "mm1"
-required = true
 sha1 = "6a8753d07f022f125155ea3c47f1cd44a45d577c"
 
 [preview]

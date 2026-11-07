@@ -107,7 +107,6 @@ embedded = [
     { name = "bank", offset = 0x10340, size = 0x13C, address = 0x8012D500 },
 ]
 package_name = "m4a1_pyke"
-required = true
 sha1 = "5edf9582b9dac33a26a41560fa9defbbfd48ae61"
 
 [preview]

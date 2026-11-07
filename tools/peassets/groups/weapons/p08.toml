@@ -99,7 +99,6 @@ embedded = [
     { name = "bank", offset = 0x0D69C, size = 0x13C, address = 0x8012A85C },
 ]
 package_name = "p08"
-required = true
 sha1 = "9a4cfdcbd95eccc4376628265d7ecdd50381ed94"
 
 [preview]
@@ -207,7 +206,6 @@ embedded = [
     { name = "bank", offset = 0x0D69C, size = 0x13C, address = 0x8012A85C },
 ]
 package_name = "p08_snail"
-required = true
 sha1 = "088f58a3e979060e9ce3e5fcab9a10a17393688f"
 
 [snail_preview]

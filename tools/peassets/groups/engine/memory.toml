@@ -33,7 +33,6 @@ families = ["mapui"]
 [weapon]
 type = "memory_slot"
 at = 0x8011D1C0
-families = ["weapons"]
 
 [actor_1]
 type = "memory_slot"

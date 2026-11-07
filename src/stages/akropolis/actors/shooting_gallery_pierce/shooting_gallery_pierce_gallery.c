@@ -59,7 +59,7 @@
 #include "../../event_flags.h"
 #include "../../rooms/mist_shooting_gallery/config.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 #include "assets/stages/akropolis/actors/shooting_gallery_pierce/schema.h"
 #include "assets/stages/akropolis/actors/shooting_gallery_pierce/player_conversation_schema.h"
 #include "assets/stages/akropolis/actors/shooting_gallery_pierce/player_gallery_schema.h"

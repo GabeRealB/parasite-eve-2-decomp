@@ -120,6 +120,36 @@ template = "package"
         self.assertEqual(declared.packages("pc"), [])
         self.assertEqual(declared.public(), {})
 
+    def test_a_variant_is_a_package_beside_its_own_with_what_it_sets_over_it(self) -> None:
+        declared = tree(self.root, {"packages/weapons.toml": """
+[mp5a5]
+uid = "uid://1"
+template = "package"
+sources.private = ["src/package.c"]
+option.WEAPON_INDEX = 0x1E
+bind.bank = "uid://b"
+dependencies = ["uid://c"]
+
+[mp5a5.target.psx]
+link_script = "psx/link.ld"
+
+[mp5a5.variants.mp5a5_p1]
+option.WEAPON_INDEX = 0x1F
+bind.model = "uid://m"
+dependencies = ["uid://d"]
+target.psx.link_script = "psx/mp5a5_p1.ld"
+"""})
+        base, variant = declared.packages()
+        self.assertEqual((base.name, variant.name), ("mp5a5", "mp5a5_p1"))
+        self.assertEqual(variant.path, base.path)
+        self.assertEqual(variant.fields["option"], {"WEAPON_INDEX": 0x1F})
+        self.assertEqual(variant.bound, {"bank": "uid://b", "model": "uid://m"})
+        self.assertEqual(variant.fields["dependencies"], ["uid://c", "uid://d"])
+        self.assertEqual(variant.link_script, Path("packages/weapons/mp5a5/psx/mp5a5_p1.ld"))
+        self.assertNotIn("variants", base.fields)
+        self.assertEqual(variant.object_of(Path("packages/weapons/mp5a5/src/package.c"), Path("out")),
+                         Path("out/mp5a5_p1/src/package.o"))
+
     def test_a_package_is_named_by_the_packages_it_is_in_not_its_folders(self) -> None:
         library = 'template = "library"'
         declared = tree(self.root, {

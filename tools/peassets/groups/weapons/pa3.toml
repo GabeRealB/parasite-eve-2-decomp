@@ -104,7 +104,6 @@ embedded = [
     { name = "bank", offset = 0x0EFCC, size = 0x13C, address = 0x8012C18C },
 ]
 package_name = "pa3"
-required = true
 sha1 = "17910be3a76d064fb44cc3f73da7a94b8639752c"
 
 [preview]

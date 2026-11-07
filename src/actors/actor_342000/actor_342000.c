@@ -55,7 +55,7 @@
 #include "screen/fade/fade.h"
 #include "../../shared/actor/actor_messages.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Work block of each task that makes up the Glutton's display model: the
 /// body, its two legs and the three further parts hung off the body.

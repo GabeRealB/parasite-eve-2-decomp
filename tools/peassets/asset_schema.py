@@ -193,8 +193,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # embedded record says): placed by its package, as a clip is.
     "camera_path": {"payload": (), "stored": ("include", "layout")},
     # The slots a table of clips is indexed by, as the code indexes it: `slots` names each index ("" where none is
-    # used). The player's schema serves every weapon and companion.
-    "animation_schema": {"payload": (), "stored": ("slots",)},
+    # used). The player's schema serves every weapon and companion. `header` names the public header that writes its
+    # slots by hand, where one does (the player's: gameplay/player_animation.h); the build makes none for it.
+    "animation_schema": {"payload": (), "stored": ("slots", "header")},
     # A table of clips: binds clips to the slots of its `schema` (`clips`: {slot: clip}). `base` names a bank it
     # extends, which gives the slots it does not bind; a bank with a base takes its schema. Placed in its package
     # like an embedded asset, a bank is defined in C as `AnimationSet* symbol[N]` by the build

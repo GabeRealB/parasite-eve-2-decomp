@@ -122,7 +122,6 @@ embedded = [
     { name = "bank", offset = 0x10F48, size = 0x13C, address = 0x8012E108 },
 ]
 package_name = "gunblade"
-required = true
 sha1 = "29ed85418ea0ac5718113f3ede4788a90d975244"
 
 [preview]

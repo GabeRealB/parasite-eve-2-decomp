@@ -133,6 +133,18 @@ template = "library"
 uid = "uid://1upb7tm54phai"
 template = "library"
 
+# The player's weapons: no files of their own, the packages under it, each owning its header, and what they share a
+# library per module (declarations/packages/weapons.toml).
+[weapons]
+uid = "uid://1022anu9m59a3"
+template = "library"
+
+# Projectiles the player's weapons, Kyle and the enemies all fire: no files of its own, the modules under it
+# (declarations/packages/projectiles.toml) one library each, as fragments a package includes where its copy sits.
+[projectiles]
+uid = "uid://19z1ut8al84l4"
+template = "library"
+
 # What a language server reads: every package that compiles, for the config in use.
 
 [compile_database]

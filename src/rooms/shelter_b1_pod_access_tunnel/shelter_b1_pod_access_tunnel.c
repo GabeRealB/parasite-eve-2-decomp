@@ -77,7 +77,7 @@
 #include "../../shared/room/room_events.h"
 #include "../../shared/actor/actor_messages.h"
 
-#include "assets/engine/animation/player_schema.h"
+#include "gameplay/player_animation.h"
 
 /// Logical view containing the two-image pod-chamber pan.
 enum { SHELTER_B1_POD_ACCESS_TUNNEL_POD_PAN_VIEW               = 11,
