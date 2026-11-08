@@ -294,8 +294,8 @@ node sets (`graph::with_generated`), so they are edited as fields without the
 game's data entering the declarations. A script, and a bank's chosen slot, are
 shown as a sequencer under the player's transport (the type's view, told where
 it plays): lanes of notes as the engine plays them, a playhead, seeking and
-zoom; a script's notes are dragged, stretched and typed in, applied at once
-(its type is `applied_at_once`) so the player plays the edit.
+zoom; a script's notes are dragged, stretched and typed in, and the player
+plays the edit before it is saved, as everything shown follows a working copy.
 What an animation's cues play is the code's (a cue is only bits on a clip's
 key; gameplay's reload state picks the sound by weapon and phase), so an
 animation bank *describes* it, for the editor: `sounds` names the sound bank,
