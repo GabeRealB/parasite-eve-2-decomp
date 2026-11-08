@@ -273,6 +273,107 @@ repack read) is run by hand.
 `ninja_config.py --project [DIR]` builds a project's data instead of
 `assets/USA`.
 
+**A project is served as a filesystem: its merged layers, one tree.** Only the
+index knows how layers resolve, so other programs read the project through it
+(`editor/crates/vfs`), named as the asset browser names it: every node a folder
+of its name - no `.node` - holding its files and the entries inside it, every
+folder and plain file where it resolves. A node and the folder of its name
+beside it in a layer (`x.node`, `x`) are one: a node with what is inside it,
+renamed, moved and deleted together (`edit::paired`), which is how a package
+holds its packages and a stage-0 slot its actors. It is always at the project's
+`assets/` folder, which its `.gitignore` leaves out; `project.local.toml` only
+says how (`[filesystem] serve = "fuse" | "cloud" | "webdav" | "none"`,
+`address` for WebDAV): FUSE by default on Linux and macOS, mounted there (under
+WSL, Windows programs open it through WSL's file server, which reads as root:
+only where `/etc/fuse.conf` has the line `user_allow_other`, which `serve` and
+the editor say when it lacks); on
+Windows the Cloud Files API (`vfs::cloud`, what OneDrive uses - nothing to
+install), the folder a sync root of placeholders filled as they are read, on
+an NTFS volume (not ReFS); WebDAV for the system's own client to mount.
+
+**The host serves it, whoever holds the project.** One process a project serves
+it (`pe2-cli project host`, `project::host`): started where none runs by the
+editor opening the project, or by `pe2-cli project serve` (`--backend`,
+`--address` in place of the setting; `--stop`), each keeping it while it runs.
+It stops 30 seconds after nobody keeps it, once no file is open in it: a read
+in progress is never cut off, and what only looks at the folder (a watcher, a
+file browser) keeps nothing, so when it stops is known. Where this machine says
+`[filesystem] keep = true`, it serves on until stopped. It does
+not serve over files in the folder that are not the project's (`vfs::strays`:
+anything on Linux and macOS, where a mount would hide it; on Windows a plain
+file, or one read on an earlier run and changed since): it lists them, and the
+user sets them aside (`serve --set-aside`, to `assets.set-aside/<time>`) or
+takes them in as edits (`--take-in`) - the editor offers both. It holds
+the project while nothing else does; a process taking the project lock while it
+does borrows it (`Lock::try_acquire`): the host lets go of the lock, its history
+and the cache's record store, serves on from what it reads of the layers, and
+takes the project back once let go - the editor, an extraction, an agent's
+request, a Python tool (`tools/project_lock.py`) alike. Python's `data_root` reads `assets/`, and serves it for its run
+where nothing serves a project whose layers hold chunks (a host started under a
+tool's lock, `PE2_PROJECT_LOCKED`, ends with the tool's lease). What a program writes there is an edit made by whoever
+holds the project - the host itself, or the editor, which it reaches on its link
+(`mcp::Request::Edit`) - a step of that one's history in the highest writable
+layer (the active one, in the editor): a file written is applied when closed or synced,
+a new one or a removal once it settles, a save by rename is a save, and what
+editors leave beside a file (`~`, `.swp`, `4913`, any name starting with `.`)
+is never applied (`vfs::write`). The filesystem holds to the model: a
+`node.toml` written in a folder makes it a node (a folder there already is its
+folder of children); a new file in a node is one of its files, and a folder
+made in one waits to be a child node or a folder of its files by what is
+written in it; a node's `node.toml` is not removed alone, its folder is; a name
+ending in `.node` is refused.
+
+**The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
+write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
+(`--layer`, by default the one edits go to), paths as the served folder shows
+them, and `problems`. An edit goes to whoever holds the project - the editor, a
+step of its history and its undo; the host - or, where nothing does, is made
+under the lock as a step of its own (undo then has nothing to take back).
+
+**A layer's folder is storage, not a place to edit.** The project is edited
+through the editor or its served folder (`assets/`); `.layers/` is written by
+the tools, like `.git/objects`. What a layer's folder holds against its
+changeset - a copy deleted by hand, a file put there - is no edit: the
+changeset stays the truth, and the index reports it (`Problem::Missing`,
+`Problem::Unlisted`, the topmost path of an unlisted tree) for the user to
+repair - forget, drop the override, adopt (listed, a move outside the editor
+keeping its uids by content) or remove (`edit::adopt`, `edit::remove_unlisted`).
+A layer folder is listed as it is only the first time it is indexed, with no
+changeset yet; a mounted tree (source code, worked on with its own tools) is
+listed as it is found, always. What changes a layer whole - a checkout of a
+shared layer - changes its changeset with it, and is taken in as it is.
+
+**A layer stores a large file as chunks.** At 1 MiB or more
+(`chunks::THRESHOLD`), a layer holds `<name>.chunks` - a manifest of
+content-defined chunks (FastCDC, BLAKE3), the chunks in `.layers/.store` - so an
+edit stores only what it changed and identical data, across layers and
+releases, is kept once. Everything reads and writes a layer's content through
+`project::content`, never the path; the history keeps the manifest. A program
+given such a file by path (ffmpeg, an external app) gets it through a scoped
+filesystem of its own (`.cache/scope/<pid>/<sha1>/<name>`, `vfs::scoped`), or a
+copy in `.cache/materialized` where no transport is. `pe2-cli project store
+migrate` converts a project's existing large files; `store gc` removes chunks no
+manifest, pack or history step names. A layer may be stored packed
+(`storage = "packed"` in `project.toml`, a generated layer's so far; `text`, its
+files as files, by default): its files are one journaled listing in its folder
+(`.pack`), their chunks in the store, with nothing to scan, and `content` and the
+index read it as files (`project::pack`). `store pack --layer` and `store
+unpack --layer` convert one; its plan's record stays a file beside it.
+
+**An override holds what it changes, whole, and is merged.** A layer overriding
+an entry from below copies nothing (but code into a files layer, which is edited
+in place): it holds each file it writes whole, and its changeset records, per
+file, the SHA-1 of the version below it was made from - kept in the store - or
+that it removes it. Every other file comes from below as it is there. Where the
+version below changes, the index merges the layer's file over it three ways
+(`project::merge`), by what the file is and never by what node it is of: TOML by
+field (a path through tables, through an array of tables by each element's
+`id`), other text by line (diff3), bytes not at all. Both sides changing the same
+thing otherwise is a conflict: the layer's side is shown, and the override is
+stale, its conflicts listed (`Index::stale_parts`) until kept (its files become
+the merge, made from what is below now) or given up. Merges are kept in
+`.cache/merged`, by what they were made of. Diffs are never stored.
+
 **A package's sounds are four kinds of node** (the `pe2.sounds` extension): a
 sound (a sample, its `sound.wav` imported by Sony's encoder into the body the
 bank stores), an instrument (a program), a sound script (what a sound id
