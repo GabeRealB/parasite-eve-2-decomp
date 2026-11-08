@@ -1,0 +1,323 @@
+# Declarations: the game flag bank's flags by name (pe2.flags), written by hand. A flag is listed once its meaning has
+# been checked against the code that reads and writes it (packages/engine/include/event_flags.h holds the same, for the
+# code, until packages read these); an ID has one owner across every registry.
+
+# The game's own mechanisms: what every stage, the map and the load screen read.
+[game]
+uid = "uid://hurgb6azdj53"
+template = "flag_registry"
+description = "The game's own mechanisms: the story's progress, the telephone, the map, and what the bank keeps besides flags."
+
+[game.flag.telephone_dialogue_counter]
+id = 0x003
+kind = "counter"
+description = "The counter of the story call's CAP command (16 + story_dialogue_index), raised each time the phone is used: it picks the call's variant, so a repeat plays a shorter one. Cleared whenever the story index changes. At story dialogue 0xE, the room's cutscene task uses 1 and 2 for its looping choice instead."
+values = { unheard = 0, loop_active = 1, loop_done = 2 }
+verified = true
+
+[game.flag.map_akropolis_available]
+id = 0x015
+kind = "marker"
+description = "The Akropolis map can be shown: written by the Akropolis square and the patio, read by the map menu."
+verified = true
+
+[game.flag.play_time]
+id = 0x068
+count = 4
+kind = "reserved"
+description = "Not a flag: the bank keeps the captured play time here, minutes as a halfword (the bank's playTimeMark)."
+verified = true
+
+[game.flag.story_chapter]
+id = 0x07A
+kind = "state"
+description = "The story chapter, set as each stage begins: what the boot captions, the music, room variants and cutscene choices go by."
+values = { mist_arrival = 0, akropolis = 1, dryfield = 2, dryfield_night = 3, dryfield_night_end = 4, shelter = 5, shelter_1f_bulwark = 6 }
+verified = true
+
+[game.flag.current_objective]
+id = 0x0A2
+kind = "packed"
+description = "The current objective, a whole byte: what the map marks and what its Help panel says (stage 0's file 20800 + the objective)."
+values = { akropolis_entered = 0x01, akropolis_cafeteria_key_received = 0x02, akropolis_cafeteria_boss_killed = 0x03, akropolis_cafeteria_boss_examined = 0x04, mist_contacted = 0x05, akropolis_sanctuary_entered = 0x06, akropolis_roof_garden_bomb_seen = 0x07, akropolis_no9_defeated = 0x08, dryfield_arrived = 0x09, mist_shooting_gallery_start = 0x3A, mist_shooting_gallery_briefed = 0x3B, mist_returned = 0x3C }
+verified = true
+
+[game.flag.story_dialogue_index]
+id = 0x155
+kind = "state"
+description = "The telephone call to play next (0..0xF): the call is CAP command 16 + the index in the stage's call file. Story beats raise it, each clearing telephone_dialogue_counter; a stage start resets it to 0; 0xE adds a looping choice. Each stage's calls are its own, so its values are named by the stage's registry."
+verified = true
+
+# Akropolis and the MIST: the stage's own flags, its map doors among them.
+[akropolis]
+uid = "uid://wg0vt4ft4kfl"
+template = "flag_registry"
+description = "Akropolis and the MIST, stage 1: its routes, scenes and doors."
+
+[akropolis.flag.cafeteria_route_progress]
+id = 0x000
+kind = "state"
+description = "The route through the cafeteria. The square refuses both elevators from boss_defeated; the patio, hallway, cafeteria, fountain and forked-road doors answer by it."
+values = { not_started = 0, entered_akropolis = 1, boss_defeated = 2, mist_contacted = 3, fountain_unlocked = 5 }
+verified = true
+
+[akropolis.flag.sanctuary_route_progress]
+id = 0x001
+kind = "state"
+description = "The route through the observatory to the sanctuary. The security room's SWAT member is gone from observatory_entered."
+values = { observatory_lock_found = 1, escalator_unlocked = 2, observatory_entered = 3, promenade_entered = 4, sanctuary_reached = 5 }
+verified = true
+
+[akropolis.flag.bridge_progress]
+id = 0x002
+kind = "state"
+description = "The bridge. The promenade's bridge door is refused at not_started; the promenade and the fire escape lead to the bridge's second state once raised."
+values = { not_started = 0, sanctuary_entered = 2, raised = 3 }
+verified = true
+
+[akropolis.flag.square_ammo_box_dialog_seen]
+id = 0x004
+kind = "counter"
+description = "The counter of the square's CAP command 4, the ammo box: 0 before it is examined, 1 after."
+verified = true
+
+[akropolis.flag.sanctuary_rupert_left]
+id = 0x006
+kind = "marker"
+description = "Rupert has left the sanctuary - the roof garden has been entered, or the fire escape's door to the bridge used; the sanctuary then moves its cage out of the doorway and no longer arms Rupert's actor."
+verified = true
+
+[akropolis.flag.sanctuary_bomb_scene_state]
+id = 0x007
+kind = "state"
+description = "The sanctuary's bomb scene: played, or passed by - the player left for the promenade, or reached the roof garden, first."
+values = { not_played = 0, played = 1, passed_by = 2 }
+verified = true
+
+[akropolis.flag.patio_cafeteria_door_state]
+id = 0x008
+kind = "state"
+description = "The patio's door to the cafeteria."
+values = { locked = 1, unlocked = 2, opened = 3 }
+verified = true
+
+[akropolis.flag.security_room_panel_keys]
+id = 0x009
+kind = "bits"
+description = "The security room's panel: the keys inserted. The blue key also sets sanctuary_route_progress to escalator_unlocked. Doors lead to a room's second variant once a key is in: the blue the fountain/observatory and the square's forked-road door, the red the hallway, patio and forked road."
+bits = { blue_inserted = 0, red_inserted = 1 }
+verified = true
+
+[akropolis.flag.security_room_monitor_scenes_seen]
+id = 0x00A
+kind = "bits"
+description = "The security room's monitor: the SWAT member's scene (camera 0xB, CAP 0xD) and Rupert's (camera 0xA)."
+bits = { swat_scene_seen = 0, rupert_scene_seen = 1 }
+verified = true
+
+[akropolis.flag.helipad_transformer_1_state]
+id = 0x00B
+kind = "state"
+description = "The first of the three power transformers No. 9's fight can break, written each frame it is in view."
+values = { intact = 0, shot = 1, spent = 2, stopped = 3 }
+verified = true
+
+[akropolis.flag.helipad_transformer_2_state]
+id = 0x00C
+kind = "state"
+description = "The second transformer, as the first."
+values = { intact = 0, shot = 1, spent = 2, stopped = 3 }
+verified = true
+
+[akropolis.flag.helipad_transformer_3_state]
+id = 0x00D
+kind = "state"
+description = "The third transformer and the blast source beside it, as one value written every frame of the fight: the source can be shot once the transformer has broken."
+values = { intact = 0, shot = 1, spent = 2, source_flaring = 4, source_spent = 5, stopped = 6 }
+verified = true
+
+[akropolis.flag.cafeteria_boss_report]
+id = 0x00E
+kind = "state"
+description = "The report to MIST after the cafeteria boss: queued by the boss scene (story dialogue 4), made from the square's telephone. The cafeteria's patio door sets 2 when it holds 3, which nothing writes."
+values = { queued = 1, made = 4 }
+verified = true
+
+[akropolis.flag.bridge_fire_escape_door_scene_seen]
+id = 0x010
+kind = "marker"
+description = "The scene at the fire escape's door to the bridge has played - the first time the door is tried; it also means Rupert has left the sanctuary."
+verified = true
+
+[akropolis.flag.fountain_hidden_path_found]
+id = 0x012
+kind = "marker"
+description = "The fountain's hidden path has been found (room command 4, CAP 4): its climb trigger is enabled, and stays enabled on later entries."
+verified = true
+
+[akropolis.flag.fountain_forked_road_door_opened]
+id = 0x013
+kind = "marker"
+description = "The fountain's door to the forked road has been opened once, from either side; the forked road plays CAP 1 step 3 the first time it is."
+verified = true
+
+[akropolis.flag.square_telephone_scene_seen]
+id = 0x01F
+kind = "marker"
+description = "The square's telephone scene has played - the grinning stranger by the phone runs off and the phone rings."
+verified = true
+
+[akropolis.flag.patio_cutscene_progress]
+id = 0x021
+kind = "state"
+description = "The patio's cutscene. Below 2, the square, fountain and cafeteria doors lead to the patio's first variant."
+values = { not_started = 0, start = 1, playing = 3, done = 4 }
+verified = true
+
+[akropolis.flag.patio_cafeteria_door_scene_seen]
+id = 0x023
+kind = "marker"
+description = "Rupert's scene at the patio's cafeteria door has played - the first time the door is tried after the cafeteria boss, before MIST is contacted; afterwards the door runs CAP 8."
+verified = true
+
+[akropolis.flag.observatory_forked_road_ride_seen]
+id = 0x025
+kind = "marker"
+description = "The ride down from the observatory to the forked road has played; later departures arrive by the stairs. The sanctuary sets it too."
+verified = true
+
+[akropolis.flag.patio_ambush_scene_seen]
+id = 0x026
+kind = "marker"
+description = "The patio's ambush scene has played, on the way back from the cafeteria; while clear, entering the patio in that variant sends placed actors 2 and 3 their command 0."
+verified = true
+
+[akropolis.flag.security_room_monitor_brightness]
+id = 0x02A
+kind = "counter"
+description = "The security room monitor's brightness detent (0..4) it was left at, saved on leaving it; it reopens at that level."
+verified = true
+
+[akropolis.flag.observatory_bat_ambush_seen]
+id = 0x0CA
+kind = "marker"
+description = "The observatory's bat ambush has played - entering from the forked road after the red key; while clear, the forked road leads to the observatory's second state."
+verified = true
+
+[akropolis.flag.roof_garden_enemy_drop_state]
+id = 0x0CB
+kind = "state"
+description = "The roof garden's enemy drop (placement variants 1 and 7): armed by its first trigger, dropped by its second; from dropped the maggot/caterpillar is in its other placement."
+values = { armed = 1, dropped = 2 }
+verified = true
+
+[akropolis.flag.forked_road_ambush_seen]
+id = 0x0CC
+kind = "marker"
+description = "The forked road's ambush has played - back on the road after the red key (room action 1, placement variants 4 and 8); from then on the maggot/caterpillar is in its other placement."
+verified = true
+
+[akropolis.flag.mist_pierce_in_parking_lot]
+id = 0x0ED
+kind = "marker"
+description = "Pierce has gone to the MIST parking lot - set on leaving the firearms room; the shooting gallery and Pierce's actors go by it."
+verified = true
+
+[akropolis.flag.mist_parking_dryfield_departure_state]
+id = 0x0F1
+kind = "state"
+description = "The MIST parking lot's departure for Dryfield after Akropolis (placement variant 2): the arrival conversation and its follow-ups, step by step (the room's MIST_PARKING_CONVERSATION_*). While nonzero, part of Pierce's model is hidden."
+verified = true
+
+[akropolis.flag.mist_pierce_talk_progress]
+id = 0x0F5
+kind = "counter"
+description = "Which of Pierce's shooting-gallery talks plays next."
+values = { first = 0, second = 1, repeat = 2 }
+verified = true
+
+[akropolis.flag.security_room_monitor_rupert_scene_seen]
+id = 0x102
+kind = "marker"
+description = "Rupert's scene on the security monitor's camera 0xA has played (after 0x5A frames); while clear, the camera starts CAP 0xC."
+verified = true
+
+[akropolis.flag.mist_shooting_gallery_control_room_scene_seen]
+id = 0x106
+kind = "marker"
+description = "The shooting gallery's control room scene has played (room action 4)."
+verified = true
+
+[akropolis.flag.mist_shooting_gallery_intro_seen]
+id = 0x121
+kind = "marker"
+description = "Pierce's introduction to the shooting gallery has played (set as the script starts, so skipping it counts too); afterwards talking to the gallery goes straight to its menu."
+verified = true
+
+[akropolis.flag.square_ammo_box_hint_seen]
+id = 0x124
+kind = "marker"
+description = "The square's hint by the ammo box has been shown."
+verified = true
+
+[akropolis.flag.mist_shooting_gallery_prize]
+id = 0x125
+count = 5
+kind = "state"
+description = "A prize per shooting-gallery course, levels 1..5 in turn: read as the first ID + the course."
+values = { bp_only = 1, waiting = 2, claimed = 3 }
+verified = true
+
+[akropolis.flag.square_stairs_hint_seen]
+id = 0x156
+kind = "marker"
+description = "The square's controls hint by the stairs has been shown."
+verified = true
+
+[akropolis.flag.fire_escape_telephone_inspected]
+id = 0x16A
+kind = "marker"
+description = "The fire escape's telephone has been inspected (room command 4, CAP 11); afterwards it plays the call's scene."
+verified = true
+
+[akropolis.flag.map_door_forked_road_observatory]
+id = 0x1EE
+kind = "state"
+description = "The map's marker of the door between the forked road and the observatory; the security room unmarks it when the blue key unlocks the escalator."
+values = { unmarked = 0, passed = 1, locked = 2 }
+verified = true
+
+[akropolis.flag.map_door_forked_road_fountain]
+id = 0x1EF
+kind = "state"
+description = "The map's marker of the door between the forked road and the fountain."
+values = { unmarked = 0, passed = 1, locked = 2 }
+verified = true
+
+[akropolis.flag.map_door_patio_fountain]
+id = 0x1F0
+kind = "state"
+description = "The map's marker of the door between the patio and the fountain."
+values = { unmarked = 0, passed = 1, locked = 2 }
+verified = true
+
+[akropolis.flag.map_door_hallway_fountain]
+id = 0x1F1
+kind = "state"
+description = "The map's marker of the door between the hallway and the fountain."
+values = { unmarked = 0, passed = 1, locked = 2 }
+verified = true
+
+[akropolis.flag.map_door_square_east_elevator]
+id = 0x1F6
+kind = "state"
+description = "The map's marker of the door between the square and the east elevator hall."
+values = { unmarked = 0, passed = 1, locked = 2 }
+verified = true
+
+[akropolis.flag.map_door_square_west_elevator]
+id = 0x1F7
+kind = "state"
+description = "The map's marker of the door between the square and the west elevator hall."
+values = { unmarked = 0, passed = 1, locked = 2 }
+verified = true

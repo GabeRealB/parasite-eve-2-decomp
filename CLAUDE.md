@@ -296,6 +296,38 @@ shown as a sequencer under the player's transport (the type's view, told where
 it plays): lanes of notes as the engine plays them, a playhead, seeking and
 zoom; a script's notes are dragged, stretched and typed in, and the player
 plays the edit before it is saved, as everything shown follows a working copy.
+**A room's bundle, its dialogues and their text are nodes.** A bundle (`pe2.game`'s
+`bundle`, `rooms/<room>/files/bundle`, named by its file's `bundle` slot) declares its
+resources by directory index - a palette resource by the palettes it lists and the
+slot it uploads into, a dialogue by its node - and joins them as the chunk stores
+them (`formats::bundle`): every room bundle round-trips byte for byte. Extraction
+writes its `bundle.toml` (its RAM base, which differs by release, its extra
+sectors, the 38 palette streams stored a byte short) and `resources/<index>.bin`
+for what no node makes. A dialogue (`pe2.dialogue`, a CAP file: `doc/CAP_FORMAT.md`)
+is a data node of its structure - commands and records by name, a record's text a
+key of its `strings` table, its speakers named by `cast`, its glyphs from the
+`faces` (`ui/dialogue/{glyphs,bold,speakers}`, `pe2.fonts` faces whose glyphs are
+the atlases' pictures) - and makes the file (`native`) and the atlas page its rule
+lays out (`atlas`). `tools/editor_project/dialogue.py declare` writes them from the
+bundles: each dialogue once at `<room>/dialogue_<i>`, a shared one where its rooms
+are (`stages/shared` across stages), a string table a stage
+(`stages/<stage>/strings/dialogue`, keys `<room>/<dialogue>/<command>/<record>`).
+One planned operation reads every dialogue (`extract_dialogues`), recognizing glyphs
+by `tools/peassets/cap_glyphs.tsv` and `cap_plates.tsv`; a dialogue not read exactly
+says why (`failed`), and an I/l guess is listed under `unsettled`. A string table is
+a plain key-value store in the dialogues' markup; there may be any number of them.
+
+**Game flags are named in registries** (`pe2.flags`, `declarations/flags.toml`): a
+`flag_registry` holds flags of the 504-nibble bank by name - `id`, `kind`
+(`marker`, `state`, `counter`, `bits`, `packed`, `reserved`), `values` or `bits`,
+`count` for a run, `description`, `verified` - written by hand from what the code
+confirms (`packages/engine/include/event_flags.h`, a stage's `event_flags.h`), never
+by a pass over `gameflag_ids.h`. An ID has one owner across every registry: a
+registry's `ids` output fails naming both. A dialogue's command names its flag by
+registry (`game_flag = { flags = "uid://...", flag = "story_dialogue_index" }`)
+where one holds the ID. Packages do not read registries yet: the headers stay until
+every package can.
+
 What an animation's cues play is the code's (a cue is only bits on a clip's
 key; gameplay's reload state picks the sound by weapon and phase), so an
 animation bank *describes* it, for the editor: `sounds` names the sound bank,

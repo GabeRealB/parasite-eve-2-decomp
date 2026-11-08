@@ -26,30 +26,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://jgcmcbm5ovmm", path = "res://stages/dryfield/rooms/gas_station/day/views/view2.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 2
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://sy8zkyt1qovp", path = "res://stages/dryfield/rooms/gas_station/day/views/view3.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 14
-type = "dialogue"
-
-[[base.slots.resources]]
-index = 15
-type = "dialogue"
+bundle = { uid = "uid://g4gcb8iaohfz", path = "res://stages/dryfield/rooms/gas_station/day/files/bundle.node" }
 
 [[base.streams]]
 name = "movie_100"
@@ -301,3 +278,23 @@ at = [{ stage = 2, folder = 101, file = 14 }]
 
 [view14.from.EUR]
 at = [{ stage = 2, folder = 101, file = 14 }]
+
+[bundle]
+uid = "uid://g4gcb8iaohfz"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://jgcmcbm5ovmm", path = "res://stages/dryfield/rooms/gas_station/day/views/view2.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 2, type = "palette", palettes = [
+        { palette = { uid = "uid://sy8zkyt1qovp", path = "res://stages/dryfield/rooms/gas_station/day/views/view3.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 14, type = "dialogue", dialogue = { uid = "uid://bytcuktrj215", path = "res://stages/dryfield/rooms/gas_station/dialogue_0.node" } },
+    { index = 15, type = "dialogue", dialogue = { uid = "uid://mg5f17ly5uds", path = "res://stages/dryfield/gas_station_day_dialogue_1.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 2, folder = 101, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 2, folder = 101, file = 0, slot = "bundle" }]

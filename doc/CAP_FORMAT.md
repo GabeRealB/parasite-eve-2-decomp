@@ -249,6 +249,18 @@ plates).
 `<dialogue>.warnings.json`: per cell, an unsettled ambiguity (with the guess),
 an unseen glyph or plate, or two cells with one character.
 
+### In the editor
+
+A project holds the same as nodes (`pe2.dialogue`; `CLAUDE.md`): a dialogue's
+structure as above, with `command` a list of tables each holding its `number`,
+its records under `record`, and a record's `text` the key of its text in the
+dialogue's string table rather than the text itself; `game_flag` names the flag
+by registry where one holds the ID. The fonts are three `pe2.fonts` faces
+(`ui/dialogue/glyphs`, `bold`, `speakers`), the speaker numbers a `cast` node.
+`formats::cap` reads and writes the file; the extension's `layout.rs` is the
+atlas rule, `recognize.rs` the recognition above, and every dialogue the disc
+holds is read and made again exactly, its file and its atlas.
+
 ## 12. Open
 
 | | |

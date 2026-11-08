@@ -26,9 +26,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "dialogue" },
-]
+bundle = { uid = "uid://qnwxrlvmj4c7", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/files/bundle.node" }
 
 [[base.streams]]
 name = "movie_2"
@@ -103,3 +101,16 @@ at = [{ stage = 5, folder = 901, file = 4 }]
 
 [view4.from.EUR]
 at = [{ stage = 5, folder = 901, file = 4 }]
+
+[bundle]
+uid = "uid://qnwxrlvmj4c7"
+template = "bundle"
+resources = [
+    { index = 0, type = "dialogue", dialogue = { uid = "uid://ife1zujgwvaq", path = "res://stages/shelter_neo_ark/rooms/eve_elevator/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 5, folder = 901, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 5, folder = 901, file = 0, slot = "bundle" }]

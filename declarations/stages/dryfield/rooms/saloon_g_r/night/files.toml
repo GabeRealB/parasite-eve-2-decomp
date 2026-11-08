@@ -68,84 +68,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1agphnzpu8c6h", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view2.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 2
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1cbhwt8yjh2e2", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view3.node", output = "palettes/row_0" } },
-    { palette = { uid = "uid://1cbhwt8yjh2e2", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view3.node", output = "palettes/row_1" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 3
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://2suqgrz4u9oz", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view4.node", output = "palettes/row_0" } },
-    { palette = { uid = "uid://2suqgrz4u9oz", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view4.node", output = "palettes/row_1" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 4
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://q2xmbsif6gm7", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view5.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 5
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://307ee1ruftbo", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view6.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 6
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://xxo4oyob2vmo", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view7.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 8
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://19urnx7xuj4b1", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view9.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 9
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://17yj9jn4bf0qy", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view10.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 10
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://rhcigws5tjhn", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view11.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 13
-type = "dialogue"
+bundle = { uid = "uid://15m3ayvg8d0n5", path = "res://stages/dryfield/rooms/saloon_g_r/night/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 3, folder = 1801, file = 0 }]
@@ -422,3 +345,45 @@ at = [{ stage = 3, folder = 1801, file = 13 }]
 
 [view13.from.EUR]
 at = [{ stage = 3, folder = 1801, file = 13 }]
+
+[bundle]
+uid = "uid://15m3ayvg8d0n5"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://1agphnzpu8c6h", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view2.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 2, type = "palette", palettes = [
+        { palette = { uid = "uid://1cbhwt8yjh2e2", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view3.node", output = "palettes/row_0" } },
+        { palette = { uid = "uid://1cbhwt8yjh2e2", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view3.node", output = "palettes/row_1" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 3, type = "palette", palettes = [
+        { palette = { uid = "uid://2suqgrz4u9oz", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view4.node", output = "palettes/row_0" } },
+        { palette = { uid = "uid://2suqgrz4u9oz", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view4.node", output = "palettes/row_1" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 4, type = "palette", palettes = [
+        { palette = { uid = "uid://q2xmbsif6gm7", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view5.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 5, type = "palette", palettes = [
+        { palette = { uid = "uid://307ee1ruftbo", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view6.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 6, type = "palette", palettes = [
+        { palette = { uid = "uid://xxo4oyob2vmo", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view7.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 8, type = "palette", palettes = [
+        { palette = { uid = "uid://19urnx7xuj4b1", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view9.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 9, type = "palette", palettes = [
+        { palette = { uid = "uid://17yj9jn4bf0qy", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view10.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 10, type = "palette", palettes = [
+        { palette = { uid = "uid://rhcigws5tjhn", path = "res://stages/dryfield/rooms/saloon_g_r/night/views/view11.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 13, type = "dialogue", dialogue = { uid = "uid://1airy8fghqxs1", path = "res://stages/dryfield/rooms/saloon_g_r/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 3, folder = 1801, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 3, folder = 1801, file = 0, slot = "bundle" }]

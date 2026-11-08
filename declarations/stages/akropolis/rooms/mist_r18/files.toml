@@ -51,26 +51,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 3
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://j072hwmwdjuv", path = "res://stages/akropolis/rooms/mist_r18/views/view4_page_1.node", output = "palettes/default" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 5
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://piyr8fqlxepb", path = "res://stages/akropolis/rooms/mist_r18/views/view6_page_1.node", output = "palettes/default" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 10
-type = "dialogue"
+bundle = { uid = "uid://1fcq2gbxbb1gy", path = "res://stages/akropolis/rooms/mist_r18/files/bundle.node" }
 
 [[base.streams]]
 name = "scene_30"
@@ -223,3 +204,22 @@ at = [{ stage = 1, folder = 1801, file = 10 }]
 
 [view10.from.EUR]
 at = [{ stage = 1, folder = 1801, file = 10 }]
+
+[bundle]
+uid = "uid://1fcq2gbxbb1gy"
+template = "bundle"
+resources = [
+    { index = 3, type = "palette", palettes = [
+        { palette = { uid = "uid://j072hwmwdjuv", path = "res://stages/akropolis/rooms/mist_r18/views/view4_page_1.node", output = "palettes/default" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 5, type = "palette", palettes = [
+        { palette = { uid = "uid://piyr8fqlxepb", path = "res://stages/akropolis/rooms/mist_r18/views/view6_page_1.node", output = "palettes/default" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 10, type = "dialogue", dialogue = { uid = "uid://flktwh00cnsa", path = "res://stages/akropolis/rooms/mist_r18/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 1, folder = 1801, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 1, folder = 1801, file = 0, slot = "bundle" }]

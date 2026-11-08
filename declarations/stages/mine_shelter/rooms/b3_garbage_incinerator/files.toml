@@ -60,9 +60,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 40, type = "dialogue" },
-]
+bundle = { uid = "uid://f05d2bdeek6l", path = "res://stages/mine_shelter/rooms/b3_garbage_incinerator/files/bundle.node" }
 
 [[base.streams]]
 name = "scene_19"
@@ -1205,3 +1203,16 @@ chunks = { image_0 = "9b091d762cc5b4ee47ab78c98a918b12ec0dfb71", palette_0 = "4b
 [view40.from.EUR]
 at = [{ stage = 4, folder = 4001, file = 40 }]
 chunks = { image_0 = "9b091d762cc5b4ee47ab78c98a918b12ec0dfb71", palette_0 = "4b32c4adf907cb7a1cb7df118d24edf2c24fbaa7", pe2img_1196_2 = "9b091d762cc5b4ee47ab78c98a918b12ec0dfb71", image_1 = "39741a2caab804c060691a812468266c47f84b2e" }
+
+[bundle]
+uid = "uid://f05d2bdeek6l"
+template = "bundle"
+resources = [
+    { index = 40, type = "dialogue", dialogue = { uid = "uid://4snm8sswia3u", path = "res://stages/mine_shelter/rooms/b3_garbage_incinerator/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 4, folder = 4001, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 4, folder = 4001, file = 0, slot = "bundle" }]

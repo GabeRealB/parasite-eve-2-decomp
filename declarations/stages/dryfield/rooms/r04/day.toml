@@ -35,3 +35,14 @@ source = "source.ora"
 at = [{ stage = 2, folder = 401, file = 0, slot = "glyph_page", page = 0 }]
 sha1 = "6d0ee3f29584791b420f32f2a85cd73336f0276c"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0]
+uid = "uid://11kgbtjaw3171"
+template = "dialogue"
+strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+
+[dialogue_0.from.USA]
+at = [{ stage = 2, folder = 401, file = 0, slot = "bundle", resource = 2 }]
+prefix = "r04/day/dialogue_0"

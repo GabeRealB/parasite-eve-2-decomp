@@ -26,26 +26,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 3
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1hztpoplhpi9y", path = "res://stages/dryfield/rooms/back_street/day/views/view4.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 4
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://5awk6agbm97n", path = "res://stages/dryfield/rooms/back_street/day/views/view5.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 5
-type = "dialogue"
+bundle = { uid = "uid://1jy6j1lcgcifj", path = "res://stages/dryfield/rooms/back_street/day/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 2, folder = 501, file = 0 }]
@@ -141,3 +122,22 @@ chunks = { image = "1e56accc6c72b74ffae36637fdf45834feb973cf" }
 [view5.from.EUR]
 at = [{ stage = 2, folder = 501, file = 5 }]
 chunks = { image = "1e56accc6c72b74ffae36637fdf45834feb973cf" }
+
+[bundle]
+uid = "uid://1jy6j1lcgcifj"
+template = "bundle"
+resources = [
+    { index = 3, type = "palette", palettes = [
+        { palette = { uid = "uid://1hztpoplhpi9y", path = "res://stages/dryfield/rooms/back_street/day/views/view4.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 4, type = "palette", palettes = [
+        { palette = { uid = "uid://5awk6agbm97n", path = "res://stages/dryfield/rooms/back_street/day/views/view5.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 5, type = "dialogue", dialogue = { uid = "uid://118m0hpjrhu7i", path = "res://stages/dryfield/rooms/back_street/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 2, folder = 501, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 2, folder = 501, file = 0, slot = "bundle" }]

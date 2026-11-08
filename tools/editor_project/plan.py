@@ -11,6 +11,7 @@ operations are written.)
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import nodes
 import toml_out
@@ -29,7 +30,12 @@ BANK = "pe2.sounds@sound_bank"
 BOUND = frozenset({"pe2.sounds@sound_script", "pe2.sounds@instrument", "pe2.sounds@sound"})
 # A reverb mode: read from the executable at the addresses its declaration gives.
 REVERB = "pe2.sounds@reverb"
-PLANNED = READ | {MESH, CLIP, MODEL, IMAGE, ATLAS, FACE, BANK, REVERB} | BOUND
+# A resource bundle: its layout and the resources no node makes, read from its chunk.
+BUNDLE = "pe2.game@bundle"
+# The dialogues: every one read at once, with their string tables and faces, of their bundles and atlases.
+DIALOGUE = "pe2.dialogue@dialogue"
+CAP_TABLES = Path(__file__).resolve().parents[1] / "peassets"
+PLANNED = READ | {MESH, CLIP, MODEL, IMAGE, ATLAS, FACE, BANK, REVERB, BUNDLE, DIALOGUE} | BOUND
 
 
 def target(reference) -> str | None:
@@ -317,7 +323,8 @@ def palette_sources(by_path: dict) -> tuple[dict, dict, dict]:
                     runs.setdefault((target(e["slot"]), tuple(e["at"])), source)
         for slot in table.get("slots", []):
             note(slot["name"], None, bool(slot.get("pages")), slot.get("palettes", []))
-            for r in slot.get("resources", []):
+            bundle = by_path.get(target(slot["bundle"])) if slot.get("bundle") else None
+            for r in bundle.table.get("resources", []) if bundle else []:
                 note(slot["name"], r["index"], False, r.get("palettes", []))
         for release, placed in table.get("from", {}).items():
             for at in placed.get("at", []):
@@ -499,6 +506,90 @@ def banked(plan: Plan, path: str, table: dict, by_path: dict, releases, places, 
             emit_by_release(plan, item, files, groups, {r: f"{id}#{item}/{files}" for r, id in made_by.items()})
 
 
+def bundled(plan: Plan, path: str, table: dict, by_path: dict, releases, places, containers) -> None:
+    """A resource bundle: its `bundle.toml` and the resources no node makes (`resources/<index>.bin`) - a palette
+    resource holding a run no image owns among them - of one read of its chunk; made once for each group of releases declaring it alike, of any of their chunks."""
+    declaring = [r for r in releases if table.get("from", {}).get(r)]
+    if not declaring:
+        return
+    groups = by_what_they_declare({r: json.dumps(table["from"][r], sort_keys=True) for r in declaring})
+    # A palette resource holding a run no image owns keeps its stored chunk, which gives the run its colors.
+    resources = [{k: v for k, v in r.items() if k in ("index", "type", "kind")}
+                 | ({"runs": True} if any("palette" not in e for e in r.get("palettes", [])) else {})
+                 for r in table.get("resources", [])]
+    made_by = {}
+    for n, group in enumerate(groups):
+        chunks = [any_of([chunk(plan, r, table["from"][r]["at"][0], by_path, places, containers,
+                                table["from"][r].get("sha1")) for r in group])]
+        own = "" if n == 0 else f"{group[0]}:"
+        made_by.update({r: plan.op(f"bundle:{own}{path}", "pe2.game@extract_bundle", {"chunks": chunks},
+                                   {"bundle": path, "resources": resources}) for r in group})
+    emit_by_release(plan, path, "bundle.toml", groups, {r: f"{id}#{path}/bundle.toml" for r, id in made_by.items()})
+    for r in resources:
+        if r["type"] != "dialogue" and (r["type"] != "palette" or r.get("runs")):
+            name = f"resources/{r['index']}.bin"
+            emit_by_release(plan, path, name, groups, {rel: f"{id}#{path}/{name}" for rel, id in made_by.items()})
+
+
+def tsv_rows(name: str) -> list[list[str]]:
+    lines = (CAP_TABLES / name).read_text(encoding="utf-8").splitlines()
+    return [line.split("\t") for line in lines if line and not line.startswith("#")]
+
+
+def dialogued(plan: Plan, dialogues: list[tuple[str, dict]], by_path: dict, releases, places, containers) -> None:
+    """Every dialogue a release declares, read in one operation of the bundles holding them and the atlases they lay
+    out - each dialogue's structure, its string table's text and the faces' pictures, which only all of them make - with
+    the glyph and plate tables recognition reads them by, and the flags the registries name, which its commands name. Made once a release: a release's files are its own until a
+    run finds them the same as the shared ones."""
+    if not dialogues:
+        return
+    first = dialogues[0][1]
+    faces = {face: target(reference) for face, reference in first["faces"].items()}
+    speakers = by_path[target(first["cast"])].table.get("speakers", {})
+    tables = {"glyph_table": tsv_rows("cap_glyphs.tsv"), "plate_table": [r[:2] for r in tsv_rows("cap_plates.tsv")]}
+    # The flags the registries name, which a dialogue's commands are read naming.
+    tables["flags"] = [{"registry": d.table["uid"], "ids": {name: flag["id"] for name, flag in d.table.get("flag", {}).items()}}
+                       for _, d in sorted(by_path.items()) if d.table.get("template") == "flag_registry"]
+    made_by: dict[str, str] = {}
+    declaring: list[str] = []
+    strings: set[str] = set()
+    for release in releases:
+        chunks: list[str] = []
+
+        def read(at: dict) -> int:
+            id = chunk(plan, release, at, by_path, places, containers)
+            if id not in chunks:
+                chunks.append(id)
+            return chunks.index(id)
+        entries = []
+        for path, table in dialogues:
+            placed = table.get("from", {}).get(release)
+            if not placed:
+                continue
+            at = placed["at"][0]
+            entry = {"path": path, "name": path, "prefix": placed["prefix"], "bundle": read(at),
+                     "resource": at["resource"], "strings": target(table["strings"])}
+            if table.get("page"):
+                image = by_path[target(table["page"])].table["from"][release]["at"][0]
+                entry["atlas"] = {"chunk": read(place(image)), "column": table.get("column", 0)}
+            if placed.get("glyphs"):
+                entry["glyphs"] = placed["glyphs"]
+            entries.append(entry)
+            strings.add(entry["strings"])
+        if not entries:
+            continue
+        args = {"dialogues": entries, "faces": faces, "speakers": speakers, **tables}
+        made_by[release] = plan.op(f"dialogues:{release}", "pe2.dialogue@extract_dialogues", {"chunks": chunks},
+                                   json_safe(args))
+        declaring.append(release)
+    groups = [[r] for r in declaring]
+    for path in [p for p, _ in dialogues] + sorted(strings):
+        emit_by_release(plan, path, "settings.toml", groups, {r: f"{id}#{path}/settings.toml" for r, id in made_by.items()})
+    for face in faces.values():
+        name = face.rsplit("/", 1)[-1]
+        emit_by_release(plan, face, f"{name}.ufo/", groups, {r: f"{id}#{face}/{name}.ufo/" for r, id in made_by.items()})
+
+
 def reverbed(plan: Plan, path: str, table: dict, releases, discs) -> None:
     """A reverb mode: its file from the executable it is in, at the addresses each release declares; made once for each
     group of releases declaring it alike, of any of their executables."""
@@ -560,6 +651,7 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
             containers[(release, stage)] = (disc, id)
     palettes = palette_sources(by_path)
     bound: dict[str, str] = {}
+    dialogues: list[tuple[str, dict]] = []
     # A file asset by where it is: the last declared there, as the editor's extraction found them.
     places: dict[tuple, str] = {}
     for path, d in by_path.items():
@@ -588,6 +680,12 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
             continue
         if node_type == REVERB:
             reverbed(plan, path, table, releases, discs)
+            continue
+        if node_type == BUNDLE:
+            bundled(plan, path, table, by_path, releases, places, containers)
+            continue
+        if node_type == DIALOGUE:
+            dialogues.append((path, table))
             continue
         if node_type == IMAGE and nodes.extracted(node_type, table):
             textured(plan, path, table, registry, by_path, releases, places, containers, palettes, discs)
@@ -637,6 +735,7 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
         if made_by:
             name = f"native.{table.get('format', 'bin')}"
             emit_by_release(plan, path, name, by_what_they_declare(declared_as), made_by)
+    dialogued(plan, dialogues, by_path, releases, places, containers)
     # A disc's movie file, joined from the movies it holds as the bundles were given them: held to the disc's.
     for path, d in by_path.items():
         table = d.table

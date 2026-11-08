@@ -58,3 +58,15 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 at = [{ stage = 4, folder = 4801, file = 0, slot = "dialogue_0_atlas", page = 0 }]
 sha1 = "099f6370f58bb83e3a7705a1e9664e502a1b9e89"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0]
+uid = "uid://hi2kl7pwscx5"
+template = "dialogue"
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+page = { uid = "uid://w9z86q3c0tuo", path = "res://stages/mine_shelter/rooms/r48/dialogue_0_atlas.node" }
+
+[dialogue_0.from.USA]
+at = [{ stage = 4, folder = 4801, file = 0, slot = "bundle", resource = 18 }]
+prefix = "r48/dialogue_0"

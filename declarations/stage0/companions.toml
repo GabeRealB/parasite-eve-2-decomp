@@ -376,9 +376,7 @@ pages = [
 [[akropolis_square.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "demo" },
-]
+bundle = { uid = "uid://1x5futlmj9y4b", path = "res://stage0/companions/akropolis_square_bundle.node" }
 
 [akropolis_square.from.USA]
 at = [{ stage = 0, file = 801000 }]
@@ -423,9 +421,7 @@ pages = [
 [[dryfield_main_street.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "demo" },
-]
+bundle = { uid = "uid://1mw6hyd2yhz3y", path = "res://stage0/companions/dryfield_main_street_bundle.node" }
 
 [dryfield_main_street.from.USA]
 at = [{ stage = 0, file = 801100 }]
@@ -470,9 +466,7 @@ pages = [
 [[dryfield_underpass.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "demo" },
-]
+bundle = { uid = "uid://1j4jf0wx6xmdc", path = "res://stage0/companions/dryfield_underpass_bundle.node" }
 
 [dryfield_underpass.from.USA]
 at = [{ stage = 0, file = 801200 }]
@@ -481,3 +475,42 @@ chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23
 [dryfield_underpass.from.EUR]
 at = [{ stage = 0, file = 801200 }]
 chunks = { logo = "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f", logo_palette = "23c34d03a5ba4a96596c44b861b41976d047c303", logo_shadow = "89c230210f51336227c7dda196122f2b7568f82e", logo_shadow_palette = "d928951f722195183e5d08208f4a430f7a587a70" }
+
+[akropolis_square_bundle]
+uid = "uid://1x5futlmj9y4b"
+template = "bundle"
+resources = [
+    { index = 0, type = "demo" },
+]
+
+[akropolis_square_bundle.from.USA]
+at = [{ stage = 0, file = 801000, slot = "bundle" }]
+
+[akropolis_square_bundle.from.EUR]
+at = [{ stage = 0, file = 801000, slot = "bundle" }]
+
+[dryfield_main_street_bundle]
+uid = "uid://1mw6hyd2yhz3y"
+template = "bundle"
+resources = [
+    { index = 0, type = "demo" },
+]
+
+[dryfield_main_street_bundle.from.USA]
+at = [{ stage = 0, file = 801100, slot = "bundle" }]
+
+[dryfield_main_street_bundle.from.EUR]
+at = [{ stage = 0, file = 801100, slot = "bundle" }]
+
+[dryfield_underpass_bundle]
+uid = "uid://1j4jf0wx6xmdc"
+template = "bundle"
+resources = [
+    { index = 0, type = "demo" },
+]
+
+[dryfield_underpass_bundle.from.USA]
+at = [{ stage = 0, file = 801200, slot = "bundle" }]
+
+[dryfield_underpass_bundle.from.EUR]
+at = [{ stage = 0, file = 801200, slot = "bundle" }]

@@ -83,3 +83,27 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 at = [{ stage = 5, folder = 2201, file = 0, slot = "dialogue_2_atlas", page = 0 }]
 sha1 = "fb53f6395b47667a1134dfa1f5db375da471fd6e"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0]
+uid = "uid://7ueuajty7qul"
+template = "dialogue"
+strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+page = { uid = "uid://hca675nye3xz", path = "res://stages/shelter_neo_ark/rooms/b6_nursery/dialogue_0_atlas.node" }
+
+[dialogue_0.from.USA]
+at = [{ stage = 5, folder = 2201, file = 0, slot = "bundle", resource = 19 }]
+prefix = "b6_nursery/dialogue_0"
+
+[dialogue_2]
+uid = "uid://112iv3c16hfac"
+template = "dialogue"
+strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+page = { uid = "uid://djh5tmc9hjob", path = "res://stages/shelter_neo_ark/rooms/b6_nursery/dialogue_2_atlas.node" }
+
+[dialogue_2.from.USA]
+at = [{ stage = 5, folder = 2201, file = 0, slot = "bundle", resource = 21 }]
+prefix = "b6_nursery/dialogue_2"

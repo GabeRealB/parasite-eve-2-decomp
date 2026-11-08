@@ -41,9 +41,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "dialogue" },
-]
+bundle = { uid = "uid://1ujyo4xxiyb9m", path = "res://stages/shelter_neo_ark/rooms/1f_vehicular_airlock/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 5, folder = 201, file = 0 }]
@@ -91,3 +89,16 @@ at = [{ stage = 5, folder = 201, file = 3 }]
 
 [view3.from.EUR]
 at = [{ stage = 5, folder = 201, file = 3 }]
+
+[bundle]
+uid = "uid://1ujyo4xxiyb9m"
+template = "bundle"
+resources = [
+    { index = 0, type = "dialogue", dialogue = { uid = "uid://eu3c54od4v23", path = "res://stages/shelter_neo_ark/rooms/1f_vehicular_airlock/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 5, folder = 201, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 5, folder = 201, file = 0, slot = "bundle" }]

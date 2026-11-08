@@ -1,0 +1,13 @@
+# Declarations: the rooms' dialogues (tools/editor_project/dialogue.py).
+
+[dialogue_0]
+uid = "uid://10sekuw6n082y"
+template = "dialogue"
+strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+page = { uid = "uid://1wlr0tni0xjf4", path = "res://stages/dryfield/rooms/motel_room_4/day/dialogue_0_atlas.node" }
+
+[dialogue_0.from.USA]
+at = [{ stage = 2, folder = 1401, file = 0, slot = "bundle", resource = 0 }]
+prefix = "motel_room_4/dialogue_0"

@@ -1,0 +1,5 @@
+# Declarations: the text of shared's dialogues, by key (tools/editor_project/dialogue.py).
+
+[dialogue]
+uid = "uid://d8c7iags3qya"
+template = "string_table"

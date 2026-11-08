@@ -1,0 +1,24 @@
+# Declarations: the dialogues' faces and cast (tools/editor_project/dialogue.py).
+
+[glyphs]
+uid = "uid://cpcg4huffesp"
+template = "font"
+family = "Parasite Eve II Dialogue"
+style = "Regular"
+
+[bold]
+uid = "uid://1imh4rn61k4x8"
+template = "font"
+family = "Parasite Eve II Dialogue"
+style = "Bold"
+
+[speakers]
+uid = "uid://kcc9fyku3u66"
+template = "font"
+family = "Parasite Eve II Speakers"
+style = "Regular"
+
+[cast]
+uid = "uid://1ve4zwgpp23r0"
+template = "cast"
+speakers = { AYA = [0], PIERCE = [3], BALDWIN = [8], "???" = [10, 21], KYLE = [1], RUPERT = [5], DOUGLAS = [9], "K.MADIGAN" = [12], "MALE VOICE" = [23], JODIE = [2], PRESIDENT = [15], STAFF = [19], "No.9" = [6], "SWAT OFFICER" = [4], EVE = [7], "2ND LIEUTENANT" = [17], SERGEANT = [18], WARNING = [22], "??? (wide)" = [21], "POLICE OFFICER" = [13], "POLICE SGT." = [14], TELEGRAPHIST = [20], CREATURE = [11], PRIVATE = [16], ENGINEER = [24] }

@@ -62,38 +62,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1rzhvd32yg1w8", path = "res://stages/mine_shelter/rooms/r36/views/view2.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 2
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://j7ejve1nxk4i", path = "res://stages/mine_shelter/rooms/r36/views/view3.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 9
-type = "dialogue"
-
-[[base.slots.resources]]
-index = 10
-type = "dialogue"
-
-[[base.slots.resources]]
-index = 11
-type = "dialogue"
-
-[[base.slots.resources]]
-index = 12
-type = "dialogue"
+bundle = { uid = "uid://24gtyli102bd", path = "res://stages/mine_shelter/rooms/r36/files/bundle.node" }
 
 [[base.streams]]
 name = "movie_100"
@@ -280,3 +249,25 @@ at = [{ stage = 4, folder = 3601, file = 11 }]
 
 [view11.from.EUR]
 at = [{ stage = 4, folder = 3601, file = 11 }]
+
+[bundle]
+uid = "uid://24gtyli102bd"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://1rzhvd32yg1w8", path = "res://stages/mine_shelter/rooms/r36/views/view2.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 2, type = "palette", palettes = [
+        { palette = { uid = "uid://j7ejve1nxk4i", path = "res://stages/mine_shelter/rooms/r36/views/view3.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 9, type = "dialogue", dialogue = { uid = "uid://nnn6cfwg0yu0", path = "res://stages/mine_shelter/rooms/r36/dialogue_0.node" } },
+    { index = 10, type = "dialogue", dialogue = { uid = "uid://dm25q3n7izhu", path = "res://stages/mine_shelter/rooms/r36/dialogue_1.node" } },
+    { index = 11, type = "dialogue", dialogue = { uid = "uid://gmp0plq9fj1b", path = "res://stages/mine_shelter/rooms/r36/dialogue_2.node" } },
+    { index = 12, type = "dialogue", dialogue = { uid = "uid://1mr27mpulgfj1", path = "res://stages/mine_shelter/rooms/r36/dialogue_3.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 4, folder = 3601, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 4, folder = 3601, file = 0, slot = "bundle" }]

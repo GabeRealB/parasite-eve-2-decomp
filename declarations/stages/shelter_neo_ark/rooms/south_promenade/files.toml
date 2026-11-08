@@ -26,28 +26,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1gzkupi5z3voh", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view2.node", output = "palettes/row_0" } },
-    { palette = { uid = "uid://1gzkupi5z3voh", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view2.node", output = "palettes/row_1" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 2
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://3armvlzh26vl", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view3.node", output = "palettes/row_0" } },
-    { palette = { uid = "uid://3armvlzh26vl", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view3.node", output = "palettes/row_1" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 5
-type = "dialogue"
+bundle = { uid = "uid://s6jbpe8dq2i", path = "res://stages/shelter_neo_ark/rooms/south_promenade/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 5, folder = 1901, file = 0 }]
@@ -143,3 +122,24 @@ at = [{ stage = 5, folder = 1901, file = 5 }]
 
 [view5.from.EUR]
 at = [{ stage = 5, folder = 1901, file = 5 }]
+
+[bundle]
+uid = "uid://s6jbpe8dq2i"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://1gzkupi5z3voh", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view2.node", output = "palettes/row_0" } },
+        { palette = { uid = "uid://1gzkupi5z3voh", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view2.node", output = "palettes/row_1" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 2, type = "palette", palettes = [
+        { palette = { uid = "uid://3armvlzh26vl", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view3.node", output = "palettes/row_0" } },
+        { palette = { uid = "uid://3armvlzh26vl", path = "res://stages/shelter_neo_ark/rooms/south_promenade/views/view3.node", output = "palettes/row_1" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 5, type = "dialogue", dialogue = { uid = "uid://crkkmriw7dfw", path = "res://stages/shelter_neo_ark/rooms/south_promenade/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 5, folder = 1901, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 5, folder = 1901, file = 0, slot = "bundle" }]

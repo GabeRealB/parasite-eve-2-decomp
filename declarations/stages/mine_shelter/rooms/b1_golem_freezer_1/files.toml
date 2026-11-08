@@ -41,18 +41,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1s9f9npc6ze6c", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/views/view2.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 7
-type = "dialogue"
+bundle = { uid = "uid://g27f91av7xjf", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 4, folder = 2101, file = 0 }]
@@ -163,3 +152,19 @@ at = [{ stage = 4, folder = 2101, file = 7 }]
 
 [view7.from.EUR]
 at = [{ stage = 4, folder = 2101, file = 7 }]
+
+[bundle]
+uid = "uid://g27f91av7xjf"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://1s9f9npc6ze6c", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/views/view2.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 7, type = "dialogue", dialogue = { uid = "uid://1jffo6710lltc", path = "res://stages/mine_shelter/rooms/b1_golem_freezer_1/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 4, folder = 2101, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 4, folder = 2101, file = 0, slot = "bundle" }]

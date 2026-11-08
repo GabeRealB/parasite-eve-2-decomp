@@ -41,50 +41,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://gvs6oqzh57os", path = "res://stages/dryfield/rooms/junk_yard/day/views/view2.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 2
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://yrokoinnkl3n", path = "res://stages/dryfield/rooms/junk_yard/day/views/view3.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 3
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://yv7x0b9ghirc", path = "res://stages/dryfield/rooms/junk_yard/day/views/view4.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 4
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1uutllkoidwv4", path = "res://stages/dryfield/rooms/junk_yard/day/views/view5.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 6
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://etm1efucuzd0", path = "res://stages/dryfield/rooms/junk_yard/day/views/view7.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 7
-type = "dialogue"
+bundle = { uid = "uid://19drsks2334g3", path = "res://stages/dryfield/rooms/junk_yard/day/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 2, folder = 2601, file = 0 }]
@@ -239,3 +196,31 @@ chunks = { image = "8d4ef5f3650d751d670d625fd1d5d9d7897b00f6" }
 [view7.from.EUR]
 at = [{ stage = 2, folder = 2601, file = 7 }]
 chunks = { image = "8d4ef5f3650d751d670d625fd1d5d9d7897b00f6" }
+
+[bundle]
+uid = "uid://19drsks2334g3"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://gvs6oqzh57os", path = "res://stages/dryfield/rooms/junk_yard/day/views/view2.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 2, type = "palette", palettes = [
+        { palette = { uid = "uid://yrokoinnkl3n", path = "res://stages/dryfield/rooms/junk_yard/day/views/view3.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 3, type = "palette", palettes = [
+        { palette = { uid = "uid://yv7x0b9ghirc", path = "res://stages/dryfield/rooms/junk_yard/day/views/view4.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 4, type = "palette", palettes = [
+        { palette = { uid = "uid://1uutllkoidwv4", path = "res://stages/dryfield/rooms/junk_yard/day/views/view5.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 6, type = "palette", palettes = [
+        { palette = { uid = "uid://etm1efucuzd0", path = "res://stages/dryfield/rooms/junk_yard/day/views/view7.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 7, type = "dialogue", dialogue = { uid = "uid://1qasa3t6fpfv4", path = "res://stages/dryfield/rooms/junk_yard/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 2, folder = 2601, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 2, folder = 2601, file = 0, slot = "bundle" }]

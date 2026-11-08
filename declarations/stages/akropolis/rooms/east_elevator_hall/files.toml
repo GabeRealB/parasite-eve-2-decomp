@@ -26,51 +26,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://s2gwhrm9w742", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view2_page_1.node", output = "palettes/default" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 2
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.node", output = "palettes/row_0" } },
-    { palette = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.node", output = "palettes/row_1" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 3
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1w7bxinm35ex4", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view4_page_1.node", output = "palettes/default" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 4
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1ggs2k7ej0t60", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view5_page_1.node", output = "palettes/default" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 6
-type = "palette"
-palettes = [
-    { name = "unread_row_255", entries = 256, slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 7
-type = "dialogue"
+bundle = { uid = "uid://w0tkqk2h19dz", path = "res://stages/akropolis/rooms/east_elevator_hall/files/bundle.node" }
 
 [[base.streams]]
 name = "scene_3"
@@ -246,3 +202,32 @@ chunks = { image = "7b53d2ac87bb99c42553091aeb8754f90723e667" }
 [view7.from.EUR]
 at = [{ stage = 1, folder = 201, file = 7 }]
 chunks = { image = "7b53d2ac87bb99c42553091aeb8754f90723e667" }
+
+[bundle]
+uid = "uid://w0tkqk2h19dz"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://s2gwhrm9w742", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view2_page_1.node", output = "palettes/default" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 2, type = "palette", palettes = [
+        { palette = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.node", output = "palettes/row_0" } },
+        { palette = { uid = "uid://t1q09t87bv6s", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view3_page_1.node", output = "palettes/row_1" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 3, type = "palette", palettes = [
+        { palette = { uid = "uid://1w7bxinm35ex4", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view4_page_1.node", output = "palettes/default" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 4, type = "palette", palettes = [
+        { palette = { uid = "uid://1ggs2k7ej0t60", path = "res://stages/akropolis/rooms/east_elevator_hall/views/view5_page_1.node", output = "palettes/default" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 6, type = "palette", palettes = [
+        { name = "unread_row_255", entries = 256, slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" }, at = [0, 0] },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 7, type = "dialogue", dialogue = { uid = "uid://1tntec1o9wete", path = "res://stages/akropolis/rooms/east_elevator_hall/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 1, folder = 201, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 1, folder = 201, file = 0, slot = "bundle" }]

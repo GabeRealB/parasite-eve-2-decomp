@@ -26,9 +26,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "dialogue" },
-]
+bundle = { uid = "uid://i8sn9h827hr5", path = "res://stages/mine_shelter/rooms/b1_control_room_access_tunnel/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 4, folder = 2501, file = 0 }]
@@ -76,3 +74,16 @@ at = [{ stage = 4, folder = 2501, file = 3 }]
 
 [view3.from.EUR]
 at = [{ stage = 4, folder = 2501, file = 3 }]
+
+[bundle]
+uid = "uid://i8sn9h827hr5"
+template = "bundle"
+resources = [
+    { index = 0, type = "dialogue", dialogue = { uid = "uid://1gvvzaiwvqqpa", path = "res://stages/mine_shelter/b1_control_room_access_tunnel_dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 4, folder = 2501, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 4, folder = 2501, file = 0, slot = "bundle" }]

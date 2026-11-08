@@ -39,18 +39,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 5
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://4cqmflv7f8yv", path = "res://stages/dryfield/rooms/r08/night/views/view6.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 9
-type = "dialogue"
+bundle = { uid = "uid://66ad207rdqfo", path = "res://stages/dryfield/rooms/r08/night/files/bundle.node" }
 
 [[base.streams]]
 name = "scene_57"
@@ -203,3 +192,19 @@ at = [{ stage = 3, folder = 801, file = 9 }]
 
 [view9.from.EUR]
 at = [{ stage = 3, folder = 801, file = 9 }]
+
+[bundle]
+uid = "uid://66ad207rdqfo"
+template = "bundle"
+resources = [
+    { index = 5, type = "palette", palettes = [
+        { palette = { uid = "uid://4cqmflv7f8yv", path = "res://stages/dryfield/rooms/r08/night/views/view6.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 9, type = "dialogue", dialogue = { uid = "uid://1ml9685ev10iz", path = "res://stages/dryfield/rooms/r08/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 3, folder = 801, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 3, folder = 801, file = 0, slot = "bundle" }]

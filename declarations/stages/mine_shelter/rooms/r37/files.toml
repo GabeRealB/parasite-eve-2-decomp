@@ -18,9 +18,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "dialogue" },
-]
+bundle = { uid = "uid://vvy1c6vmk4w3", path = "res://stages/mine_shelter/rooms/r37/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 4, folder = 3701, file = 0 }]
@@ -68,3 +66,16 @@ at = [{ stage = 4, folder = 3701, file = 3 }]
 
 [view3.from.EUR]
 at = [{ stage = 4, folder = 3701, file = 3 }]
+
+[bundle]
+uid = "uid://vvy1c6vmk4w3"
+template = "bundle"
+resources = [
+    { index = 0, type = "dialogue", dialogue = { uid = "uid://cbjcmmzjhdva", path = "res://stages/mine_shelter/1f_heliport_dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 4, folder = 3701, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 4, folder = 3701, file = 0, slot = "bundle" }]

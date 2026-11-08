@@ -1,0 +1,5 @@
+# Declarations: the text of shelter_neo_ark's dialogues, by key (tools/editor_project/dialogue.py).
+
+[dialogue]
+uid = "uid://9rz19kdtio5q"
+template = "string_table"

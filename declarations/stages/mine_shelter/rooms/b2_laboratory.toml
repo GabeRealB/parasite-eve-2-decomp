@@ -105,3 +105,39 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 at = [{ stage = 4, folder = 3101, file = 10, slot = "dialogue_3_atlas", page = 0 }]
 sha1 = "3eea98134a3f085679254381bb663101974e490f"
 palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc121c270ab50bb257ba6f4862fef137d4dc12f0", text_2 = "09ee30a03395d3536ea22e29963d037013bc4a4c", text_3 = "2ddc7dd5303267f299f690e1bb33c864b8784991", plate = "727ccaa5a44539f05ddba5b26616471d0b79a624" }
+
+[dialogue_0]
+uid = "uid://qmgk8r7u83yw"
+template = "dialogue"
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+page = { uid = "uid://e6rxbge7y741", path = "res://stages/mine_shelter/rooms/b2_laboratory/dialogue_0_atlas.node" }
+
+[dialogue_0.from.USA]
+at = [{ stage = 4, folder = 3101, file = 0, slot = "bundle", resource = 15 }]
+prefix = "b2_laboratory/dialogue_0"
+
+[dialogue_1]
+uid = "uid://1e5uji2sypfrz"
+template = "dialogue"
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+page = { uid = "uid://1mqqtypnh9uzx", path = "res://stages/mine_shelter/rooms/b2_laboratory/dialogue_1_atlas.node" }
+
+[dialogue_1.from.USA]
+at = [{ stage = 4, folder = 3101, file = 0, slot = "bundle", resource = 16 }]
+prefix = "b2_laboratory/dialogue_1"
+
+[dialogue_3]
+uid = "uid://1nkoxjabijilz"
+template = "dialogue"
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
+faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
+page = { uid = "uid://14la5w59nq3xa", path = "res://stages/mine_shelter/rooms/b2_laboratory/dialogue_3_atlas.node" }
+
+[dialogue_3.from.USA]
+at = [{ stage = 4, folder = 3101, file = 0, slot = "bundle", resource = 18 }]
+prefix = "b2_laboratory/dialogue_3"

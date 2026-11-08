@@ -43,6 +43,8 @@ EXTRACTED = (
     ("pe2.sounds@instrument", ()),
     ("pe2.sounds@sound", ()),
     ("pe2.sounds@reverb", ()),
+    ("pe2.game@bundle", ()),
+    ("pe2.dialogue@dialogue", ()),
 )
 # A font face's files, as its extractor writes them: in a folder named after it.
 FACE = "pe2.fonts@font"
@@ -152,7 +154,7 @@ def stamped_node(path: str, table: dict, registry: dict, releases: list[str]) ->
     if imported and imported.get("source"):
         file = imported["source"]
     elif made:
-        file = f"{path.rsplit('/', 1)[-1]}.ufo" if node_type == FACE and placed else ""
+        file = f"{path.rsplit('/', 1)[-1]}.ufo" if node_type == FACE else ""
     elif template != "stream" and reads_bytes(placed, releases):
         file = f"native.{table.get('format', 'bin')}"
     else:

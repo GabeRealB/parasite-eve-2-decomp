@@ -42,9 +42,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "dialogue" },
-]
+bundle = { uid = "uid://4oeamliw53hp", path = "res://stages/akropolis/rooms/hallway/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 1, folder = 701, file = 0 }]
@@ -118,3 +116,16 @@ at = [{ stage = 1, folder = 701, file = 5 }]
 
 [view5.from.EUR]
 at = [{ stage = 1, folder = 701, file = 5 }]
+
+[bundle]
+uid = "uid://4oeamliw53hp"
+template = "bundle"
+resources = [
+    { index = 0, type = "dialogue", dialogue = { uid = "uid://driik9kezw4e", path = "res://stages/akropolis/rooms/hallway/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 1, folder = 701, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 1, folder = 701, file = 0, slot = "bundle" }]

@@ -53,34 +53,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-
-[[base.slots.resources]]
-index = 1
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://mosyahf8ul6", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/views/view2.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 10
-type = "palette"
-palettes = [
-    { palette = { uid = "uid://1rdc1lx57x4c2", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/views/view11.node", output = "palettes/row_0" } },
-]
-upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } }
-
-[[base.slots.resources]]
-index = 12
-type = "dialogue"
-
-[[base.slots.resources]]
-index = 13
-type = "dialogue"
-
-[[base.slots.resources]]
-index = 14
-type = "dialogue"
+bundle = { uid = "uid://vfu8f0wgykcs", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 5, folder = 401, file = 0 }]
@@ -303,3 +276,24 @@ at = [{ stage = 5, folder = 401, file = 12 }]
 
 [view12.from.EUR]
 at = [{ stage = 5, folder = 401, file = 12 }]
+
+[bundle]
+uid = "uid://vfu8f0wgykcs"
+template = "bundle"
+resources = [
+    { index = 1, type = "palette", palettes = [
+        { palette = { uid = "uid://mosyahf8ul6", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/views/view2.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 10, type = "palette", palettes = [
+        { palette = { uid = "uid://1rdc1lx57x4c2", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/views/view11.node", output = "palettes/row_0" } },
+    ], upload = { slot = { uid = "uid://rjjf0tst9g36", path = "res://engine/vram/room_sprite_palettes.node" } } },
+    { index = 12, type = "dialogue", dialogue = { uid = "uid://eix31tfjr79s", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_0.node" } },
+    { index = 13, type = "dialogue", dialogue = { uid = "uid://14k2uwnj55rls", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_1.node" } },
+    { index = 14, type = "dialogue", dialogue = { uid = "uid://e7c0u6fuodwk", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_2.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 5, folder = 401, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 5, folder = 401, file = 0, slot = "bundle" }]

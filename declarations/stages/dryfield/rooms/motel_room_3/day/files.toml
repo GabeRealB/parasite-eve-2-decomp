@@ -26,9 +26,7 @@ type = "package"
 [[base.slots]]
 name = "bundle"
 type = "bundle"
-resources = [
-    { index = 0, type = "dialogue" },
-]
+bundle = { uid = "uid://1450ft4cplrv5", path = "res://stages/dryfield/rooms/motel_room_3/day/files/bundle.node" }
 
 [base.from.USA]
 at = [{ stage = 2, folder = 1301, file = 0 }]
@@ -141,3 +139,16 @@ at = [{ stage = 2, folder = 1301, file = 8 }]
 
 [view8.from.EUR]
 at = [{ stage = 2, folder = 1301, file = 8 }]
+
+[bundle]
+uid = "uid://1450ft4cplrv5"
+template = "bundle"
+resources = [
+    { index = 0, type = "dialogue", dialogue = { uid = "uid://1u6owt77u35qm", path = "res://stages/dryfield/rooms/motel_room_3/dialogue_0.node" } },
+]
+
+[bundle.from.USA]
+at = [{ stage = 2, folder = 1301, file = 0, slot = "bundle" }]
+
+[bundle.from.EUR]
+at = [{ stage = 2, folder = 1301, file = 0, slot = "bundle" }]
