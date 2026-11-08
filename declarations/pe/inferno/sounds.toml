@@ -1,0 +1,152 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://xwgu9v2nweoa"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://ee0f3wy8itaz", path = "res://pe/inferno/sounds/level_1_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://6pinvpfjpwpx", path = "res://pe/inferno/sounds/level_1_script_0.node" },
+]
+samples = [
+    { uid = "uid://rgidcyewv7a3", path = "res://pe/inferno/sounds/level_1_sample_0.node" },
+    { uid = "uid://z5z1dcwvtuld", path = "res://pe/inferno/sounds/level_1_sample_1.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50107, slot = "sounds" }]
+sha1 = "7ec050201f4d1ce0ca6a9f65b2d4cff94878986d"
+
+[level_2]
+uid = "uid://1eez8lciz8zkn"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://ee0f3wy8itaz", path = "res://pe/inferno/sounds/level_1_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://qolz20wu15a", path = "res://pe/inferno/sounds/level_2_script_0.node" },
+]
+samples = [
+    { uid = "uid://rgidcyewv7a3", path = "res://pe/inferno/sounds/level_1_sample_0.node" },
+    { uid = "uid://z5z1dcwvtuld", path = "res://pe/inferno/sounds/level_1_sample_1.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50108, slot = "sounds" }]
+sha1 = "632d88928aed182c7b821786a97a75c00315ae8a"
+
+[level_3]
+uid = "uid://1c3bsz1gkjkm9"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://6yi4paeomrdv", path = "res://pe/inferno/sounds/level_3_instrument_0.node" },
+    { uid = "uid://i2p67r6b0qem", path = "res://pe/inferno/sounds/level_3_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://l6up623nqrhq", path = "res://pe/inferno/sounds/level_3_script_0.node" },
+]
+samples = [
+    { uid = "uid://g4pik9xczxez", path = "res://pe/inferno/sounds/level_3_sample_0.node" },
+    { uid = "uid://1b4162g4eehdi", path = "res://pe/inferno/sounds/level_3_sample_1.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50109, slot = "sounds" }]
+sha1 = "00c8f130738b876a5901ed1a20c909f2a209fb88"
+
+[level_1_script_0]
+uid = "uid://6pinvpfjpwpx"
+template = "sound_script"
+instruments = [
+    { uid = "uid://ee0f3wy8itaz", path = "res://pe/inferno/sounds/level_1_instrument_0.node" },
+]
+
+[level_2_script_0]
+uid = "uid://qolz20wu15a"
+template = "sound_script"
+instruments = [
+    { uid = "uid://ee0f3wy8itaz", path = "res://pe/inferno/sounds/level_1_instrument_0.node" },
+]
+
+[level_3_script_0]
+uid = "uid://l6up623nqrhq"
+template = "sound_script"
+instruments = [
+    { uid = "uid://6yi4paeomrdv", path = "res://pe/inferno/sounds/level_3_instrument_0.node" },
+    { uid = "uid://i2p67r6b0qem", path = "res://pe/inferno/sounds/level_3_instrument_1.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://ee0f3wy8itaz"
+template = "instrument"
+samples = [
+    { uid = "uid://rgidcyewv7a3", path = "res://pe/inferno/sounds/level_1_sample_0.node" },
+    { uid = "uid://z5z1dcwvtuld", path = "res://pe/inferno/sounds/level_1_sample_1.node" },
+]
+
+[level_3_instrument_0]
+uid = "uid://6yi4paeomrdv"
+template = "instrument"
+samples = [
+    { uid = "uid://g4pik9xczxez", path = "res://pe/inferno/sounds/level_3_sample_0.node" },
+]
+
+[level_3_instrument_1]
+uid = "uid://i2p67r6b0qem"
+template = "instrument"
+samples = [
+    { uid = "uid://1b4162g4eehdi", path = "res://pe/inferno/sounds/level_3_sample_1.node" },
+]
+
+[level_1_sample_0]
+uid = "uid://rgidcyewv7a3"
+template = "sound"
+rate = 22050
+mode = "low"
+
+[level_1_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_0.from.USA]
+sha1 = "d6688a553041ad5962aeda5f6e4264455e562f34"
+
+[level_1_sample_1]
+uid = "uid://z5z1dcwvtuld"
+template = "sound"
+rate = 5512
+
+[level_1_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_1.from.USA]
+sha1 = "8b1cb5e1eb6be0781f46f11f27b90a9203894994"
+
+[level_3_sample_0]
+uid = "uid://g4pik9xczxez"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_3_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_0.from.USA]
+sha1 = "d1087fd91fc993d55022efadbf8fdcb4c6cdf301"
+
+[level_3_sample_1]
+uid = "uid://1b4162g4eehdi"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_3_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_1.from.USA]
+sha1 = "a3a6f88b4ef3f9ba7a3be59e72c633ca4b9faf32"

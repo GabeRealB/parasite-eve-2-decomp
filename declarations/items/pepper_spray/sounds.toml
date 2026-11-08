@@ -1,0 +1,46 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[effect]
+uid = "uid://11ug4hoxyoaqw"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1xutqdg2cwl4z", path = "res://items/pepper_spray/sounds/instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://1dnhi6g7wisdn", path = "res://items/pepper_spray/sounds/script_0.node" },
+]
+samples = [
+    { uid = "uid://193r4qrzfhdjx", path = "res://items/pepper_spray/sounds/sample_0.node" },
+]
+
+[effect.from.USA]
+at = [{ stage = 0, file = 50149, slot = "sounds" }]
+sha1 = "1b974fb356def3046f0e081c7c20e97e052cc6ec"
+
+[script_0]
+uid = "uid://1dnhi6g7wisdn"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1xutqdg2cwl4z", path = "res://items/pepper_spray/sounds/instrument_0.node" },
+]
+
+[instrument_0]
+uid = "uid://1xutqdg2cwl4z"
+template = "instrument"
+samples = [
+    { uid = "uid://193r4qrzfhdjx", path = "res://items/pepper_spray/sounds/sample_0.node" },
+]
+
+[sample_0]
+uid = "uid://193r4qrzfhdjx"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_0.from.USA]
+sha1 = "65fd464452bdad2f7759cce04930889ddd5ebf5f"

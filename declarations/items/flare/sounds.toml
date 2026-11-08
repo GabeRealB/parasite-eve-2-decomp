@@ -1,0 +1,61 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[effect]
+uid = "uid://s6xbrk4v3i5x"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1esu94zcqsxd7", path = "res://items/flare/sounds/instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://ketchn3cw233", path = "res://items/flare/sounds/script_0.node" },
+]
+samples = [
+    { uid = "uid://g1o7a2epnhaw", path = "res://items/flare/sounds/sample_0.node" },
+    { uid = "uid://qf9vx7s9eo6c", path = "res://items/flare/sounds/sample_1.node" },
+]
+
+[effect.from.USA]
+at = [{ stage = 0, file = 50146, slot = "sounds" }]
+sha1 = "6e01cab1454a37210f6f753ecbc743d7a837de3a"
+
+[script_0]
+uid = "uid://ketchn3cw233"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1esu94zcqsxd7", path = "res://items/flare/sounds/instrument_0.node" },
+]
+
+[instrument_0]
+uid = "uid://1esu94zcqsxd7"
+template = "instrument"
+samples = [
+    { uid = "uid://g1o7a2epnhaw", path = "res://items/flare/sounds/sample_0.node" },
+    { uid = "uid://qf9vx7s9eo6c", path = "res://items/flare/sounds/sample_1.node" },
+]
+
+[sample_0]
+uid = "uid://g1o7a2epnhaw"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_0.from.USA]
+sha1 = "c65e9d02ced5fe9cece076bb26758bcdb4dbbb33"
+
+[sample_1]
+uid = "uid://qf9vx7s9eo6c"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_1.from.USA]
+sha1 = "2f54ad8fbd1cd1505b576455f8e0064c762a1bb8"

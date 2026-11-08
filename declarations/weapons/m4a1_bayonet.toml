@@ -69,6 +69,19 @@ uid = "uid://1bxrvkps8ojdj"
 template = "animation_bank"
 base = { uid = "uid://1p9i0bf8a7qpa", path = "res://weapons/m4a1/bank.node" }
 clips.secondary_fire = { uid = "uid://1ltgly66csjvr", path = "res://weapons/m4a1_bayonet/thrust.node" }
+# What the reload state plays of the weapon's sound bank (gameplay's _playerActorNormalState5), described: each
+# event in turn, at the reload's start (after `delay` ticks) or at the next cue of these bits; the last cue's event
+# again at every cue after.
+sounds = { uid = "uid://133xsjm07yg2c", path = "res://weapons/m4a1_bayonet/sounds/bank.node" }
+cues.reload = [
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.secondary_reload = [
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.reload_battle_end = [
+    { on = "cue", cue = 3, slot = 3 },
+]
 order = [
     { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
     { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },

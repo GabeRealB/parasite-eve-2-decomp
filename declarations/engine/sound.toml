@@ -1,0 +1,13 @@
+# Declarations: the engine's sound, as the executable holds it.
+
+# The reverb mode the game sets at start-up (`spuInitReverb(SPU_REV_MODE_STUDIO_B)`) and keeps: libspu's preset for it,
+# its 32 registers (`_spu_rev_param[3]`, past its mask) and the word saying where its work area starts
+# (`_spu_rev_startaddr[3]`).
+[reverb]
+uid = "uid://14c5y76lfuqrh"
+template = "reverb"
+
+[reverb.from.USA]
+at = [{ disc = "disk1", slot = "SLUS_010.42" }, { disc = "disk2", slot = "SLUS_010.55" }]
+registers = 0x800687A4
+work_area = 0x80068160

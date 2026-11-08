@@ -1,0 +1,46 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[effect]
+uid = "uid://gy3qq45opv43"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://ey8uapd7lrky", path = "res://items/combat_light/sounds/instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://ne5io7chl0in", path = "res://items/combat_light/sounds/script_0.node" },
+]
+samples = [
+    { uid = "uid://1irgeop6r0rfe", path = "res://items/combat_light/sounds/sample_0.node" },
+]
+
+[effect.from.USA]
+at = [{ stage = 0, file = 50152, slot = "sounds" }]
+sha1 = "c16b1ef36a0c000d9f9c5fbd0b222c50c3b4b053"
+
+[script_0]
+uid = "uid://ne5io7chl0in"
+template = "sound_script"
+instruments = [
+    { uid = "uid://ey8uapd7lrky", path = "res://items/combat_light/sounds/instrument_0.node" },
+]
+
+[instrument_0]
+uid = "uid://ey8uapd7lrky"
+template = "instrument"
+samples = [
+    { uid = "uid://1irgeop6r0rfe", path = "res://items/combat_light/sounds/sample_0.node" },
+]
+
+[sample_0]
+uid = "uid://1irgeop6r0rfe"
+template = "sound"
+rate = 44100
+mode = "low"
+
+[sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_0.from.USA]
+sha1 = "1d042c09840f0697aa103fc43e53f8219aa2f1d6"

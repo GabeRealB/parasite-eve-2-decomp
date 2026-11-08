@@ -1,0 +1,199 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://1whqi2rbh06bo"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+    { uid = "uid://994lfb1084k", path = "res://pe/energyball/sounds/level_1_instrument_1.node" },
+    { uid = "uid://1mt7rkof0n9qt", path = "res://pe/energyball/sounds/level_1_instrument_2.node" },
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+]
+scripts = [
+    { uid = "uid://1fcw2spja7l6q", path = "res://pe/energyball/sounds/level_1_script_0.node" },
+    { uid = "uid://1grh8rl7mzkb4", path = "res://pe/energyball/sounds/level_1_script_1.node" },
+]
+samples = [
+    { uid = "uid://1qzgp6l5rj19z", path = "res://pe/energyball/sounds/level_1_sample_0.node" },
+    { uid = "uid://ulh4kj05jvkt", path = "res://pe/energyball/sounds/level_1_sample_1.node" },
+    { uid = "uid://1pl1ecq1zlyap", path = "res://pe/energyball/sounds/level_1_sample_2.node" },
+    { uid = "uid://1l98vccw8anam", path = "res://pe/energyball/sounds/level_1_sample_3.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50134, slot = "sounds" }]
+sha1 = "a7c8fa63a4b23b6ef82f26477f8ab2cdaf55724c"
+
+[level_2]
+uid = "uid://406zwgqogmh0"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+    { uid = "uid://994lfb1084k", path = "res://pe/energyball/sounds/level_1_instrument_1.node" },
+    { uid = "uid://1mt7rkof0n9qt", path = "res://pe/energyball/sounds/level_1_instrument_2.node" },
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+]
+scripts = [
+    { uid = "uid://1fcw2spja7l6q", path = "res://pe/energyball/sounds/level_1_script_0.node" },
+    { uid = "uid://b26lj1u3r513", path = "res://pe/energyball/sounds/level_2_script_1.node" },
+]
+samples = [
+    { uid = "uid://1qzgp6l5rj19z", path = "res://pe/energyball/sounds/level_1_sample_0.node" },
+    { uid = "uid://ulh4kj05jvkt", path = "res://pe/energyball/sounds/level_1_sample_1.node" },
+    { uid = "uid://1pl1ecq1zlyap", path = "res://pe/energyball/sounds/level_1_sample_2.node" },
+    { uid = "uid://1l98vccw8anam", path = "res://pe/energyball/sounds/level_1_sample_3.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50135, slot = "sounds" }]
+sha1 = "3884e2fbb8dab1e249cf663e5c8799a835395293"
+
+[level_3]
+uid = "uid://q14l9sz2bi09"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+    { uid = "uid://994lfb1084k", path = "res://pe/energyball/sounds/level_1_instrument_1.node" },
+    { uid = "uid://1mt7rkof0n9qt", path = "res://pe/energyball/sounds/level_1_instrument_2.node" },
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+]
+scripts = [
+    { uid = "uid://1o1as3axt664k", path = "res://pe/energyball/sounds/level_3_script_0.node" },
+    { uid = "uid://3ci69uadj2wz", path = "res://pe/energyball/sounds/level_3_script_1.node" },
+]
+samples = [
+    { uid = "uid://1qzgp6l5rj19z", path = "res://pe/energyball/sounds/level_1_sample_0.node" },
+    { uid = "uid://ulh4kj05jvkt", path = "res://pe/energyball/sounds/level_1_sample_1.node" },
+    { uid = "uid://1pl1ecq1zlyap", path = "res://pe/energyball/sounds/level_1_sample_2.node" },
+    { uid = "uid://1l98vccw8anam", path = "res://pe/energyball/sounds/level_1_sample_3.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50136, slot = "sounds" }]
+sha1 = "9c9a95943fa883c095251b9ac279d183af0bdac3"
+
+[level_1_script_0]
+uid = "uid://1fcw2spja7l6q"
+template = "sound_script"
+instruments = [
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+]
+
+[level_1_script_1]
+uid = "uid://1grh8rl7mzkb4"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+    { uid = "uid://1mt7rkof0n9qt", path = "res://pe/energyball/sounds/level_1_instrument_2.node" },
+    { uid = "uid://994lfb1084k", path = "res://pe/energyball/sounds/level_1_instrument_1.node" },
+]
+
+[level_2_script_1]
+uid = "uid://b26lj1u3r513"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+    { uid = "uid://1mt7rkof0n9qt", path = "res://pe/energyball/sounds/level_1_instrument_2.node" },
+    { uid = "uid://994lfb1084k", path = "res://pe/energyball/sounds/level_1_instrument_1.node" },
+]
+
+[level_3_script_0]
+uid = "uid://1o1as3axt664k"
+template = "sound_script"
+instruments = [
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+]
+
+[level_3_script_1]
+uid = "uid://3ci69uadj2wz"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1bqsg8cds5y0w", path = "res://pe/energyball/sounds/level_1_instrument_0.node" },
+    { uid = "uid://qnm734xep9wj", path = "res://pe/energyball/sounds/level_1_instrument_3.node" },
+    { uid = "uid://1mt7rkof0n9qt", path = "res://pe/energyball/sounds/level_1_instrument_2.node" },
+    { uid = "uid://994lfb1084k", path = "res://pe/energyball/sounds/level_1_instrument_1.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://1bqsg8cds5y0w"
+template = "instrument"
+samples = [
+    { uid = "uid://1qzgp6l5rj19z", path = "res://pe/energyball/sounds/level_1_sample_0.node" },
+]
+
+[level_1_instrument_1]
+uid = "uid://994lfb1084k"
+template = "instrument"
+samples = [
+    { uid = "uid://ulh4kj05jvkt", path = "res://pe/energyball/sounds/level_1_sample_1.node" },
+]
+
+[level_1_instrument_2]
+uid = "uid://1mt7rkof0n9qt"
+template = "instrument"
+samples = [
+    { uid = "uid://1pl1ecq1zlyap", path = "res://pe/energyball/sounds/level_1_sample_2.node" },
+]
+
+[level_1_instrument_3]
+uid = "uid://qnm734xep9wj"
+template = "instrument"
+samples = [
+    { uid = "uid://1l98vccw8anam", path = "res://pe/energyball/sounds/level_1_sample_3.node" },
+]
+
+[level_1_sample_0]
+uid = "uid://1qzgp6l5rj19z"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_1_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_0.from.USA]
+sha1 = "f1459ee02a2ce0dc4a5836597abdb047c9e625ab"
+
+[level_1_sample_1]
+uid = "uid://ulh4kj05jvkt"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_1_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_1.from.USA]
+sha1 = "38907bf834ad9868165fe3ebdce7d50a36c14f98"
+
+[level_1_sample_2]
+uid = "uid://1pl1ecq1zlyap"
+template = "sound"
+rate = 11025
+
+[level_1_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_2.from.USA]
+sha1 = "00e3458ce4da8cb8693f32d324569d3546e8f798"
+
+[level_1_sample_3]
+uid = "uid://1l98vccw8anam"
+template = "sound"
+rate = 44100
+mode = "high"
+
+[level_1_sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_3.from.USA]
+sha1 = "ead8f91b32b6b6c6271a43e522b30b144a1c9ee0"

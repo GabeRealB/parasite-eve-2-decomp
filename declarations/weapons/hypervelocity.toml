@@ -250,6 +250,7 @@ clips.aim_backward = { uid = "uid://10n2fa5fap5oh", path = "res://weapons/hyperv
 clips.reload = { uid = "uid://jz7u1tfo6e20", path = "res://weapons/hypervelocity/charge.node" }
 clips.secondary_reload = { uid = "uid://2657tnqyi3gr", path = "res://weapons/hypervelocity/charge_cancel.node" }
 clips.reload_battle_end = { uid = "uid://1xmlnpk79sphg", path = "res://weapons/hypervelocity/reload_battle_end.node" }
+sounds = { uid = "uid://1hvronjcmctq9", path = "res://weapons/hypervelocity/sounds/bank.node" }
 order = [
     { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
     { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },

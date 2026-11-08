@@ -273,6 +273,37 @@ repack read) is run by hand.
 `ninja_config.py --project [DIR]` builds a project's data instead of
 `assets/USA`.
 
+**A package's sounds are four kinds of node** (the `pe2.sounds` extension): a
+sound (a sample, its `sound.wav` imported by Sony's encoder into the body the
+bank stores), an instrument (a program), a sound script (what a sound id
+starts) and a sound bank binding them as the disc stores it, read off its file's
+`sounds` slot. `tools/editor_project/sounds.py declare` writes them, USA only so
+far, for the banks of the packages the repository builds, into
+`<group>/sounds.toml`: each instrument, script and sample once, named by the
+first bank binding it and its place there, never from the code's names.
+A sound previews raw; a script, and a bank's slot (chosen in its contents),
+play as the game plays them: the extension's `engine` ports
+`src/engine/sndscript.c` and `spu.c`'s voice upkeep over an SPU model, and
+computes the engine's pitch, gain and pan tables (they are formulas) rather
+than copying them; keep it in step with those files. Their reverb is the one
+mode the game sets, libspu's Studio B, read from the executable by the
+`engine/sound/reverb` node; a preview's "room reverb" is the area's setting.
+A script is a data node: its notes are what it is set to, from the
+`settings.toml` extraction writes into the generated layer, beneath what its
+node sets (`graph::with_generated`), so they are edited as fields without the
+game's data entering the declarations. A script, and a bank's chosen slot, are
+shown as a sequencer under the player's transport (the type's view, told where
+it plays): lanes of notes as the engine plays them, a playhead, seeking and
+zoom; a script's notes are dragged, stretched and typed in, applied at once
+(its type is `applied_at_once`) so the player plays the edit.
+What an animation's cues play is the code's (a cue is only bits on a clip's
+key; gameplay's reload state picks the sound by weapon and phase), so an
+animation bank *describes* it, for the editor: `sounds` names the sound bank,
+and `cues.<clip slot>` the events in turn - a slot of that bank at the start
+(`delay` ticks after) or at the next cue of `cue`'s bits, the last cue's again
+at every cue after. The weapons' reloads are described so far; keep a
+description in step with the code it was read from.
+
 **The `.text` span is derived, and rarely wrong.** A `0x03E00008` word inside a
 data block can extend the span past the end of the code; splat then emits a
 `dlabel` for that data inside the code subsegment. The build does *not* reliably

@@ -1,0 +1,160 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://8q55cbpbgx8k"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1c8zt6s9r44iq", path = "res://pe/metabolism/sounds/level_1_instrument_0.node" },
+    { uid = "uid://klkpy5vkcu8k", path = "res://pe/metabolism/sounds/level_1_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://c2czpoeujk9q", path = "res://pe/metabolism/sounds/level_1_script_0.node" },
+]
+samples = [
+    { uid = "uid://1vb1qnb1bczs4", path = "res://pe/lifedrain/sounds/level_1_sample_2.node" },
+    { uid = "uid://zvqw4hzno764", path = "res://pe/metabolism/sounds/level_1_sample_1.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50119, slot = "sounds" }]
+sha1 = "d8fb661128a63432c3143877a055b7f26caf53a7"
+
+[level_2]
+uid = "uid://172n8uhdokzn6"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1afmviqwfvpfn", path = "res://pe/metabolism/sounds/level_2_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://h5hkl3weo0yf", path = "res://pe/metabolism/sounds/level_2_script_0.node" },
+]
+samples = [
+    { uid = "uid://1vb1qnb1bczs4", path = "res://pe/lifedrain/sounds/level_1_sample_2.node" },
+    { uid = "uid://85gxqa9okvui", path = "res://pe/metabolism/sounds/level_2_sample_1.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50120, slot = "sounds" }]
+sha1 = "a6269e1d2820ba3ce550cbe7e3e852a2bedd299a"
+
+[level_3]
+uid = "uid://70b4gkr09e1y"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://25mn7ird3hiv", path = "res://pe/metabolism/sounds/level_3_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://1gl9ykujt8qqr", path = "res://pe/metabolism/sounds/level_3_script_0.node" },
+]
+samples = [
+    { uid = "uid://p4rgmzq7evga", path = "res://pe/metabolism/sounds/level_3_sample_0.node" },
+    { uid = "uid://fz3abnte6dgd", path = "res://pe/metabolism/sounds/level_3_sample_1.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50121, slot = "sounds" }]
+sha1 = "bbe4795a555be781d0f407edb3bc650814ff127f"
+
+[level_1_script_0]
+uid = "uid://c2czpoeujk9q"
+template = "sound_script"
+instruments = [
+    { uid = "uid://klkpy5vkcu8k", path = "res://pe/metabolism/sounds/level_1_instrument_1.node" },
+    { uid = "uid://1c8zt6s9r44iq", path = "res://pe/metabolism/sounds/level_1_instrument_0.node" },
+]
+
+[level_2_script_0]
+uid = "uid://h5hkl3weo0yf"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1afmviqwfvpfn", path = "res://pe/metabolism/sounds/level_2_instrument_0.node" },
+]
+
+[level_3_script_0]
+uid = "uid://1gl9ykujt8qqr"
+template = "sound_script"
+instruments = [
+    { uid = "uid://25mn7ird3hiv", path = "res://pe/metabolism/sounds/level_3_instrument_0.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://1c8zt6s9r44iq"
+template = "instrument"
+samples = [
+    { uid = "uid://1vb1qnb1bczs4", path = "res://pe/lifedrain/sounds/level_1_sample_2.node" },
+]
+
+[level_1_instrument_1]
+uid = "uid://klkpy5vkcu8k"
+template = "instrument"
+samples = [
+    { uid = "uid://zvqw4hzno764", path = "res://pe/metabolism/sounds/level_1_sample_1.node" },
+]
+
+[level_2_instrument_0]
+uid = "uid://1afmviqwfvpfn"
+template = "instrument"
+samples = [
+    { uid = "uid://1vb1qnb1bczs4", path = "res://pe/lifedrain/sounds/level_1_sample_2.node" },
+    { uid = "uid://85gxqa9okvui", path = "res://pe/metabolism/sounds/level_2_sample_1.node" },
+]
+
+[level_3_instrument_0]
+uid = "uid://25mn7ird3hiv"
+template = "instrument"
+samples = [
+    { uid = "uid://p4rgmzq7evga", path = "res://pe/metabolism/sounds/level_3_sample_0.node" },
+    { uid = "uid://fz3abnte6dgd", path = "res://pe/metabolism/sounds/level_3_sample_1.node" },
+]
+
+[level_1_sample_1]
+uid = "uid://zvqw4hzno764"
+template = "sound"
+rate = 44100
+
+[level_1_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_1.from.USA]
+sha1 = "187a7609dfe3ef406eeac31b9eedb54caef40c16"
+
+[level_2_sample_1]
+uid = "uid://85gxqa9okvui"
+template = "sound"
+rate = 5512
+mode = "low"
+
+[level_2_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_1.from.USA]
+sha1 = "73283374e7901ea7ec495cfa046549cc7daaa9f7"
+
+[level_3_sample_0]
+uid = "uid://p4rgmzq7evga"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_3_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_0.from.USA]
+sha1 = "896de348c871afe2bb1a8d5fcfb66e46bd7c2c5d"
+
+[level_3_sample_1]
+uid = "uid://fz3abnte6dgd"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_3_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_1.from.USA]
+sha1 = "a6a7367bc152f1700b2e630e9de815eef9e83b73"

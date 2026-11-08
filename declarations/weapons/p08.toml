@@ -71,6 +71,22 @@ palettes = { default = "818f8d950dcfa775f93e4081cd7e5ffeae3a3543" }
 uid = "uid://364y3i8qatbb"
 template = "animation_bank"
 base = { uid = "uid://13bmkpffm32ar", path = "res://characters/aya/extended_aim/bank.node" }
+# What the reload state plays of the weapon's sound bank (gameplay's _playerActorNormalState5), described: each
+# event in turn, at the reload's start (after `delay` ticks) or at the next cue of these bits; the last cue's event
+# again at every cue after.
+sounds = { uid = "uid://pao3cij7lvel", path = "res://weapons/p08/sounds/bank.node" }
+cues.reload = [
+    { on = "start", slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.secondary_reload = [
+    { on = "start", slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.reload_battle_end = [
+    { on = "start", slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
 order = [
     { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
     { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },

@@ -1,0 +1,127 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://ugpabnrdgeqb"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://wx7zyau2owhq", path = "res://pe/necrosis/sounds/level_1_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://g3lkj09030a1", path = "res://pe/necrosis/sounds/level_1_script_0.node" },
+]
+samples = [
+    { uid = "uid://v1y1bqq4eykg", path = "res://pe/necrosis/sounds/level_1_sample_0.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50110, slot = "sounds" }]
+sha1 = "88483a4b68a5440598c12b4f316e1baac7f352f2"
+
+[level_2]
+uid = "uid://16a92a3u62y9s"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1nm397vpfqpaw", path = "res://pe/necrosis/sounds/level_2_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://38io00km4w39", path = "res://pe/necrosis/sounds/level_2_script_0.node" },
+]
+samples = [
+    { uid = "uid://b255q7dhjmy2", path = "res://pe/necrosis/sounds/level_2_sample_0.node" },
+    { uid = "uid://1rp87ixfrt2pu", path = "res://pe/necrosis/sounds/level_2_sample_1.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50111, slot = "sounds" }]
+sha1 = "e58f98969e2b302fe59b9eb42997bd91edba9312"
+
+[level_3]
+uid = "uid://126zqq6e6jwln"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://wx7zyau2owhq", path = "res://pe/necrosis/sounds/level_1_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://6gtsdjbrfbad", path = "res://pe/necrosis/sounds/level_3_script_0.node" },
+]
+samples = [
+    { uid = "uid://v1y1bqq4eykg", path = "res://pe/necrosis/sounds/level_1_sample_0.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50112, slot = "sounds" }]
+sha1 = "89cbf04cd68324045489345f50051d0534713cff"
+
+[level_1_script_0]
+uid = "uid://g3lkj09030a1"
+template = "sound_script"
+instruments = [
+    { uid = "uid://wx7zyau2owhq", path = "res://pe/necrosis/sounds/level_1_instrument_0.node" },
+]
+
+[level_2_script_0]
+uid = "uid://38io00km4w39"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1nm397vpfqpaw", path = "res://pe/necrosis/sounds/level_2_instrument_0.node" },
+]
+
+[level_3_script_0]
+uid = "uid://6gtsdjbrfbad"
+template = "sound_script"
+instruments = [
+    { uid = "uid://wx7zyau2owhq", path = "res://pe/necrosis/sounds/level_1_instrument_0.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://wx7zyau2owhq"
+template = "instrument"
+samples = [
+    { uid = "uid://v1y1bqq4eykg", path = "res://pe/necrosis/sounds/level_1_sample_0.node" },
+]
+
+[level_2_instrument_0]
+uid = "uid://1nm397vpfqpaw"
+template = "instrument"
+samples = [
+    { uid = "uid://b255q7dhjmy2", path = "res://pe/necrosis/sounds/level_2_sample_0.node" },
+    { uid = "uid://1rp87ixfrt2pu", path = "res://pe/necrosis/sounds/level_2_sample_1.node" },
+]
+
+[level_1_sample_0]
+uid = "uid://v1y1bqq4eykg"
+template = "sound"
+rate = 22050
+mode = "high"
+
+[level_1_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_0.from.USA]
+sha1 = "832a327c95f57ff433e53a189699edcf44ccf4fe"
+
+[level_2_sample_0]
+uid = "uid://b255q7dhjmy2"
+template = "sound"
+rate = 22050
+
+[level_2_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_0.from.USA]
+sha1 = "d7eedab3c037068d0ca9f950722d27f01b9046ab"
+
+[level_2_sample_1]
+uid = "uid://1rp87ixfrt2pu"
+template = "sound"
+rate = 11025
+
+[level_2_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_1.from.USA]
+sha1 = "3c3e11031b825dcd990a27d5e9bff99f462939a9"

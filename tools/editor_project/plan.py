@@ -24,7 +24,12 @@ MESH, CLIP, MODEL = "pe2.render@mesh", "pe2.render@clip", "pe2.render@model"
 IMAGE = "pe2.images@image"
 # An atlas and the faces it holds: one read of its pages and their tables makes all of their files.
 ATLAS, FACE = "pe2.fonts@font_atlas", "pe2.fonts@font"
-PLANNED = READ | {MESH, CLIP, MODEL, IMAGE, ATLAS, FACE}
+# A sound bank and what it binds: one read of its chunk makes its file and its instruments', scripts' and samples'.
+BANK = "pe2.sounds@sound_bank"
+BOUND = frozenset({"pe2.sounds@sound_script", "pe2.sounds@instrument", "pe2.sounds@sound"})
+# A reverb mode: read from the executable at the addresses its declaration gives.
+REVERB = "pe2.sounds@reverb"
+PLANNED = READ | {MESH, CLIP, MODEL, IMAGE, ATLAS, FACE, BANK, REVERB} | BOUND
 
 
 def target(reference) -> str | None:
@@ -461,6 +466,60 @@ def atlased(plan: Plan, path: str, table: dict, by_path: dict, releases, places,
         emit_by_release(plan, face, f"{name}.ufo/", groups, {r: id + prefix for r, id in made_by.items()})
 
 
+def banked(plan: Plan, path: str, table: dict, by_path: dict, releases, places, containers, bound: dict) -> None:
+    """A sound bank: its file, and the files of the instruments, scripts and samples it binds that no bank before it
+    in path order has made (`bound`: their paths, and the bank making each), of one read of its chunk. Made once for each group of releases
+    declaring it alike, of any of their chunks."""
+    declaring = [r for r in releases if table.get("from", {}).get(r)]
+    if not declaring:
+        return
+    groups = by_what_they_declare({r: json.dumps(table["from"][r], sort_keys=True) for r in declaring})
+    samples = []
+    for reference in table.get("samples", []):
+        sample = target(reference)
+        settings = by_path[sample].table
+        samples.append({"path": sample, "rate": settings["rate"], "mode": settings.get("mode", "normal")})
+    args = {"bank": path, "instruments": [target(r) for r in table.get("instruments", [])],
+            "scripts": [target(r) for r in table.get("scripts", [])], "samples": samples}
+    made_by = {}
+    for n, group in enumerate(groups):
+        chunks = [any_of([chunk(plan, r, place(table["from"][r]["at"][0], "sounds"), by_path, places, containers,
+                                table["from"][r].get("sha1")) for r in group])]
+        own = "" if n == 0 else f"{group[0]}:"
+        made = plan.op(f"bank:{own}{path}", "pe2.sounds@extract_bank", {"chunks": chunks}, json_safe(args))
+        for release in group:
+            made_by[release] = made
+    emit_by_release(plan, path, "bank.toml", groups, {r: f"{id}#{path}/bank.toml" for r, id in made_by.items()})
+    for files, paths in (("instrument.toml", args["instruments"]), ("settings.toml", args["scripts"]),
+                         ("sound.wav", [s["path"] for s in samples])):
+        for item in paths:
+            if item in bound:
+                continue
+            bound[item] = path
+            emit_by_release(plan, item, files, groups, {r: f"{id}#{item}/{files}" for r, id in made_by.items()})
+
+
+def reverbed(plan: Plan, path: str, table: dict, releases, discs) -> None:
+    """A reverb mode: its file from the executable it is in, at the addresses each release declares; made once for each
+    group of releases declaring it alike, of any of their executables."""
+    declaring = [r for r in releases if table.get("from", {}).get(r)]
+    if not declaring:
+        return
+    as_declared = lambda r: json.dumps({k: table["from"][r].get(k) for k in ("registers", "work_area")})  # noqa: E731
+    groups = by_what_they_declare({r: as_declared(r) for r in declaring})
+    made_by = {}
+    for n, group in enumerate(groups):
+        reads = [plan.op(f"slot:{r}/{at['disc']}/{at['slot']}", "slot", {"disc": discs[(r, at["disc"])]}, {"name": at["slot"]})
+                 for r in group for at in table["from"][r]["at"][:1]]
+        placed = table["from"][group[0]]
+        args = {"node": path, "registers": placed["registers"], "work_area": placed["work_area"]}
+        own = "" if n == 0 else f"{group[0]}:"
+        made = plan.op(f"reverb:{own}{path}", "pe2.sounds@extract_reverb", {"chunks": [any_of(reads)]}, args)
+        for release in group:
+            made_by[release] = made
+    emit_by_release(plan, path, "reverb.toml", groups, {r: f"{id}#{path}/reverb.toml" for r, id in made_by.items()})
+
+
 def json_safe(item):
     """A value as JSON holds it, as a TOML table reads back: no nulls."""
     if isinstance(item, dict):
@@ -500,6 +559,7 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
             id = plan.op(f"container:{release}/{stage}", "container", {"disc": disc}, {"stage": stage, "cdf": cdf})
             containers[(release, stage)] = (disc, id)
     palettes = palette_sources(by_path)
+    bound: dict[str, str] = {}
     # A file asset by where it is: the last declared there, as the editor's extraction found them.
     places: dict[tuple, str] = {}
     for path, d in by_path.items():
@@ -521,8 +581,14 @@ def make(decl, registry: dict, releases: list[str]) -> Plan:
         if node_type == ATLAS:
             atlased(plan, path, table, by_path, releases, places, containers, discs)
             continue
-        if node_type == FACE:
-            continue  # made with its atlas
+        if node_type == FACE or node_type in BOUND:
+            continue  # made with its atlas, with its bank
+        if node_type == BANK:
+            banked(plan, path, table, by_path, releases, places, containers, bound)
+            continue
+        if node_type == REVERB:
+            reverbed(plan, path, table, releases, discs)
+            continue
         if node_type == IMAGE and nodes.extracted(node_type, table):
             textured(plan, path, table, registry, by_path, releases, places, containers, palettes, discs)
             continue

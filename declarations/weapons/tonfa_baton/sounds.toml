@@ -1,0 +1,134 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[bank]
+uid = "uid://4u3d28ei78ap"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://15m0eef7fayrq", path = "res://weapons/tonfa_baton/sounds/instrument_0.node" },
+    { uid = "uid://1gxyyynivbccl", path = "res://weapons/tonfa_baton/sounds/instrument_1.node" },
+    { uid = "uid://1oc0zlpoxiwt8", path = "res://weapons/tonfa_baton/sounds/instrument_2.node" },
+    { uid = "uid://120etetyw1dit", path = "res://weapons/tonfa_baton/sounds/instrument_3.node" },
+]
+scripts = [
+    { uid = "uid://ikfo3cxmqhhb", path = "res://weapons/tonfa_baton/sounds/script_0.node" },
+    { uid = "uid://9eats6fb3nsy", path = "res://weapons/tonfa_baton/sounds/script_1.node" },
+    { uid = "uid://4fkp9lwa6v0c", path = "res://weapons/tonfa_baton/sounds/script_2.node" },
+    { uid = "uid://wt4551foljo", path = "res://weapons/tonfa_baton/sounds/script_3.node" },
+]
+samples = [
+    { uid = "uid://dson6rbcwm59", path = "res://weapons/tonfa_baton/sounds/sample_0.node" },
+    { uid = "uid://fk70eab16c4u", path = "res://weapons/tonfa_baton/sounds/sample_1.node" },
+    { uid = "uid://1299a7rmutmn3", path = "res://weapons/tonfa_baton/sounds/sample_2.node" },
+    { uid = "uid://13hxf8n1v7724", path = "res://weapons/tonfa_baton/sounds/sample_3.node" },
+]
+
+[bank.from.USA]
+at = [{ stage = 0, file = 10319, slot = "sounds" }]
+sha1 = "819dfbeed617480acda84a500f2d1af402e638f7"
+
+[script_0]
+uid = "uid://ikfo3cxmqhhb"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1gxyyynivbccl", path = "res://weapons/tonfa_baton/sounds/instrument_1.node" },
+]
+
+[script_1]
+uid = "uid://9eats6fb3nsy"
+template = "sound_script"
+instruments = [
+    { uid = "uid://15m0eef7fayrq", path = "res://weapons/tonfa_baton/sounds/instrument_0.node" },
+]
+
+[script_2]
+uid = "uid://4fkp9lwa6v0c"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1oc0zlpoxiwt8", path = "res://weapons/tonfa_baton/sounds/instrument_2.node" },
+]
+
+[script_3]
+uid = "uid://wt4551foljo"
+template = "sound_script"
+instruments = [
+    { uid = "uid://120etetyw1dit", path = "res://weapons/tonfa_baton/sounds/instrument_3.node" },
+]
+
+[instrument_0]
+uid = "uid://15m0eef7fayrq"
+template = "instrument"
+samples = [
+    { uid = "uid://dson6rbcwm59", path = "res://weapons/tonfa_baton/sounds/sample_0.node" },
+]
+
+[instrument_1]
+uid = "uid://1gxyyynivbccl"
+template = "instrument"
+samples = [
+    { uid = "uid://fk70eab16c4u", path = "res://weapons/tonfa_baton/sounds/sample_1.node" },
+]
+
+[instrument_2]
+uid = "uid://1oc0zlpoxiwt8"
+template = "instrument"
+samples = [
+    { uid = "uid://1299a7rmutmn3", path = "res://weapons/tonfa_baton/sounds/sample_2.node" },
+]
+
+[instrument_3]
+uid = "uid://120etetyw1dit"
+template = "instrument"
+samples = [
+    { uid = "uid://13hxf8n1v7724", path = "res://weapons/tonfa_baton/sounds/sample_3.node" },
+]
+
+[sample_0]
+uid = "uid://dson6rbcwm59"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_0.from.USA]
+sha1 = "2f230483a122a0ffc01a06d085665887c025c0c0"
+
+[sample_1]
+uid = "uid://fk70eab16c4u"
+template = "sound"
+rate = 22050
+mode = "high"
+
+[sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_1.from.USA]
+sha1 = "2ff30303896f84e8ee04ab3be0e9ff13a334a077"
+
+[sample_2]
+uid = "uid://1299a7rmutmn3"
+template = "sound"
+rate = 44100
+
+[sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_2.from.USA]
+sha1 = "fb47e8fdd8b8dc5ff012facf18a0aa295daea32e"
+
+[sample_3]
+uid = "uid://13hxf8n1v7724"
+template = "sound"
+rate = 44100
+
+[sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_3.from.USA]
+sha1 = "fd98a042ba86874ca3a9b022268363fb3a348589"

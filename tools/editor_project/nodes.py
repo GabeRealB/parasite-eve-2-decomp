@@ -38,6 +38,11 @@ EXTRACTED = (
     ("pe2.fonts@font", ()),
     ("pe2.fonts@font_atlas", ()),
     ("pe2.movies@movie", ()),
+    ("pe2.sounds@sound_bank", ()),
+    ("pe2.sounds@sound_script", ()),
+    ("pe2.sounds@instrument", ()),
+    ("pe2.sounds@sound", ()),
+    ("pe2.sounds@reverb", ()),
 )
 # A font face's files, as its extractor writes them: in a folder named after it.
 FACE = "pe2.fonts@font"

@@ -191,6 +191,19 @@ clips.aim_backward = { uid = "uid://1bly5fxwmctot", path = "res://weapons/m4a1_j
 clips.reload = { uid = "uid://26ircbn85wqd", path = "res://weapons/m4a1_javelin/reload.node" }
 clips.secondary_reload = { uid = "uid://26ircbn85wqd", path = "res://weapons/m4a1_javelin/reload.node" }
 clips.reload_battle_end = { uid = "uid://26ircbn85wqd", path = "res://weapons/m4a1_javelin/reload.node" }
+# What the reload state plays of the weapon's sound bank (gameplay's _playerActorNormalState5), described: each
+# event in turn, at the reload's start (after `delay` ticks) or at the next cue of these bits; the last cue's event
+# again at every cue after.
+sounds = { uid = "uid://wq5f6zneyb7l", path = "res://weapons/m4a1_javelin/sounds/bank.node" }
+cues.reload = [
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.secondary_reload = [
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.reload_battle_end = [
+    { on = "cue", cue = 3, slot = 3 },
+]
 order = [
     { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
     { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },

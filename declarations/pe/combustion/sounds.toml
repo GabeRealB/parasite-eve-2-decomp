@@ -1,0 +1,186 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://1nu2gmbhuie9e"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://tgx51gmjq7ts", path = "res://pe/combustion/sounds/level_1_instrument_0.node" },
+    { uid = "uid://c0njqbo3pu5j", path = "res://pe/combustion/sounds/level_1_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://6nb8jzy8ss2a", path = "res://pe/combustion/sounds/level_1_script_0.node" },
+    { uid = "uid://12vvolh2wrxcr", path = "res://pe/combustion/sounds/level_1_script_1.node" },
+]
+samples = [
+    { uid = "uid://py1wahbk60md", path = "res://pe/combustion/sounds/level_1_sample_0.node" },
+    { uid = "uid://1n44mij340g52", path = "res://pe/combustion/sounds/level_1_sample_1.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50104, slot = "sounds" }]
+sha1 = "918e8348f4824975a3c0145f85fd3b6ed9f0c6ff"
+
+[level_2]
+uid = "uid://q60kyhorsr9l"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1dhy75ynhv670", path = "res://pe/combustion/sounds/level_2_instrument_0.node" },
+    { uid = "uid://odft8sew564w", path = "res://pe/combustion/sounds/level_2_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://12m7zyjfhp3ut", path = "res://pe/combustion/sounds/level_2_script_0.node" },
+    { uid = "uid://e25fy64ya0a2", path = "res://pe/combustion/sounds/level_2_script_1.node" },
+]
+samples = [
+    { uid = "uid://1d4z2umde3zuj", path = "res://pe/combustion/sounds/level_2_sample_0.node" },
+    { uid = "uid://18boednapsa0", path = "res://pe/combustion/sounds/level_2_sample_1.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50105, slot = "sounds" }]
+sha1 = "25c3f1272ed299740781dbb51e052f24cce0c66e"
+
+[level_3]
+uid = "uid://ldnmb714u6br"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1dhy75ynhv670", path = "res://pe/combustion/sounds/level_2_instrument_0.node" },
+    { uid = "uid://odft8sew564w", path = "res://pe/combustion/sounds/level_2_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://1x5yqid7kn8z0", path = "res://pe/combustion/sounds/level_3_script_0.node" },
+    { uid = "uid://gx1pjh1c1p3e", path = "res://pe/combustion/sounds/level_3_script_1.node" },
+]
+samples = [
+    { uid = "uid://1d4z2umde3zuj", path = "res://pe/combustion/sounds/level_2_sample_0.node" },
+    { uid = "uid://18boednapsa0", path = "res://pe/combustion/sounds/level_2_sample_1.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50106, slot = "sounds" }]
+sha1 = "cffae3f2147b46644cd6d0eabb63a4754223832d"
+
+[level_1_script_0]
+uid = "uid://6nb8jzy8ss2a"
+template = "sound_script"
+instruments = [
+    { uid = "uid://tgx51gmjq7ts", path = "res://pe/combustion/sounds/level_1_instrument_0.node" },
+]
+
+[level_1_script_1]
+uid = "uid://12vvolh2wrxcr"
+template = "sound_script"
+instruments = [
+    { uid = "uid://tgx51gmjq7ts", path = "res://pe/combustion/sounds/level_1_instrument_0.node" },
+    { uid = "uid://c0njqbo3pu5j", path = "res://pe/combustion/sounds/level_1_instrument_1.node" },
+]
+
+[level_2_script_0]
+uid = "uid://12m7zyjfhp3ut"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1dhy75ynhv670", path = "res://pe/combustion/sounds/level_2_instrument_0.node" },
+]
+
+[level_2_script_1]
+uid = "uid://e25fy64ya0a2"
+template = "sound_script"
+instruments = [
+    { uid = "uid://odft8sew564w", path = "res://pe/combustion/sounds/level_2_instrument_1.node" },
+    { uid = "uid://1dhy75ynhv670", path = "res://pe/combustion/sounds/level_2_instrument_0.node" },
+]
+
+[level_3_script_0]
+uid = "uid://1x5yqid7kn8z0"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1dhy75ynhv670", path = "res://pe/combustion/sounds/level_2_instrument_0.node" },
+]
+
+[level_3_script_1]
+uid = "uid://gx1pjh1c1p3e"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1dhy75ynhv670", path = "res://pe/combustion/sounds/level_2_instrument_0.node" },
+    { uid = "uid://odft8sew564w", path = "res://pe/combustion/sounds/level_2_instrument_1.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://tgx51gmjq7ts"
+template = "instrument"
+samples = [
+    { uid = "uid://py1wahbk60md", path = "res://pe/combustion/sounds/level_1_sample_0.node" },
+]
+
+[level_1_instrument_1]
+uid = "uid://c0njqbo3pu5j"
+template = "instrument"
+samples = [
+    { uid = "uid://1n44mij340g52", path = "res://pe/combustion/sounds/level_1_sample_1.node" },
+]
+
+[level_2_instrument_0]
+uid = "uid://1dhy75ynhv670"
+template = "instrument"
+samples = [
+    { uid = "uid://1d4z2umde3zuj", path = "res://pe/combustion/sounds/level_2_sample_0.node" },
+]
+
+[level_2_instrument_1]
+uid = "uid://odft8sew564w"
+template = "instrument"
+samples = [
+    { uid = "uid://18boednapsa0", path = "res://pe/combustion/sounds/level_2_sample_1.node" },
+]
+
+[level_1_sample_0]
+uid = "uid://py1wahbk60md"
+template = "sound"
+rate = 22050
+mode = "high"
+
+[level_1_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_0.from.USA]
+sha1 = "2f4de092098bb87766288d6c0c993939a9ffd89c"
+
+[level_1_sample_1]
+uid = "uid://1n44mij340g52"
+template = "sound"
+rate = 22050
+
+[level_1_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_1.from.USA]
+sha1 = "0b85ea306735ec8808980ccab3423e42d08b7909"
+
+[level_2_sample_0]
+uid = "uid://1d4z2umde3zuj"
+template = "sound"
+rate = 22050
+mode = "low"
+
+[level_2_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_0.from.USA]
+sha1 = "cac6abf76bef2dc871a939a90e81e21a387ee861"
+
+[level_2_sample_1]
+uid = "uid://18boednapsa0"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_2_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_1.from.USA]
+sha1 = "84d65dd36f967da194082b242574da29d7c41474"

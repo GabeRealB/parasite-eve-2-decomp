@@ -1,0 +1,54 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[bank]
+uid = "uid://wq5f6zneyb7l"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1l64tby40pp7r", path = "res://weapons/m4a1_bayonet/sounds/instrument_0.node" },
+    { uid = "uid://161ivfal6yj4s", path = "res://weapons/m4a1_bayonet/sounds/instrument_1.node" },
+    { uid = "uid://1v2ap4f7bap57", path = "res://weapons/m4a1_javelin/sounds/instrument_2.node" },
+]
+scripts = [
+    { uid = "uid://1ekguk8tf1tvy", path = "res://weapons/m4a1_bayonet/sounds/script_0.node" },
+    { uid = "uid://13ar3xh3xwsmh", path = "res://weapons/m4a1_bayonet/sounds/script_1.node" },
+    { uid = "uid://1bkm8y54h5a6n", path = "res://weapons/m4a1_bayonet/sounds/script_2.node" },
+    { uid = "uid://181ie5zl0pf5g", path = "res://weapons/m4a1_javelin/sounds/script_3.node" },
+]
+samples = [
+    { uid = "uid://1xf3w75vjopym", path = "res://weapons/m4a1_bayonet/sounds/sample_0.node" },
+    { uid = "uid://dbej0umv1jqd", path = "res://weapons/m4a1_bayonet/sounds/sample_1.node" },
+    { uid = "uid://yp6oabxok4l3", path = "res://weapons/m4a1_bayonet/sounds/sample_2.node" },
+    { uid = "uid://1th9fniddij1x", path = "res://weapons/m4a1_javelin/sounds/sample_3.node" },
+]
+
+[bank.from.USA]
+at = [{ stage = 0, file = 10329, slot = "sounds" }]
+sha1 = "95244fbccdeae828072403971fa419843e57586b"
+
+[script_3]
+uid = "uid://181ie5zl0pf5g"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1v2ap4f7bap57", path = "res://weapons/m4a1_javelin/sounds/instrument_2.node" },
+]
+
+[instrument_2]
+uid = "uid://1v2ap4f7bap57"
+template = "instrument"
+samples = [
+    { uid = "uid://1th9fniddij1x", path = "res://weapons/m4a1_javelin/sounds/sample_3.node" },
+]
+
+[sample_3]
+uid = "uid://1th9fniddij1x"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_3.from.USA]
+sha1 = "ae0629250ad78d75a05c7de52f9bcc7826d3a63f"

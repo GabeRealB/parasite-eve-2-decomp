@@ -1,0 +1,192 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://hrz0i933u9zb"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://zixvq1xx2h5l", path = "res://pe/apobiosis/sounds/level_1_instrument_0.node" },
+    { uid = "uid://5xkjfivg5kix", path = "res://pe/apobiosis/sounds/level_1_instrument_1.node" },
+    { uid = "uid://143fqitbnhks7", path = "res://pe/apobiosis/sounds/level_1_instrument_2.node" },
+]
+scripts = [
+    { uid = "uid://1x4u3vou6b5fu", path = "res://pe/apobiosis/sounds/level_1_script_0.node" },
+]
+samples = [
+    { uid = "uid://1vxve52ro8hz0", path = "res://pe/apobiosis/sounds/level_1_sample_0.node" },
+    { uid = "uid://1jplmmi6vqlhl", path = "res://pe/apobiosis/sounds/level_1_sample_1.node" },
+    { uid = "uid://zldaqs1ogszk", path = "res://pe/apobiosis/sounds/level_1_sample_2.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50116, slot = "sounds" }]
+sha1 = "2447eed75b11fa8f3d64b193a0c1c54d65f3be73"
+
+[level_2]
+uid = "uid://tyn4p34vvdpi"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://zixvq1xx2h5l", path = "res://pe/apobiosis/sounds/level_1_instrument_0.node" },
+    { uid = "uid://5xkjfivg5kix", path = "res://pe/apobiosis/sounds/level_1_instrument_1.node" },
+    { uid = "uid://143fqitbnhks7", path = "res://pe/apobiosis/sounds/level_1_instrument_2.node" },
+]
+scripts = [
+    { uid = "uid://1hkzae4wz3ejk", path = "res://pe/apobiosis/sounds/level_2_script_0.node" },
+]
+samples = [
+    { uid = "uid://1vxve52ro8hz0", path = "res://pe/apobiosis/sounds/level_1_sample_0.node" },
+    { uid = "uid://1jplmmi6vqlhl", path = "res://pe/apobiosis/sounds/level_1_sample_1.node" },
+    { uid = "uid://zldaqs1ogszk", path = "res://pe/apobiosis/sounds/level_1_sample_2.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50117, slot = "sounds" }]
+sha1 = "8d01c227271c7b17df09022bfde11386ea80aefc"
+
+[level_3]
+uid = "uid://rq0pqt432gbh"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://hrtf1pcl47iq", path = "res://pe/apobiosis/sounds/level_3_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://168y9a1uisuny", path = "res://pe/apobiosis/sounds/level_3_script_0.node" },
+]
+samples = [
+    { uid = "uid://78icpc4uphhx", path = "res://pe/apobiosis/sounds/level_3_sample_0.node" },
+    { uid = "uid://g73s48m8lw4x", path = "res://pe/apobiosis/sounds/level_3_sample_1.node" },
+    { uid = "uid://1l6mjcbay2gao", path = "res://pe/apobiosis/sounds/level_3_sample_2.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50118, slot = "sounds" }]
+sha1 = "a8a1ee2256b6e9000d3fdefa22d784c5d01c5acc"
+
+[level_1_script_0]
+uid = "uid://1x4u3vou6b5fu"
+template = "sound_script"
+instruments = [
+    { uid = "uid://zixvq1xx2h5l", path = "res://pe/apobiosis/sounds/level_1_instrument_0.node" },
+    { uid = "uid://143fqitbnhks7", path = "res://pe/apobiosis/sounds/level_1_instrument_2.node" },
+    { uid = "uid://5xkjfivg5kix", path = "res://pe/apobiosis/sounds/level_1_instrument_1.node" },
+]
+
+[level_2_script_0]
+uid = "uid://1hkzae4wz3ejk"
+template = "sound_script"
+instruments = [
+    { uid = "uid://zixvq1xx2h5l", path = "res://pe/apobiosis/sounds/level_1_instrument_0.node" },
+    { uid = "uid://143fqitbnhks7", path = "res://pe/apobiosis/sounds/level_1_instrument_2.node" },
+    { uid = "uid://5xkjfivg5kix", path = "res://pe/apobiosis/sounds/level_1_instrument_1.node" },
+]
+
+[level_3_script_0]
+uid = "uid://168y9a1uisuny"
+template = "sound_script"
+instruments = [
+    { uid = "uid://hrtf1pcl47iq", path = "res://pe/apobiosis/sounds/level_3_instrument_0.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://zixvq1xx2h5l"
+template = "instrument"
+samples = [
+    { uid = "uid://1vxve52ro8hz0", path = "res://pe/apobiosis/sounds/level_1_sample_0.node" },
+]
+
+[level_1_instrument_1]
+uid = "uid://5xkjfivg5kix"
+template = "instrument"
+samples = [
+    { uid = "uid://1jplmmi6vqlhl", path = "res://pe/apobiosis/sounds/level_1_sample_1.node" },
+]
+
+[level_1_instrument_2]
+uid = "uid://143fqitbnhks7"
+template = "instrument"
+samples = [
+    { uid = "uid://zldaqs1ogszk", path = "res://pe/apobiosis/sounds/level_1_sample_2.node" },
+]
+
+[level_3_instrument_0]
+uid = "uid://hrtf1pcl47iq"
+template = "instrument"
+samples = [
+    { uid = "uid://78icpc4uphhx", path = "res://pe/apobiosis/sounds/level_3_sample_0.node" },
+    { uid = "uid://g73s48m8lw4x", path = "res://pe/apobiosis/sounds/level_3_sample_1.node" },
+    { uid = "uid://1l6mjcbay2gao", path = "res://pe/apobiosis/sounds/level_3_sample_2.node" },
+]
+
+[level_1_sample_0]
+uid = "uid://1vxve52ro8hz0"
+template = "sound"
+rate = 22050
+
+[level_1_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_0.from.USA]
+sha1 = "b891d4fecda9d55ace5f17ecab648799fb0b22ca"
+
+[level_1_sample_1]
+uid = "uid://1jplmmi6vqlhl"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_1_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_1.from.USA]
+sha1 = "7ff1520b9097a2c3dc8b6048f33abc3529006953"
+
+[level_1_sample_2]
+uid = "uid://zldaqs1ogszk"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_1_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_2.from.USA]
+sha1 = "5a19cf9953a5844eb75d8ec9e3be226d1d29e11e"
+
+[level_3_sample_0]
+uid = "uid://78icpc4uphhx"
+template = "sound"
+rate = 11025
+
+[level_3_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_0.from.USA]
+sha1 = "cb9dec0f27845a539ba14f06fae64cb551580b92"
+
+[level_3_sample_1]
+uid = "uid://g73s48m8lw4x"
+template = "sound"
+rate = 11025
+
+[level_3_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_1.from.USA]
+sha1 = "88dc37cefc853f2610b2d6b1d487fda05c0a9b49"
+
+[level_3_sample_2]
+uid = "uid://1l6mjcbay2gao"
+template = "sound"
+rate = 22050
+
+[level_3_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_2.from.USA]
+sha1 = "6776dac881f116d610e741b0f8ca2128715f862a"

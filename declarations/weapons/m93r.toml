@@ -174,6 +174,18 @@ clips.reload_battle_end = { uid = "uid://1hr5ugax5n4z8", path = "res://weapons/m
 clips.secondary_reload = { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" }
 clips.slot_34 = { uid = "uid://1u1ekbn81mrsx", path = "res://weapons/m93r/aim_enter.node" }
 clips.slot_35 = { uid = "uid://1wy5c1elp5k08", path = "res://weapons/m93r/aim_exit.node" }
+# What the reload state plays of the weapon's sound bank (gameplay's _playerActorNormalState5), described: each
+# event in turn, at the reload's start (after `delay` ticks) or at the next cue of these bits; the last cue's event
+# again at every cue after.
+sounds = { uid = "uid://cft4vbjjc33z", path = "res://weapons/m93r/sounds/bank.node" }
+cues.reload = [
+    { on = "start", slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.reload_battle_end = [
+    { on = "start", slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
 order = [
     { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
     { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },

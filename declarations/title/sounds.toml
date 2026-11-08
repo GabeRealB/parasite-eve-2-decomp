@@ -1,0 +1,719 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[bank]
+uid = "uid://1qifeawyvgwf6"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1odn05js88tg3", path = "res://title/sounds/instrument_0.node" },
+    { uid = "uid://1e0sgxmp7eb1o", path = "res://title/sounds/instrument_1.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://14cmqotnrl2vs", path = "res://title/sounds/instrument_3.node" },
+    { uid = "uid://1noqtvl5yuy99", path = "res://title/sounds/instrument_4.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://xr7pjxz94omx", path = "res://title/sounds/instrument_6.node" },
+    { uid = "uid://1ofr7y1367475", path = "res://title/sounds/instrument_7.node" },
+    { uid = "uid://1qaocmmvlvxjn", path = "res://title/sounds/instrument_8.node" },
+    { uid = "uid://1omosikt6kfpy", path = "res://title/sounds/instrument_9.node" },
+    { uid = "uid://b4w3gyy4njzt", path = "res://title/sounds/instrument_10.node" },
+    { uid = "uid://m7q348o5zigb", path = "res://title/sounds/instrument_11.node" },
+]
+scripts = [
+    { uid = "uid://zoymhp86392y", path = "res://title/sounds/script_0.node" },
+    { uid = "uid://1mbp7gpclmsgy", path = "res://title/sounds/script_1.node" },
+    { uid = "uid://waoo3cedwk7s", path = "res://title/sounds/script_2.node" },
+    { uid = "uid://jo5idnyvv98v", path = "res://title/sounds/script_3.node" },
+    { uid = "uid://iklxpr16qz2a", path = "res://title/sounds/script_4.node" },
+    { uid = "uid://1gp9t6vhuhfjb", path = "res://title/sounds/script_5.node" },
+    { uid = "uid://1lz7ancvtx2i", path = "res://title/sounds/script_6.node" },
+    { uid = "uid://1agvf3ylqy7bp", path = "res://title/sounds/script_7.node" },
+    { uid = "uid://5j4vwfygrbzr", path = "res://title/sounds/script_8.node" },
+    { uid = "uid://18sa2hh9ivcm5", path = "res://title/sounds/script_9.node" },
+    { uid = "uid://1hsto06541x61", path = "res://title/sounds/script_10.node" },
+    { uid = "uid://17n0r4krvyvk4", path = "res://title/sounds/script_11.node" },
+    { uid = "uid://1kjevmfnw2e63", path = "res://title/sounds/script_12.node" },
+    { uid = "uid://t0cpqhwtxygy", path = "res://title/sounds/script_13.node" },
+    { uid = "uid://1h691spasswhm", path = "res://title/sounds/script_14.node" },
+    { uid = "uid://184q4l5kyu6i4", path = "res://title/sounds/script_15.node" },
+    { uid = "uid://y3tjgpe62aio", path = "res://title/sounds/script_16.node" },
+    { uid = "uid://1d981u4yovgpy", path = "res://title/sounds/script_17.node" },
+    { uid = "uid://13s8p510943sf", path = "res://title/sounds/script_18.node" },
+    { uid = "uid://12vge3l65l8rf", path = "res://title/sounds/script_19.node" },
+    { uid = "uid://5f5s66hdf50x", path = "res://title/sounds/script_20.node" },
+    { uid = "uid://fg9tct1zald6", path = "res://title/sounds/script_21.node" },
+    { uid = "uid://100heegaf67f3", path = "res://title/sounds/script_22.node" },
+    { uid = "uid://ataj5mg48062", path = "res://title/sounds/script_23.node" },
+    { uid = "uid://1owm67ok3vhn", path = "res://title/sounds/script_24.node" },
+    { uid = "uid://duswzqyritmt", path = "res://title/sounds/script_25.node" },
+    { uid = "uid://85vkx0yjhkxm", path = "res://title/sounds/script_26.node" },
+    { uid = "uid://9jklapam71ku", path = "res://title/sounds/script_27.node" },
+    { uid = "uid://nb71gmh61wo", path = "res://title/sounds/script_28.node" },
+    { uid = "uid://1nx5156nh2r50", path = "res://title/sounds/script_29.node" },
+    { uid = "uid://ldlobjvmxrk0", path = "res://title/sounds/script_30.node" },
+    { uid = "uid://17zz9dr6h6iau", path = "res://title/sounds/script_31.node" },
+    { uid = "uid://33ritb0kcos5", path = "res://title/sounds/script_32.node" },
+    { uid = "uid://lvx3oh0yn9cy", path = "res://title/sounds/script_33.node" },
+    { uid = "uid://12bf5skrvo65p", path = "res://title/sounds/script_34.node" },
+    { uid = "uid://17zz9dr6h6iau", path = "res://title/sounds/script_31.node" },
+    { uid = "uid://1pn66lxoaj1kt", path = "res://title/sounds/script_36.node" },
+    { uid = "uid://1cruiq794vteo", path = "res://title/sounds/script_37.node" },
+    { uid = "uid://44sm5je59sue", path = "res://title/sounds/script_38.node" },
+    { uid = "uid://13s8p510943sf", path = "res://title/sounds/script_18.node" },
+    { uid = "uid://13s8p510943sf", path = "res://title/sounds/script_18.node" },
+    { uid = "uid://4063hd3u2w42", path = "res://title/sounds/script_41.node" },
+    { uid = "uid://1lmpq38yvzar5", path = "res://title/sounds/script_42.node" },
+    { uid = "uid://1t06u6zss759b", path = "res://title/sounds/script_43.node" },
+    { uid = "uid://9726iejjvrnu", path = "res://title/sounds/script_44.node" },
+    { uid = "uid://1fx10splf484h", path = "res://title/sounds/script_45.node" },
+    { uid = "uid://ytxlp04t49kg", path = "res://title/sounds/script_46.node" },
+    { uid = "uid://iyi4ghr0ox6f", path = "res://title/sounds/script_47.node" },
+    { uid = "uid://y91r84egpkgz", path = "res://title/sounds/script_48.node" },
+    { uid = "uid://1q98szvsd0sh4", path = "res://title/sounds/script_49.node" },
+    { uid = "uid://ot657w26juwe", path = "res://title/sounds/script_50.node" },
+    { uid = "uid://1l32ovjiavkd1", path = "res://title/sounds/script_51.node" },
+    { uid = "uid://1t9jxoickfqm4", path = "res://title/sounds/script_52.node" },
+    { uid = "uid://1q14p7apd9ivf", path = "res://title/sounds/script_53.node" },
+    { uid = "uid://1hjvar4hw0n00", path = "res://title/sounds/script_54.node" },
+]
+samples = [
+    { uid = "uid://rlu6su4pbj1n", path = "res://title/sounds/sample_0.node" },
+    { uid = "uid://1k3z6jy5fej46", path = "res://title/sounds/sample_1.node" },
+    { uid = "uid://17nr2zdhg2n47", path = "res://title/sounds/sample_2.node" },
+    { uid = "uid://1mzuokw2a475i", path = "res://title/sounds/sample_3.node" },
+    { uid = "uid://cs3mj1b3ifac", path = "res://title/sounds/sample_4.node" },
+    { uid = "uid://18xwbe15n7ozc", path = "res://title/sounds/sample_5.node" },
+    { uid = "uid://hkhbfpdj0nbs", path = "res://title/sounds/sample_6.node" },
+    { uid = "uid://z9fc64nhuzqp", path = "res://title/sounds/sample_7.node" },
+    { uid = "uid://44sr9h7rnqee", path = "res://title/sounds/sample_8.node" },
+    { uid = "uid://1l0rm4k0ijyq3", path = "res://title/sounds/sample_9.node" },
+    { uid = "uid://lm5mw1npmdmp", path = "res://title/sounds/sample_10.node" },
+    { uid = "uid://1pjbqp9ec26ul", path = "res://title/sounds/sample_11.node" },
+]
+
+[bank.from.USA]
+at = [{ stage = 0, file = 1, slot = "sounds" }]
+sha1 = "f98a41d2b03d70718b1644b14304527108a22e69"
+
+[script_0]
+uid = "uid://zoymhp86392y"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1qaocmmvlvxjn", path = "res://title/sounds/instrument_8.node" },
+]
+
+[script_1]
+uid = "uid://1mbp7gpclmsgy"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://1e0sgxmp7eb1o", path = "res://title/sounds/instrument_1.node" },
+]
+
+[script_2]
+uid = "uid://waoo3cedwk7s"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://1e0sgxmp7eb1o", path = "res://title/sounds/instrument_1.node" },
+]
+
+[script_3]
+uid = "uid://jo5idnyvv98v"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+]
+
+[script_4]
+uid = "uid://iklxpr16qz2a"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+]
+
+[script_5]
+uid = "uid://1gp9t6vhuhfjb"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+]
+
+[script_6]
+uid = "uid://1lz7ancvtx2i"
+template = "sound_script"
+instruments = [
+    { uid = "uid://xr7pjxz94omx", path = "res://title/sounds/instrument_6.node" },
+]
+
+[script_7]
+uid = "uid://1agvf3ylqy7bp"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1ofr7y1367475", path = "res://title/sounds/instrument_7.node" },
+]
+
+[script_8]
+uid = "uid://5j4vwfygrbzr"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1noqtvl5yuy99", path = "res://title/sounds/instrument_4.node" },
+]
+
+[script_9]
+uid = "uid://18sa2hh9ivcm5"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14cmqotnrl2vs", path = "res://title/sounds/instrument_3.node" },
+]
+
+[script_10]
+uid = "uid://1hsto06541x61"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1odn05js88tg3", path = "res://title/sounds/instrument_0.node" },
+]
+
+[script_11]
+uid = "uid://17n0r4krvyvk4"
+template = "sound_script"
+instruments = [
+    { uid = "uid://b4w3gyy4njzt", path = "res://title/sounds/instrument_10.node" },
+]
+
+[script_12]
+uid = "uid://1kjevmfnw2e63"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_13]
+uid = "uid://t0cpqhwtxygy"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_14]
+uid = "uid://1h691spasswhm"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_15]
+uid = "uid://184q4l5kyu6i4"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_16]
+uid = "uid://y3tjgpe62aio"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_17]
+uid = "uid://1d981u4yovgpy"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1omosikt6kfpy", path = "res://title/sounds/instrument_9.node" },
+]
+
+[script_18]
+uid = "uid://13s8p510943sf"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_19]
+uid = "uid://12vge3l65l8rf"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_20]
+uid = "uid://5f5s66hdf50x"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_21]
+uid = "uid://fg9tct1zald6"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_22]
+uid = "uid://100heegaf67f3"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_23]
+uid = "uid://ataj5mg48062"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+]
+
+[script_24]
+uid = "uid://1owm67ok3vhn"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_25]
+uid = "uid://duswzqyritmt"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_26]
+uid = "uid://85vkx0yjhkxm"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_27]
+uid = "uid://9jklapam71ku"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_28]
+uid = "uid://nb71gmh61wo"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1e0sgxmp7eb1o", path = "res://title/sounds/instrument_1.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_29]
+uid = "uid://1nx5156nh2r50"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_30]
+uid = "uid://ldlobjvmxrk0"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_31]
+uid = "uid://17zz9dr6h6iau"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_32]
+uid = "uid://33ritb0kcos5"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_33]
+uid = "uid://lvx3oh0yn9cy"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_34]
+uid = "uid://12bf5skrvo65p"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_36]
+uid = "uid://1pn66lxoaj1kt"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_37]
+uid = "uid://1cruiq794vteo"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+]
+
+[script_38]
+uid = "uid://44sm5je59sue"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+]
+
+[script_41]
+uid = "uid://4063hd3u2w42"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_42]
+uid = "uid://1lmpq38yvzar5"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_43]
+uid = "uid://1t06u6zss759b"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_44]
+uid = "uid://9726iejjvrnu"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_45]
+uid = "uid://1fx10splf484h"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_46]
+uid = "uid://ytxlp04t49kg"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_47]
+uid = "uid://iyi4ghr0ox6f"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_48]
+uid = "uid://y91r84egpkgz"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_49]
+uid = "uid://1q98szvsd0sh4"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_50]
+uid = "uid://ot657w26juwe"
+template = "sound_script"
+instruments = [
+    { uid = "uid://m7q348o5zigb", path = "res://title/sounds/instrument_11.node" },
+]
+
+[script_51]
+uid = "uid://1l32ovjiavkd1"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_52]
+uid = "uid://1t9jxoickfqm4"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_53]
+uid = "uid://1q14p7apd9ivf"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[script_54]
+uid = "uid://1hjvar4hw0n00"
+template = "sound_script"
+instruments = [
+    { uid = "uid://14kerbm6yom8x", path = "res://title/sounds/instrument_5.node" },
+    { uid = "uid://1pcji2dmxulso", path = "res://title/sounds/instrument_2.node" },
+]
+
+[instrument_0]
+uid = "uid://1odn05js88tg3"
+template = "instrument"
+samples = [
+    { uid = "uid://rlu6su4pbj1n", path = "res://title/sounds/sample_0.node" },
+]
+
+[instrument_1]
+uid = "uid://1e0sgxmp7eb1o"
+template = "instrument"
+samples = [
+    { uid = "uid://1k3z6jy5fej46", path = "res://title/sounds/sample_1.node" },
+]
+
+[instrument_2]
+uid = "uid://1pcji2dmxulso"
+template = "instrument"
+samples = [
+    { uid = "uid://17nr2zdhg2n47", path = "res://title/sounds/sample_2.node" },
+]
+
+[instrument_3]
+uid = "uid://14cmqotnrl2vs"
+template = "instrument"
+samples = [
+    { uid = "uid://hkhbfpdj0nbs", path = "res://title/sounds/sample_6.node" },
+]
+
+[instrument_4]
+uid = "uid://1noqtvl5yuy99"
+template = "instrument"
+samples = [
+    { uid = "uid://1mzuokw2a475i", path = "res://title/sounds/sample_3.node" },
+]
+
+[instrument_5]
+uid = "uid://14kerbm6yom8x"
+template = "instrument"
+samples = [
+    { uid = "uid://cs3mj1b3ifac", path = "res://title/sounds/sample_4.node" },
+]
+
+[instrument_6]
+uid = "uid://xr7pjxz94omx"
+template = "instrument"
+samples = [
+    { uid = "uid://18xwbe15n7ozc", path = "res://title/sounds/sample_5.node" },
+]
+
+[instrument_7]
+uid = "uid://1ofr7y1367475"
+template = "instrument"
+samples = [
+    { uid = "uid://z9fc64nhuzqp", path = "res://title/sounds/sample_7.node" },
+]
+
+[instrument_8]
+uid = "uid://1qaocmmvlvxjn"
+template = "instrument"
+samples = [
+    { uid = "uid://44sr9h7rnqee", path = "res://title/sounds/sample_8.node" },
+]
+
+[instrument_9]
+uid = "uid://1omosikt6kfpy"
+template = "instrument"
+samples = [
+    { uid = "uid://1l0rm4k0ijyq3", path = "res://title/sounds/sample_9.node" },
+]
+
+[instrument_10]
+uid = "uid://b4w3gyy4njzt"
+template = "instrument"
+samples = [
+    { uid = "uid://lm5mw1npmdmp", path = "res://title/sounds/sample_10.node" },
+]
+
+[instrument_11]
+uid = "uid://m7q348o5zigb"
+template = "instrument"
+samples = [
+    { uid = "uid://1pjbqp9ec26ul", path = "res://title/sounds/sample_11.node" },
+]
+
+[sample_0]
+uid = "uid://rlu6su4pbj1n"
+template = "sound"
+rate = 22050
+
+[sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_0.from.USA]
+sha1 = "0bc21bb76180a65c7816767c07e443dec7daaa14"
+
+[sample_1]
+uid = "uid://1k3z6jy5fej46"
+template = "sound"
+rate = 22050
+mode = "high"
+
+[sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_1.from.USA]
+sha1 = "f6f4418e653124a99f5cfd6e7e05a45217c25ff0"
+
+[sample_2]
+uid = "uid://17nr2zdhg2n47"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_2.from.USA]
+sha1 = "ff584f81575a94537ea2f7419a1bfc59811ce545"
+
+[sample_3]
+uid = "uid://1mzuokw2a475i"
+template = "sound"
+rate = 22050
+
+[sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_3.from.USA]
+sha1 = "50c3d892090763185afbb7e3a90eb3f5ac50e11e"
+
+[sample_4]
+uid = "uid://cs3mj1b3ifac"
+template = "sound"
+rate = 88200
+
+[sample_4.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_4.from.USA]
+sha1 = "62b6a4e17f736841fcc11ca9f81f1d6288943581"
+
+[sample_5]
+uid = "uid://18xwbe15n7ozc"
+template = "sound"
+rate = 22050
+mode = "high"
+
+[sample_5.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_5.from.USA]
+sha1 = "aa6269d1dfce6cca336e9ee9cc2213e87db3c81a"
+
+[sample_6]
+uid = "uid://hkhbfpdj0nbs"
+template = "sound"
+rate = 44100
+
+[sample_6.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_6.from.USA]
+sha1 = "141f18ad248e09c1c24f3f2bbe7b97c78e406efa"
+
+[sample_7]
+uid = "uid://z9fc64nhuzqp"
+template = "sound"
+rate = 22050
+
+[sample_7.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_7.from.USA]
+sha1 = "b957300b2f0915af6bfd23a6ca9123ca85552375"
+
+[sample_8]
+uid = "uid://44sr9h7rnqee"
+template = "sound"
+rate = 2756
+
+[sample_8.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_8.from.USA]
+sha1 = "3e21934fbdf41d6515a9c2bbe1affe5207423caf"
+
+[sample_9]
+uid = "uid://1l0rm4k0ijyq3"
+template = "sound"
+rate = 22050
+
+[sample_9.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_9.from.USA]
+sha1 = "c3b53e29c3e5d678462ec770cdc2873fbcef3dbc"
+
+[sample_10]
+uid = "uid://lm5mw1npmdmp"
+template = "sound"
+rate = 11025
+
+[sample_10.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_10.from.USA]
+sha1 = "d3ac6722d3312d80d344da4507da10221b93a8d2"
+
+[sample_11]
+uid = "uid://1pjbqp9ec26ul"
+template = "sound"
+rate = 22050
+
+[sample_11.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_11.from.USA]
+sha1 = "3c20e8a2a55c40bf40f4240bfca7f5f78bd0f75f"

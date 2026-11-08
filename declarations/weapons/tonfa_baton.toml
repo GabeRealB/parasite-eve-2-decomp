@@ -231,6 +231,7 @@ clips.aim_backward = { uid = "uid://1dggmsrg3dgk1", path = "res://weapons/tonfa_
 clips.reload = { uid = "uid://cwkme8ufu8wg", path = "res://weapons/tonfa_baton/strike_recovery.node" }
 clips.secondary_reload = { uid = "uid://cwkme8ufu8wg", path = "res://weapons/tonfa_baton/strike_recovery.node" }
 clips.reload_battle_end = { uid = "uid://2cm4rd37w7f5", path = "res://weapons/tonfa_baton/battle_end.node" }
+sounds = { uid = "uid://4u3d28ei78ap", path = "res://weapons/tonfa_baton/sounds/bank.node" }
 order = [
     { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
     { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },

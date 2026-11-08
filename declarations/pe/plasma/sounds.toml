@@ -1,0 +1,151 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://tox9vhs9bd6s"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://tpp5wb9iifz5", path = "res://pe/plasma/sounds/level_1_instrument_0.node" },
+    { uid = "uid://1je8tvigg6h5q", path = "res://pe/plasma/sounds/level_1_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://13q441bfuj30m", path = "res://pe/plasma/sounds/level_1_script_0.node" },
+]
+samples = [
+    { uid = "uid://10qd6y7e6zsd0", path = "res://pe/plasma/sounds/level_1_sample_0.node" },
+    { uid = "uid://1hn4y22442idh", path = "res://pe/plasma/sounds/level_1_sample_1.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50113, slot = "sounds" }]
+sha1 = "f8f9936497ac27b770b2265024f62f2ebd3c6fe3"
+
+[level_2]
+uid = "uid://1whpr9v1c4b2v"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://h9141fnu4l6r", path = "res://pe/plasma/sounds/level_2_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://xm2v7ijysgm0", path = "res://pe/plasma/sounds/level_2_script_0.node" },
+]
+samples = [
+    { uid = "uid://1jwsfw7bxugs8", path = "res://pe/plasma/sounds/level_2_sample_0.node" },
+    { uid = "uid://2y3ndafl1a8v", path = "res://pe/plasma/sounds/level_2_sample_1.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50114, slot = "sounds" }]
+sha1 = "4ebb0f47c9d6cff91b4fcd1ba9d2518bad1ee895"
+
+[level_3]
+uid = "uid://1ue6ztakx5ttb"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://h9141fnu4l6r", path = "res://pe/plasma/sounds/level_2_instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://h6dp64ojnt51", path = "res://pe/plasma/sounds/level_3_script_0.node" },
+]
+samples = [
+    { uid = "uid://1jwsfw7bxugs8", path = "res://pe/plasma/sounds/level_2_sample_0.node" },
+    { uid = "uid://2y3ndafl1a8v", path = "res://pe/plasma/sounds/level_2_sample_1.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50115, slot = "sounds" }]
+sha1 = "aaf2bc6a5b9732429ac8a6016bf1e9ba308b8881"
+
+[level_1_script_0]
+uid = "uid://13q441bfuj30m"
+template = "sound_script"
+instruments = [
+    { uid = "uid://tpp5wb9iifz5", path = "res://pe/plasma/sounds/level_1_instrument_0.node" },
+    { uid = "uid://1je8tvigg6h5q", path = "res://pe/plasma/sounds/level_1_instrument_1.node" },
+]
+
+[level_2_script_0]
+uid = "uid://xm2v7ijysgm0"
+template = "sound_script"
+instruments = [
+    { uid = "uid://h9141fnu4l6r", path = "res://pe/plasma/sounds/level_2_instrument_0.node" },
+]
+
+[level_3_script_0]
+uid = "uid://h6dp64ojnt51"
+template = "sound_script"
+instruments = [
+    { uid = "uid://h9141fnu4l6r", path = "res://pe/plasma/sounds/level_2_instrument_0.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://tpp5wb9iifz5"
+template = "instrument"
+samples = [
+    { uid = "uid://10qd6y7e6zsd0", path = "res://pe/plasma/sounds/level_1_sample_0.node" },
+]
+
+[level_1_instrument_1]
+uid = "uid://1je8tvigg6h5q"
+template = "instrument"
+samples = [
+    { uid = "uid://1hn4y22442idh", path = "res://pe/plasma/sounds/level_1_sample_1.node" },
+]
+
+[level_2_instrument_0]
+uid = "uid://h9141fnu4l6r"
+template = "instrument"
+samples = [
+    { uid = "uid://1jwsfw7bxugs8", path = "res://pe/plasma/sounds/level_2_sample_0.node" },
+    { uid = "uid://2y3ndafl1a8v", path = "res://pe/plasma/sounds/level_2_sample_1.node" },
+]
+
+[level_1_sample_0]
+uid = "uid://10qd6y7e6zsd0"
+template = "sound"
+rate = 11025
+
+[level_1_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_0.from.USA]
+sha1 = "c0c0e4e4328d76d8e7e99b945452013ee9aa450f"
+
+[level_1_sample_1]
+uid = "uid://1hn4y22442idh"
+template = "sound"
+rate = 2756
+
+[level_1_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_1.from.USA]
+sha1 = "120be1591cf2d0edf6fb9705ea0b1c227e204070"
+
+[level_2_sample_0]
+uid = "uid://1jwsfw7bxugs8"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[level_2_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_0.from.USA]
+sha1 = "16fd0fc3efbb59906cbf12d92a0537a58d2e8054"
+
+[level_2_sample_1]
+uid = "uid://2y3ndafl1a8v"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[level_2_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_1.from.USA]
+sha1 = "83e0f6290dbb6dbf37e6f69b3017b672fa6bcc2d"

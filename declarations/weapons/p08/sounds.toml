@@ -1,0 +1,229 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[bank]
+uid = "uid://pao3cij7lvel"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://n4t80e8vwxaw", path = "res://weapons/p08/sounds/bank_instrument_0.node" },
+    { uid = "uid://bv2evdzfbix4", path = "res://weapons/p08/sounds/bank_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://3ucl075fr53s", path = "res://weapons/p08/sounds/bank_script_0.node" },
+    { uid = "uid://jwzmwmalj5cs", path = "res://weapons/p08/sounds/bank_script_1.node" },
+    { uid = "uid://1quohdu5uxznd", path = "res://weapons/p08/sounds/bank_script_2.node" },
+    { uid = "uid://2o5nmwxprfze", path = "res://weapons/p08/sounds/bank_script_3.node" },
+]
+samples = [
+    { uid = "uid://1g07rip7kir7s", path = "res://weapons/m950/sounds/sample_0.node" },
+    { uid = "uid://1i61kpkrxlcz1", path = "res://weapons/p08/sounds/bank_sample_1.node" },
+    { uid = "uid://2mwt4myehno0", path = "res://weapons/p08/sounds/bank_sample_2.node" },
+    { uid = "uid://vhgchz80de3u", path = "res://weapons/p08/sounds/bank_sample_3.node" },
+]
+
+[bank.from.USA]
+at = [{ stage = 0, file = 10304, slot = "sounds" }]
+sha1 = "3cf64172e7764f4e13bb4e5c8d18e1687d4ced8c"
+
+[mongoose]
+uid = "uid://1axp7evrsipbp"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://f5d9050eozij", path = "res://weapons/p08/sounds/mongoose_instrument_0.node" },
+    { uid = "uid://d8oo4238glgu", path = "res://weapons/p08/sounds/mongoose_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://1ckouo4jt0qhn", path = "res://weapons/p08/sounds/mongoose_script_0.node" },
+    { uid = "uid://1132llouogxu1", path = "res://weapons/p08/sounds/mongoose_script_1.node" },
+    { uid = "uid://1r0bwqhxrhstm", path = "res://weapons/p08/sounds/mongoose_script_2.node" },
+]
+samples = [
+    { uid = "uid://v4ixzkiiiyv0", path = "res://weapons/m249/sounds/sample_0.node" },
+    { uid = "uid://16m543q27s0c5", path = "res://weapons/p08/sounds/mongoose_sample_1.node" },
+    { uid = "uid://u3fqmeeixdc1", path = "res://weapons/p08/sounds/mongoose_sample_2.node" },
+    { uid = "uid://ifnicdu91bzw", path = "res://weapons/p08/sounds/mongoose_sample_3.node" },
+]
+
+[mongoose.from.USA]
+at = [{ stage = 0, file = 10309, slot = "sounds" }]
+sha1 = "4736f405876381c0343a6876fc0fd431a88c1af6"
+
+[snail]
+uid = "uid://6llq9x6o0tne"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://n4t80e8vwxaw", path = "res://weapons/p08/sounds/bank_instrument_0.node" },
+    { uid = "uid://bv2evdzfbix4", path = "res://weapons/p08/sounds/bank_instrument_1.node" },
+]
+scripts = [
+    { uid = "uid://3ucl075fr53s", path = "res://weapons/p08/sounds/bank_script_0.node" },
+    { uid = "uid://jwzmwmalj5cs", path = "res://weapons/p08/sounds/bank_script_1.node" },
+    { uid = "uid://1quohdu5uxznd", path = "res://weapons/p08/sounds/bank_script_2.node" },
+    { uid = "uid://2o5nmwxprfze", path = "res://weapons/p08/sounds/bank_script_3.node" },
+]
+samples = [
+    { uid = "uid://1g07rip7kir7s", path = "res://weapons/m950/sounds/sample_0.node" },
+    { uid = "uid://1i61kpkrxlcz1", path = "res://weapons/p08/sounds/bank_sample_1.node" },
+    { uid = "uid://2mwt4myehno0", path = "res://weapons/p08/sounds/bank_sample_2.node" },
+    { uid = "uid://vhgchz80de3u", path = "res://weapons/p08/sounds/bank_sample_3.node" },
+]
+
+[snail.from.USA]
+at = [{ stage = 0, file = 10301, slot = "sounds" }]
+sha1 = "99b10f19a44d992b1c1ad33946c252cca4794d80"
+
+[bank_script_0]
+uid = "uid://3ucl075fr53s"
+template = "sound_script"
+instruments = [
+    { uid = "uid://n4t80e8vwxaw", path = "res://weapons/p08/sounds/bank_instrument_0.node" },
+]
+
+[bank_script_1]
+uid = "uid://jwzmwmalj5cs"
+template = "sound_script"
+instruments = [
+    { uid = "uid://n4t80e8vwxaw", path = "res://weapons/p08/sounds/bank_instrument_0.node" },
+]
+
+[bank_script_2]
+uid = "uid://1quohdu5uxznd"
+template = "sound_script"
+instruments = [
+    { uid = "uid://n4t80e8vwxaw", path = "res://weapons/p08/sounds/bank_instrument_0.node" },
+]
+
+[bank_script_3]
+uid = "uid://2o5nmwxprfze"
+template = "sound_script"
+instruments = [
+    { uid = "uid://bv2evdzfbix4", path = "res://weapons/p08/sounds/bank_instrument_1.node" },
+]
+
+[mongoose_script_0]
+uid = "uid://1ckouo4jt0qhn"
+template = "sound_script"
+instruments = [
+    { uid = "uid://f5d9050eozij", path = "res://weapons/p08/sounds/mongoose_instrument_0.node" },
+]
+
+[mongoose_script_1]
+uid = "uid://1132llouogxu1"
+template = "sound_script"
+instruments = [
+    { uid = "uid://f5d9050eozij", path = "res://weapons/p08/sounds/mongoose_instrument_0.node" },
+]
+
+[mongoose_script_2]
+uid = "uid://1r0bwqhxrhstm"
+template = "sound_script"
+instruments = [
+    { uid = "uid://d8oo4238glgu", path = "res://weapons/p08/sounds/mongoose_instrument_1.node" },
+]
+
+[bank_instrument_0]
+uid = "uid://n4t80e8vwxaw"
+template = "instrument"
+samples = [
+    { uid = "uid://1g07rip7kir7s", path = "res://weapons/m950/sounds/sample_0.node" },
+    { uid = "uid://1i61kpkrxlcz1", path = "res://weapons/p08/sounds/bank_sample_1.node" },
+    { uid = "uid://2mwt4myehno0", path = "res://weapons/p08/sounds/bank_sample_2.node" },
+]
+
+[bank_instrument_1]
+uid = "uid://bv2evdzfbix4"
+template = "instrument"
+samples = [
+    { uid = "uid://vhgchz80de3u", path = "res://weapons/p08/sounds/bank_sample_3.node" },
+]
+
+[mongoose_instrument_0]
+uid = "uid://f5d9050eozij"
+template = "instrument"
+samples = [
+    { uid = "uid://v4ixzkiiiyv0", path = "res://weapons/m249/sounds/sample_0.node" },
+    { uid = "uid://16m543q27s0c5", path = "res://weapons/p08/sounds/mongoose_sample_1.node" },
+    { uid = "uid://u3fqmeeixdc1", path = "res://weapons/p08/sounds/mongoose_sample_2.node" },
+]
+
+[mongoose_instrument_1]
+uid = "uid://d8oo4238glgu"
+template = "instrument"
+samples = [
+    { uid = "uid://ifnicdu91bzw", path = "res://weapons/p08/sounds/mongoose_sample_3.node" },
+]
+
+[bank_sample_1]
+uid = "uid://1i61kpkrxlcz1"
+template = "sound"
+rate = 44100
+
+[bank_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[bank_sample_1.from.USA]
+sha1 = "dc1af7a69bc2650aa552aa9e7208a0e419ec652e"
+
+[bank_sample_2]
+uid = "uid://2mwt4myehno0"
+template = "sound"
+rate = 44100
+
+[bank_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[bank_sample_2.from.USA]
+sha1 = "603a88df17dc318c9d2732a58dd70ece092d1494"
+
+[bank_sample_3]
+uid = "uid://vhgchz80de3u"
+template = "sound"
+rate = 44100
+mode = "high"
+
+[bank_sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[bank_sample_3.from.USA]
+sha1 = "73e7bc2da680c32b2d3d982c33c4a627d16229f3"
+
+[mongoose_sample_1]
+uid = "uid://16m543q27s0c5"
+template = "sound"
+rate = 22050
+mode = "high"
+
+[mongoose_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[mongoose_sample_1.from.USA]
+sha1 = "6ebef41784f67e13e8ff0d39c7bac51e17309d6b"
+
+[mongoose_sample_2]
+uid = "uid://u3fqmeeixdc1"
+template = "sound"
+rate = 22050
+
+[mongoose_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[mongoose_sample_2.from.USA]
+sha1 = "83a6b020f973e878928a5d76596644bab6bdca62"
+
+[mongoose_sample_3]
+uid = "uid://ifnicdu91bzw"
+template = "sound"
+rate = 22050
+mode = "high"
+
+[mongoose_sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[mongoose_sample_3.from.USA]
+sha1 = "8ddc2a0fa6f714d31b3719fcff752c11fddebdfe"

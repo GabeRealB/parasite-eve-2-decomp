@@ -1,0 +1,205 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[level_1]
+uid = "uid://1qewjc0uxoa9v"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://m3rg3c4xv94z", path = "res://pe/antibody/sounds/level_1_instrument_0.node" },
+    { uid = "uid://4bhchhp9omr9", path = "res://pe/antibody/sounds/level_1_instrument_1.node" },
+    { uid = "uid://1xqmdmti52htt", path = "res://pe/antibody/sounds/level_1_instrument_2.node" },
+]
+scripts = [
+    { uid = "uid://f1ninhcze2ir", path = "res://pe/antibody/sounds/level_1_script_0.node" },
+]
+samples = [
+    { uid = "uid://1f7cfkksyns3u", path = "res://pe/antibody/sounds/level_1_sample_0.node" },
+    { uid = "uid://sw2cm2wcz384", path = "res://pe/antibody/sounds/level_1_sample_1.node" },
+    { uid = "uid://mg610efc9qg2", path = "res://pe/antibody/sounds/level_1_sample_2.node" },
+]
+
+[level_1.from.USA]
+at = [{ stage = 0, file = 50128, slot = "sounds" }]
+sha1 = "1b145ba6656a2fa2088d2bbc06ee3e6c2c465668"
+
+[level_2]
+uid = "uid://1gvzbqe0oks2e"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://fla7f4ffph13", path = "res://pe/antibody/sounds/level_2_instrument_0.node" },
+    { uid = "uid://1fqpvx2u37f5m", path = "res://pe/antibody/sounds/level_2_instrument_1.node" },
+    { uid = "uid://1tcd6t18ujnv2", path = "res://pe/antibody/sounds/level_2_instrument_2.node" },
+]
+scripts = [
+    { uid = "uid://eauesw8rvdll", path = "res://pe/antibody/sounds/level_2_script_0.node" },
+]
+samples = [
+    { uid = "uid://1f7cfkksyns3u", path = "res://pe/antibody/sounds/level_1_sample_0.node" },
+    { uid = "uid://sw2cm2wcz384", path = "res://pe/antibody/sounds/level_1_sample_1.node" },
+    { uid = "uid://ivuo1o9kll3", path = "res://pe/antibody/sounds/level_2_sample_2.node" },
+]
+
+[level_2.from.USA]
+at = [{ stage = 0, file = 50129, slot = "sounds" }]
+sha1 = "2810c0f152ad08405bb18cc988c8801b3f17cedf"
+
+[level_3]
+uid = "uid://1d2z2pufvloax"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://fla7f4ffph13", path = "res://pe/antibody/sounds/level_2_instrument_0.node" },
+    { uid = "uid://1fqpvx2u37f5m", path = "res://pe/antibody/sounds/level_2_instrument_1.node" },
+    { uid = "uid://1t7nths8gj91j", path = "res://pe/antibody/sounds/level_3_instrument_2.node" },
+]
+scripts = [
+    { uid = "uid://1b3o59zfjxz8l", path = "res://pe/antibody/sounds/level_3_script_0.node" },
+]
+samples = [
+    { uid = "uid://1f7cfkksyns3u", path = "res://pe/antibody/sounds/level_1_sample_0.node" },
+    { uid = "uid://sw2cm2wcz384", path = "res://pe/antibody/sounds/level_1_sample_1.node" },
+    { uid = "uid://xe9jveft44l4", path = "res://pe/antibody/sounds/level_3_sample_2.node" },
+]
+
+[level_3.from.USA]
+at = [{ stage = 0, file = 50130, slot = "sounds" }]
+sha1 = "3788af57c0730df3351aabcf2d70a9e7a83d037b"
+
+[level_1_script_0]
+uid = "uid://f1ninhcze2ir"
+template = "sound_script"
+instruments = [
+    { uid = "uid://m3rg3c4xv94z", path = "res://pe/antibody/sounds/level_1_instrument_0.node" },
+    { uid = "uid://1xqmdmti52htt", path = "res://pe/antibody/sounds/level_1_instrument_2.node" },
+    { uid = "uid://4bhchhp9omr9", path = "res://pe/antibody/sounds/level_1_instrument_1.node" },
+]
+
+[level_2_script_0]
+uid = "uid://eauesw8rvdll"
+template = "sound_script"
+instruments = [
+    { uid = "uid://fla7f4ffph13", path = "res://pe/antibody/sounds/level_2_instrument_0.node" },
+    { uid = "uid://1fqpvx2u37f5m", path = "res://pe/antibody/sounds/level_2_instrument_1.node" },
+    { uid = "uid://1tcd6t18ujnv2", path = "res://pe/antibody/sounds/level_2_instrument_2.node" },
+]
+
+[level_3_script_0]
+uid = "uid://1b3o59zfjxz8l"
+template = "sound_script"
+instruments = [
+    { uid = "uid://fla7f4ffph13", path = "res://pe/antibody/sounds/level_2_instrument_0.node" },
+    { uid = "uid://1fqpvx2u37f5m", path = "res://pe/antibody/sounds/level_2_instrument_1.node" },
+    { uid = "uid://1t7nths8gj91j", path = "res://pe/antibody/sounds/level_3_instrument_2.node" },
+]
+
+[level_1_instrument_0]
+uid = "uid://m3rg3c4xv94z"
+template = "instrument"
+samples = [
+    { uid = "uid://1f7cfkksyns3u", path = "res://pe/antibody/sounds/level_1_sample_0.node" },
+]
+
+[level_1_instrument_1]
+uid = "uid://4bhchhp9omr9"
+template = "instrument"
+samples = [
+    { uid = "uid://sw2cm2wcz384", path = "res://pe/antibody/sounds/level_1_sample_1.node" },
+]
+
+[level_1_instrument_2]
+uid = "uid://1xqmdmti52htt"
+template = "instrument"
+samples = [
+    { uid = "uid://mg610efc9qg2", path = "res://pe/antibody/sounds/level_1_sample_2.node" },
+]
+
+[level_2_instrument_0]
+uid = "uid://fla7f4ffph13"
+template = "instrument"
+samples = [
+    { uid = "uid://1f7cfkksyns3u", path = "res://pe/antibody/sounds/level_1_sample_0.node" },
+]
+
+[level_2_instrument_1]
+uid = "uid://1fqpvx2u37f5m"
+template = "instrument"
+samples = [
+    { uid = "uid://sw2cm2wcz384", path = "res://pe/antibody/sounds/level_1_sample_1.node" },
+]
+
+[level_2_instrument_2]
+uid = "uid://1tcd6t18ujnv2"
+template = "instrument"
+samples = [
+    { uid = "uid://ivuo1o9kll3", path = "res://pe/antibody/sounds/level_2_sample_2.node" },
+]
+
+[level_3_instrument_2]
+uid = "uid://1t7nths8gj91j"
+template = "instrument"
+samples = [
+    { uid = "uid://xe9jveft44l4", path = "res://pe/antibody/sounds/level_3_sample_2.node" },
+]
+
+[level_1_sample_0]
+uid = "uid://1f7cfkksyns3u"
+template = "sound"
+rate = 22050
+
+[level_1_sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_0.from.USA]
+sha1 = "d9e425acbd7654c1d3be17c8db47ec8dda537a44"
+
+[level_1_sample_1]
+uid = "uid://sw2cm2wcz384"
+template = "sound"
+rate = 11025
+mode = "high"
+
+[level_1_sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_1.from.USA]
+sha1 = "b414cb5d37de684c931ef76af39feca02ef891e2"
+
+[level_1_sample_2]
+uid = "uid://mg610efc9qg2"
+template = "sound"
+rate = 5512
+mode = "high"
+
+[level_1_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_1_sample_2.from.USA]
+sha1 = "26f0dd5cdc5e09316f219db1cac468777556dd70"
+
+[level_2_sample_2]
+uid = "uid://ivuo1o9kll3"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[level_2_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_2_sample_2.from.USA]
+sha1 = "ba0d04b93e60422d6c3ac051eb56985333ac0fae"
+
+[level_3_sample_2]
+uid = "uid://xe9jveft44l4"
+template = "sound"
+rate = 11025
+mode = "low"
+
+[level_3_sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[level_3_sample_2.from.USA]
+sha1 = "9e0ee7c64801247db35326ac148d7803f620538e"

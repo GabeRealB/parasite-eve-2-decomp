@@ -1,0 +1,112 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[bank]
+uid = "uid://1tolj80cklaae"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://9xuzg2ob5dni", path = "res://weapons/m249/sounds/instrument_0.node" },
+]
+scripts = [
+    { uid = "uid://1k57a6xy1v1uy", path = "res://weapons/m249/sounds/script_0.node" },
+    { uid = "uid://1ujdo0f5qt0c0", path = "res://weapons/m249/sounds/script_1.node" },
+    { uid = "uid://j9fwet22rluz", path = "res://weapons/m249/sounds/script_2.node" },
+    { uid = "uid://ymmzrkj6tc7e", path = "res://weapons/m249/sounds/script_3.node" },
+]
+samples = [
+    { uid = "uid://v4ixzkiiiyv0", path = "res://weapons/m249/sounds/sample_0.node" },
+    { uid = "uid://14qxfdftaj6kb", path = "res://weapons/m249/sounds/sample_1.node" },
+    { uid = "uid://1o3par8hiu2rv", path = "res://weapons/m249/sounds/sample_2.node" },
+    { uid = "uid://fxtt7pnpa430", path = "res://weapons/m249/sounds/sample_3.node" },
+]
+
+[bank.from.USA]
+at = [{ stage = 0, file = 10317, slot = "sounds" }]
+sha1 = "69db28d3f6f3779e5bf12ff6bede0698adbfb473"
+
+[script_0]
+uid = "uid://1k57a6xy1v1uy"
+template = "sound_script"
+instruments = [
+    { uid = "uid://9xuzg2ob5dni", path = "res://weapons/m249/sounds/instrument_0.node" },
+]
+
+[script_1]
+uid = "uid://1ujdo0f5qt0c0"
+template = "sound_script"
+instruments = [
+    { uid = "uid://9xuzg2ob5dni", path = "res://weapons/m249/sounds/instrument_0.node" },
+]
+
+[script_2]
+uid = "uid://j9fwet22rluz"
+template = "sound_script"
+instruments = [
+    { uid = "uid://9xuzg2ob5dni", path = "res://weapons/m249/sounds/instrument_0.node" },
+]
+
+[script_3]
+uid = "uid://ymmzrkj6tc7e"
+template = "sound_script"
+instruments = [
+    { uid = "uid://9xuzg2ob5dni", path = "res://weapons/m249/sounds/instrument_0.node" },
+]
+
+[instrument_0]
+uid = "uid://9xuzg2ob5dni"
+template = "instrument"
+samples = [
+    { uid = "uid://v4ixzkiiiyv0", path = "res://weapons/m249/sounds/sample_0.node" },
+    { uid = "uid://14qxfdftaj6kb", path = "res://weapons/m249/sounds/sample_1.node" },
+    { uid = "uid://1o3par8hiu2rv", path = "res://weapons/m249/sounds/sample_2.node" },
+    { uid = "uid://fxtt7pnpa430", path = "res://weapons/m249/sounds/sample_3.node" },
+]
+
+[sample_0]
+uid = "uid://v4ixzkiiiyv0"
+template = "sound"
+rate = 44100
+
+[sample_0.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_0.from.USA]
+sha1 = "c63c6595684680750fad16c57a002d2a2e35a09f"
+
+[sample_1]
+uid = "uid://14qxfdftaj6kb"
+template = "sound"
+rate = 44100
+mode = "high"
+
+[sample_1.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_1.from.USA]
+sha1 = "102d3f8c8201dea208d75be7a94c93536e4e154b"
+
+[sample_2]
+uid = "uid://1o3par8hiu2rv"
+template = "sound"
+rate = 44100
+
+[sample_2.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_2.from.USA]
+sha1 = "5626efac52a8865cf3e4799209f9052220eed3ce"
+
+[sample_3]
+uid = "uid://fxtt7pnpa430"
+template = "sound"
+rate = 44100
+
+[sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_3.from.USA]
+sha1 = "ba9f20dc729f82768e92f13a6541c02d4fbbf49e"

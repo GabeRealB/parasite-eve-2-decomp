@@ -92,6 +92,22 @@ clips.secondary_fire = { uid = "uid://11ecywtuirljk", path = "res://weapons/mong
 clips.reload = { uid = "uid://o20s82pdm5px", path = "res://weapons/mongoose/reload.node" }
 clips.secondary_reload = { uid = "uid://o20s82pdm5px", path = "res://weapons/mongoose/reload.node" }
 clips.reload_battle_end = { uid = "uid://o20s82pdm5px", path = "res://weapons/mongoose/reload.node" }
+# What the reload state plays of the weapon's sound bank (gameplay's _playerActorNormalState5), described: each
+# event in turn, at the reload's start (after `delay` ticks) or at the next cue of these bits; the last cue's event
+# again at every cue after.
+sounds = { uid = "uid://1axp7evrsipbp", path = "res://weapons/p08/sounds/mongoose.node" }
+cues.reload = [
+    { on = "start", delay = 10, slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.secondary_reload = [
+    { on = "start", delay = 10, slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
+cues.reload_battle_end = [
+    { on = "start", delay = 10, slot = 2 },
+    { on = "cue", cue = 3, slot = 3 },
+]
 order = [
     { uid = "uid://uoo3xg8yfqd6", path = "res://characters/aya/idle.node" },
     { uid = "uid://1s8ozfwpwruki", path = "res://characters/aya/unarmed_walk.node" },

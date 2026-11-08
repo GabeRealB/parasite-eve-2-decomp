@@ -1,0 +1,53 @@
+# Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
+# under the first bank binding it (tools/editor_project/sounds.py).
+
+[bank]
+uid = "uid://inr3ixmsr0ny"
+template = "sound_bank"
+instruments = [
+    { uid = "uid://1l64tby40pp7r", path = "res://weapons/m4a1_bayonet/sounds/instrument_0.node" },
+    { uid = "uid://161ivfal6yj4s", path = "res://weapons/m4a1_bayonet/sounds/instrument_1.node" },
+    { uid = "uid://1364cbd9sq6ct", path = "res://weapons/m4a1_hammer/sounds/instrument_2.node" },
+]
+scripts = [
+    { uid = "uid://1ekguk8tf1tvy", path = "res://weapons/m4a1_bayonet/sounds/script_0.node" },
+    { uid = "uid://13ar3xh3xwsmh", path = "res://weapons/m4a1_bayonet/sounds/script_1.node" },
+    { uid = "uid://1bkm8y54h5a6n", path = "res://weapons/m4a1_bayonet/sounds/script_2.node" },
+    { uid = "uid://yvyo912ztk1k", path = "res://weapons/m4a1_hammer/sounds/script_3.node" },
+]
+samples = [
+    { uid = "uid://1xf3w75vjopym", path = "res://weapons/m4a1_bayonet/sounds/sample_0.node" },
+    { uid = "uid://dbej0umv1jqd", path = "res://weapons/m4a1_bayonet/sounds/sample_1.node" },
+    { uid = "uid://yp6oabxok4l3", path = "res://weapons/m4a1_bayonet/sounds/sample_2.node" },
+    { uid = "uid://hlypuvyqcch", path = "res://weapons/m4a1_hammer/sounds/sample_3.node" },
+]
+
+[bank.from.USA]
+at = [{ stage = 0, file = 10325, slot = "sounds" }]
+sha1 = "f48a2254b6d2639d5c048528f729bf6eeb61035b"
+
+[script_3]
+uid = "uid://yvyo912ztk1k"
+template = "sound_script"
+instruments = [
+    { uid = "uid://1364cbd9sq6ct", path = "res://weapons/m4a1_hammer/sounds/instrument_2.node" },
+]
+
+[instrument_2]
+uid = "uid://1364cbd9sq6ct"
+template = "instrument"
+samples = [
+    { uid = "uid://hlypuvyqcch", path = "res://weapons/m4a1_hammer/sounds/sample_3.node" },
+]
+
+[sample_3]
+uid = "uid://hlypuvyqcch"
+template = "sound"
+rate = 44100
+
+[sample_3.import]
+importer = "pe2.sounds@wav"
+source = "sound.wav"
+
+[sample_3.from.USA]
+sha1 = "62484bbc8ede0f1a07127c95e4d97517491d5c3d"
