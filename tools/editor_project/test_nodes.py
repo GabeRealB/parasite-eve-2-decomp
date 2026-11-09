@@ -84,6 +84,13 @@ class Nodes(unittest.TestCase):
         node = nodes.asset_node("x/f", table, REGISTRY, ["USA"])
         self.assertEqual(node, {"stack": [{"op": "pe2.game@file"}]})
 
+    def test_what_a_node_lays_after_its_template_follows_its_stack(self):
+        table = {"uid": "uid://f", "template": "file", "level": 2,
+                 "layers": [{"op": "uid://translated"}, {"op": "output", "name": "strings"}]}
+        node = nodes.asset_node("x/f", table, REGISTRY, ["USA"])
+        self.assertEqual(node["stack"], [{"op": "pe2.game@file", "level": 2}, {"op": "uid://translated"},
+                                         {"op": "output", "name": "strings"}])
+
     def test_settings_go_on_the_first_own_operation_before_an_output(self):
         stack = [{"op": "file"}, {"op": "output"}, {"op": "x"}]
         self.assertEqual(nodes.home(stack), 0)

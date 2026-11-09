@@ -51,6 +51,8 @@ NODES = "game"                      # the layer of the game's nodes, `.layers/ga
 FILES = "game-files"                # the generated layer filling them, its plan `.layers/game-files.plan.jsonl`
 MOUNTS = [("packages", ROOT / "packages", True)]
 # What this script makes that is this machine's: the mounts' links, and what builds write.
+# The languages a project's configs may be built in, English the game's own.
+LANGUAGES = ["en", "fr", "de", "es", "it"]
 IGNORE = ["/build/"] + [f"/{at}" for at, _p, _r in MOUNTS]
 
 
@@ -114,6 +116,8 @@ def setup(directory: Path, wanted: list[str], roms: Path | None, cli: Path) -> N
     # A configuration for each release the decompilation builds.
     for release in (r for r in wanted if r in built_releases()):
         edit("config", "add", release.lower(), "--release", release, "--target", "psx")
+    # The language a build's text is in: a string table's own where it has none of that language (`ui/dialogue/translated`).
+    edit("config", "declare", "language", "--values", ",".join(LANGUAGES), "--default", "en")
     ignore = directory / ".gitignore"
     text = ignore.read_text(encoding="utf-8") if ignore.is_file() else ""
     ignore.write_text(text + "".join(f"{entry}\n" for entry in IGNORE if entry not in text.splitlines()),

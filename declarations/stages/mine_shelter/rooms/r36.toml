@@ -131,7 +131,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_0]
 uid = "uid://nnn6cfwg0yu0"
 template = "dialogue"
-strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://1pssu8x0jvo3p", path = "res://stages/mine_shelter/rooms/r36/dialogue_0_atlas.node" }
@@ -143,7 +143,7 @@ prefix = "r36/dialogue_0"
 [dialogue_1]
 uid = "uid://dm25q3n7izhu"
 template = "dialogue"
-strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://1mjm6yn35fc9w", path = "res://stages/mine_shelter/rooms/r36/dialogue_1_atlas.node" }
@@ -155,7 +155,7 @@ prefix = "r36/dialogue_1"
 [dialogue_2]
 uid = "uid://gmp0plq9fj1b"
 template = "dialogue"
-strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://sivagjufuxbx", path = "res://stages/mine_shelter/rooms/r36/dialogue_2_atlas.node" }
@@ -167,7 +167,7 @@ prefix = "r36/dialogue_2"
 [dialogue_3]
 uid = "uid://1mr27mpulgfj1"
 template = "dialogue"
-strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://78dhlh34ivjd", path = "res://stages/mine_shelter/rooms/r36/dialogue_3_atlas.node" }

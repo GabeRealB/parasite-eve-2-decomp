@@ -483,6 +483,54 @@ One planned operation reads every dialogue (`extract_dialogues`), recognizing gl
 by `tools/peassets/cap_glyphs.tsv` and `cap_plates.tsv`; a dialogue not read exactly
 says why (`failed`), and an I/l guess is listed under `unsettled`. A string table is
 a plain key-value store in the dialogues' markup; there may be any number of them.
+A stage's table is translated: its stack lays in `ui/dialogue/translated`, and a
+dialogue reads its `strings` output (`uid://...#strings`), the table of the build's
+`language` (its `translations`, by language) laid over it key by key, what it does
+not translate its own; with none for that language, the table as it is.
+
+**A config says more than its release and target: properties** (`[property.<name>]`
+in `project.toml`, its `type` - `text`, `texts`, `integer`, `boolean`, `table`, `any`
+- or `values`, and its `default`; `[config.<name>.properties]` sets them). A value not
+as declared is a problem by config and property, never a load error, and the default
+holds; `pe2-cli project config declare|set|unset|list` and Settings ▸ Configurations
+edit them. An extension reads them in `BuildConfig::properties`; what reads the
+config is kept by the hash of what it read (`exec::config_hash`): all of it through
+`Call::config`, what it says - release, target, properties - through the `config`
+operation, so two configs saying the same share it. A game project declares
+`language` (`tools/pe2project.py`). `pe2-cli project output` makes an output of
+assets (or of every asset of a `--type`) for a `--config`, saying each file's SHA-1.
+
+**The work graph has choice, and is pulled all the same.** Any step may take
+`active` (a `bool`; a stack layer `active = { from = "id" }`, a graph operation its
+`from.active`): where it is false the step makes nothing, nor does what takes from
+it, but `merge` - the first of what it takes that is made. A step is made where it
+is asked for, its `active` first and only then what it takes (`exec::Run`), so a
+branch not taken is never made and only the taken one's reads are traced; the key
+stays the whole plan's. A step about to take a value others take asks those others
+whether they run first, so a value one of them will not take is still moved, not copied. Beside `config`: `equals` (at a dotted `field`, `to` a
+value), `all`/`any`/`invert` over booleans (named apart from the event gates, which
+take signals), `select` (another node's output, by the key it is given, among its
+`of`; only that one read, nothing where it names none) and `overlay` (a table over
+another, key by key, at a `field`).
+
+**A project defines operations and templates of its own** (`pe2.graph`): a node of
+`pe2.graph@operation` holds a graph, made and edited in the graph view as a graph
+layer is, whose boxes say what it is from outside - each `input` it takes (`name`,
+`type`, `many`, `index`), each `setting` it is set to (a property's shape: `type` or
+`values`, `default`, `label`; its value its box's output, and read where a value is
+`{ setting = "<name>" }`) and each `output` it makes (the first its result, the others
+wired `id.<name>`). A stack names one by its node's uid (`op = "uid://..."`), as a
+layer or a graph box, and it is laid in there (`graph::Definition`,
+`Lowering::inline`), each output its own step; it may not use itself. The inspector
+shows its settings as fields. A `for_each` box runs one (`body`) for each item of a list
+- or of a table, as `{ key, value }` - with what `with` takes, each item kept by what it
+is given and the body, at the same time; what the body makes nothing of is left out
+(`exec::Evaluation::for_each`, the body laid out by `Plan::of_definition`). The host
+takes them from the index as imports are attached (`Extensions::take_definitions`),
+what nodes are read again where one changed, and what uses one made again with it. A
+`pe2.graph@template` (`label`, `node_type`, `files`, its stack as `makes`) is offered
+beside the extensions' templates - for a file it takes on import too - by its uid. A
+declaration lays layers after its template's stack (`layers`).
 
 **Game flags are named in registries** (`pe2.flags`, `declarations/flags.toml`): a
 `flag_registry` holds flags of the 504-nibble bank by name - `id`, `kind`

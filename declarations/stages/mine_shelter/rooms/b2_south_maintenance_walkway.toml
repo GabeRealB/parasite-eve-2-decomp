@@ -47,7 +47,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_0]
 uid = "uid://3stpeq25703j"
 template = "dialogue"
-strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node" }
+strings = { uid = "uid://1uex4o4z4b9rp", path = "res://stages/mine_shelter/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://5sgwod7heqx4", path = "res://stages/mine_shelter/rooms/b2_south_maintenance_walkway/dialogue_0_atlas.node" }

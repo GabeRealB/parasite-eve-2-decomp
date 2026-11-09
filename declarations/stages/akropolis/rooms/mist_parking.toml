@@ -114,7 +114,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_0]
 uid = "uid://fc2xmv3anljx"
 template = "dialogue"
-strings = { uid = "uid://15e4yena0gh1e", path = "res://stages/akropolis/strings/dialogue.node" }
+strings = { uid = "uid://15e4yena0gh1e", path = "res://stages/akropolis/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://1ppc4d83b7cld", path = "res://stages/akropolis/rooms/mist_parking/dialogue_0_atlas.node" }
@@ -126,7 +126,7 @@ prefix = "mist_parking/dialogue_0"
 [dialogue_1]
 uid = "uid://owjfgwncpqkw"
 template = "dialogue"
-strings = { uid = "uid://15e4yena0gh1e", path = "res://stages/akropolis/strings/dialogue.node" }
+strings = { uid = "uid://15e4yena0gh1e", path = "res://stages/akropolis/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://37pdkluyfuru", path = "res://stages/akropolis/rooms/mist_parking/dialogue_1_atlas.node" }
@@ -138,7 +138,7 @@ prefix = "mist_parking/dialogue_1"
 [dialogue_2]
 uid = "uid://1theph4ddne0v"
 template = "dialogue"
-strings = { uid = "uid://15e4yena0gh1e", path = "res://stages/akropolis/strings/dialogue.node" }
+strings = { uid = "uid://15e4yena0gh1e", path = "res://stages/akropolis/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://17wjj8ob8sakk", path = "res://stages/akropolis/rooms/mist_parking/dialogue_2_atlas.node" }

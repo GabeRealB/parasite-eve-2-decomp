@@ -3,7 +3,7 @@
 [gas_station_day_dialogue_1]
 uid = "uid://mg5f17ly5uds"
 template = "dialogue"
-strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node" }
+strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://1rpnb8cyrjsuh", path = "res://stages/dryfield/rooms/gas_station/day/dialogue_1_atlas.node" }
@@ -15,7 +15,7 @@ prefix = "gas_station_day_dialogue_1"
 [motel_lobby_night_dialogue_1]
 uid = "uid://1i8f2cojsa1p2"
 template = "dialogue"
-strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node" }
+strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://144nvyui9c461", path = "res://stages/dryfield/rooms/motel_lobby/night/dialogue_1_atlas.node" }

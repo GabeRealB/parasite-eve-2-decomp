@@ -3,3 +3,7 @@
 [dialogue]
 uid = "uid://d8c7iags3qya"
 template = "string_table"
+layers = [
+    { op = "uid://19asravi1hpai" },
+    { op = "output", name = "strings" },
+]

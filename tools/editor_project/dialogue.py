@@ -48,6 +48,22 @@ UI = "ui/dialogue"
 FACES = {"glyphs": ("Parasite Eve II Dialogue", "Regular"), "bold": ("Parasite Eve II Dialogue", "Bold"),
          "speakers": ("Parasite Eve II Speakers", "Regular")}
 HEADER = "# Declarations: {what} (tools/editor_project/dialogue.py).\n"
+# A string table's text in the language built: the table of that language (`translations`, by the config's `language`
+# property) laid over it, key by key - what it does not translate its own - and as it is where none is set for it.
+TRANSLATED = {
+    "label": "Translated strings",
+    "ops": {
+        "table": {"op": "input", "name": "table"},
+        "translations": {"op": "setting", "type": "table", "default": {}, "label": "Translations, by language"},
+        "own": {"op": "settings", "from": {"node": "table"}},
+        "config": {"op": "config"},
+        "chosen": {"op": "select", "field": "properties.language", "of": {"setting": "translations"},
+                   "output": "settings", "from": {"key": "config"}},
+        "over": {"op": "overlay", "field": "strings", "from": {"over": "chosen", "under": "own"}},
+        "either": {"op": "merge", "from": {"inputs": ["over", "own"]}},
+        "strings": {"op": "output", "name": "strings", "from": {"value": "either"}},
+    },
+}
 SECTION = re.compile(r"^\[\[?([^\].]+)")
 
 
@@ -222,8 +238,8 @@ def declare(root: Path, decl, chunks: dict[str, bytes], release: str) -> None:
         stage = path.split("/")[1]
         table = f"stages/{stage}/strings/dialogue"
         prefix = path.split("/", 2)[2].removeprefix("rooms/")
-        fields = {"uid": uid_for("dialogue", path), "template": "dialogue", "strings": ref(table, "strings"),
-                  "cast": cast, "faces": faces}
+        fields = {"uid": uid_for("dialogue", path), "template": "dialogue",
+                  "strings": dict(ref(table, "strings"), output="strings"), "cast": cast, "faces": faces}
         atlas = record.get("atlas")
         if atlas and atlas[0] in images:
             image = images[atlas[0]]
@@ -243,9 +259,12 @@ def declare(root: Path, decl, chunks: dict[str, bytes], release: str) -> None:
     for file, sections in by_group.items():
         replace_sections(file, HEADER.format(what="the rooms' dialogues"), re.compile(r"(\w+_)?dialogue_\d+$|story_calls$"),
                          sections)
+    translated = uid_for("operation", f"{UI}/translated")
     for table, stage in tables.items():
         group, name = table.rsplit("/", 1)
-        section = section_text(name, {"uid": uid_for("strings", table), "template": "string_table"}, {})
+        fields = {"uid": uid_for("strings", table), "template": "string_table",
+                  "layers": [{"op": translated}, {"op": "output", "name": "strings"}]}
+        section = section_text(name, fields, {})
         replace_sections(root / f"{group}.toml", HEADER.format(what=f"the text of {stage}'s dialogues, by key"),
                          {name}, [section])
     # The faces and the cast.
@@ -257,8 +276,19 @@ def declare(root: Path, decl, chunks: dict[str, bytes], release: str) -> None:
     sections = [section_text(face, {"uid": faces[face]["uid"], "template": "font", "family": family, "style": style}, {})
                 for face, (family, style) in FACES.items()]
     sections.append(section_text("cast", {"uid": cast["uid"], "template": "cast", "speakers": speakers}, {}))
-    replace_sections(root / f"{UI}.toml", HEADER.format(what="the dialogues' faces and cast"),
-                     set(FACES) | {"cast"}, sections)
+    # How a string table is translated, made once, and the template of a table that is.
+    # Its operations a line each, as a graph layer's are written.
+    operation = {k: v for k, v in TRANSLATED.items() if k != "ops"}
+    lines = [f"ops.{toml_out.key(id)} = {toml_out.value(op)}" for id, op in TRANSLATED["ops"].items()]
+    sections.append(section_text("translated", {"uid": translated, "template": "operation", **operation}, {})
+                    + "\n".join(lines) + "\n")
+    table_template = {"uid": uid_for("template", f"{UI}/translated_table"), "template": "template",
+                      "label": "Translated string table", "node_type": "pe2.dialogue@string_table",
+                      "makes": [{"op": "pe2.dialogue@string_table", "strings": {}}, {"op": translated},
+                                {"op": "output", "name": "strings"}]}
+    sections.append(section_text("translated_table", table_template, {}))
+    replace_sections(root / f"{UI}.toml", HEADER.format(what="the dialogues' faces and cast, and how their text is translated"),
+                     set(FACES) | {"cast", "translated", "translated_table"}, sections)
     # Each bundle names the dialogues it holds.
     for bundle in sorted({b for b, _ in references}):
         d = decl.by_path[bundle]

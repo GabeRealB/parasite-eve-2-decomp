@@ -162,7 +162,8 @@ def stamped_node(path: str, table: dict, registry: dict, releases: list[str]) ->
     for k, v in (imported or {}).items():
         if k not in ("source", "importer"):
             fields[k] = v
-    stack = stamped(registry, template, file)
+    # What it lays after its template's stack (`layers`): an operation the project defines, an output.
+    stack = stamped(registry, template, file) + fields.pop("layers", [])
     fields["stack"] = stack
     op = import_of(stack, registry["host_operations"])
     importer = registry["operations"].get(op, {}) if op else {}

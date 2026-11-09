@@ -3,7 +3,7 @@
 [dialogue_0]
 uid = "uid://rcaetaz37fos"
 template = "dialogue"
-strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node" }
+strings = { uid = "uid://5342mzo1oy32", path = "res://stages/dryfield/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://p7v8vbo3v777", path = "res://stages/dryfield/rooms/souvenir_shop/day/dialogue_0_atlas.node" }

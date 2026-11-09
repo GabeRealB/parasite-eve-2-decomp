@@ -106,7 +106,7 @@ palettes = { text_0 = "dbd4dcf01ff33347ebc32a83bbd7953069285542", text_1 = "fc12
 [dialogue_0]
 uid = "uid://eix31tfjr79s"
 template = "dialogue"
-strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node" }
+strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://1d6gwf043ilb6", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_0_atlas.node" }
@@ -118,7 +118,7 @@ prefix = "1f_heliport/dialogue_0"
 [dialogue_1]
 uid = "uid://14k2uwnj55rls"
 template = "dialogue"
-strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node" }
+strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://1ckyejjz2ec8x", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_1_atlas.node" }
@@ -130,7 +130,7 @@ prefix = "1f_heliport/dialogue_1"
 [dialogue_2]
 uid = "uid://e7c0u6fuodwk"
 template = "dialogue"
-strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node" }
+strings = { uid = "uid://9rz19kdtio5q", path = "res://stages/shelter_neo_ark/strings/dialogue.node", output = "strings" }
 cast = { uid = "uid://1ve4zwgpp23r0", path = "res://ui/dialogue/cast.node" }
 faces = { glyphs = { uid = "uid://cpcg4huffesp", path = "res://ui/dialogue/glyphs.node" }, bold = { uid = "uid://1imh4rn61k4x8", path = "res://ui/dialogue/bold.node" }, speakers = { uid = "uid://kcc9fyku3u66", path = "res://ui/dialogue/speakers.node" } }
 page = { uid = "uid://yniy5ayyh985", path = "res://stages/shelter_neo_ark/rooms/1f_heliport/dialogue_2_atlas.node" }
