@@ -59,28 +59,79 @@ def _host_address(project: Path) -> tuple[str, str]:
     return "unix", str(path)
 
 
+def _head(major: int, n: int) -> bytes:
+    """A CBOR item's head: its major type and its length or value."""
+    if n < 24:
+        return bytes([major << 5 | n])
+    for extra, size in ((24, 1), (25, 2), (26, 4), (27, 8)):
+        if n < 1 << (8 * size):
+            return bytes([major << 5 | extra]) + n.to_bytes(size, "big")
+    raise ValueError(n)
+
+
+def _frame(message: dict[str, str]) -> bytes:
+    """A message to the host as it reads one (`project::wire`): its CBOR - a map of text - after its length."""
+    text = lambda s: _head(3, len(s.encode())) + s.encode()  # noqa: E731
+    body = _head(5, len(message)) + b"".join(text(k) + text(v) for k, v in message.items())
+    return len(body).to_bytes(4, "little") + body
+
+
+def _item(data: bytes, at: int):
+    """The CBOR item at `at` - what the host's answers hold: numbers, text, bytes, arrays, maps, simple values - and
+    where the next begins."""
+    major, info = data[at] >> 5, data[at] & 31
+    at += 1
+    if info < 24:
+        n = info
+    else:
+        size = 1 << (info - 24)
+        n = int.from_bytes(data[at:at + size], "big")
+        at += size
+    if major == 0:
+        return n, at
+    if major == 1:
+        return -1 - n, at
+    if major in (2, 3):
+        raw = data[at:at + n]
+        return (raw if major == 2 else raw.decode()), at + n
+    if major == 4:
+        items = []
+        for _ in range(n):
+            value, at = _item(data, at)
+            items.append(value)
+        return items, at
+    if major == 5:
+        found = {}
+        for _ in range(n):
+            key, at = _item(data, at)
+            found[key], at = _item(data, at)
+        return found, at
+    return {20: False, 21: True}.get(info), at
+
+
 def _borrow(project: Path, who: str):
     """Borrow the project from the host holding it: the connection, held for as long as it is borrowed; None where no
-    host holds it."""
-    import json
+    host holds it. Said and answered as CBOR frames (`project::wire`)."""
     import socket
     kind, address = _host_address(project)
-    said = (json.dumps({"say": "lend", "who": who}) + "\n").encode()
+    said = _frame({"say": "lend", "who": who})
     try:
         if kind == "pipe":
             pipe = open(address, "r+b", buffering=0)
             pipe.write(said)
-            answer = pipe.readline()
+            read = pipe.read
             connection = pipe
         else:
             connection = socket.socket(socket.AF_UNIX)
             connection.settimeout(30)
             connection.connect(address)
             connection.sendall(said)
-            answer = connection.makefile("rb").readline()
-    except OSError:
+            read = connection.makefile("rb").read
+        length = int.from_bytes(read(4) or b"\0\0\0\0", "little")
+        answer, _ = _item(read(length), 0) if length else ({}, 0)
+    except (OSError, IndexError, UnicodeDecodeError):
         return None
-    if json.loads(answer or b"{}").get("say") == "lent":
+    if isinstance(answer, dict) and answer.get("say") == "lent":
         return connection
     connection.close()
     return None

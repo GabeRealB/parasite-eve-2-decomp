@@ -294,8 +294,10 @@ an NTFS volume (not ReFS); WebDAV for the system's own client to mount.
 
 **The host serves it, whoever holds the project.** One process a project serves
 it (`pe2-cli project host`, `project::host`): started where none runs by the
-editor opening the project, or by `pe2-cli project serve` (`--backend`,
-`--address` in place of the setting; `--stop`), each keeping it while it runs.
+editor opening the project - once the editor holds it, beside its own opening,
+the host reading the project without its store until it takes it back - or by
+`pe2-cli project serve` (`--backend`, `--address` in place of the setting;
+`--stop`), each keeping it while it runs.
 It stops 30 seconds after nobody keeps it, once no file is open in it: a read
 in progress is never cut off, and what only looks at the folder (a watcher, a
 file browser) keeps nothing, so when it stops is known. Where this machine says
@@ -307,9 +309,19 @@ user sets them aside (`serve --set-aside`, to `assets.set-aside/<time>`) or
 takes them in as edits (`--take-in`) - the editor offers both. It holds
 the project while nothing else does; a process taking the project lock while it
 does borrows it (`Lock::try_acquire`): the host lets go of the lock, its history
-and the cache's record store, serves on from what it reads of the layers, and
-takes the project back once let go - the editor, an extraction, an agent's
-request, a Python tool (`tools/project_lock.py`) alike. Python's `data_root` reads `assets/`, and serves it for its run
+and its index, and takes the project back once let go - the editor, an
+extraction, an agent's request, a Python tool (`tools/project_lock.py`) alike.
+**A project has one index: its holder's.** While another holds the project the
+host keeps none: the holder lists what is served (`Index::served`: the whole
+stack, whatever its view hides) and sends it on the host's lease - whole at
+first, then what changed (`ToHost::Shown`, the editor's `Files`, off the
+window's thread) - and the host reads the files it serves through `content`,
+its records and packs read again as they change. While the host holds the
+project it answers agents' and the command line's reads too, from its index
+(the extensions and imports loaded at the first, let go of after two minutes
+without one), so `pe2-cli mcp` never opens a project a host holds. Processes say
+all this to each other as CBOR, one message a frame (its length, then the
+message: `project::wire`), the host's socket and the holder's link alike. Python's `data_root` reads `assets/`, and serves it for its run
 where nothing serves a project whose layers hold chunks (a host started under a
 tool's lock, `PE2_PROJECT_LOCKED`, ends with the tool's lease). What a program writes there is an edit made by whoever
 holds the project - the host itself, or the editor, which it reaches on its link
@@ -336,8 +348,9 @@ since nobody edits it by hand: one record an entry it creates or acts on, by uid
 in `.layers/<layer>/.records/<aa>/<uid>.toml` - what it does to the entry
 (creates, overrides, moves, deletes), where it is (its parent's uid and its
 name, so renaming a folder of thousands of entries is one record), and its
-files: text under 64 KiB inline, so a layer's history reads as text in version
-control, anything else by SHA-1 in the store. Each layer's folder says its
+files: text inline whatever its length, so a layer's history always reads as
+text in version control (diffs are computed, never stored), anything else - not
+UTF-8, or holding a NUL - by SHA-1 in the store. Each layer's folder says its
 format (`.records/layer.toml`, with what its changeset said: read only, ignored
 names), and every record its own: a format a program does not know is refused,
 never read or written - no readers of old formats are kept before the first
@@ -346,7 +359,11 @@ where the project then shows the same; `project layer import` from a tree,
 `export` to one). What reads a layer sees its files at the paths a tree would
 have them (`records::Set`, placing entries through the layers below), read
 through `project::content` as a packed layer's are; an edit writes record files
-through the history (`edit::Out`), so undo is unchanged. New asset layers are
+through the history (`edit::Out`), so undo is unchanged. A reading of the
+records takes again only those whose files changed, by stamp, every core reading
+its share, and a refresh scans again only the entries whose records changed
+(`records::Set::differences`): a content edit is that asset alone, the stack
+standing; one that places an entry otherwise applies it again. New asset layers are
 records; code layers (a files layer, a mount) stay trees, worked on with their
 own tools, and generated layers keep their packs. A layer's folder is storage,
 not a place to edit: the project is edited through the editor, its served
@@ -356,6 +373,24 @@ a copy deleted by hand, a file put there - is no edit: the index reports it
 the override, adopt or remove (`edit::adopt`, `edit::remove_unlisted`); a
 mounted tree is listed as it is found, always.
 
+**An extension a project holds is sealed: kept whole, never merged.** A layer
+names it by a record of its own, `.records/extensions/<id>.toml` (any asset
+layer, a tree one too, whose scan leaves `.records` out): `tree = "<sha1>"`, its
+files one tree of whole objects in the store, the tree's hash its identity. It is
+no entry of the project's tree; a higher layer's record of an id holds it in
+place of a lower one's, and one deleting it (`op = "delete"`) leaves it off.
+`pe2-cli project extension add|update|remove` (and the editor's Extensions pane)
+write those records as steps of the history; adding one held as it is already
+is no step. The tree is the object: what is in it is named only by its path
+within it, read where its folder was - `<layer>/extensions/<id>.extension/`, a
+path on no disk, read through `project::content` (`records::held_at`) - and
+nothing is laid out. Store objects are read-only; a program handed a file of it
+gets one through the filesystem the project is served as
+(`content::for_program`), else the object itself, in place. It is trusted by
+the place of the layer holding it, as its path says. A layer holding extensions as folders, as before
+(`extensions/<id>.extension`), is not read: `project store convert --layer`
+holds them as records.
+
 **A layer stores a large file as chunks.** At 1 MiB or more
 (`chunks::THRESHOLD`), a layer holds `<name>.chunks` - a manifest of
 content-defined chunks (FastCDC, BLAKE3), the chunks in `.layers/.store` - so an
@@ -364,9 +399,13 @@ releases, is kept once. Everything reads and writes a layer's content through
 `project::content`, never the path; the history keeps the manifest. A program
 given such a file by path (ffmpeg, an external app) gets it through a scoped
 filesystem of its own (`.cache/scope/<pid>/<sha1>/<name>`, `vfs::scoped`), or a
-copy in `.cache/materialized` where no transport is. The store also keeps whole
-files by SHA-1 (`store/files`: a record's file, what an override was made
-from). `pe2-cli project store migrate` converts a tree layer's large files;
+copy in `.cache/materialized` where no transport is. The store keeps files three
+ways, by what they are (`chunks.rs`): chunked, a manifest by SHA-1 for content
+edited or shared in parts (`store/files`: a record's binary file, what an
+override was made from); whole, the bytes themselves by SHA-1, for what is only
+ever taken or replaced whole (`store/objects`); and trees, listings of named
+whole objects kept as one (`store/trees`: an extension). Each says its own
+format (a manifest's or tree's header), so the store needs no mark of its own. `pe2-cli project store migrate` converts a tree layer's large files;
 `store gc` removes what no manifest, record, changeset, pack or history step
 names (the editor sweeps daily what is an hour old). A layer may be stored packed
 (`storage = "packed"` in `project.toml`, a generated layer's so far; `text`, its
@@ -374,6 +413,18 @@ files as files, by default): its files are one journaled listing in its folder
 (`.pack`), their chunks in the store, with nothing to scan, and `content` and the
 index read it as files (`project::pack`). `store pack --layer` and `store
 unpack --layer` convert one; its plan's record stays a file beside it.
+
+**What a node's fields and settings are, in memory, is `pe2_value`** (`crates/value`):
+values whose strings and keys are kept once, whose arrays of numbers are packed,
+whose tables and arrays are shared and copied only where changed - so an
+import's settings resolved over a node's fields (`imports::resolve`) share what
+they leave be, and a layer's settings lifted among the fields
+(`graph::with_settings_values`) are the layer's own. TOML is what they are
+written as; the store keeps them, with its traces, as CBOR (`graph::store`).
+A plan reads a node's fields through `Plan::of_fields`; what still reads `toml`
+(the editor's panes, the operations reading a node's fields by name, a linked
+extension) gets a copy made for that asset when first asked (`fields_toml`,
+`settings_toml`).
 
 **An override holds what it changes, whole, and is merged.** A layer overriding
 an entry from below copies nothing (but code into a files layer, which is edited
