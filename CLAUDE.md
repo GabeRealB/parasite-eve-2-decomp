@@ -494,9 +494,11 @@ in `project.toml`, its `type` - `text`, `texts`, `integer`, `boolean`, `table`, 
 as declared is a problem by config and property, never a load error, and the default
 holds; `pe2-cli project config declare|set|unset|list` and Settings ▸ Configurations
 edit them. An extension reads them in `BuildConfig::properties`; what reads the
-config is kept by the hash of what it read (`exec::config_hash`): all of it through
-`Call::config`, what it says - release, target, properties - through the `config`
-operation, so two configs saying the same share it. A game project declares
+config is kept by the hash of the part it read (`exec::config_hash`, `ConfigPart`):
+all of it - with what every config says, `known` - through `Call::config`, what it
+says - release, target, properties - through the `config` operation, so two configs
+saying the same share it, or its release alone (`Call::release`, a file the releases
+have apart). A game project declares
 `language` (`tools/pe2project.py`). `pe2-cli project output` makes an output of
 assets (or of every asset of a `--type`) for a `--config`, saying each file's SHA-1.
 
@@ -506,8 +508,10 @@ assets (or of every asset of a `--type`) for a `--config`, saying each file's SH
 it, but `merge` - the first of what it takes that is made. A step is made where it
 is asked for, its `active` first and only then what it takes (`exec::Run`), so a
 branch not taken is never made and only the taken one's reads are traced; the key
-stays the whole plan's. A step about to take a value others take asks those others
-whether they run first, so a value one of them will not take is still moved, not copied. Beside `config`: `equals` (at a dotted `field`, `to` a
+stays the whole plan's. A step about to take a value others take tells those others
+whether they run first - where that is made, or is logic over the config alone - so a
+value one of them will not take is still moved, not copied. `active = false` (or
+`true`) written as a value is a constant. Beside `config`: `equals` (at a dotted `field`, `to` a
 value), `all`/`any`/`invert` over booleans (named apart from the event gates, which
 take signals), `select` (another node's output, by the key it is given, among its
 `of`; only that one read, nothing where it names none) and `overlay` (a table over
