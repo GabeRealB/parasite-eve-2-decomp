@@ -182,7 +182,17 @@ def write_layer(directory: Path, cli: Path, releases: list[str] | None = None) -
     files, layer = generated(directory)
     plan = files.with_name(files.name + ".plan.jsonl")
     wanted = [r for r in declared_releases() if r in releases] if releases else planned_releases(directory, plan)
-    layer_init.write_nodes(layer, layer_init.layer_nodes(decl, registry, wanted))
+    # Written as a tree of files, which the editor's own command makes the layer's records (`project layer import`):
+    # the layer is the declarations' alone.
+    import shutil
+    import tempfile
+    staging = Path(tempfile.mkdtemp(prefix="pe2-nodes-")) / layer.name
+    try:
+        layer_init.write_nodes(staging, layer_init.layer_nodes(decl, registry, wanted))
+        subprocess.run([str(cli), "project", "layer", "import", layer.name, "--from", str(staging),
+                        "--project", str(directory)], check=True)
+    finally:
+        shutil.rmtree(staging.parent, ignore_errors=True)
     made = plans.make(decl, registry, wanted)
     plan.write_text(made.text(), encoding="utf-8")
     print(f"wrote the game's nodes into {layer}, and the plan filling them ({len(made.ops)} operations) into {plan}")

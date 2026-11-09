@@ -241,9 +241,10 @@ instances of the data compiled into overlays, the folders' streaming lists) into
 `assets/USA`: the CI/matching extract, and nothing a repack alone needs. A project
 for the editor is made from the declarations: `venv/bin/python3 tools/pe2project.py
 create --roms rom/image` makes one in `project/` (gitignored) - the game's nodes
-(`.layers/game`, with its changeset) and the plan filling them with their files
-(`.layers/game-files.plan.jsonl`, stating the discs it reads by size and sha1)
-written by `tools/editor_project/`, the plan run by `pe2-cli project extract` into
+(`.layers/game`, written by `tools/editor_project/` as a tree of files that
+`pe2-cli project layer import` makes the layer's records) and the plan filling
+them with their files (`.layers/game-files.plan.jsonl`, stating the discs it
+reads by size and sha1), the plan run by `pe2-cli project extract` into
 the generated layer `.layers/game-files` (only what changed is made again; `pe2-cli
 project status` says whether the layer is as its plan says, `verify` checks its
 files, both without the discs). The discs are in the unmanaged mount `roms` -
@@ -330,18 +331,30 @@ them, and `problems`. An edit goes to whoever holds the project - the editor, a
 step of its history and its undo; the host - or, where nothing does, is made
 under the lock as a step of its own (undo then has nothing to take back).
 
-**A layer's folder is storage, not a place to edit.** The project is edited
-through the editor or its served folder (`assets/`); `.layers/` is written by
-the tools, like `.git/objects`. What a layer's folder holds against its
-changeset - a copy deleted by hand, a file put there - is no edit: the
-changeset stays the truth, and the index reports it (`Problem::Missing`,
-`Problem::Unlisted`, the topmost path of an unlisted tree) for the user to
-repair - forget, drop the override, adopt (listed, a move outside the editor
-keeping its uids by content) or remove (`edit::adopt`, `edit::remove_unlisted`).
-A layer folder is listed as it is only the first time it is indexed, with no
-changeset yet; a mounted tree (source code, worked on with its own tools) is
-listed as it is found, always. What changes a layer whole - a checkout of a
-shared layer - changes its changeset with it, and is taken in as it is.
+**A layer is stored as records, not as a tree of files** (`project::records`),
+since nobody edits it by hand: one record an entry it creates or acts on, by uid,
+in `.layers/<layer>/.records/<aa>/<uid>.toml` - what it does to the entry
+(creates, overrides, moves, deletes), where it is (its parent's uid and its
+name, so renaming a folder of thousands of entries is one record), and its
+files: text under 64 KiB inline, so a layer's history reads as text in version
+control, anything else by SHA-1 in the store. Each layer's folder says its
+format (`.records/layer.toml`, with what its changeset said: read only, ignored
+names), and every record its own: a format a program does not know is refused,
+never read or written - no readers of old formats are kept before the first
+release, `pe2-cli` converts one way (`project store convert --layer`, kept only
+where the project then shows the same; `project layer import` from a tree,
+`export` to one). What reads a layer sees its files at the paths a tree would
+have them (`records::Set`, placing entries through the layers below), read
+through `project::content` as a packed layer's are; an edit writes record files
+through the history (`edit::Out`), so undo is unchanged. New asset layers are
+records; code layers (a files layer, a mount) stay trees, worked on with their
+own tools, and generated layers keep their packs. A layer's folder is storage,
+not a place to edit: the project is edited through the editor, its served
+folder (`assets/`) or `pe2-cli`. What a tree layer holds against its changeset -
+a copy deleted by hand, a file put there - is no edit: the index reports it
+(`Problem::Missing`, `Problem::Unlisted`) for the user to repair - forget, drop
+the override, adopt or remove (`edit::adopt`, `edit::remove_unlisted`); a
+mounted tree is listed as it is found, always.
 
 **A layer stores a large file as chunks.** At 1 MiB or more
 (`chunks::THRESHOLD`), a layer holds `<name>.chunks` - a manifest of
@@ -351,9 +364,11 @@ releases, is kept once. Everything reads and writes a layer's content through
 `project::content`, never the path; the history keeps the manifest. A program
 given such a file by path (ffmpeg, an external app) gets it through a scoped
 filesystem of its own (`.cache/scope/<pid>/<sha1>/<name>`, `vfs::scoped`), or a
-copy in `.cache/materialized` where no transport is. `pe2-cli project store
-migrate` converts a project's existing large files; `store gc` removes chunks no
-manifest, pack or history step names. A layer may be stored packed
+copy in `.cache/materialized` where no transport is. The store also keeps whole
+files by SHA-1 (`store/files`: a record's file, what an override was made
+from). `pe2-cli project store migrate` converts a tree layer's large files;
+`store gc` removes what no manifest, record, changeset, pack or history step
+names (the editor sweeps daily what is an hour old). A layer may be stored packed
 (`storage = "packed"` in `project.toml`, a generated layer's so far; `text`, its
 files as files, by default): its files are one journaled listing in its folder
 (`.pack`), their chunks in the store, with nothing to scan, and `content` and the
@@ -362,9 +377,9 @@ unpack --layer` convert one; its plan's record stays a file beside it.
 
 **An override holds what it changes, whole, and is merged.** A layer overriding
 an entry from below copies nothing (but code into a files layer, which is edited
-in place): it holds each file it writes whole, and its changeset records, per
-file, the SHA-1 of the version below it was made from - kept in the store - or
-that it removes it. Every other file comes from below as it is there. Where the
+in place): it holds each file it writes whole, and its record (a tree layer's
+changeset) says, per file, the SHA-1 of the version below it was made from -
+kept in the store - or that it removes it. Every other file comes from below as it is there. Where the
 version below changes, the index merges the layer's file over it three ways
 (`project::merge`), by what the file is and never by what node it is of: TOML by
 field (a path through tables, through an array of tables by each element's

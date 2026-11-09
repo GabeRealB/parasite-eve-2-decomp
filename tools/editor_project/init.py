@@ -6,9 +6,11 @@ changeset - what the editor reads of a game layer before anything is extracted i
     init.py plan --registry REGISTRY.json --layer DIR [--release USA ...] [--declarations DIR]
     init.py compare --layer DIR --against DIR
 
-`nodes` writes `<path>.node/node.toml` under the layer folder and its changeset beside it (`<layer>.toml`); the
+`nodes` writes `<path>.node/node.toml` under a folder and its changeset beside it (`<folder>.toml`) - a tree the editor
+imports as a layer's records (`pe2-cli project layer import`, as `tools/pe2project.py` does); the
 registry is what the project's extensions offer (`pe2-cli project registry --project <project>`). `plan` writes the
-layer's extraction plan (`plan.py`), which the editor runs to fill the bundles from the discs. `compare` says
+layer's extraction plan (`plan.py`), which the editor runs to fill the bundles from the discs. `compare` (a records
+layer exported as a tree first, `pe2-cli project layer export`) says
 where two layers' nodes differ as TOML read (their tables, not their text), and where their changesets list other
 assets - a folder's uid is the layer's own, not compared.
 """
@@ -128,7 +130,30 @@ def differences(ours, theirs, at: str = "") -> list[str]:
     return [] if ours == theirs else [f"{at}: {json.dumps(ours)[:120]} against {json.dumps(theirs)[:120]}"]
 
 
+def as_tree(layer: Path, keep: list) -> Path:
+    """A layer as a tree of files: itself, or - a records layer - written out by the editor's command
+    (`pe2-cli project layer export`) into a temporary folder, removed when `keep` goes."""
+    if not (layer / ".records" / "layer.toml").is_file():
+        return layer
+    import subprocess
+    import tempfile
+    sys.path.insert(0, str(HERE.parent))
+    from peassets.project import dist_cli  # noqa: E402
+    cli = dist_cli()
+    if cli is None:
+        raise SystemExit(f"{layer}: a records layer is read through the editor's command: lay it out (cargo xtask dist)")
+    out = tempfile.TemporaryDirectory(prefix="pe2-layer-")
+    keep.append(out)
+    tree = Path(out.name) / layer.name
+    project = layer.parent.parent
+    subprocess.run([str(cli), "project", "layer", "export", layer.name, "--to", str(tree), "--project", str(project)],
+                   check=True, stdout=subprocess.DEVNULL)
+    return tree
+
+
 def compare(layer: Path, against: Path) -> int:
+    keep: list = []
+    layer, against = as_tree(layer, keep), as_tree(against, keep)
     ours, theirs = read_nodes(layer), read_nodes(against)
     problems = [f"{p}: only in {against}" for p in sorted(set(theirs) - set(ours))]
     problems += [f"{p}: only in {layer}" for p in sorted(set(ours) - set(theirs))]
