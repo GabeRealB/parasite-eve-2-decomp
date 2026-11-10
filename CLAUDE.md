@@ -381,9 +381,29 @@ no records: a read finds its file in the mapped table by where a layer holds it
 (`Table::held_at`, `content::serve_from`) and reads there - a record's text from
 that record's own file. Its packs' listings it reads again where the holder
 says files changed (`ToServer::Changed`, sent before the table naming them) or
-its own watch sees it. Measured: an edit with the folder served 0.33-0.37 s,
-where the server reading the records again made it 0.55-0.7 s; all 14,365 files
-of a project read the same through it as through one process with an index.
+its own watch sees it. The table is all of what is served, for a server that has
+none of it - at its start, and where the project changes hands; after it, the
+holder says only what changed (`ToServer::Changes`: the paths shown anew or
+otherwise, and those gone - `server::Delta`), and the server changes the tree it
+serves by those paths (`Tree::change`, `Served::change`) and reads them by what
+was said (`content::serve_changed`), where it built all of it again. A refresh
+says which entries of the whole stack it touched and which are gone
+(`Refreshed::touched`, `gone`: where the stack was applied again, those that
+differ from before, and the node an entry came or went in), and the holder
+brings the listing it last said up to that and says what differs
+(`Index::serve_changed`): no listing of the whole project is made for an edit -
+every edit the project crate's tests make is held to the two being the same.
+What tells others that the tree changed - the kernel under FUSE, what watches a
+Dokany mount, the Cloud Files worker - is woken by the change
+(`Served::on_change`), where each looked every 200 ms. The records are read
+again by change too (`records::Set::open_after`): a layer none of the changed
+files is a record of, with nothing changed below it, is taken as it was read.
+Measured, a project of 23,000 entries and 8,800 records, the folder served
+through FUSE: a command changing a file 38 ms (it was 235-370 ms), in the folder
+0.4 ms after it returns (up to 200 ms); one adding a file 144 ms, removing one
+157 ms (380 ms) - what applies the stack again still does so whole, which is
+most of what is left; all 14,365 files
+read the same through it as through one process with an index.
 It serves from the first table it is named -
 until then the folder is as it was, so a backend never mounts an empty tree - and
 the connection that sent it feeds it until it ends: one feeder at a time, a
