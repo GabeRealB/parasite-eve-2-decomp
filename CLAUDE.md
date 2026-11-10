@@ -310,7 +310,11 @@ Cloud Files API (`cloud`, what OneDrive uses - nothing to install - the folder
 a sync root of placeholders filled as they are read, on an NTFS volume: registered
 by the folder's name and its place, so two projects in folders of one name are
 two; a path its watcher says changed that is no longer there was removed, as
-Windows tells only of a placeholder's removal), and the same API with what it
+Windows tells only of a placeholder's removal; bringing the folder in step with
+the tree, its worker leaves alone what a program changed there and the project
+has yet to be told - a file or folder renamed keeps its in-sync state, and was
+taken for something the tree no longer has: removed, and its old name put back -
+and removes of a folder the tree no longer has only what is in sync), and the same API with what it
 serves kept apart (`cloud-cache`: the sync root a folder of its own where the
 machine keeps such things - `[filesystem] cache`, by default the user's local
 data, on NTFS - and the project's folder a junction to it, so a project on a
