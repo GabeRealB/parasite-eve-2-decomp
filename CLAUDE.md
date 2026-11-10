@@ -282,15 +282,74 @@ folder and plain file where it resolves. A node and the folder of its name
 beside it in a layer (`x.node`, `x`) are one: a node with what is inside it,
 renamed, moved and deleted together (`edit::paired`), which is how a package
 holds its packages and a stage-0 slot its actors. It is always at the project's
-`assets/` folder, which its `.gitignore` leaves out; `project.local.toml` only
-says how (`[filesystem] serve = "fuse" | "cloud" | "webdav" | "none"`,
-`address` for WebDAV): FUSE by default on Linux and macOS, mounted there (under
+`assets/` folder, which its `.gitignore` leaves out.
+
+**What serves a tree is the backend suited to the job** (`vfs::backend`). A
+backend says what it can do (`Can`: `write`, all of what programs change applied
+to the project; `folder`, served where programs open it by path) and whether it
+is available at a place; a job says what it needs - the project's folder is
+written through, a scope read by path - and the first of the system's backends,
+best first, that does all of it and is available there serves it. So a backend
+is only ever given a job it does whole. FUSE on Linux and macOS (`fuse`; under
 WSL, Windows programs open it through WSL's file server, which reads as root:
 only where `/etc/fuse.conf` has the line `user_allow_other`, which `serve` and
-the editor say when it lacks); on
-Windows the Cloud Files API (`vfs::cloud`, what OneDrive uses - nothing to
-install), the folder a sync root of placeholders filled as they are read, on
-an NTFS volume (not ReFS); WebDAV for the system's own client to mount.
+the editor say when it lacks; the kernel keeps what the tree holds - entries,
+attributes, listings, content, and that a name asked for is not there - for
+as long as nothing changes it, each change
+beneath the mount told to it (`fuse::tell_kernel`), and asks again after a
+second only of what is staged over). On Windows, in this order: Dokany (`dokan`,
+where the user has installed it - a real filesystem mounted at the folder,
+written through as FUSE is, nothing kept on disk; its library loaded when used,
+its declarations transcribed from Dokany's header and attributed in the file;
+names matched whatever their case through a per-folder index kept while the
+tree stands, so a name that is not there costs no listing),
+the Projected File System (`projfs`, where the feature is turned on, NTFS or
+ReFS: read-only, since Windows refuses to rename or move a folder it projects
+whatever its provider does - so scopes, never the project's folder) and the
+Cloud Files API (`cloud`, what OneDrive uses - nothing to install - the folder
+a sync root of placeholders filled as they are read, on an NTFS volume: registered
+by the folder's name and its place, so two projects in folders of one name are
+two; a path its watcher says changed that is no longer there was removed, as
+Windows tells only of a placeholder's removal). WebDAV everywhere (`webdav`), at an address
+for the system's own client to mount, so never a scope. `project.local.toml`
+says otherwise (`[filesystem] serve` for the folder, `scopes` for the files
+programs are given: `auto`, `none` or a backend's name; `address` for WebDAV),
+then the machine (`[filesystem]` of the editor's `settings.toml`, Settings ▸
+Files); a backend named that cannot do the job, or is not available, is
+refused with why, never replaced by another. `pe2-cli project backends` says
+what holds here.
+
+**Among the backends able to do a job, `auto` takes the one suited to how the
+tree will be used.** Whoever asks says it (`pe2_ext::Use`: each file read
+`often` rather than once, in `ranges` rather than whole - `Use::general()` for
+a project's folder, `Use::once()` for a compiler's sources; the contract's
+`serve-use`, the second argument of `asset.serve`), and a backend says two
+things of itself: whether it `keeps` on disk what was read (ProjFS, Cloud
+Files) and whether it `prepares` something for every file up front (Cloud
+Files' placeholders). Read often, a keeper serves; read once, or in ranges of
+large files, one that prepares and keeps nothing (FUSE, Dokany). A program's
+files are first of all laid out as copies - what a layer holds as one file
+linked - where that writes no more than `[filesystem] copies` (16 MiB): the
+fastest in every measurement, and what a build's trees get. What a keeper
+holds of a project's folder is bounded by `[filesystem] kept` (2 GiB): the host
+remembers what is read there (`vfs::access`, `.cache/access/`) and, at start,
+every ten minutes and as it stops, has the backend let go of what was read
+longest ago (`Backend::collect`: Cloud Files makes it a placeholder again, only
+what is still as serving left it). A placeholder's state is asked through a
+handle opened for its attributes alone (`cloud::state`): opened as the Cloud
+Files API opens one, Windows fetches back in, whole, a file that was let go of. Filling files ahead of their first read was
+tried and measured, and is not done: it costs what the read does. A backend is a module implementing `Backend` and a line of
+`backend::all`: nothing else names one, and what it needs told (`Mount::placed`,
+`released`) or cleared after it (`Backend::clear`) is its own. Before one serves
+a folder, every other retires what it left there (`backend::hand_over`,
+`Backend::retire`): Cloud Files' placeholders still in sync go and its sync root
+is unregistered - each file opened to be asked, some tens of seconds for a
+project listed whole, once - a junction Dokany left is a plain folder again; what
+was changed or put there while nothing served it stays, as strays. Dokany pulls
+a read-only mount's requests on one thread: its library parks one a processor
+(16 at most) for each mount in a pool they share, and a process's later mount
+then waits about two seconds for the pool to grow (`dokan::mount` waits for the
+folder to answer); a mount written through keeps them all.
 
 **The host serves it, whoever holds the project.** One process a project serves
 it (`pe2-cli project host`, `project::host`): started where none runs by the
@@ -329,7 +388,13 @@ holds the project - the host itself, or the editor, which it reaches on its link
 layer (the active one, in the editor): a file written is applied when closed or synced,
 a new one or a removal once it settles, a save by rename is a save, and what
 editors leave beside a file (`~`, `.swp`, `4913`, any name starting with `.`)
-is never applied (`vfs::write`). The filesystem holds to the model: a
+is never applied (`vfs::write`). What is due together is handed over together
+(`Owner::changes`): the host makes each its step and refreshes its index and
+the served tree once for all of them, so hundreds of files written or removed
+land in seconds; a removal or rename waits for what is being applied to the
+same path (`Writes::applied`). As serving ends, what still waits to settle is
+given to the project (`backend::Finishing`, `Writes::finish`; the Cloud Files
+worker's last pass), so a change made a moment before a stop is not lost. The filesystem holds to the model: a
 `node.toml` written in a folder makes it a node (a folder there already is its
 folder of children); a new file in a node is one of its files, and a folder
 made in one waits to be a child node or a folder of its files by what is
@@ -399,7 +464,26 @@ releases, is kept once. Everything reads and writes a layer's content through
 `project::content`, never the path; the history keeps the manifest. A program
 given such a file by path (ffmpeg, an external app) gets it through a scoped
 filesystem of its own (`.cache/scope/<pid>/<sha1>/<name>`, `vfs::scoped`), or a
-copy in `.cache/materialized` where no transport is. The store keeps files three
+copy in `.cache/materialized` where no transport is. An unsandboxed operation is
+served a whole folder of files for its run the same way (`Call::serve`, the
+contract's `serve`: each where its content is, or held in memory, under
+`.cache/scope/<pid>/run-<n>/`, gone once the run is done; laid out in the store's
+`tmp/` where nothing serves it, or where it is small: `copies`, above) - what
+`pe2.psx` hands its tools. A scope is
+served by the backend suited to it, read-only on each: FUSE and Dokany mount it
+so; the Projected File System (its library loaded when used: nothing registered, a path
+opened looked up as it is) refuses every other process what would change a
+file; the Cloud Files API serves a sync root of its own, its files read-only,
+each served folder's placeholders made up front, since Windows asks for them
+only as a folder is listed. What a backend left is cleared when the scope is
+let go of, or by the next process to sweep the project's scopes, which
+`<pid>.alive` beside a scope tells whether its process runs and which backend
+served it. An unsandboxed
+extension's own file access sees each Windows drive as a root (`/D:/a`); the host
+writes what it hands it so (`component::guest_path`), and reads it back, a program's
+arguments in Windows' form (`D:/a`). What an extension reads of a tree it was served
+it takes from the value, not the folder: its own file access does not follow a folder
+Dokany mounts on (a junction: "no such file"), so only that works with every backend. The store keeps files three
 ways, by what they are (`chunks.rs`): chunked, a manifest by SHA-1 for content
 edited or shared in parts (`store/files`: a record's binary file, what an
 override was made from); whole, the bytes themselves by SHA-1, for what is only
