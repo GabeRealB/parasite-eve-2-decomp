@@ -486,7 +486,10 @@ project, a step of that one's history in the highest writable layer (the active
 one, in the editor): a file written is applied when closed or synced, a new one
 or a removal once it settles, a save by rename is a save, and what editors leave
 beside a file (`~`, `.swp`, `4913`, any name starting with `.`) is never applied
-(`vfs::write`). What is due together is handed over together
+(`vfs::write`). A file opened to be written anew is truncated by the kernel with
+its handle not said: that is no edit of its own while a program has it open -
+applied as one, every save was two steps of the history, the first an empty
+file, and the program's open waited for it. What is due together is handed over together
 (`Owner::changes`): the holder makes each its step and refreshes its index and
 what is served once for all of them, so hundreds of files written or removed
 land in seconds; a removal or rename waits for what is being applied to the same
