@@ -408,7 +408,16 @@ finds it. The agents' server lists the extensions' tools as the holder has them
 besides its own work is one library with no window in it (`crates/holder`:
 `files`, the feed to what serves the folder; `runner`, the epochs events set
 off; `watch`, its layers watched), which the editor and the host both use: what
-is to be woken when something ends is given as a call. Processes say
+is to be woken when something ends is given as a call. A host runs what events
+set off as an editor does (`Request::Signal`: `pe2-cli project build|clean|signal`
+ask whoever holds the project, a host started for it where nothing does), off
+its own lock, so it reads and edits on meanwhile; it fetches what the project's
+extensions require first, and lends the project to nobody while an epoch runs -
+who asks waits, as for any holder that is busy. On Windows a host has a console
+of its own with no window (`CREATE_NO_WINDOW`, never `DETACHED_PROCESS`), and an
+extension's tool is started with none either: a process with no console at all
+has Windows open a terminal for every console program it starts, a build's
+hundreds of them. Processes say
 all this to each other as CBOR, one message a frame (its length, then the
 message: `project::wire`), the host's socket and the holder's link alike. Python's `data_root` reads `assets/`, and serves it for its run
 where nothing serves a project whose layers hold chunks (a host started under a
