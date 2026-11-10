@@ -384,7 +384,16 @@ window's thread) - and the host reads the files it serves through `content`,
 its records and packs read again as they change. While the host holds the
 project it answers agents' and the command line's reads too, from its index
 (the extensions and imports loaded at the first, let go of after two minutes
-without one), so `pe2-cli mcp` never opens a project a host holds. Processes say
+without one), so `pe2-cli mcp` never opens a project a host holds. Where
+nothing holds the project, what a command or an agent asks starts a host to
+hold it (`project::host::ensure`, `mcp::server::execute`): one that serves its
+folder nowhere (`--backend none`), answers this and what is asked next with the
+project open, keeps one history for the commands' edits - so `undo` takes back
+what an earlier command did - and stops two minutes after the last thing asked
+of it. A program working under another's lock (`PE2_PROJECT_LOCKED`) starts
+none, and does the work itself. Asked to serve the folder, a host that only
+holds is told to stop and one that serves started in its place
+(`project::host::serving`). Processes say
 all this to each other as CBOR, one message a frame (its length, then the
 message: `project::wire`), the host's socket and the holder's link alike. Python's `data_root` reads `assets/`, and serves it for its run
 where nothing serves a project whose layers hold chunks (a host started under a
@@ -411,8 +420,10 @@ ending in `.node` is refused.
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
 (`--layer`, by default the one edits go to), paths as the served folder shows
 them, and `problems`. An edit goes to whoever holds the project - the editor, a
-step of its history and its undo; the host - or, where nothing does, is made
-under the lock as a step of its own (undo then has nothing to take back).
+step of its history and its undo; the host, started for it where nothing holds
+the project - and is made under the lock as a step of its own only where no
+host can be (a program under another's lock: undo then has nothing to take
+back).
 
 **A layer is stored as records, not as a tree of files** (`project::records`),
 since nobody edits it by hand: one record an entry it creates or acts on, by uid,
