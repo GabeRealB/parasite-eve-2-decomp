@@ -310,7 +310,13 @@ Cloud Files API (`cloud`, what OneDrive uses - nothing to install - the folder
 a sync root of placeholders filled as they are read, on an NTFS volume: registered
 by the folder's name and its place, so two projects in folders of one name are
 two; a path its watcher says changed that is no longer there was removed, as
-Windows tells only of a placeholder's removal). WebDAV everywhere (`webdav`), at an address
+Windows tells only of a placeholder's removal), and the same API with what it
+serves kept apart (`cloud-cache`: the sync root a folder of its own where the
+machine keeps such things - `[filesystem] cache`, by default the user's local
+data, on NTFS - and the project's folder a junction to it, so a project on a
+volume the API cannot serve, ReFS, is served by it all the same; a junction of
+ours that leads to another project's tree, as a copied project's does, is made
+again, and a tree nothing leads to any more is swept). WebDAV everywhere (`webdav`), at an address
 for the system's own client to mount, so never a scope. `project.local.toml`
 says otherwise (`[filesystem] serve` for the folder, `scopes` for the files
 programs are given: `auto`, `none` or a backend's name; `address` for WebDAV),
