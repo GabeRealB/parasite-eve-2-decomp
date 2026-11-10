@@ -404,7 +404,11 @@ while it is made would be made twice), and the editor takes all of it in once
 (`Workspace::apply_edits`); a folder the project was just given is shown until
 the tree served follows (`Writes`' `given`), so what is written into it next
 finds it. The agents' server lists the extensions' tools as the holder has them
-(`Request::Tools`), those the project holds among them. Processes say
+(`Request::Tools`), those the project holds among them. What a holder does
+besides its own work is one library with no window in it (`crates/holder`:
+`files`, the feed to what serves the folder; `runner`, the epochs events set
+off; `watch`, its layers watched), which the editor and the host both use: what
+is to be woken when something ends is given as a call. Processes say
 all this to each other as CBOR, one message a frame (its length, then the
 message: `project::wire`), the host's socket and the holder's link alike. Python's `data_root` reads `assets/`, and serves it for its run
 where nothing serves a project whose layers hold chunks (a host started under a
