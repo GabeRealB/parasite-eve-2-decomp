@@ -393,7 +393,18 @@ what an earlier command did - and stops two minutes after the last thing asked
 of it. A program working under another's lock (`PE2_PROJECT_LOCKED`) starts
 none, and does the work itself. Asked to serve the folder, a host that only
 holds is told to stop and one that serves started in its place
-(`project::host::serving`). Processes say
+(`project::host::serving`). Whoever asks first asks who answers
+(`mcp::Request::Hello`, `mcp::Holder`: an editor or a host, its program as built
+when it started, its data folder, whether it trusts every extension): a host
+that is not what the asker would have started is told to stop where nobody keeps
+it, and the asker's own answers; one that is kept, or an editor, is only said to
+differ. What programs wrote at once is sent to the holder as one request
+(`Request::Edits`, waited for as long as the link lives - an edit given up on
+while it is made would be made twice), and the editor takes all of it in once
+(`Workspace::apply_edits`); a folder the project was just given is shown until
+the tree served follows (`Writes`' `given`), so what is written into it next
+finds it. The agents' server lists the extensions' tools as the holder has them
+(`Request::Tools`), those the project holds among them. Processes say
 all this to each other as CBOR, one message a frame (its length, then the
 message: `project::wire`), the host's socket and the holder's link alike. Python's `data_root` reads `assets/`, and serves it for its run
 where nothing serves a project whose layers hold chunks (a host started under a
