@@ -400,9 +400,12 @@ again by change too (`records::Set::open_after`): a layer none of the changed
 files is a record of, with nothing changed below it, is taken as it was read.
 Measured, a project of 23,000 entries and 8,800 records, the folder served
 through FUSE: a command changing a file 38 ms (it was 235-370 ms), in the folder
-0.4 ms after it returns (up to 200 ms); one adding a file 144 ms, removing one
-157 ms (380 ms) - what applies the stack again still does so whole, which is
-most of what is left; all 14,365 files
+0.4 ms after it returns (up to 200 ms); one adding or removing a file 118 ms
+(380 ms) - of which 60 ms is the stack applied again, whole (resolving it,
+its dependencies, its entries), 27 ms the edit made, 9 ms the records; where no
+asset changed, the links between assets stand (`Index::after_restack`), and what
+lies in what was rescanned is told by layer and path, no path made for each
+entry (`in_rescanned`); all 14,365 files
 read the same through it as through one process with an index.
 It serves from the first table it is named -
 until then the folder is as it was, so a backend never mounts an empty tree - and
