@@ -414,9 +414,11 @@ nothing): closing the window ends no serving - the host takes the project and
 feeds the same server. Who lets go of the project says so with a connection
 (`ToHost::Leaving`, as a borrower's `Lend`), and the host takes it the moment
 that ends, not when it next looks (every 200 ms, what is left for a holder that
-died); its log says how long each part took. Measured: the editor lets go
-0.5-1.6 s after it is closed (what its worker was on, its index), and the host
-holds 1.1-1.3 s after that - reading the index, which is what a hand-over costs. What a program writes through the folder the
+died); its log says how long each part took. The editor lets go of the lock
+once what may still write has ended and its index's store is closed
+(`Leaving`'s drop), and frees the index's memory after: 0.13-0.17 s after it is
+closed, where freeing it first made that 0.5 s and more. The host holds about
+1 s after that - opening the index, which is what a hand-over costs. What a program writes through the folder the
 server sends to whoever holds the project, on the holder's link
 (`mcp::Request::Edit`, `Edits`); where nothing holds it, a host is started to
 (`mcp::server::ask_holder`), and where what holds it takes no edits (a tool, an
