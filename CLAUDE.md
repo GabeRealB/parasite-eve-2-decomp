@@ -367,13 +367,24 @@ the virtual filesystem and nothing else: it reads no index and loads no extensio
 (`project::ext::forbid`, said at its start: loading one fails by name), so it may
 load what a process running an extension's code must not be one with. Whoever
 holds the project - an editor, or a host (`pe2-cli project host`,
-`project::host`, `cli/src/host.rs`) - has its only index, lists what is served
-(`Index::served`: the whole stack, whatever its view hides) and sends it to the
-server - whole at first, then what changed (`ToServer::Shown`, the holder's
-`holder::files::Files`, on a thread of its own) - and the server reads each file
-it serves through `content`, its records and packs read again where the holder
-says files changed (`ToServer::Changed`, sent before the listing naming them) or
-its own watch sees it. It serves from the first whole listing it is given -
+`project::host`, `cli/src/host.rs`) - has its only index and lists what is served
+(`Index::served`: the whole stack, whatever its view hides) into a table both
+sides map into memory (`project::served`: a file of the cache,
+`.cache/served/<generation>.table` - a header, an entry a path sorted by path,
+the entries' numbers sorted by where a layer holds each, and the text they
+name), written whole, never changed, and named to the server
+(`ToServer::Table`, the holder's `holder::files::Files`, on a thread of its
+own); the tables before it go once the server serves the new one. Each file's
+entry says where its content lives (`server::Source`: where a layer holds it,
+the record holding its text, the store keeping it by SHA-1), so the server reads
+no records: a read finds its file in the mapped table by where a layer holds it
+(`Table::held_at`, `content::serve_from`) and reads there - a record's text from
+that record's own file. Its packs' listings it reads again where the holder
+says files changed (`ToServer::Changed`, sent before the table naming them) or
+its own watch sees it. Measured: an edit with the folder served 0.33-0.37 s,
+where the server reading the records again made it 0.55-0.7 s; all 14,365 files
+of a project read the same through it as through one process with an index.
+It serves from the first table it is named -
 until then the folder is as it was, so a backend never mounts an empty tree - and
 the connection that sent it feeds it until it ends: one feeder at a time, a
 second told who feeds (`FromServer::Fed`), which whoever takes the project over
