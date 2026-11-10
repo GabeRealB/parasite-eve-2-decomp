@@ -408,7 +408,10 @@ process taking the project lock while a host holds it borrows it
 its link, feeds the server no more - whoever holds the project does - and takes
 the project back once let go, feeding again - the editor, an extraction, a
 Python tool (`tools/project_lock.py`) alike. The editor keeps and feeds the
-server itself (`Files::keep`). What a program writes through the folder the
+server itself (`Files::keep`), and has a host stand by where its files are
+served (`project::host::stand_by`: the one running, or one started holding
+nothing): closing the window ends no serving - the host takes the project within
+a second or two and feeds the same server. What a program writes through the folder the
 server sends to whoever holds the project, on the holder's link
 (`mcp::Request::Edit`, `Edits`); where nothing holds it, a host is started to
 (`mcp::server::ask_holder`), and where what holds it takes no edits (a tool, an
