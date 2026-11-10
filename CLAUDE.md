@@ -337,7 +337,7 @@ large files, one that prepares and keeps nothing (FUSE, Dokany). A program's
 files are first of all laid out as copies - what a layer holds as one file
 linked - where that writes no more than `[filesystem] copies` (16 MiB): the
 fastest in every measurement, and what a build's trees get. What a keeper
-holds of a project's folder is bounded by `[filesystem] kept` (2 GiB): the host
+holds of a project's folder is bounded by `[filesystem] kept` (2 GiB): the server
 remembers what is read there (`vfs::access`, `.cache/access/`) and, at start,
 every ten minutes and as it stops, has the backend let go of what was read
 longest ago (`Backend::collect`: Cloud Files makes it a placeholder again, only
@@ -357,43 +357,74 @@ a read-only mount's requests on one thread: its library parks one a processor
 then waits about two seconds for the pool to grow (`dokan::mount` waits for the
 folder to answer); a mount written through keeps them all.
 
-**The host serves it, whoever holds the project.** One process a project serves
-it (`pe2-cli project host`, `project::host`): started where none runs by the
-editor opening the project - once the editor holds it, beside its own opening,
-the host reading the project without its store until it takes it back - or by
-`pe2-cli project serve` (`--backend`, `--address` in place of the setting;
-`--stop`), each keeping it while it runs.
-It stops 30 seconds after nobody keeps it, once no file is open in it: a read
-in progress is never cut off, and what only looks at the folder (a watcher, a
-file browser) keeps nothing, so when it stops is known. Where this machine says
-`[filesystem] keep = true`, it serves on until stopped. It does
-not serve over files in the folder that are not the project's (`vfs::strays`:
-anything on Linux and macOS, where a mount would hide it; on Windows a plain
-file, or one read on an earlier run and changed since): it lists them, and the
-user sets them aside (`serve --set-aside`, to `assets.set-aside/<time>`) or
-takes them in as edits (`--take-in`) - the editor offers both. It holds
-the project while nothing else does; a process taking the project lock while it
-does borrows it (`Lock::try_acquire`): the host lets go of the lock, its history
-and its index, and takes the project back once let go - the editor, an
-extraction, an agent's request, a Python tool (`tools/project_lock.py`) alike.
-**A project has one index: its holder's.** While another holds the project the
-host keeps none: the holder lists what is served (`Index::served`: the whole
-stack, whatever its view hides) and sends it on the host's lease - whole at
-first, then what changed (`ToHost::Shown`, the editor's `Files`, off the
-window's thread) - and the host reads the files it serves through `content`,
-its records and packs read again as they change. While the host holds the
-project it answers agents' and the command line's reads too, from its index
-(the extensions and imports loaded at the first, let go of after two minutes
-without one), so `pe2-cli mcp` never opens a project a host holds. Where
-nothing holds the project, what a command or an agent asks starts a host to
-hold it (`project::host::ensure`, `mcp::server::execute`): one that serves its
+**Two processes: a server that serves the folder, and whoever holds the project.**
+The server (`pe2-cli project server`, `project::server`, `cli/src/server.rs`) is
+the virtual filesystem and nothing else: it reads no index and loads no extension
+(`project::ext::forbid`, said at its start: loading one fails by name), so it may
+load what a process running an extension's code must not be one with. Whoever
+holds the project - an editor, or a host (`pe2-cli project host`,
+`project::host`, `cli/src/host.rs`) - has its only index, lists what is served
+(`Index::served`: the whole stack, whatever its view hides) and sends it to the
+server - whole at first, then what changed (`ToServer::Shown`, the holder's
+`holder::files::Files`, on a thread of its own) - and the server reads each file
+it serves through `content`, its records and packs read again where the holder
+says files changed (`ToServer::Changed`, sent before the listing naming them) or
+its own watch sees it. It serves from the first whole listing it is given -
+until then the folder is as it was, so a backend never mounts an empty tree - and
+the connection that sent it feeds it until it ends: one feeder at a time, a
+second told who feeds (`FromServer::Fed`), which whoever takes the project over
+asks again a moment later. It does not serve over files in the folder that are
+not the project's (`vfs::strays`: anything on Linux and macOS, where a mount
+would hide it; on Windows a plain file, or one read on an earlier run and changed
+since): it says so and ends, and the user sets them aside (`serve --set-aside`,
+to `assets.set-aside/<time>`) or takes them in as edits (`--take-in`) - the
+editor offers both. It stops 30 seconds after nobody keeps it (`Keep`, a lease
+while the connection lasts), once no file is open in it: a read in progress is
+never cut off, and what only looks at the folder (a watcher, a file browser)
+keeps nothing.
+
+**A host holds the project while no editor does**: its lock, its index and a
+history of its own, answering what is asked on the holder's link - the edits
+commands and agents make and programs write through the folder, the reads (from
+its index: the extensions and imports loaded at the first, let go of after two
+minutes without one, so `pe2-cli mcp` never opens a project a host holds), what
+events set off. Where nothing holds the project, what a command or an agent asks
+starts one (`project::host::ensure`, `mcp::server::execute`) that serves its
 folder nowhere (`--backend none`), answers this and what is asked next with the
-project open, keeps one history for the commands' edits - so `undo` takes back
-what an earlier command did - and stops two minutes after the last thing asked
-of it. A program working under another's lock (`PE2_PROJECT_LOCKED`) starts
-none, and does the work itself. Asked to serve the folder, a host that only
-holds is told to stop and one that serves started in its place
-(`project::host::serving`). Whoever asks first asks who answers
+project open, and keeps one history for the commands' edits - so `undo` takes
+back what an earlier command did. `pe2-cli project serve` (`--backend`,
+`--address` in place of the setting; `--stop` stops host and server) starts one
+that keeps the folder served: it starts the server, keeps it for as long as it
+runs and feeds it while it holds the project, and is listened to once the server
+serves - so a server that cannot (no backend here, strays) is said by the host
+ending, as its log has it. A host joins a server that runs already, whatever it
+was started for. It leaves only while it holds the project, two minutes after
+the last of: something asked on its link, a lease on it ended (`project serve`,
+a borrower), a file open in what the server serves; `[filesystem] keep = true`
+keeps one that serves until stopped, and one started to keep the folder served
+ends where the server is stopped. The server outlives it by its 30 seconds. A
+process taking the project lock while a host holds it borrows it
+(`Lock::try_acquire`): the host lets go of the lock, its history, its index and
+its link, feeds the server no more - whoever holds the project does - and takes
+the project back once let go, feeding again - the editor, an extraction, a
+Python tool (`tools/project_lock.py`) alike. The editor keeps and feeds the
+server itself (`Files::keep`). What a program writes through the folder the
+server sends to whoever holds the project, on the holder's link
+(`mcp::Request::Edit`, `Edits`); where nothing holds it, a host is started to
+(`mcp::server::ask_holder`), and where what holds it takes no edits (a tool, an
+extraction) the write is refused and said in the server's log. A program working
+under another's lock (`PE2_PROJECT_LOCKED`) starts no host for what it asks, and
+does the work itself; a host started under one (Python's `data_root`, which
+serves `assets/` for its run where nothing serves a project whose layers hold
+chunks) ends with its starter's lease, and its server with it. Asked to serve
+the folder, a host that only holds is told to stop and one that serves started
+in its place (`project::host::serving`). What both processes are to others - how
+one is known to run, started on its own, connected to and listened as - is
+`project::role` (`host::ROLE`, `server::ROLE`: `.cache/host.sock` and
+`server.sock`, named pipes on Windows, one a project by `host.lock` and
+`server.lock`, their logs beside them).
+
+**Who answers is asked first.** Whoever asks first asks who answers
 (`mcp::Request::Hello`, `mcp::Holder`: an editor or a host, its program as built
 when it started, its data folder, whether it trusts every extension): a host
 that is not what the asker would have started is told to stop where nobody keeps
@@ -403,42 +434,44 @@ differ. What programs wrote at once is sent to the holder as one request
 while it is made would be made twice), and the editor takes all of it in once
 (`Workspace::apply_edits`); a folder the project was just given is shown until
 the tree served follows (`Writes`' `given`), so what is written into it next
-finds it. The agents' server lists the extensions' tools as the holder has them
-(`Request::Tools`), those the project holds among them. What a holder does
-besides its own work is one library with no window in it (`crates/holder`:
-`files`, the feed to what serves the folder; `runner`, the epochs events set
-off; `watch`, its layers watched), which the editor and the host both use: what
-is to be woken when something ends is given as a call. A host runs what events
-set off as an editor does (`Request::Signal`: `pe2-cli project build|clean|signal`
-ask whoever holds the project, a host started for it where nothing does), off
-its own lock, so it reads and edits on meanwhile; it fetches what the project's
-extensions require first, and lends the project to nobody while an epoch runs -
-who asks waits, as for any holder that is busy. On Windows a host has a console
-of its own with no window (`CREATE_NO_WINDOW`, never `DETACHED_PROCESS`), and an
-extension's tool is started with none either: a process with no console at all
-has Windows open a terminal for every console program it starts, a build's
-hundreds of them. Processes say
-all this to each other as CBOR, one message a frame (its length, then the
-message: `project::wire`), the host's socket and the holder's link alike. Python's `data_root` reads `assets/`, and serves it for its run
-where nothing serves a project whose layers hold chunks (a host started under a
-tool's lock, `PE2_PROJECT_LOCKED`, ends with the tool's lease). What a program writes there is an edit made by whoever
-holds the project - the host itself, or the editor, which it reaches on its link
-(`mcp::Request::Edit`) - a step of that one's history in the highest writable
-layer (the active one, in the editor): a file written is applied when closed or synced,
-a new one or a removal once it settles, a save by rename is a save, and what
-editors leave beside a file (`~`, `.swp`, `4913`, any name starting with `.`)
-is never applied (`vfs::write`). What is due together is handed over together
-(`Owner::changes`): the host makes each its step and refreshes its index and
-the served tree once for all of them, so hundreds of files written or removed
-land in seconds; a removal or rename waits for what is being applied to the
-same path (`Writes::applied`). As serving ends, what still waits to settle is
-given to the project (`backend::Finishing`, `Writes::finish`; the Cloud Files
-worker's last pass), so a change made a moment before a stop is not lost. The filesystem holds to the model: a
-`node.toml` written in a folder makes it a node (a folder there already is its
-folder of children); a new file in a node is one of its files, and a folder
-made in one waits to be a child node or a folder of its files by what is
-written in it; a node's `node.toml` is not removed alone, its folder is; a name
-ending in `.node` is refused.
+finds it. A host waits for the server to serve what an edit changed before it
+answers (`Files::show_changed`), so a command's edit is in the folder once the
+command returns. The agents' server lists the extensions' tools as the holder
+has them (`Request::Tools`), those the project holds among them. What a holder
+does besides its own work is one library with no window in it (`crates/holder`:
+`files`, the feed to the server; `runner`, the epochs events set off; `watch`,
+its layers watched), which the editor and the host both use: what is to be woken
+when something ends is given as a call. A host runs what events set off as an
+editor does (`Request::Signal`: `pe2-cli project build|clean|signal` ask whoever
+holds the project, a host started for it where nothing does), off its own lock,
+so it reads and edits on meanwhile; it fetches what the project's extensions
+require first, and lends the project to nobody while an epoch runs - who asks
+waits, as for any holder that is busy. On Windows a host and a server have a
+console of their own with no window (`CREATE_NO_WINDOW`, never
+`DETACHED_PROCESS`), and an extension's tool is started with none either: a
+process with no console at all has Windows open a terminal for every console
+program it starts, a build's hundreds of them. Processes say all this to each
+other as CBOR, one message a frame (its length, then the message:
+`project::wire`), the host's and the server's sockets and the holder's link
+alike.
+
+**What a program writes in the folder is an edit** made by whoever holds the
+project, a step of that one's history in the highest writable layer (the active
+one, in the editor): a file written is applied when closed or synced, a new one
+or a removal once it settles, a save by rename is a save, and what editors leave
+beside a file (`~`, `.swp`, `4913`, any name starting with `.`) is never applied
+(`vfs::write`). What is due together is handed over together
+(`Owner::changes`): the holder makes each its step and refreshes its index and
+what is served once for all of them, so hundreds of files written or removed
+land in seconds; a removal or rename waits for what is being applied to the same
+path (`Writes::applied`). As serving ends, what still waits to settle is given
+to the project (`backend::Finishing`, `Writes::finish`; the Cloud Files worker's
+last pass), so a change made a moment before a stop is not lost. The filesystem
+holds to the model: a `node.toml` written in a folder makes it a node (a folder
+there already is its folder of children); a new file in a node is one of its
+files, and a folder made in one waits to be a child node or a folder of its
+files by what is written in it; a node's `node.toml` is not removed alone, its
+folder is; a name ending in `.node` is refused.
 
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
