@@ -426,7 +426,8 @@ closed, where freeing it first made that 0.5 s and more. The host holds about
 server sends to whoever holds the project, on the holder's link
 (`mcp::Request::Edit`, `Edits`); where nothing holds it, a host is started to
 (`mcp::server::ask_holder`), and where what holds it takes no edits (a tool, an
-extraction) the write is refused and said in the server's log. A program working
+extraction, an editor still opening) the write waits for whoever holds it next
+(below). A program working
 under another's lock (`PE2_PROJECT_LOCKED`) starts no host for what it asks, and
 does the work itself; a host started under one (Python's `data_root`, which
 serves `assets/` for its run where nothing serves a project whose layers hold
@@ -480,7 +481,20 @@ what is served once for all of them, so hundreds of files written or removed
 land in seconds; a removal or rename waits for what is being applied to the same
 path (`Writes::applied`). As serving ends, what still waits to settle is given
 to the project (`backend::Finishing`, `Writes::finish`; the Cloud Files worker's
-last pass), so a change made a moment before a stop is not lost. The filesystem
+last pass), so a change made a moment before a stop is not lost. A change is
+refused for good or only for now (`write::Refusal`: `Never`, `Later` - nobody
+takes edits this moment): what was written and what was removed then stay as
+the program left them, shown so, and are asked again every second until someone
+takes them (`Writes`' `waiting`; the Cloud Files worker gives nothing while
+`Owner::ready` says nobody would take it); what a program waits for - a rename,
+a folder made - is asked for three seconds and then refused as the project being
+in use. What nobody took by the time serving ends is set aside beside the folder
+by its path (`Owner::left`, `assets.set-aside/<time>`), since the staging is
+emptied when the folder is next served; under the Cloud Files API it stays a
+file in the folder, a stray of the next serving. A file the project has, renamed
+while content of it is staged, is renamed in the project and its content
+follows; renamed onto another the project has, that one takes the content and
+the first is removed. The filesystem
 holds to the model: a `node.toml` written in a folder makes it a node (a folder
 there already is its folder of children); a new file in a node is one of its
 files, and a folder made in one waits to be a child node or a folder of its
