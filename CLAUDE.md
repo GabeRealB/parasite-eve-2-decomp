@@ -593,7 +593,10 @@ written is let go of when the folder is next served; under the Cloud Files API i
 file in the folder, a stray of the next serving. A file the project has, renamed
 while content of it is staged, is renamed in the project and its content
 follows; renamed onto another the project has, that one takes the content and
-the first is removed. The filesystem
+the first is removed - as is any file the project has that is moved onto a
+file that is there, the project's or written and not the project's yet: its
+content staged first where none of it is (`Writes::rename`), since a rename
+onto an entry is one the project refuses. The filesystem
 holds to the model: a `node.toml` written in a folder makes it a node (a folder
 there already is its folder of children); a new file in a node is one of its
 files, and a folder made in one waits to be a child node or a folder of its
