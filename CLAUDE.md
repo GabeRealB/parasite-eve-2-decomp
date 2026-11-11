@@ -760,6 +760,23 @@ is served listed whole, and so is what a follower of its changes has
 said 160 ms, said again with nothing differing 60-80 ms; a file changed
 7-10 µs, one added or taken away 11-13 µs, each a commit.
 
+**What was read is kept in a ring of pages the processes share** (`sfs::ring`),
+which nothing reads through yet: slots of 4 KiB, each one page of one version of
+one file by its number (`ring::Key`), for bytes that were put together - a
+record's text, a large file out of its chunks, a file in transit out of the
+log - and the only copy of nothing. No lock: a slot's counter is odd while it is
+written; a reader checks it before and after copying and takes any doubt for a
+miss, a writer claims a slot by one exchange and gives up where another has it. A
+key is in one of four slots its hash names, put in the one used longest ago; a
+version no longer read is never found again. A process that died writing leaves
+its slot a miss until the ring is cleared by whoever has the space alone. Its
+file belongs where the system keeps memory processes share, not on a disk: as
+long as the ring from the start, taking memory only for the slots written.
+Measured, 256 MiB (Linux; Windows), against the same reads asked of the system
+of a file it has in memory: the same few pages again and again 25 ns each (20-25)
+against 555 ns (1100); pages all over it 1.3 µs (1.1-1.4) against 2.3 µs (5.7); a
+miss 20 ns; a page put 1.4-2.9 µs.
+
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
 (`--layer`, by default the one edits go to), paths as the served folder shows
