@@ -375,9 +375,16 @@ own (`holder::files::Files`), and tells the server only that it did
 it serves, and reads there: the first time all of it (`shared::listed`), after
 that what the commits since it last read did (`shared::changed`, of
 `sfs::fs::changes`: the paths shown anew or otherwise and those gone -
-`server::Delta`; all of it again where those changes are no longer kept), and
-changes the tree it serves by those paths (`Server::follow` in `cli/src/server.rs`,
-`Served::change`). Each file's node says where its content lives
+`server::Delta`; all of it again where those changes are no longer kept;
+`Server::follow` in `cli/src/server.rs`). The tree it serves is the shared
+filesystem itself (`vfs::Served::shared`): a view read by path as each thing is
+asked for - what a path is, what a folder holds (`Tree::at`, `children`,
+`entries`), found once a commit - with nothing of it kept in the server, so
+what the holder says is served the moment it is committed and no tree is copied
+or changed for it. What it reads there is for its files' places and for those
+that tell others of the tree - the kernel, what watches a Dokany mount, the
+Cloud Files worker - which take what changed by path in turn
+(`Changes::of`, `Served::told`, `changes_since`). Each file's node says where its content lives
 (`server::Source`: where a layer holds it, the record holding its text, the
 store keeping it by SHA-1), so the server reads no records: a read finds its
 file by where a layer holds it among those it was told live elsewhere
@@ -554,8 +561,10 @@ its changes, 10 to 250 ms, where a fixed second was waited); a removal a quarter
 of a second later, unless a file is made there meanwhile; a folder made is shown
 at once and given in the order folders were made, before anything else is asked
 (`Writes::give_queued`); a rename of what the project has is shown at once -
-moved in the tree the server serves, with what is in it, each file keeping its
-number (`Served::moved`, `Tree::rename`) - and the project told in its turn, in
+the view of the shared filesystem reads what is asked at the new path where it
+was moved from, and shows nothing at the old one, until the shared filesystem
+says the move itself; each file keeps its number (`Served::moved`, `View`'s
+`moves`, `Inodes::rename` over paths kept in order) - and the project told in its turn, in
 that same order, what is written there and not the project's yet going with it
 (`State::moved`), a rename the project refuses put back where it was; while
 nobody takes what was asked in an order, nothing asked after it is given. A save
@@ -563,12 +572,13 @@ by rename is a save, and what editors
 leave beside a file (`~`, `.swp`, `4913`, any name starting with `.`) is never
 applied (`vfs::write`). One thread gives the project what is due, asleep until
 the next is and woken where something is due before (`Writes::due`), or where
-the tree served changed. A tree changed is a copy of the one before whose nodes
-are shared with it (`Tree`'s `Arc<Node>`), so a change costs a count a node, not
-a copy of each. Measured through FUSE on the project of 23,000 entries: a folder
-made 0.09 ms where it took 100-310 ms; a rename of what the project has 1.7 ms
-where it took 110-400 ms (the tree copied and the numbers moved: what is left to
-a tree changed in place); a save - opened anew, written, closed - 0.4 ms, FUSE's
+the tree served changed. A tree held in memory - a scope's, a test's - is, changed,
+a copy of the one before whose nodes are shared with it (`Tree`'s `Arc<Node>`).
+Measured through FUSE on the project of 23,000 entries: a folder
+made 0.09 ms where it took 100-310 ms; a rename of what the project has 0.7-1.2 ms
+where it took 110-400 ms - and 3.6-9.1 ms in the same run with the tree copied
+and every path's number looked at, which a rename did until the tree became a
+view; a save - opened anew, written, closed - 0.4 ms, FUSE's
 own calls, where its close waited for whoever holds the project, seconds while
 that one was busy; a new file the project's 38 ms after its close where it took
 1.1-1.3 s; a sync 1.2 ms - the log had on disk - where it waited for the holder
