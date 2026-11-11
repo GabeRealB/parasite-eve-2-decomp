@@ -407,6 +407,30 @@ asset changed, the links between assets stand (`Index::after_restack`), and what
 lies in what was rescanned is told by layer and path, no path made for each
 entry (`in_rescanned`); all 14,365 files
 read the same through it as through one process with an index.
+
+**An edit costs the holder what it changes.** Where one layer's entries came,
+went or moved and nothing else changed, the stack is not applied again: it is
+changed for those entries (`Index::restack_entries` - the layer a records layer
+nothing fills, no layer above it creating or doing anything, none of the stack's
+problems its own or at those paths, each entry gone the layer's own as it made
+it, each entry come at a path nothing resolves to under a uid no layer lists;
+anything else, and the stack is applied whole as before). The edit asks the
+layers below entry by entry (`Index::under`) where it copied all they resolve to
+place one record, and what they resolve is kept while they stand. A reading of
+the records after an edit reads the records named, where it listed every folder
+of the layer's and looked at every record (`records::read_changed`), and places
+a layer's entries through the layers below by their own maps, none copied
+(`records::Below`); a tree layer's changeset is read again when its file
+changed. The index's store is written every two seconds, or as it is let go of,
+where it was a transaction an edit (`store::Store::write_later`: what it keeps is
+what the next opening is spared reading). Every edit the tests make holds the
+index changed in place to one opened afresh - entries, assets, links, problems,
+what each layer needs of another (`Index::shown_whole`). Measured in the holder,
+the same project, eight edits of a kind, on a machine doing other work: a file
+added 2.4 ms where it took 243 ms a moment before under the same load (82 ms on
+a quiet machine); removed 3.6 ms; moved 7 ms; overwritten 3.5 ms. What is left
+is mostly saying the change in the log, having that on disk and writing the
+files (1.4-2.5 ms).
 It serves from the first table it is named -
 until then the folder is as it was, so a backend never mounts an empty tree - and
 the connection that sent it feeds it until it ends: one feeder at a time, a
