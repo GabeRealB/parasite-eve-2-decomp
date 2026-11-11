@@ -367,26 +367,26 @@ the virtual filesystem and nothing else: it reads no index and loads no extensio
 (`project::ext::forbid`, said at its start: loading one fails by name), so it may
 load what a process running an extension's code must not be one with. Whoever
 holds the project - an editor, or a host (`pe2-cli project host`,
-`project::host`, `cli/src/host.rs`) - has its only index and lists what is served
-(`Index::served`: the whole stack, whatever its view hides) into a table both
-sides map into memory (`project::served`: a file of the cache,
-`.cache/served/<generation>.table` - a header, an entry a path sorted by path,
-the entries' numbers sorted by where a layer holds each, and the text they
-name), written whole, never changed, and named to the server
-(`ToServer::Table`, the holder's `holder::files::Files`, on a thread of its
-own); the tables before it go once the server serves the new one. Each file's
-entry says where its content lives (`server::Source`: where a layer holds it,
-the record holding its text, the store keeping it by SHA-1), so the server reads
-no records: a read finds its file in the mapped table by where a layer holds it
-(`Table::held_at`, `content::serve_from`) and reads there - a record's text from
+`project::host`, `cli/src/host.rs`) - has its only index and says what is served
+(`Index::served`: the whole stack, whatever its view hides) in the filesystem
+the project's processes share (`project::shared`, below), on a thread of its
+own (`holder::files::Files`), and tells the server only that it did
+(`ToServer::Shown`). The server has the shared space attached for as long as
+it serves, and reads there: the first time all of it (`shared::listed`), after
+that what the commits since it last read did (`shared::changed`, of
+`sfs::fs::changes`: the paths shown anew or otherwise and those gone -
+`server::Delta`; all of it again where those changes are no longer kept), and
+changes the tree it serves by those paths (`Server::follow` in `cli/src/server.rs`,
+`Served::change`). Each file's node says where its content lives
+(`server::Source`: where a layer holds it, the record holding its text, the
+store keeping it by SHA-1), so the server reads no records: a read finds its
+file by where a layer holds it among those it was told live elsewhere
+(`content::serve_whole`, `serve_changed`) and reads there - a record's text from
 that record's own file. Its packs' listings it reads again where the holder
-says files changed (`ToServer::Changed`, sent before the table naming them) or
-its own watch sees it. The table is all of what is served, for a server that has
-none of it - at its start, and where the project changes hands; after it, the
-holder says only what changed (`ToServer::Changes`: the paths shown anew or
-otherwise, and those gone - `server::Delta`), and the server changes the tree it
-serves by those paths (`Tree::change`, `Served::change`) and reads them by what
-was said (`content::serve_changed`), where it built all of it again. A refresh
+says files changed (`ToServer::Changed`, sent before it is told what is served)
+or its own watch sees it. No table is written and no listing sent: a holder
+that takes the project over says what differs from what the space holds, and
+the server follows that as any change. A refresh
 says which entries of the whole stack it touched and which are gone
 (`Refreshed::touched`, `gone`: where the stack was applied again, those that
 differ from before, and the node an entry came or went in), and the holder
@@ -443,9 +443,9 @@ or its file grew long. A record, and a changeset, are written as they are
 whatever their length (`Transaction::write_stored`): one of 1 MiB or more - a
 long text is kept in its record - was kept as chunks, as a layer's long files
 are, and then not read as a record at all.
-It serves from the first table it is named -
+It serves from the first time it is told what is served -
 until then the folder is as it was, so a backend never mounts an empty tree - and
-the connection that sent it feeds it until it ends: one feeder at a time, a
+the connection that told it feeds it until it ends: one feeder at a time, a
 second told who feeds (`FromServer::Fed`), which whoever takes the project over
 asks again a moment later. It does not serve over files in the folder that are
 not the project's (`vfs::strays`: anything on Linux and macOS, where a mount
@@ -697,7 +697,7 @@ server's word that it was taken.
 
 **Beside the log, the library has pages every process maps, and trees in them**
 (`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
-be kept in - nothing uses them yet. Chunk files of 4 MiB in the cache, each
+be kept in - the first is, as the server reads it there. Chunk files of 4 MiB in the cache, each
 mapped by itself - nothing grows in place - made whole under a name of its own
 before it is a chunk, half a chunk ahead of need; pages of 4 KiB by number. One
 writer at a time, by a lock the system holds on a file and lets go of where its
@@ -748,15 +748,15 @@ changed, moved and took away and who did it, kept to a length - who is behind
 what it holds is told to take the tree whole. Several share a space, each in
 trees of its own (`fs::SERVED`, `fs::STORED`). Whoever holds the project says
 what it serves there (`project::shared`, the space in
-`.cache/filesystem/space`) beside telling the server, which does not read it
-yet: all of it where the space holds none (`show_whole`, by what differs from
-what it holds), and after an edit what the edit changed (`show`, of
-`Index::serve_changed`). A node is a folder that says so, a folder a node's
+`.cache/filesystem/space`), for the server to read: all of it where the space
+holds none (`show_whole`, by what differs from what it holds), and after an edit
+what the edit changed (`show`, of `Index::serve_changed`). A node is a folder that says so, a folder a node's
 files made says that and goes with the last of what is in it, a file says
 where its content lives as the listing does; a file's time never goes back
 and its version goes up with each change. Every edit the project crate's tests
 make is held to it: what the shared filesystem lists after the change is what
-is served listed whole. Measured on the project of 23,000 entries: all of it
+is served listed whole, and so is what a follower of its changes has
+(`shared::changed`), as the server is one. Measured on the project of 23,000 entries: all of it
 said 160 ms, said again with nothing differing 60-80 ms; a file changed
 7-10 µs, one added or taken away 11-13 µs, each a commit.
 
