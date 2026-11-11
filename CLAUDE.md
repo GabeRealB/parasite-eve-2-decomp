@@ -615,8 +615,40 @@ in a node and still waiting for what is written in it is found again only by
 that. Measured: the server killed 2 ms after five files were synced, their
 folder renamed and another made, the project having the rename and nothing else
 - served again, the folder and the five files are the project's, where the
-rename led. What whoever holds the project writes to the layers is not in the
-log yet: a loss of power can still take what it had not written out.
+rename led.
+
+**What whoever holds the project writes to its files goes through the same
+log** (`project::storage`, `sfs::storage`). A transaction of the history gathers
+its changes and touches no file (`history::Transaction`): what it asks of the
+files meanwhile - whether one is there, what it holds - is answered as its
+changes so far leave them (`Transaction::seen`, `read`, `pending`; an edit on a
+tree layer asks through `Out::exists`, one on a records layer gathered its
+writes already). Committed, the whole set is said in the log - a file's new
+bytes, a file gone, a path moved, a folder made or removed, then that it is
+whole - and the log had on disk, once (`Storage::say`); only then are the files
+written, with no wait for the disk. Undo and redo are made the same way. So a
+set that never came to be whole touched nothing, and one that is whole is
+written again from the log by whoever takes the project next, before anything
+reads its files (`storage::redo`, at `Cache::open`): a process that died
+between, a loss of power. The transaction's crash record of before
+(`.cache/history/applying`, rolled back at the next opening) is gone, as is
+rolling back what was dropped uncommitted. What a set names in the store - a
+large file's chunks, a record's binary file - is had on disk before the set is
+said (`chunks::sync_written`), and a tree copied into place before its move is;
+the log holds no bytes of those. Every few seconds, and as the holder lets go,
+what was written is had on disk (`Storage::checkpoint`, asked by the host's loop
+and the editor's frame: `History::tick`) and the log needed for it no longer.
+Each side says in the header from where it needs the log - `transit`, what a
+serving takes up; `storage`, sets not on disk yet - had on disk itself where it
+goes from nothing to something, and either lets go of what neither needs
+(`Log::keep`), so a project nobody serves does not keep its holder's log.
+Measured: an edit by command costs what it did (a file added 0.08-0.10 s, one
+overwritten 0.03-0.05 s: the flush is 1 ms of it); the host killed while it took
+300 files written through the folder - the server starts another, all 300 are
+the project's as written, the one it was given twice changed nothing. An edit
+that is asked twice across such a death is the price of the server and the
+holder each saying its own part: the holder's set whole comes before the
+server's word that it was taken.
 
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
