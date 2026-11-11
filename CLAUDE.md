@@ -593,7 +593,12 @@ path (`Writes::applied`), a moment. As serving ends, what still waits to settle 
 to the project (`backend::Finishing`, `Writes::finish`; the Cloud Files worker's
 last pass), so a change made a moment before a stop is not lost. A change is
 refused for good or only for now (`write::Refusal`: `Never`, `Later` - nobody
-takes edits this moment): what was written and what was removed then stay as
+takes edits this moment). A file the project refuses for good, after the
+program that wrote it was answered, is said to whoever next closes or syncs a
+handle on it, once (`Writes::flush`: FUSE's `flush` and `fsync`, Dokany's
+`FlushFileBuffers`, WebDAV's), as a system says a write it could not carry out
+later; the file stays as written, shown so. Refused only for now, what was
+written and what was removed stay as
 the program left them, shown so, and are asked again every second until someone
 takes them (`Writes`' `waiting`; the Cloud Files worker gives nothing while
 `Owner::ready` says nobody would take it); a rename and a folder made are shown at once
