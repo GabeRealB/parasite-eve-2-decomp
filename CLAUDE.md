@@ -743,7 +743,19 @@ node, a file on disk, ranges of the log, or what its consumer derives them
 from), numbers given once and never again; `changes`, what each commit made,
 changed, moved and took away and who did it, kept to a length - who is behind
 what it holds is told to take the tree whole. Several share a space, each in
-trees of its own (`fs::SERVED`, `fs::STORED`).
+trees of its own (`fs::SERVED`, `fs::STORED`). Whoever holds the project says
+what it serves there (`project::shared`, the space in
+`.cache/filesystem/space`) beside telling the server, which does not read it
+yet: all of it where the space holds none (`show_whole`, by what differs from
+what it holds), and after an edit what the edit changed (`show`, of
+`Index::serve_changed`). A node is a folder that says so, a folder a node's
+files made says that and goes with the last of what is in it, a file says
+where its content lives as the listing does; a file's time never goes back
+and its version goes up with each change. Every edit the project crate's tests
+make is held to it: what the shared filesystem lists after the change is what
+is served listed whole. Measured on the project of 23,000 entries: all of it
+said 160 ms, said again with nothing differing 60-80 ms; a file changed
+7-10 µs, one added or taken away 11-13 µs, each a commit.
 
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
