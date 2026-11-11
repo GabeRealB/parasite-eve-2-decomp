@@ -733,7 +733,17 @@ says it is clean - read right or said damaged, never anything else. Measured,
 100,000 names (Linux; Windows): a name looked up 0.4 µs (0.6); a folder of 40
 listed 0.8-1.2 µs (0.8); a pin taken and let go 45 ns; one put and its
 commit 1.5 µs in memory and 2.8 in files (2.1 and 5.9); a hundred puts a commit
-0.5 µs each (0.7-1.2).
+0.5 µs each (0.7-1.2). Over the trees, a filesystem that knows nothing of
+projects (`sfs::fs`): `names`, a folder's number and a name to a number - a
+lookup one descent, a listing one range, a folder renamed one key whatever is
+inside it - and the same by the name folded, for systems that ignore case;
+`nodes`, a number to a folder or a file with its length, time, version, flags
+its consumers give meaning to, where it is, and where its bytes are (in the
+node, a file on disk, ranges of the log, or what its consumer derives them
+from), numbers given once and never again; `changes`, what each commit made,
+changed, moved and took away and who did it, kept to a length - who is behind
+what it holds is told to take the tree whole. Several share a space, each in
+trees of its own (`fs::SERVED`, `fs::STORED`).
 
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
