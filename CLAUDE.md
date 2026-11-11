@@ -567,7 +567,7 @@ folder is; a name ending in `.node` is refused.
 **The filesystem a project's processes share** (`crates/sfs`) is being built
 under what serves the folder: one library every process links, its state shared
 by mappings of files in the cache (`.cache/filesystem/sfs`). So far its log (`sfs::log`): a
-write-ahead log of records with their bytes, in segment files of 64 MiB, a
+write-ahead log of records with their bytes, in segment files of 8 MiB, a
 position in it the sequence number of everything. Any process appends, one at a
 time - a lock of its threads and one the system holds on the header's file, let
 go of where its holder dies - with a write call, the tail in the shared header
@@ -636,8 +636,14 @@ rolling back what was dropped uncommitted. What a set names in the store - a
 large file's chunks, a record's binary file - is had on disk before the set is
 said (`chunks::sync_written`), and a tree copied into place before its move is;
 the log holds no bytes of those. Every few seconds, and as the holder lets go,
-what was written is had on disk (`Storage::checkpoint`, asked by the host's loop
-and the editor's frame: `History::tick`) and the log needed for it no longer.
+what was written is had on disk and the log needed for it no longer - by a
+thread of the storage's own (`storage::Shared::run`), so that neither a change
+being made nor a frame being drawn waits for a disk; a set whose files are being
+written while it does keeps the log needed from that set on. Having the log on
+disk for a set costs 0.4-1.1 ms on the solid-state drives here and 4.3 ms on the
+hard drive (`bench_append`), of an edit's 30-100 ms: taking it off the path too
+means every read of a layer's files going through what is still to be written,
+which is not built.
 Each side says in the header from where it needs the log - `transit`, what a
 serving takes up; `storage`, sets not on disk yet - had on disk itself where it
 goes from nothing to something, and either lets go of what neither needs
