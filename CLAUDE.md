@@ -461,7 +461,11 @@ server sends to whoever holds the project, on the holder's link
 (`mcp::Request::Edit`, `Edits`); where nothing holds it, a host is started to
 (`mcp::server::ask_holder`), and where what holds it takes no edits (a tool, an
 extraction, an editor still opening) the write waits for whoever holds it next
-(below). A program working
+(below) - as it does where no host could be started that moment. A holder that
+is stopping may take one last connection and close it with no answer: whoever
+asked asks again a short while, and goes on as where nothing listens once
+nothing does (`mcp::link::until_answered`), where that was an error - to a
+program's write, a refusal for good. A program working
 under another's lock (`PE2_PROJECT_LOCKED`) starts no host for what it asks, and
 does the work itself; a host started under one (Python's `data_root`, which
 serves `assets/` for its run where nothing serves a project whose layers hold
@@ -531,8 +535,8 @@ where it took 110-400 ms (the tree copied and the numbers moved: what is left to
 a tree changed in place); a save - opened anew, written, closed - 0.4 ms, FUSE's
 own calls, where its close waited for whoever holds the project, seconds while
 that one was busy; a new file the project's 38 ms after its close where it took
-1.1-1.3 s. Only a sync still waits for the holder (7 ms), until the log can be
-replayed: said done before, what was synced could be lost with the server. A file opened to be written anew is truncated by the kernel with
+1.1-1.3 s; a sync 1.2 ms - the log had on disk - where it waited for the holder
+(7 ms). A file opened to be written anew is truncated by the kernel with
 its handle not said: that is no edit of its own while a program has it open -
 applied as one, every save was two steps of the history, the first an empty
 file, and the program's open waited for it. What is due together is handed over together
@@ -587,8 +591,32 @@ written after it is moved forward, so it alone keeps none of that. The header
 says the size of the segments, so every process reads them alike. Measured, the
 library alone: a write of 4 KiB 5.3 µs, a read of 4 KiB of what was written
 2.0 µs, a new file made, written and closed 5.5 µs; through FUSE each call
-costs its round trip, 50-60 µs here, whatever is behind it. When a written file
-becomes the project's is still decided as before (below).
+costs its round trip, 50-60 µs here, whatever is behind it.
+
+**What is done through the folder is in the log as it was done, and taken up
+from it.** Beside a file's bytes the log holds each operation in the order it
+was made (`sfs::Op`: a file `Began` at a path - the record's position its number,
+which its data records say - `Truncated`, a path `Removed`, `MadeFolder`,
+`Renamed`) and what became of it (`Taken`: the project has a file as it was when
+the log ended at a position; `Done` and `Refused`, of a folder, a rename, a
+removal; `Ended`: serving ended with nothing in transit). The server says each
+under one lock with doing it (`Writes::ordered`), so the log has them as they
+happened. A serving that starts takes up what the one before left
+(`Writes::replay`) - its process gone, the power lost: each thing is done again
+in the order it was, with nothing appended for it, what the project took by then
+known as taken, and all that is still to be given due at once. So a sync is the
+log had on disk (`Log::flush`), not a wait for whoever holds the project: synced,
+a file is the project's whatever becomes of the server. The log is kept from
+where everything still in transit is found again: each file from where it began,
+what is still to be told from its record. A file begun again further on - moved
+forward - stands as the one before it until the move is whole. What an editor
+leaves beside a file is in no record, and gone with the process; a folder made
+in a node and still waiting for what is written in it is found again only by
+that. Measured: the server killed 2 ms after five files were synced, their
+folder renamed and another made, the project having the rename and nothing else
+- served again, the folder and the five files are the project's, where the
+rename led. What whoever holds the project writes to the layers is not in the
+log yet: a loss of power can still take what it had not written out.
 
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
