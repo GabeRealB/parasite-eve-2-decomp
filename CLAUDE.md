@@ -692,6 +692,49 @@ that is asked twice across such a death is the price of the server and the
 holder each saying its own part: the holder's set whole comes before the
 server's word that it was taken.
 
+**Beside the log, the library has pages every process maps, and trees in them**
+(`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
+be kept in - nothing uses them yet. Chunk files of 4 MiB in the cache, each
+mapped by itself - nothing grows in place - made whole under a name of its own
+before it is a chunk, half a chunk ahead of need; pages of 4 KiB by number. One
+writer at a time, by a lock the system holds on a file and lets go of where its
+holder dies. It changes no page a reader can reach: it copies it (`Txn::own`),
+and a commit - the trees' roots, the pages in use, how far the log is
+reflected - is written to one of two pages in turn and then published in a
+header page under a counter, so a writer that died publishing is put right from
+the page it wrote by the next. Readers take no lock: a reader pins the
+generation it reads at in a slot its process holds by a lock on a file of its
+own - pinned, then checked to be the current one still - and a freed page,
+listed in a file with the generation that freed it in an order no death leaves
+a page listed twice by, is taken again only when no pin is older; the pin of a
+process that is gone is cleared. A pointer to a page says its number and the
+generation that wrote it, and the page says both and its kind, so whoever
+follows one finds the very page that was pointed to or marks the space damaged
+for every process, with what was found (`Pages::page`; a cell not within its
+page the same; the files kept aside in `damaged/` by the next to attach alone).
+Attached to beside another process, a space is as its last commit left it;
+alone, it is trusted only where `Space::sync` had it on disk at that generation
+(`clean`, taken back on disk before the first change after) and begins empty
+otherwise (`Space::fresh`), for whoever owns what it held to fill again:
+nothing in it is the only copy of anything. Windows writes a mapping's changed
+pages for the process that changed them alone, so each says whether it wrote
+since it flushed (`Space::flush`), and `sync` says clean only where none has.
+A tree (`tree::get`, `put`, `remove`, `scan`) is keys in order with their
+values, a long value in pages of its own; a page the transaction owns is
+changed in place; a page keys were taken from is not joined with the one
+beside it. `Space::private` is one in a process's own memory. Their tests are a
+harness (`space/tests.rs`): a tree against a map kept beside it, readers held
+across commits reading what they began with; two processes writing and reading
+one space; a writer stopped at each step of a transaction (`Space::fault`: the
+space is as its last commit left it, and the next writer goes on); a reader
+stopped before and after its pin; a reader killed while pinned; a page that is
+not the one pointed to; a disk that kept any pages of what was last written and
+says it is clean - read right or said damaged, never anything else. Measured,
+100,000 names (Linux; Windows): a name looked up 0.4 µs (0.6); a folder of 40
+listed 0.8-1.2 µs (0.8); a pin taken and let go 45 ns; one put and its
+commit 1.5 µs in memory and 2.8 in files (2.1 and 5.9); a hundred puts a commit
+0.5 µs each (0.7-1.2).
+
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
 (`--layer`, by default the one edits go to), paths as the served folder shows
