@@ -538,6 +538,22 @@ files, and a folder made in one waits to be a child node or a folder of its
 files by what is written in it; a node's `node.toml` is not removed alone, its
 folder is; a name ending in `.node` is refused.
 
+**The filesystem a project's processes share** (`crates/sfs`) is being built
+under what serves the folder: one library every process links, its state shared
+by mappings of files in the cache (`.cache/sfs`). So far its log (`sfs::log`): a
+write-ahead log of records with their bytes, in segment files of 64 MiB, a
+position in it the sequence number of everything. Any process appends, one at a
+time - a lock of its threads and one the system holds on the header's file, let
+go of where its holder dies - with a write call, the tail in the shared header
+(`sfs::Header`: the tail, how far the project has the log, how far that is on
+disk, who holds the project - atomics every process reads with no call) moved
+past a record once it is whole: no reader sees part of one, a full disk is an
+error to who wrote. Read from mappings. A record says its own position, so what
+a segment held before is never taken for one, and where the log ends is found by
+the first process to open it, checking records, never taken from the header.
+Measured: an append of 64 bytes 1.8 µs on Linux and 6.4 µs on Windows, of 4 KiB
+4.9 and 8.9 µs. Nothing uses it yet.
+
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
 (`--layer`, by default the one edits go to), paths as the served folder shows
