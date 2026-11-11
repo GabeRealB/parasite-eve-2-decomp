@@ -499,12 +499,14 @@ died); its log says how long each part took. The editor lets go of the lock
 once what may still write has ended and its index's store is closed
 (`Leaving`'s drop), and frees the index's memory after: 0.13-0.17 s after it is
 closed, where freeing it first made that 0.5 s and more. The host holds about
-1 s after that - opening the index, which is what a hand-over costs. What a program writes through the folder the
-server sends to whoever holds the project, on the holder's link
-(`mcp::Request::Edit`, `Edits`); where nothing holds it, a host is started to
+1 s after that - opening the index, which is what a hand-over costs. What a program does through the folder the
+server says due where the project's processes share it (`vfs::due`, below), and
+asks whoever holds the project to look (`mcp::Request::Due`, on the holder's
+link); where nothing holds it, a host is started to
 (`mcp::server::ask_holder`), and where what holds it takes no edits (a tool, an
-extraction, an editor still opening) the write waits for whoever holds it next
-(below) - as it does where no host could be started that moment. A holder that
+extraction, an editor still opening) what is due is taken back and said again
+for whoever holds it next
+(below) - as it is where no host could be started that moment. A holder that
 is stopping may take one last connection and close it with no answer: whoever
 asked asks again a short while, and goes on as where nothing listens once
 nothing does (`mcp::link::until_answered`), where that was an error - to a
@@ -525,10 +527,35 @@ one is known to run, started on its own, connected to and listened as - is
 when it started, its data folder, whether it trusts every extension): a host
 that is not what the asker would have started is told to stop where nobody keeps
 it, and the asker's own answers; one that is kept, or an editor, is only said to
-differ. What programs wrote at once is sent to the holder as one request
-(`Request::Edits`, waited for as long as the link lives - an edit given up on
-while it is made would be made twice), and the editor takes all of it in once
-(`Workspace::apply_edits`); a folder the project was just given is shown until
+differ.
+
+**What is due is said in the shared filesystem, and taken from there.** Two
+trees of the space (`vfs::due`: `DUE`, `ANSWERS`): the server puts each thing a
+program did - a file written, by where its bytes are in the log; a folder
+made; a rename; a removal - under a number given once, in the order it came due
+(`due::put`), and asks whoever holds the project to look. That one takes all
+that is due (`due::due`; `Host::take_due`, `Workspace::take_due`), makes each an
+edit, a step of its own, and says what became of each - the step's label, or
+why it was not made - in the commit that says what is served after them
+(`due::answer`, in `project::shared::say_with`; `Files::show_delta_answering`,
+`show_answering`): the folder shows a thing the project's, and the server
+knows it taken, in one moment. The host answers once that is said; the editor
+once its take-in of what the edits wrote is, the answers given to it by the
+take-in's ticket. The server reads the answers when the holder has answered
+its asking (`due::settle`), and takes back what nobody took, to say it again
+a second later; it forgets all that is due as it starts (`due::clear`), since
+it says again itself what a serving before it left - from the log, or as it
+finds the folder. So something due may be taken twice: by a holder after one
+that made it and ended before saying so, or said again while one that was
+taking it had not answered. Made again it would be refused - a folder that is
+there, a rename of what is gone - and the server would show it undone; so what
+is not made and is so already (`write::so_already`: the folder there, the
+thing where it was to go and gone from where it was, the thing gone) is
+answered as made. Edits made together are made over the project as it was and
+taken in once, but one that names a path at, in or above a path of those before
+it (`Op::follows`: a folder in one they made) is made over the project as they
+left it - made over the one before, it would make the folder they made a second
+time. A folder the project was just given is shown until
 the tree served follows (`Writes`' `given`), so what is written into it next
 finds it. A host waits for the server to serve what an edit changed before it
 answers (`Files::show_changed`), so a command's edit is in the folder once the
