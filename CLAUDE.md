@@ -506,26 +506,48 @@ alike.
 
 **What a program writes in the folder is an edit** made by whoever holds the
 project, a step of that one's history in the highest writable layer (the active
-one, in the editor): a file written is applied when closed or synced, a new one
-or a removal once it settles, a save by rename is a save, and what editors leave
-beside a file (`~`, `.swp`, `4913`, any name starting with `.`) is never applied
-(`vfs::write`). A file opened to be written anew is truncated by the kernel with
+one, in the editor): a file written is the project's once closed - given off
+the program's thread, the close returning at once - or synced, which waits for
+it; a new one once nothing has it open and its burst of changes has ended
+(`writes::Pace`: the pause since its last change eight times the time between
+its changes, 10 to 250 ms, where a fixed second was waited); a removal a quarter
+of a second later, unless a file is made there meanwhile; a folder made is shown
+at once and given in the order folders were made, before anything else is asked
+(`Writes::give_queued`); a rename of what the project has is shown at once -
+moved in the tree the server serves, with what is in it, each file keeping its
+number (`Served::moved`, `Tree::rename`) - and the project told in its turn, in
+that same order, what is written there and not the project's yet going with it
+(`State::moved`), a rename the project refuses put back where it was; while
+nobody takes what was asked in an order, nothing asked after it is given. A save
+by rename is a save, and what editors
+leave beside a file (`~`, `.swp`, `4913`, any name starting with `.`) is never
+applied (`vfs::write`). One thread gives the project what is due, asleep until
+the next is and woken where something is due before (`Writes::due`), or where
+the tree served changed. A tree changed is a copy of the one before whose nodes
+are shared with it (`Tree`'s `Arc<Node>`), so a change costs a count a node, not
+a copy of each. Measured through FUSE on the project of 23,000 entries: a folder
+made 0.09 ms where it took 100-310 ms; a rename of what the project has 1.7 ms
+where it took 110-400 ms (the tree copied and the numbers moved: what is left to
+a tree changed in place); a save - opened anew, written, closed - 0.4 ms, FUSE's
+own calls, where its close waited for whoever holds the project, seconds while
+that one was busy; a new file the project's 38 ms after its close where it took
+1.1-1.3 s. Only a sync still waits for the holder (7 ms), until the log can be
+replayed: said done before, what was synced could be lost with the server. A file opened to be written anew is truncated by the kernel with
 its handle not said: that is no edit of its own while a program has it open -
 applied as one, every save was two steps of the history, the first an empty
 file, and the program's open waited for it. What is due together is handed over together
 (`Owner::changes`): the holder makes each its step and refreshes its index and
 what is served once for all of them, so hundreds of files written or removed
 land in seconds; a removal or rename waits for what is being applied to the same
-path (`Writes::applied`). As serving ends, what still waits to settle is given
+path (`Writes::applied`), a moment. As serving ends, what still waits to settle is given
 to the project (`backend::Finishing`, `Writes::finish`; the Cloud Files worker's
 last pass), so a change made a moment before a stop is not lost. A change is
 refused for good or only for now (`write::Refusal`: `Never`, `Later` - nobody
 takes edits this moment): what was written and what was removed then stay as
 the program left them, shown so, and are asked again every second until someone
 takes them (`Writes`' `waiting`; the Cloud Files worker gives nothing while
-`Owner::ready` says nobody would take it); what a program waits for - a rename,
-a folder made - is asked for three seconds and then refused as the project being
-in use. What nobody took by the time serving ends is set aside beside the folder
+`Owner::ready` says nobody would take it); a rename and a folder made are shown at once
+and kept the same way, in their order. What nobody took by the time serving ends is set aside beside the folder
 by its path (`Owner::left`, `assets.set-aside/<time>`), since what was
 written is let go of when the folder is next served; under the Cloud Files API it stays a
 file in the folder, a stray of the next serving. A file the project has, renamed
