@@ -770,8 +770,8 @@ is served listed whole, and so is what a follower of its changes has
 said 160 ms, said again with nothing differing 60-80 ms; a file changed
 7-10 µs, one added or taken away 11-13 µs, each a commit.
 
-**What was read is kept in a ring of pages the processes share** (`sfs::ring`),
-which nothing reads through yet: slots of 4 KiB, each one page of one version of
+**What was read is kept in a ring of pages** (`sfs::ring`), which the
+project's server reads its files through: slots of 4 KiB, each one page of one version of
 one file by its number (`ring::Key`), for bytes that were put together - a
 record's text, a large file out of its chunks, a file in transit out of the
 log - and the only copy of nothing. No lock: a slot's counter is odd while it is
@@ -785,7 +785,28 @@ long as the ring from the start, taking memory only for the slots written.
 Measured, 256 MiB (Linux; Windows), against the same reads asked of the system
 of a file it has in memory: the same few pages again and again 25 ns each (20-25)
 against 555 ns (1100); pages all over it 1.3 µs (1.1-1.4) against 2.3 µs (5.7); a
-miss 20 ns; a page put 1.4-2.9 µs.
+miss 20 ns; a page put 1.4-2.9 µs. The server's view of the shared filesystem
+reads a file page by page from it - by the file's number and version there,
+so another version of a file is another file to it - and where a page is not
+held reads all that is still asked for where the content lives, at once, and
+keeps it (`View::read_into`); a file longer than 256 KiB is read where it lives,
+which the system does faster from one end to the other than pages do. The ring
+is in memory the system keeps for the project's processes by a name of the
+project's folder (`Ring::shared`, `project::shared::ring`): a file where Linux
+keeps such memory (`/dev/shm`), held by each process that has it and removed by
+the last to let go - said as the server stops (`Ring::let_go`), since a process
+that ends runs nothing of its own, and what one that died left is removed by the
+next to open any (`ring::sweep`); a section of Windows' paging file, gone with the last
+handle; a process's own memory where neither can be had. It is as large as
+`[filesystem] pages` says in the project's or the machine's settings (256 MiB;
+0 for none), taken as pages are kept, and cleared by who has the shared space
+alone. Only the server reads through it so far: whoever holds the project reads
+its layers' files as they are on disk the moment it wrote them, which is before
+the shared filesystem says their new version - by that version it would read
+what it just replaced. Its reads go through the ring once its writes go through
+the shared structure. Measured on the project of 23,000
+entries, 3,000 files of 4 KiB on average read a second time: 2-5 µs each through
+the ring, 10-19 µs each where they are opened, sought and read at every call.
 
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
