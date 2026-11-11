@@ -690,9 +690,51 @@ thread of the storage's own (`storage::Shared::run`), so that neither a change
 being made nor a frame being drawn waits for a disk; a set whose files are being
 written while it does keeps the log needed from that set on. Having the log on
 disk for a set costs 0.4-1.1 ms on the solid-state drives here and 4.3 ms on the
-hard drive (`bench_append`), of an edit's 30-100 ms: taking it off the path too
-means every read of a layer's files going through what is still to be written,
-which is not built.
+hard drive (`bench_append`).
+
+**A set that changes only records is written behind** (`Storage::say_later`): a
+record of a records layer written or removed, the folder of its first two
+letters made. It is said in the log, its files are kept as waiting in the space
+the project's processes share - each by its path, with the set that said it,
+when, and what it holds - and its commit waits for nothing else: no disk, no
+file. The storage's thread then, for all the sets said since it last did, has on
+disk what they name in the store, the header's word that the log is needed, and
+the log; writes their files, each given the time its change was said; and takes
+them out of what waits - only where no later set put them there again. Whoever
+reads such a file meanwhile asks what waits first and the disk after, in that
+order, in whichever process (`storage::waiting`, `read`, `waiting_under`): a
+transaction reading what is there, undo and redo holding the files to what they
+expect, the records read after a change and read whole (`records::read_changed`,
+`read_records`), the server reading a record's text (`content::record_text`,
+through `storage::read_through`); a folder is there where files wait in it. The
+time a file is given is the stamp of the record read while it waited, so the
+file written is found to be the one already read, and is not read again. A
+file that is not as its set found it when its turn comes - something else
+changed it meanwhile - is not written over: said, ours kept in
+`.cache/conflicts` by its path, and the file touched for whoever holds the
+project to take it in as it is. A set that changes anything else waits for all
+that is behind (`Storage::settle`) and is written as it is said, as before. What
+waited when its holder died is whole in the log, and written from it by who
+takes the project next (`redo`), which then takes out of the shared space what
+it still kept as waiting. A power loss can take what was said in the last
+moments before it - never part of a set; a process that dies takes nothing. A
+host answers an edit once the files have it (`History::settle`), so what reads
+them next by other means finds them so, and all that was asked together - what
+programs wrote at once, a burst of files - is had on disk together, once; the
+editor's own edits do not wait, and it knows the writing of them as its own by
+the stamp the file will have (`storage::stamp`), where it took the file as it
+was that moment. The shared space is attached when a set is first written
+behind - what holds a project and changes no record attaches none - or ahead
+of it by who holds the project to stay (`History::prepare`: a host, the
+editor), and its files are given their blocks by the system without being
+written (`posix_fallocate`, `set_len` on Windows), where each chunk was 4 MiB
+of zeros written. Measured in the holder on the project of 23,000
+entries, the machine doing other work: saying an edit 0.06-0.16 ms where it
+took 1.9-3.2 ms the same hour with the log had on disk and the files written in
+it - one in eight 1.2-1.6 ms, which was not looked into; an edit made
+0.45-0.85 ms, most of it now the history keeping what the files held before and
+after as files of its own; taken in 0.3-0.8 ms as before. The host killed in the middle of 300 files written through
+the folder: all 300 the project's as written, nothing in conflict.
 Each side says in the header from where it needs the log - `transit`, what a
 serving takes up; `storage`, sets not on disk yet - had on disk itself where it
 goes from nothing to something, and either lets go of what neither needs
