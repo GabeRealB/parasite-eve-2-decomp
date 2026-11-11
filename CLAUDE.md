@@ -428,9 +428,21 @@ index changed in place to one opened afresh - entries, assets, links, problems,
 what each layer needs of another (`Index::shown_whole`). Measured in the holder,
 the same project, eight edits of a kind, on a machine doing other work: a file
 added 2.4 ms where it took 243 ms a moment before under the same load (82 ms on
-a quiet machine); removed 3.6 ms; moved 7 ms; overwritten 3.5 ms. What is left
-is mostly saying the change in the log, having that on disk and writing the
-files (1.4-2.5 ms).
+a quiet machine); removed 3.6 ms; moved 7 ms; overwritten 3.5 ms. An asset come
+or gone is linked by itself where nothing names its uid and nothing refers to
+one that goes (`Index::named`: how many references name each uid), and what the
+layers need of each other counted for it alone (`Index::recount`); an entry is
+found by its uid at once (`Index::real_path`); the store is written by the host
+between edits (`Index::tick`). With those, each kind of edit - a file or a node
+added, removed, moved, overwritten - is 1-1.5 ms to make and 0.2-1 ms to take
+in, on the same machine; of the 1-1.5 ms, 0.75-1.3 is saying the change in the
+log, having that on disk and writing the files. The editor's session is
+appended to (`History::journal_last`: the steps from the last its file held on,
+with the documents they edited), written whole only where it changed otherwise
+or its file grew long. A record, and a changeset, are written as they are
+whatever their length (`Transaction::write_stored`): one of 1 MiB or more - a
+long text is kept in its record - was kept as chunks, as a layer's long files
+are, and then not read as a record at all.
 It serves from the first table it is named -
 until then the folder is as it was, so a backend never mounts an empty tree - and
 the connection that sent it feeds it until it ends: one feeder at a time, a
