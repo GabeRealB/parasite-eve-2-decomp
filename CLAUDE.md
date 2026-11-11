@@ -729,11 +729,16 @@ of it by who holds the project to stay (`History::prepare`: a host, the
 editor), and its files are given their blocks by the system without being
 written (`posix_fallocate`, `set_len` on Windows), where each chunk was 4 MiB
 of zeros written. Measured in the holder on the project of 23,000
-entries, the machine doing other work: saying an edit 0.06-0.16 ms where it
-took 1.9-3.2 ms the same hour with the log had on disk and the files written in
-it - one in eight 1.2-1.6 ms, which was not looked into; an edit made
-0.45-0.85 ms, most of it now the history keeping what the files held before and
-after as files of its own; taken in 0.3-0.8 ms as before. The host killed in the middle of 300 files written through
+entries, the machine doing other work: saying an edit 0.07-0.08 ms (0.2 at
+most) where it took 1.9-3.2 ms the same hour with the log had on disk and the
+files written in it; an edit made 0.28-0.38 ms (0.55 at most); taken in
+0.36-0.41 ms (0.5 at most) - 0.7 ms an edit in the holder, every one. The first
+of a holder took 1.4 ms more until the pages its first transactions write were
+touched ahead of them (`Space::ready`, asked by `History::prepare`): the first
+write to a page of a file given its blocks unwritten is what the system takes
+its time over, and a touch that changes no byte has to be a write it sees - an
+exchange of the byte for itself - since one the compiler can tell changes
+nothing it compiles out. The host killed in the middle of 300 files written through
 the folder: all 300 the project's as written, nothing in conflict.
 Each side says in the header from where it needs the log - `transit`, what a
 serving takes up; `storage`, sets not on disk yet - had on disk itself where it
