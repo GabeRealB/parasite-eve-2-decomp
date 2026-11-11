@@ -526,8 +526,8 @@ takes them (`Writes`' `waiting`; the Cloud Files worker gives nothing while
 `Owner::ready` says nobody would take it); what a program waits for - a rename,
 a folder made - is asked for three seconds and then refused as the project being
 in use. What nobody took by the time serving ends is set aside beside the folder
-by its path (`Owner::left`, `assets.set-aside/<time>`), since the staging is
-emptied when the folder is next served; under the Cloud Files API it stays a
+by its path (`Owner::left`, `assets.set-aside/<time>`), since what was
+written is let go of when the folder is next served; under the Cloud Files API it stays a
 file in the folder, a stray of the next serving. A file the project has, renamed
 while content of it is staged, is renamed in the project and its content
 follows; renamed onto another the project has, that one takes the content and
@@ -540,7 +540,7 @@ folder is; a name ending in `.node` is refused.
 
 **The filesystem a project's processes share** (`crates/sfs`) is being built
 under what serves the folder: one library every process links, its state shared
-by mappings of files in the cache (`.cache/sfs`). So far its log (`sfs::log`): a
+by mappings of files in the cache (`.cache/filesystem/sfs`). So far its log (`sfs::log`): a
 write-ahead log of records with their bytes, in segment files of 64 MiB, a
 position in it the sequence number of everything. Any process appends, one at a
 time - a lock of its threads and one the system holds on the header's file, let
@@ -552,7 +552,21 @@ error to who wrote. Read from mappings. A record says its own position, so what
 a segment held before is never taken for one, and where the log ends is found by
 the first process to open it, checking records, never taken from the header.
 Measured: an append of 64 bytes 1.8 µs on Linux and 6.4 µs on Windows, of 4 KiB
-4.9 and 8.9 µs. Nothing uses it yet.
+4.9 and 8.9 µs. What programs write through the folder is kept in it
+(`sfs::Content`: a file in transit is the ranges of the log its bytes are in,
+read where the log is mapped; what an editor leaves beside a file, never the
+project's, is kept in memory instead), with no file of its own. The server says
+a written file to whoever holds the project by those ranges
+(`vfs::write::Written::Logged`), and the holder reads it from the same log,
+mapped: nothing is written out for it. The log is kept from the first position
+anything still reads from (`Writes::let_go_of_log`) - a file's content, what
+the holder was given and is reading - and a file that waits long while much is
+written after it is moved forward, so it alone keeps none of that. The header
+says the size of the segments, so every process reads them alike. Measured, the
+library alone: a write of 4 KiB 5.3 µs, a read of 4 KiB of what was written
+2.0 µs, a new file made, written and closed 5.5 µs; through FUSE each call
+costs its round trip, 50-60 µs here, whatever is behind it. When a written file
+becomes the project's is still decided as before (below).
 
 **The command line edits a project by path** (`vfs::ops::Op`): `pe2-cli project
 write|mkdir|rm|mv|override|drop|keep-mine|take-base|forget|adopt|remove-unlisted|undo|redo`
