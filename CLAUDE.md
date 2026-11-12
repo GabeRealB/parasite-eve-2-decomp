@@ -906,7 +906,19 @@ needed for it no longer - where it ended holding it, and whoever took the
 project next wrote its last edits again from the log; and a process that ends
 no longer counts as having the shared space attached once it left it
 (`Space::leave`): of a host and a server ending at once, each found the other
-there, and neither had the space on disk. Where the space was
+there, and neither had the space on disk. Of what the index derives, the
+model holds the stack applied so far (`model::Stack`, in a tree of its own):
+each entry it resolves by its path (`index::Node`, its layers by their place in
+the stack), what it says of the layers' operations, what does not add up and
+what the layers need of each other, and what it was made of besides what the
+model holds - the layers as the project says them. A refresh says the entries
+it touched and those gone - the ones it already says for what is served - and
+the rest where it differs (`Index::say_stack`); an opening that takes what is
+known as it is takes the stack so too, where it was made of these layers and
+nothing it is made of was found otherwise than known (`Index::take_stack`),
+and applies none. Every edit the project crate's tests make holds the model's
+stack to the index's and to one applied afresh, and an index opened over the
+model as whoever takes the project next would open it to one opened afresh. Where the space was
 begun anew - a process holding it was killed, the power went - what it held is
 kept beside it (`sfs::Space::left_behind`, the pages moved to `left/` where
 they were removed) and the files' records read from there, each then held to
@@ -938,7 +950,9 @@ kill; what four layers hold at 15,073 paths is 5 MiB more of the space. With
 the records taken as known: the index opens in 213-237 ms, the records layers'
 part of it 28 ms where reading their 8,758 records took 60, what is known read
 in 48-53 ms on its three threads, the verification 105 ms in all; the records
-are 15 MiB more of the space, 53 MiB in all.
+are 15 MiB more of the space, 53 MiB in all. With the stack taken as known:
+the index opens in 195-201 ms, the stack 6-7 ms where applying it took 26-33;
+the commit that says an edit 38-41 us.
 
 **Beside the log, the library has pages every process maps, and trees in them**
 (`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
