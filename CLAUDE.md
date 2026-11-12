@@ -856,12 +856,31 @@ holder dies. It changes no page a reader can reach: it copies it (`Txn::own`),
 and a commit - the trees' roots, the pages in use, how far the log is
 reflected - is written to one of two pages in turn and then published in a
 header page under a counter, so a writer that died publishing is put right from
-the page it wrote by the next. Readers take no lock: a reader pins the
-generation it reads at in a slot its process holds by a lock on a file of its
-own - pinned, then checked to be the current one still - and a freed page,
-listed in a file with the generation that freed it in an order no death leaves
-a page listed twice by, is taken again only when no pin is older; the pin of a
-process that is gone is cleared. A pointer to a page says its number and the
+the page it wrote by the next. Readers take no lock: a reader says the
+generation it reads at in a cell of its process's (`pins`) - said, then checked
+to be the current one still - for as long as it reads, a moment (`Space::read`)
+or as long as a view of that commit is held (`Space::pinned`, `Pinned`, which
+whoever holds it keeps wherever). A process says each generation it reads at
+by itself, 31 of them; reading at more, it counts as reading at every one from
+the lowest of the rest on; its cells are its own by a lock on a file, so those
+of a process that is gone are cleared. A freed page is taken again once no
+reader can reach it: none reads at a generation from the one that wrote the
+page on, before the one whose commit let go of it. So a view held however long
+holds back the pages of the commit it reads and none written since: 9,215
+pages over 10,000 commits of 8 puts under a view of 11,292, where every page
+freed while anything was pinned was held - 196,700 - and all but 8,191 of them
+lost once it let go. The writer keeps two lists, each in files of 64 KiB made
+as it grows: the pages free to be taken again, and those held, each with the
+generation that wrote it and the one that freed it, in the order they were
+freed. A reader only ever begins at the current commit, which reaches nothing
+freed before it, so a held page that is free stays free, and those held are
+looked through only where a reader that was there when they were last judged
+is gone, from the first freed after it - the readers they were judged by are
+in the lists' header. Each list is changed in an order no death leaves a page
+listed twice by: at worst one is listed no more. A commit costs what it did
+with nothing read (12 us of 8 puts), 14 us under a view held and another
+moving to every commit; the process that holds a view for ten minutes says so
+(`Space::reading_longest`, said by the storage's thread). A pointer to a page says its number and the
 generation that wrote it, and the page says both and its kind, so whoever
 follows one finds the very page that was pointed to or marks the space damaged
 for every process, with what was found (`Pages::page`; a cell not within its
@@ -874,9 +893,14 @@ nothing in it is the only copy of anything. Windows writes a mapping's changed
 pages for the process that changed them alone, so each says whether it wrote
 since it flushed (`Space::flush`), and `sync` says clean only where none has.
 A tree (`tree::get`, `put`, `remove`, `scan`) is keys in order with their
-values, a long value in pages of its own; a page the transaction owns is
+values; a value whose cell would be longer than a third of a page - 1.3 KiB
+under a short key - goes on in pages of its own; a page the transaction owns is
 changed in place; a page keys were taken from is not joined with the one
-beside it. `Space::private` is one in a process's own memory. Their tests are a
+beside it. A value is lent from the page it is in (`get_in`), the keys of a
+prefix scanned by themselves (`scan_prefix`), and a tree that holds nothing
+filled with keys in their order (`load`: pages filled to nine tenths, 170,000
+keys 34-45 ms and 8,215 pages where put one by one they take 79-89 ms and
+14,543). `Space::private` is one in a process's own memory. Their tests are a
 harness (`space/tests.rs`): a tree against a map kept beside it, readers held
 across commits reading what they began with; two processes writing and reading
 one space; a writer stopped at each step of a transaction (`Space::fault`: the
