@@ -369,9 +369,10 @@ load what a process running an extension's code must not be one with. Whoever
 holds the project - an editor, or a host (`pe2-cli project host`,
 `project::host`, `cli/src/host.rs`) - has its only index and says what is served
 (`Index::served`: the whole stack, whatever its view hides) in the filesystem
-the project's processes share (`project::shared`, below), on a thread of its
-own (`holder::files::Files`), and tells the server only that it did
-(`ToServer::Shown`). The server has the shared space attached for as long as
+the project's processes share (`project::shared`, below), by the thread that
+refreshed its index and in one commit with what the refresh changed of the
+project's model (`holder::says::Says`, below), and tells the server only that
+it did (`ToServer::Shown`), on a thread of its own (`holder::files::Files`). The server has the shared space attached for as long as
 it serves, and reads there: the first time all of it (`shared::listed`), after
 that what the commits since it last read did (`shared::changed`, of
 `sfs::fs::changes`: the paths shown anew or otherwise and those gone -
@@ -540,8 +541,11 @@ why it was not made - in the commit that says what is served after them
 (`due::answer`, in `project::shared::say_with`; `Files::show_delta_answering`,
 `show_answering`): the folder shows a thing the project's, and the server
 knows it taken, in one moment. The host answers once that is said; the editor
-once its take-in of what the edits wrote is, the answers given to it by the
-take-in's ticket. The editor's take-in worker says what is served as the host
+once its take-in worker said it: the window's thread brackets the edits it
+makes of what is due (`TakeIn::due_begin`, `due_end` with what became of
+each), and the worker says nothing of what it takes in between until the
+bracket ends - then what each take-in changed of what is served, in their
+order, with the answers, in one commit (`Worker::say`, `Said::Changes`). The editor's take-in worker says what is served as the host
 does - what the refresh changed of it (`takein::Served::Changed`, of
 `Index::serve_changed`; `Files::show_delta_then`), all of it only where more
 than files changed - where it listed all the project serves at every take-in:
@@ -845,6 +849,36 @@ the project's as written, the one it was given twice changed nothing. An edit
 that is asked twice across such a death is the price of the server and the
 holder each saying its own part: the holder's set whole comes before the
 server's word that it was taken.
+
+**The project's model is being put where its processes share it**
+(`project::model`): what the index reads of the project's files and what it
+derives of them, in trees of the shared space as of the last commit - for
+whoever holds the project next to read in place, where each builds it again
+from the files today. So far it holds each file's record (`store::Record`:
+size, time, hash, and of a declaration its shape, uid, variants, references -
+its text by itself), keyed by where the file is in the project's folder, the
+same wherever that is; written beside the index's own records and `index.db`,
+and read by nothing yet. What a refresh changes of it is gathered
+(`model::Delta`, in `Refreshed::model`) and applied in the commit that says
+what is served after the refresh and what became of what was due
+(`holder::says::Says::say`), by the thread that refreshed - a host's edit or
+take-in, the editor's take-in worker - whether or not a server is fed: the
+folder shows a thing the project's, the server knows it taken and the model
+holds it in one moment, and a refresh that fails says nothing. Whoever takes
+the project says first all its index read (`Says::fill`, `model::fill_files`:
+loaded whole into an empty tree, else by what differs), and forgets what it
+said of what is served where another held the project meanwhile
+(`Says::forget`). Every value begins with the generation of the commit that
+put it; a model of another format is emptied and filled again. Every edit the
+project crate's tests make holds the model, brought on by what the refresh
+said, to the index changed in place and to one opened afresh; and
+`model::tests::the_model_a_project_was_left_is_what_its_files_say` holds a
+project's own, as its processes left it, to an index built from its files.
+Measured on the project of 23,000 entries: an edit in the host costs what it
+did (the commit that says it 24-34 us where it was 21); the fill as a holder
+takes the project 61-66 ms - until the records are read from the tree and
+`index.db` goes, what a take-over costs more; 14,326 files' records and
+texts are 31 MiB of the space.
 
 **Beside the log, the library has pages every process maps, and trees in them**
 (`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
