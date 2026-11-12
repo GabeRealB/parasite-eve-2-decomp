@@ -20,3 +20,7 @@
 [submodule "tools/asm-differ"]
 	path = tools/asm-differ
 	url = https://github.com/simonlindholm/asm-differ.git
+[submodule "editor"]
+	path = editor
+	url = https://github.com/GabeRealB/pe2-editor.git
+	branch = main

@@ -189,7 +189,7 @@ Conventions for names are in [NAMING.md](NAMING.md). The project prefers real st
 
 `editor/` holds an editor for the game's assets and its own build path, in Rust. It is a work in progress: it works on a project extracted from your discs, and builds packages from the project's assets rather than from the bytes on the discs, so that an edit can change what is built. It cannot write a disc image yet, so nothing edited reaches the game.
 
-It is a project of its own, which refers to nothing outside its folder: how to build it, ship it and add its extensions is in [editor/README.md](editor/README.md), what a user reads in [editor/docs](editor/docs/index.md), and its license in [editor/LICENSE](editor/LICENSE).
+It is a project of its own, [pe2-editor](https://github.com/GabeRealB/pe2-editor), here as a git submodule at `editor/`, pinned to the commit this repository works with: how to build it, ship it and add its extensions is in [editor/README.md](editor/README.md), what a user reads in [editor/docs](editor/docs/index.md), and its license in [editor/LICENSE](editor/LICENSE). Clone with `--recurse-submodules`, or fetch it after with `git submodule update --init`.
 
 ```bash
 cd editor

@@ -549,8 +549,13 @@ overlay.
 
 ### The editor
 
-The editor (`editor/`, a Rust workspace) is a project of its own, with its own `CLAUDE.md` - its design files, its
-rules, how it is checked - `README.md` and `LICENSE`. When working in `editor/`, its `CLAUDE.md` is what holds.
+The editor (`editor/`, a Rust workspace) is a project of its own: its own repository,
+`https://github.com/GabeRealB/pe2-editor`, here as a git submodule at `editor/`, with its own `CLAUDE.md` - its
+design files, its rules, how it is checked - `README.md` and `LICENSE`. When working in `editor/`, its `CLAUDE.md` is
+what holds, and its changes are committed there. The submodule pins the editor commit this repository works with:
+until the editor's first release its formats change with no reader kept for the old ones, so the Python side and
+the editor move together - a change spanning both is committed in the editor first, then the submodule moved here
+in the commit that changes this side.
 Nothing in `editor/` refers to anything outside it: no path, file, tool or document of this repository, in code,
 comments, tests or docs. Only this side knows the editor, so what pairs the two is written here, never there:
 
