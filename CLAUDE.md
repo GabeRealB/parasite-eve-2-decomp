@@ -541,7 +541,19 @@ why it was not made - in the commit that says what is served after them
 `show_answering`): the folder shows a thing the project's, and the server
 knows it taken, in one moment. The host answers once that is said; the editor
 once its take-in of what the edits wrote is, the answers given to it by the
-take-in's ticket. The server reads the answers when the holder has answered
+take-in's ticket. The editor's take-in worker says what is served as the host
+does - what the refresh changed of it (`takein::Served::Changed`, of
+`Index::serve_changed`; `Files::show_delta_then`), all of it only where more
+than files changed - where it listed all the project serves at every take-in:
+74 ms of a take-in's 124 on the project of 23,000 entries. Measured there with
+the editor holding the project and its window not in front, by the editor's
+own spans (`editor_performance`): a take-in 48 ms, most of it the imports
+attached again (23 ms) and the index refreshed (18 ms); a new file the
+project's 100 ms after its close where it took 190, a saved one 60 ms (160).
+The edits themselves are made on the window's thread (0.3-0.4 ms each), which
+also waits there for the take-ins before them (38 ms at most, 110 before) -
+300 files written at once held one frame 146 ms (245): what the window's
+thread does of the project's work is still to be moved off it. The server reads the answers when the holder has answered
 its asking (`due::settle`). What nobody took stays due where the folder is
 written through (`vfs::writes`, below: the order things were done in is the
 order they are due in), and is asked for again a second later; what the Cloud
