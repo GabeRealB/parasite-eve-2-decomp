@@ -952,7 +952,18 @@ part of it 28 ms where reading their 8,758 records took 60, what is known read
 in 48-53 ms on its three threads, the verification 105 ms in all; the records
 are 15 MiB more of the space, 53 MiB in all. With the stack taken as known:
 the index opens in 195-201 ms, the stack 6-7 ms where applying it took 26-33;
-the commit that says an edit 38-41 us.
+the commit that says an edit 38-41 us. The assets are not kept in the
+model: each is made of its entry and its files' records alone, so an opening
+makes them on every core (`Index::assemble_assets`, the many of an opening or
+of the stack applied again; an edit's are made where it is), and what the
+overridden ones have below them is made when first asked for
+(`Index::version`), where every opening made it - and with it what the layer
+edits go to stands on (`below_layer`), 18 ms of resolving the stack beneath
+it. That is now made beside the verification, which the first edit waits for.
+With those: the index opens in 157-180 ms, its assets assembled in 24-28 ms
+where it took 45-55; `project serve` started cold serves 0.61 s after it is
+started (0.76 s before the model, on a space left in order), 0.86-0.91 s after
+a kill; an edit in the host costs what it did, the first as any.
 
 **Beside the log, the library has pages every process maps, and trees in them**
 (`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
