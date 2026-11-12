@@ -1151,6 +1151,30 @@ take signals), `select` (another node's output, by the key it is given, among it
 `of`; only that one read, nothing where it names none) and `overlay` (a table over
 another, key by key, at a `field`).
 
+**A change of files sets off an epoch, which holds what is kept to what it read.**
+The packages' outputs ask for it: each package's image, its variants', and the
+code's `pe2_server.h` and `compile_commands.json` are pulled on
+`pe2.events@files-changed` as on a build (the `pull` of their `output` layers,
+in `pe2.packages`' stacks) - built as files are saved - and an event says only
+that it happened, so each change of any file pulls all of them: 57 outputs in
+the game's project, each found kept or made. Finding one kept is holding its
+trace to what it read (`Reads::hold`): its node's files, the project's plain
+files and folders by their hashes, other nodes' outputs by theirs - each of
+which is held the same way, and so on down. What that costs is kept to what
+changed: a plain file's hash is remembered by its time and length
+(`content::sha1_known`; one that had changed less than a second before it was
+read is read again, since a second change in the same moment bears the same
+time), where every source and header a package had read was read and hashed
+again for every package, at every change; and a run - an epoch, an attach -
+remembers what it found of another output and of all the nodes of a type
+(`Engine::found`, `find`), for as long as nothing is made in it, where each
+package held all it depends on again, and looked at every node of the project
+for each `type:` it had read. Measured on the game's project, an epoch with
+nothing to make: 480 ms on sixteen cores before, 205 ms with the files' hashes
+remembered, 50 ms with what a run finds remembered too (5,700 outputs held and
+200 looks at all 23,000 nodes an epoch, before). A source changed still makes
+its package and what reads it, and nothing else.
+
 **A project defines operations and templates of its own** (`pe2.graph`): a node of
 `pe2.graph@operation` holds a graph, made and edited in the graph view as a graph
 layer is, whose boxes say what it is from outside - each `input` it takes (`name`,
