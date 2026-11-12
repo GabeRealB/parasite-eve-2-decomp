@@ -889,7 +889,19 @@ Attached to beside another process, a space is as its last commit left it;
 alone, it is trusted only where `Space::sync` had it on disk at that generation
 (`clean`, taken back on disk before the first change after) and begins empty
 otherwise (`Space::fresh`), for whoever owns what it held to fill again:
-nothing in it is the only copy of anything. Windows writes a mapping's changed
+nothing in it is the only copy of anything. A process that ends in order
+leaves what it has attached to be trusted (`Space::rest`,
+`project::shared::rest_all` as the last a command, a host, a server and the
+editor do, and where a holder lets go of its storage): what it wrote of the
+space is had on disk, and by the last to leave all of it, said clean - asked
+under the writer's lock, by holding alone for a moment what every attached
+process holds shared. So a project all of whose processes ended in order is
+served from what they left, said again by what differs: served 0.76 s after
+`project serve` is started cold, where a space begun anew takes 0.85 s; one
+whose host or server was killed begins anew, as before. Whoever is to write
+takes `clean` back as it makes ready (`Space::ready`, of a holder's
+`History::prepare`; a server's first commits as it starts), so no edit waits
+for that. Windows writes a mapping's changed
 pages for the process that changed them alone, so each says whether it wrote
 since it flushed (`Space::flush`), and `sync` says clean only where none has.
 A tree (`tree::get`, `put`, `remove`, `scan`) is keys in order with their
