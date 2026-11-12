@@ -529,34 +529,119 @@ that is not what the asker would have started is told to stop where nobody keeps
 it, and the asker's own answers; one that is kept, or an editor, is only said to
 differ.
 
+**One thread holds a project, in the host and in the editor**
+(`holder::core`). `Queue` is a thread that owns something and does what it is
+given with it, in the order it was given: `call` waits for what that comes to,
+`post` does not, `end` has it finish what it was given and answer nothing
+after. `Core` is a project held: its only index that changes, where it says
+what it holds (`says::Says`), the feed of what is served (`files::Files`),
+what was last listed, the files its own edits wrote as they were then, what was
+due and taken, the thread verifying an index opened behind. It makes the edits
+asked, in order, each over the project as those before it left it (`edits`,
+by `vfs::ops::Op`: one that names a path at, in or above one before it is made
+after those are taken in, one that fails is tried once more after them), takes
+what is due (`take_due`, in a layer given or the highest that can be written -
+or none of it, where nothing can be edited now), takes in what the history
+wrote by other means (`take_written`) and what changed in the layers by other
+means than itself (`take_in`: what its own edits wrote, as they wrote it by
+`storage::stamp`, it has already - `others`), and after each says, in one
+commit, what the refresh changed of the model, what is served after it, and
+what became of what was due. `waits` says whether whoever asks waits for the
+files to have it and the folder to serve it (a host: a command after this one
+finds it so) or goes on (an editor); what its changes came to is given back for
+its owner to follow (`Taken`). The host's state is owned by such a thread
+(`Host::queue`): everything asked of it - on the holder's link, on its own
+socket, by what watches the layers, by its own looking every 200 ms - is asked
+there, where it took a lock. A thread that is gone, its work having failed as
+it said, has the host stop, for whoever asks next to start another.
+
+**The editor's window displays and dispatches; its worker holds the project**
+(`editor/src/takein.rs`). The worker is a `Queue` owning a `Core`, the session's
+history beside the index it is made over, the imports and the extensions. The
+window has what the worker last handed over (`Snapshot`): the index - its maps
+copies of its own, made as it is handed over for those that changed since
+(`Index::hand_over`, `index::Shared`), so that the worker changes its index in
+place whatever holds a snapshot - the tree, the layers, and what the history
+shows of itself (`history::View`: its steps, the documents with unsaved
+changes, the contents it keeps; what the panes read where they read the
+history). An edit the window makes - a field typed in, an override, a step
+undone, a document saved, a node made, a layer added, a property set, an
+extension turned off - is work it asks of the worker and does not wait for
+(`Workspace::ask`): done once all asked before it is, what it came to handed
+over with the project as it left it (`Snapshot::outcomes`), and what the window
+does then - say the step's label, show what was selected, name the new node,
+go on closing - a value it keeps by the asking's ticket and runs on the frame
+the snapshot is swapped in (`Editor::finish_asked`). What can be told before
+asking is told at once. What follows a change is the worker's: the documents
+held to the disk, the working copies shown as the history has them - now, or
+as at the point of it viewed (`Job::Viewing`) - the imports of what changed
+attached again, the session's journal written. What is asked on the holder's
+link is asked of the worker by the link's own thread (`takein::Outside`): an
+edit, what is due and an event signaled - what runs the epochs being shared
+with the worker - made once all asked before is, as the window shows the
+project now, which the window tells the worker as it changes
+(`takein::Showing`: the user's view of the layers, whether a point of the
+history is shown, who makes the steps, what is selected, the config in use,
+whether changes are taken in as they happen); and what reads the project - a
+tool, a resource - answered there against the project as last handed over
+(`Reading`), once the worker took in what was asked before. Only what the
+window itself shows or does (its widgets, its selection) is a frame's to
+answer. What watches the layers (`holder::watch`: one for the host, the server
+and the editor - a batch once the layers were quiet for 150 ms or a second
+passed, a failing watch said, what does not concern the project left out)
+gives what it sees to the worker, which knows its own writes and keeps what
+other programs changed where the window finds it, taking it in as it happens
+where the setting says so, before anything asked from outside, or when the
+window is looked at. What no watch follows - the extensions the project finds,
+the plans of its generated layers - the worker looks at when the window asks,
+once a second. The window's thread reads and writes none of the project's
+files as it draws: the view of the layers is written by the worker's thread,
+aside; a content the history keeps is read once and kept as the History pane
+shows it; what finishes leaving a project tells the host standing by. Left on
+it, where the user asks: a file dropped on an asset, what a dialog picks, the
+Tests pane's files. And two things wait their turn in the window where they
+are checked against the project as read: an edit, a step, and a layer made to
+override in, asked while the project is being read again. Attaching the
+imports after a change looks through nothing of the project that did not
+change: what the project defines (`pe2.graph` operations and templates) is
+taken again where an asset that defines, or did, is among those changed
+(`Extensions::definitions_among`), and the outputs referred to are looked for
+around the changed assets. Measured on the project of 23,000 entries with the
+editor holding it: with 300 files written through the folder, the longest
+frame is 20-24 ms where it was 79-305 ms, the window's thread doing nothing
+of it but swapping in what the worker hands over (1.4 ms); an edit by command
+is made and answered at what it costs a host - the index refreshed in under a
+millisecond where it copied its maps first, 5 ms for a file overwritten and
+27-30 ms for one added - the copies made as the snapshot is handed over (8 and
+26 ms); the imports attached again after a change in 1 ms where they took
+13-15; a take-in with no asset changed 3 ms. A file written or saved through
+the folder by itself is answered 12 ms after it was said due (16 ms for nine
+in ten), where a host answers after 9 (10): what is due is answered once it is
+said and the server told, the snapshot the worker then hands the window not
+waited for. Each of 300 files written at once is answered 130-150 ms after it
+was said due, as before: what 300 steps of the session's history take to
+make. Attaching the imports as a project
+opens takes 0.27 s there, 3.3 s of the machine's sixteen cores: for each
+asset the plan made (0.18 ms, 7,714 of them), and for each of the 2,041 that
+import, what was kept found by its trace held to what it read (0.78 ms), read
+(0.11 ms) and its key made (0.07 ms). Keeping what was attached with what it
+was made of - one key for the project where nothing changed since - would take
+most of that away, and is left open: it runs behind a project already
+showing.
+
 **What is due is said in the shared filesystem, and taken from there.** Two
 trees of the space (`vfs::due`: `DUE`, `ANSWERS`): the server puts each thing a
 program did - a file written, by where its bytes are in the log; a folder
 made; a rename; a removal - under a number given once, in the order it came due
 (`due::put`), and asks whoever holds the project to look. That one takes all
-that is due (`due::due`; `Host::take_due`, `Workspace::take_due`), makes each an
+that is due (`due::due`; `Core::take_due`), makes each an
 edit, a step of its own, and says what became of each - the step's label, or
 why it was not made - in the commit that says what is served after them
-(`due::answer`, in `project::shared::say_with`; `Files::show_delta_answering`,
-`show_answering`): the folder shows a thing the project's, and the server
-knows it taken, in one moment. The host answers once that is said; the editor
-once its take-in worker said it: the window's thread brackets the edits it
-makes of what is due (`TakeIn::due_begin`, `due_end` with what became of
-each), and the worker says nothing of what it takes in between until the
-bracket ends - then what each take-in changed of what is served, in their
-order, with the answers, in one commit (`Worker::say`, `Said::Changes`). The editor's take-in worker says what is served as the host
-does - what the refresh changed of it (`takein::Served::Changed`, of
-`Index::serve_changed`; `Files::show_delta_then`), all of it only where more
-than files changed - where it listed all the project serves at every take-in:
-74 ms of a take-in's 124 on the project of 23,000 entries. Measured there with
-the editor holding the project and its window not in front, by the editor's
-own spans (`editor_performance`): a take-in 48 ms, most of it the imports
-attached again (23 ms) and the index refreshed (18 ms); a new file the
-project's 100 ms after its close where it took 190, a saved one 60 ms (160).
-The edits themselves are made on the window's thread (0.3-0.4 ms each), which
-also waits there for the take-ins before them (38 ms at most, 110 before) -
-300 files written at once held one frame 146 ms (245): what the window's
-thread does of the project's work is still to be moved off it. The server reads the answers when the holder has answered
+(`due::answer`, in `project::shared::say_with`; `Files::say_then`): the folder
+shows a thing the project's, and the server
+knows it taken, in one moment. The host and the editor make them the same way
+(`holder::core::Core::take_due`, below), and answer once that is said and the
+server told. The server reads the answers when the holder has answered
 its asking (`due::settle`). What nobody took stays due where the folder is
 written through (`vfs::writes`, below: the order things were done in is the
 order they are due in), and is asked for again a second later; what the Cloud
@@ -577,10 +662,11 @@ time. A host waits for the server to serve what an edit changed before it
 answers (`Files::show_changed`), so a command's edit is in the folder once the
 command returns. The agents' server lists the extensions' tools as the holder
 has them (`Request::Tools`), those the project holds among them. What a holder
-does besides its own work is one library with no window in it (`crates/holder`:
-`files`, the feed to the server; `runner`, the epochs events set off; `watch`,
-its layers watched), which the editor and the host both use: what is to be woken
-when something ends is given as a call. A host runs what events set off as an
+does is one library with no window in it (`crates/holder`: `core`, the thread
+that has the project and does all that changes it, below; `files`, the feed to
+the server; `runner`, the epochs events set off; `watch`, its layers watched),
+which the editor and the host both use: what is to be woken when something ends
+is given as a call. A host runs what events set off as an
 editor does (`Request::Signal`: `pe2-cli project build|clean|signal` ask whoever
 holds the project, a host started for it where nothing does), off its own lock,
 so it reads and edits on meanwhile; it fetches what the project's extensions
