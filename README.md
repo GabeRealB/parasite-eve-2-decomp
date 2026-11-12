@@ -189,54 +189,15 @@ Conventions for names are in [NAMING.md](NAMING.md). The project prefers real st
 
 `editor/` holds an editor for the game's assets and its own build path, in Rust. It is a work in progress: it works on a project extracted from your discs, and builds packages from the project's assets rather than from the bytes on the discs, so that an edit can change what is built. It cannot write a disc image yet, so nothing edited reaches the game.
 
+It is a project of its own, which refers to nothing outside its folder: how to build it, ship it and add its extensions is in [editor/README.md](editor/README.md), what a user reads in [editor/docs](editor/docs/index.md), and its license in [editor/LICENSE](editor/LICENSE).
+
 ```bash
 cd editor
-cargo build --release
+cargo build --release   # pe2-editor and pe2-cli, in editor/target/release/
+cargo xtask dist        # as they ship, with pe2.psx and pe2.ffmpeg beside them, in editor/target/dist/
 ```
 
-This builds `pe2-editor` and `pe2-cli` under `editor/target/release/`. To have them as they ship, or as archives:
-
-```bash
-cargo xtask dist        # target/dist/pe2-<version>-<platform>/
-cargo xtask package     # that, archived: the editor, and each extension built apart from it, each with its .sha256
-```
-
-The tree holds, beside the two programs, the extensions built apart from the editor - `pe2.psx`, `pe2.ffmpeg` - each a
-folder as one is kept, `extensions/<id>.extension/`: its component, its manifest (`extension.toml`), its guides and the
-patches it applies to what it fetches. `cargo xtask package` archives the editor alone
-(`pe2-<version>-<platform>.zip`) and each extension apart (`<id>-<version>.extension.zip`). `cargo xtask dist --tests`
-adds `pe2-test-runner`, the build the editor's Tests pane runs.
-
-A project runs the built-in extensions and those it holds - copies, in `extensions/` of its layers - and nothing else.
-`tools/pe2project.py create` gives a new project the two every project holds, `pe2.psx` and `pe2.ffmpeg`, from the editor
-as `cargo xtask dist` lays it out (`--no-extensions` leaves them out).
-It adds one by id from your own extensions or those beside the editor - a folder, or an archive as `cargo xtask package`
-writes it - or from a folder or archive given, and updates or removes it the same way, in the editor's Extensions pane
-or with `pe2-cli`:
-
-```bash
-pe2-cli project extension add pe2.psx      # or path/to/pe2.psx.extension, or path/to/pe2.psx-0.1.0.extension.zip
-pe2-cli project extension update pe2.psx
-pe2-cli project extension remove pe2.psx
-```
-
-What an extension that runs outside the sandbox fetches onto a machine - `pe2.psx`'s compilers, Python and maspsx - its
-manifest declares (`[[setup]]`): each package by its URL and SHA-256, and each place taken from it by the SHA-256 of what
-it holds there, patched (a folder's, of its files). Trusting the extension fetches it, into a store every project shares;
-`pe2-cli project extension setup [ID] [--verify]` shows it and fetches it ahead of time, `--verify` hashing what is
-there and fetching again what is not as declared. What no project used for 30 days is removed by itself, keeping what
-the project open names; `pe2-cli fetched list` shows what is kept and `pe2-cli fetched clean` removes it sooner, as the
-editor's Extensions pane does. Its author finds the hashes by fetching each entry:
-
-```bash
-cargo xtask hash extensions/psx/extension.toml --write   # pe2-cli extension hash, outside this workspace
-cargo xtask pins                                         # does every pinned download still answer?
-```
-
-An entry may name `mirrors`: other places with the same bytes, held to the same hash, tried in order where its URL fails.
-`cargo xtask pins` (`pe2-cli extension pins <manifest>` elsewhere) asks each URL and mirror of every entry for its first
-byte, and fails where an entry has none left - run it now and then, before users find a download gone. BtbN's Linux
-ffmpeg is the one pin known to go: a month's last build is kept for two years.
+`tools/pe2project.py create` gives a new project the two extensions every project holds, `pe2.psx` and `pe2.ffmpeg`, from the editor as `cargo xtask dist` lays it out (`--no-extensions` leaves them out).
 
 ## Repository layout
 
