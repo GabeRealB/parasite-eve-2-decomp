@@ -963,7 +963,13 @@ it. That is now made beside the verification, which the first edit waits for.
 With those: the index opens in 157-180 ms, its assets assembled in 24-28 ms
 where it took 45-55; `project serve` started cold serves 0.61 s after it is
 started (0.76 s before the model, on a space left in order), 0.86-0.91 s after
-a kill; an edit in the host costs what it did, the first as any.
+a kill; an edit in the host costs what it did, the first as any. What is left of
+an opening grows with the project - what is known read (50 ms), the records
+layers' entries placed (30), the assets assembled (26) and linked (19): fine at
+23,000 entries, a second and more at ten times that. What would make it the
+same whatever the project holds is left open: what the index derives read from
+the model as it is asked for, through views of a commit, where an opening
+makes all of it.
 
 **Beside the log, the library has pages every process maps, and trees in them**
 (`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
