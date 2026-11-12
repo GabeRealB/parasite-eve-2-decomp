@@ -878,7 +878,19 @@ read in the moment it was changed in) - what differs taken in as a change of
 files is, a file changed by git or by hand while nothing held the project among
 them; a host's first edit waits for that, and in the editor it is the worker's
 first job, which an edit waits for as for any. Anything else that opens an
-index looks at every file first, as before (`Index::open`). Where the space was
+index looks at every file first, as before (`Index::open`). The model holds
+what each layer holds too (`model::Held`, by layer and path: its folders,
+plain files and bundles with their files, as a walk of it finds them; and what
+the listing was made by - the layer's place and the names it leaves out, a
+listing of another being walked again): a host and the editor take that as
+known where they walked every layer as they opened, a refresh says what the
+paths it scanned again changed of it, and the verification walks the layers
+on its thread and has what differs taken in - a file or a folder made or
+removed while nothing held the project among it. Scanning a path again brings
+the folders above it to what the layer has there (`Scan::folders_above`): the
+first thing put in a folder of a records layer made no folder in what the
+index held of the layer, and the last taken out left one, where a walk of the
+layer finds it otherwise - which holding the model to a walk found. Where the space was
 begun anew - a process holding it was killed, the power went - what it held is
 kept beside it (`sfs::Space::left_behind`, the pages moved to `left/` where
 they were removed) and the files' records read from there, each then held to
@@ -902,7 +914,11 @@ and texts are 31 MiB of the space, read whole in 50 ms as an index opens
 8 ms behind it; `project serve` started cold serves 0.75 s after it is started
 on a space left in order, 0.93 s after its host and server were killed (0.85 s
 with the database), 1.05 s where nothing is known and every file is read; the
-program is 17 MiB smaller.
+program is 17 MiB smaller. With what the layers hold taken as known: the index
+opens in 256 ms where it took 314, the layers' part of it 11 ms where walking
+them took 73 (105 ms on the verification's thread now), what is known read in
+60-66 ms; served 0.71 s after `project serve` is started cold, 0.91 s after a
+kill; what four layers hold at 15,073 paths is 5 MiB more of the space.
 
 **Beside the log, the library has pages every process maps, and trees in them**
 (`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
