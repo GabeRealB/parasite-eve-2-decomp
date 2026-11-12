@@ -429,9 +429,9 @@ the records after an edit reads the records named, where it listed every folder
 of the layer's and looked at every record (`records::read_changed`), and places
 a layer's entries through the layers below by their own maps, none copied
 (`records::Below`); a tree layer's changeset is read again when its file
-changed. The index's store is written every two seconds, or as it is let go of,
-where it was a transaction an edit (`store::Store::write_later`: what it keeps is
-what the next opening is spared reading). Every edit the tests make holds the
+changed. What the index read of the files is said in the project's model with what
+the edit changed of what is served (`Refreshed::model`, below), where it was a
+transaction of a database of the index's own an edit. Every edit the tests make holds the
 index changed in place to one opened afresh - entries, assets, links, problems,
 what each layer needs of another (`Index::shown_whole`). Measured in the holder,
 the same project, eight edits of a kind, on a machine doing other work: a file
@@ -440,8 +440,7 @@ a quiet machine); removed 3.6 ms; moved 7 ms; overwritten 3.5 ms. An asset come
 or gone is linked by itself where nothing names its uid and nothing refers to
 one that goes (`Index::named`: how many references name each uid), and what the
 layers need of each other counted for it alone (`Index::recount`); an entry is
-found by its uid at once (`Index::real_path`); the store is written by the host
-between edits (`Index::tick`). With those, each kind of edit - a file or a node
+found by its uid at once (`Index::real_path`). With those, each kind of edit - a file or a node
 added, removed, moved, overwritten - is 1-1.5 ms to make and 0.2-1 ms to take
 in, on the same machine; of the 1-1.5 ms, 0.75-1.3 is saying the change in the
 log, having that on disk and writing the files. The editor's session is
@@ -497,7 +496,7 @@ feeds the same server. Who lets go of the project says so with a connection
 (`ToHost::Leaving`, as a borrower's `Lend`), and the host takes it the moment
 that ends, not when it next looks (every 200 ms, what is left for a holder that
 died); its log says how long each part took. The editor lets go of the lock
-once what may still write has ended and its index's store is closed
+once what may still write has ended
 (`Leaving`'s drop), and frees the index's memory after: 0.13-0.17 s after it is
 closed, where freeing it first made that 0.5 s and more. The host holds about
 1 s after that - opening the index, which is what a hand-over costs. What a program does through the folder the
@@ -854,31 +853,56 @@ server's word that it was taken.
 (`project::model`): what the index reads of the project's files and what it
 derives of them, in trees of the shared space as of the last commit - for
 whoever holds the project next to read in place, where each builds it again
-from the files today. So far it holds each file's record (`store::Record`:
+from the files today. So far it holds each file's record (`model::Record`:
 size, time, hash, and of a declaration its shape, uid, variants, references -
 its text by itself), keyed by where the file is in the project's folder, the
-same wherever that is; written beside the index's own records and `index.db`,
-and read by nothing yet. What a refresh changes of it is gathered
+same wherever that is: what the index keeps between runs, where it kept a
+database of its own (`index.db`, SQLite as Turso has it, both gone). An index
+opens over what the model holds of the files (`model::known`), and whoever
+holds the project says back what the opening read anew
+(`Index::take_opened`, `model::took`). What a refresh changes of it is gathered
 (`model::Delta`, in `Refreshed::model`) and applied in the commit that says
 what is served after the refresh and what became of what was due
 (`holder::says::Says::say`), by the thread that refreshed - a host's edit or
 take-in, the editor's take-in worker - whether or not a server is fed: the
 folder shows a thing the project's, the server knows it taken and the model
 holds it in one moment, and a refresh that fails says nothing. Whoever takes
-the project says first all its index read (`Says::fill`, `model::fill_files`:
-loaded whole into an empty tree, else by what differs), and forgets what it
-said of what is served where another held the project meanwhile
-(`Says::forget`). Every value begins with the generation of the commit that
+the project says first what its index's opening read that differs from what
+it opened over (`Says::took`; all it read, loaded whole, where the space holds
+no model), and forgets what it said of what is served where another held the
+project meanwhile. A host and the editor open without looking at a file the
+model knows (`Index::open_behind`): the records are taken as known, and the
+files held to them on a thread of its own, behind what is asked first
+(`Index::verification`: each file's size and time against its record, and one
+read in the moment it was changed in) - what differs taken in as a change of
+files is, a file changed by git or by hand while nothing held the project among
+them; a host's first edit waits for that, and in the editor it is the worker's
+first job, which an edit waits for as for any. Anything else that opens an
+index looks at every file first, as before (`Index::open`). Where the space was
+begun anew - a process holding it was killed, the power went - what it held is
+kept beside it (`sfs::Space::left_behind`, the pages moved to `left/` where
+they were removed) and the files' records read from there, each then held to
+its file: left by processes that died it is as its last commit left it; after
+a loss of power what is read there is right, of the last commit the disk has
+whole or the one before, or a page is found not to be the one pointed to and
+the files are read. A process keeps a space it attached for as long as it runs
+(`sfs::space::shared`): attached to and let go of in turn, one written
+meanwhile would begin anew at each turn. The model says its format and the
+cache's schema (`cache::SCHEMA`, raised where what is derived of a file
+changes): one of another is emptied and filled again. Every value begins with the generation of the commit that
 put it; a model of another format is emptied and filled again. Every edit the
 project crate's tests make holds the model, brought on by what the refresh
 said, to the index changed in place and to one opened afresh; and
 `model::tests::the_model_a_project_was_left_is_what_its_files_say` holds a
 project's own, as its processes left it, to an index built from its files.
 Measured on the project of 23,000 entries: an edit in the host costs what it
-did (the commit that says it 24-34 us where it was 21); the fill as a holder
-takes the project 61-66 ms - until the records are read from the tree and
-`index.db` goes, what a take-over costs more; 14,326 files' records and
-texts are 31 MiB of the space.
+did (the commit that says it 24-34 us where it was 21); 14,326 files' records
+and texts are 31 MiB of the space, read whole in 50 ms as an index opens
+(26 ms for 14,000 of them alone; the database took 55), held to their files in
+8 ms behind it; `project serve` started cold serves 0.75 s after it is started
+on a space left in order, 0.93 s after its host and server were killed (0.85 s
+with the database), 1.05 s where nothing is known and every file is read; the
+program is 17 MiB smaller.
 
 **Beside the log, the library has pages every process maps, and trees in them**
 (`sfs::space`, `sfs::tree`): what the served tree and the layers' records are to
