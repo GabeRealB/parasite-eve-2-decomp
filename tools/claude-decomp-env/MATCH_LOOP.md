@@ -344,7 +344,7 @@ Only `✅ BUILD SUCCEEDED` counts as a match. Run it before committing or report
 
 It re-splits only the units whose split would change and rebuilds incrementally, so after a one-overlay edit it costs about the same as the old scoped run — there is no faster inner loop to reach for. The one case that is still slow is editing a header many overlays include, which recompiles all of them; `./tools/build-and-verify.sh --only <scope>` will iterate on that, taking `<scope>` from the `Build scope:` line in BRIEF.md. It prints `✅ SCOPED BUILD SUCCEEDED` and says **nothing** about the overlays it skipped, which for a header change is exactly what you still have to check, so finish with the bare command.
 
-If `python3 ninja_config.py` fails on splat/spimdisasm, use `venv/bin/python3`.
+If `python3 config.py splat` fails on splat/spimdisasm, use `venv/bin/python3`.
 
 ## Never rewrite a whole `.c`
 

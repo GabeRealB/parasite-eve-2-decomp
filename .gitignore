@@ -45,7 +45,7 @@ venv*
 # peassets ladder logs (regenerated each run)
 tools/peassets/logs/
 
-# Generated splat configs (tools/buildsteps/gen_overlay_configs.py)
+# Generated splat configs (tools/config/splat/gen_overlay_configs.py)
 configs/USA/generated/
 .bulk_m2c/
 .promote-logs/
@@ -56,7 +56,7 @@ configs/USA/generated/
 # Worktree setup log written by the demotion scripts.
 .setup.log
 
-# A project made from your discs (tools/pe2project.py create): your data, never committed
+# A project made from your discs (config.py editor): your data, never committed
 /project/
 
 # What a library still split publishes, read from its ELF by the build (gen_package_library.py).

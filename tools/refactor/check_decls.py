@@ -121,7 +121,7 @@ def _images(root: str) -> dict[str, set[str]]:
         if name.endswith(".ld"):
             text = open(os.path.join(lddir, name)).read()
             out[name[:-3]] = set(re.findall(r"build/[^/]+/(src/\S+?\.c)\.o\(", text))
-    sys.path.insert(0, os.path.join(root, "tools", "buildsteps"))
+    sys.path.insert(0, os.path.join(root, "tools", "config"))
     from declarations import Declarations
     for package in Declarations().packages():
         out[package.name.replace("/", "_")] = {unit.as_posix() for unit in package.units() if unit.suffix == ".c"}

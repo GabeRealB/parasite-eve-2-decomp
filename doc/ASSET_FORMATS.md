@@ -779,7 +779,7 @@ or `'u32'`, whichever the object's C element type is made of - and the list is
 flat, so brace elision fills any array or struct of that one width. A record
 whose members differ in width takes `"include": 'layout'` and a `layout`: a
 Python `struct` format for **one** record, limited to `b B h H i I` and `x`
-padding. `tools/buildsteps/gen_asset_inc.py` then writes one line of member values per
+padding. `tools/config/splat/gen_asset_inc.py` then writes one line of member values per
 record, still without braces, so the same include serves the record type at any
 array nesting (`ViewCamera x[400][2]` is `'9h 2x 3i I'`: a `MATRIX` and a
 `u32`). Padding has no initializer and compiles to zero, so the generator
@@ -789,7 +789,7 @@ include.
 
 A shaped asset (below) can instead write C itself: one with `include =
 true` has its codec's `c_source` generated as `assets/<name>.inc`
-(`tools/buildsteps/gen_shape_inc.py`), which a source includes whole, outside
+(`tools/config/splat/gen_shape_inc.py`), which a source includes whole, outside
 any definition.
 
 #### Shaped assets
@@ -881,7 +881,7 @@ codec may read other instances through its context (`shape.Context`): the
 catalog's tables are assembled from the items', so its instance is decoded
 after theirs and every shape include depends on every instance.
 
-A new record needs a re-extraction (`python3 ninja_config.py --iso_build`) before
+A new record needs a re-extraction (`python3 config.py splat extract`) before
 the build can read its `raw/` file.
 
 Adding another embedded asset means one `EMBEDDED_ASSETS` entry plus, if it is
@@ -1149,7 +1149,7 @@ family's common word (`stalker_burst_torso`, `golem_beam_sword`,
 whose vertices differ (the Gray, Ivory and Zebra Stalkers' burst arms): those
 are not duplicates, so each version's includes take its own type's name
 (`gray_stalker_burst_arm_left`), and a second version within one package adds
-its record offset (`tools/buildsteps/gen_model_inc.py`, `include_names`).
+its record offset (`tools/config/splat/gen_model_inc.py`, `include_names`).
 
 572 streams are located across 212 packages; SHA-1 dedup in the store collapses
 them to **298 unique** files, so 274 are meshes shared between packages. (Both
@@ -1359,7 +1359,7 @@ descriptors), seek/play path, extract pitfalls:
 
 **→ [`STREAM_FORMATS.md`](STREAM_FORMATS.md)** (§3 movies, §2 audio)
 
-Full `extract.py` (and `tools/pe2project.py extract`) writes these after
+Full `extract.py` (and `config.py editor --fresh`) writes these after
 stage chunks. `--raw-only` keeps `raw/audio` + `raw/movie` without WAV/MP4;
 `--minimal-inflate` skips streams (CI). Standalone tools still work for a
 re-extract:
@@ -1717,7 +1717,7 @@ is the cell `<face>_<code>`, one of no size none.
 
 A font is decoded to UFO 3 (`ui/font/medium.ufo`), which encodes back to the
 table's exact bytes. The build's include is generated from the table's stored
-bytes, the font's native form (`tools/buildsteps/gen_font_inc.py`); the UFO is
+bytes, the font's native form (`tools/config/splat/gen_font_inc.py`); the UFO is
 the editable form. Each record is a glyph named for its
 character in the font's encoding (`text_encoding.py`: Windows-1252 with the
 controller's buttons at 0x7B-0x7E for the UI font; an index per glyph for the

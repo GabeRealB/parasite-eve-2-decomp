@@ -7,10 +7,9 @@ build) for functions, `check_symbols.py --strict` for everything the maps
 declare. That is what each step needs.
 
 `--objdiff` adds the per-function objdiff comparison, an audit rather than a
-per-step check: it rebuilds in objdiff mode beside the matching build and
-restores the matching configuration afterwards. Its build cache lives under
-local/name-pass so the switch does not recompile the whole project. Run only
-one verifier per checkout; parallel naming workers each own their checkout.
+per-step check: `ninja objdiff` builds objdiff's objects beside the matching
+ones, in the same build. Run only one verifier per checkout; parallel naming
+workers each own their checkout.
 """
 
 import argparse
@@ -53,10 +52,6 @@ def check_objdiff(report, config):
 def verify(root, logs, jobs, objdiff=False):
     logs.mkdir(parents=True, exist_ok=True)
     python = str(root / "venv/bin/python3") if (root / "venv/bin/python3").exists() else sys.executable
-    build = root / "build"
-    saved = root / "local/name-pass/saved-matching-build"
-    cache = root / "local/name-pass/objdiff-build"
-    require(not saved.exists(), f"interrupted verification: recover {saved} before retrying")
 
     def run(command, name):
         path = logs / name
@@ -96,26 +91,17 @@ def verify(root, logs, jobs, objdiff=False):
         print("Naming verification passed (build, declarations, hack sites, symbols)", flush=True)
         return
 
-    require(build.is_dir(), "matching build is missing")
-    build.rename(saved)
-    try:
-        if cache.exists():
-            cache.rename(build)
-        run([python, "ninja_config.py", "--non_matching", "--objdiff_config", f"-j{jobs}"], "objdiff-config.log")
-        run(["ninja", f"-j{jobs}"], "objdiff-build.log")
-        report = logs / "objdiff.json"
-        run(["tools/objdiff/objdiff-cli", "report", "generate", "-o", str(report)], "objdiff.log")
-        count = check_objdiff(json.loads(report.read_text()), json.loads((root / "objdiff.json").read_text()))
-        print(f"All {count} individual functions match at 100%", flush=True)
-    finally:
-        if build.exists():
-            build.rename(cache)
-        saved.rename(build)
-        # Configuration/split output is shared between the two build modes.
-        # Restore it even if generation, compilation or report validation failed.
-        run([python, "ninja_config.py", f"-j{jobs}"], "restore-config.log")
-        run(["ninja", f"-j{jobs}"], "restore-build.log")
-    print("Naming verification passed; normal matching configuration restored", flush=True)
+    # objdiff's objects are a target of the same build (`ninja objdiff`), beside the matching ones.
+    sys.path.insert(0, str(root / "tools" / "config"))
+    import fetch_tools
+    ninja = fetch_tools.ensure("ninja") / fetch_tools.exe("ninja")
+    run([str(ninja), f"-j{jobs}", "objdiff"], "objdiff-build.log")
+    report = logs / "objdiff.json"
+    objdiff = fetch_tools.ensure("objdiff-cli") / fetch_tools.exe("objdiff-cli")
+    run([str(objdiff), "report", "generate", "-o", str(report)], "objdiff.log")
+    count = check_objdiff(json.loads(report.read_text()), json.loads((root / "objdiff.json").read_text()))
+    print(f"All {count} individual functions match at 100%", flush=True)
+    print("Naming verification passed (build, declarations, hack sites, symbols, objdiff)", flush=True)
 
 
 def main():

@@ -1,4 +1,4 @@
-# Declarations: the rooms' dialogues (tools/editor_project/dialogue.py).
+# Declarations: the rooms' dialogues (tools/config/editor/dialogue.py).
 
 [gas_station_day_dialogue_1]
 uid = "uid://mg5f17ly5uds"

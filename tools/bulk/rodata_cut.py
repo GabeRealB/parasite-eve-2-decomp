@@ -272,7 +272,7 @@ def write_manifest(overlay: str, cuts: list[tuple[int, str]]) -> bool:
 
 
 def split() -> bool:
-    r = subprocess.run([str(ROOT / "venv/bin/python3"), "ninja_config.py"],
+    r = subprocess.run([str(ROOT / "venv/bin/python3"), "config.py", "splat"],
                        cwd=ROOT, capture_output=True, text=True)
     if r.returncode != 0:
         print((r.stdout[-2000:] + r.stderr[-2000:]), file=sys.stderr)

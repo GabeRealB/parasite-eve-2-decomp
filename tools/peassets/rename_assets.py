@@ -23,8 +23,8 @@ What it rewrites:
   and the names of its parts, everywhere they are written (a source's forward declaration, a symbol map), and a
   schema's constants (schema_prefix) in the sources that include its header.
 
-It does not touch the extractions: extract again (`tools/pe2project.py extract` for the project, `ninja_config.py
---iso_build` for the build's), which lays every asset, instance and
+It does not touch the extractions: extract again (`config.py editor --fresh` for the project, `config.py splat
+extract` for the build's), which lays every asset, instance and
 manifest out by the table, then rebuild with --clean - a renamed include's old file stays in build/include and would
 hide a source that still names it.
 
@@ -113,7 +113,7 @@ def rename_table(mapping: dict[str, str], assets: dict, tree: dict, embedded: di
 
 def _derived(name: str, suffix: str) -> str:
     """The include an asset's generator names with a suffix: a package's clip runs are `<local>_clips<n>`, or
-    `clips<n>` for a group's `package` and `<variant>_clips<n>` for its `<variant>_package` (ninja_config)."""
+    `clips<n>` for a group's `package` and `<variant>_clips<n>` for its `<variant>_package` (tools/config/splat/configure.py)."""
     group, local = name.rsplit("/", 1)
     if local == "package":
         return f"{group}/{suffix.lstrip('_')}"
@@ -156,7 +156,7 @@ def derived_names(mapping: dict[str, str], assets: dict, renamed: dict) -> tuple
     """({old clip C name: new}, {header: (old constant prefix, new)}) of the renamed assets whose derived C names
     change - a schema's, and any sound bank's, whose prefix depends on every bank's name (gen_sound_header.prefixes);
     a clip that states its `symbol` keeps it."""
-    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
+    sys.path.insert(0, str(ROOT / "tools" / "config" / "splat"))
     from gen_animation_source import ident, schema_prefix
     from gen_sound_header import prefixes
     clips, schemas = {}, {}
@@ -218,7 +218,7 @@ def main() -> int:
     if args.dry_run:
         return 0
     dump_asset_db.write_module(assets, tree, embedded)
-    print("extract again (tools/pe2project.py extract; ninja_config.py --iso_build), then build with --clean")
+    print("extract again (config.py editor --fresh; config.py splat extract), then build with --clean")
     return 0
 
 

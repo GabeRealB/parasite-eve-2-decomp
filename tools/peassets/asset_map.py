@@ -77,7 +77,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
     from model import tmd
     import room_scene
     from room_scene import PLACEMENT, RESOURCE, TASK_DESC, VARIANT, sizeof
-    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
+    sys.path.insert(0, str(ROOT / "tools" / "config" / "splat"))
     from gen_overlay_configs import slot_packages
     project = room_scene.Project()
     # Where each package is loaded: an actor at its slot's address, not at its family's (configs/USA/overlays.toml).
@@ -665,7 +665,7 @@ def animation_tables(embedded: dict) -> dict:
     import tomllib
     import asset_journal
     import pkg_anim
-    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
+    sys.path.insert(0, str(ROOT / "tools" / "config" / "splat"))
     from gen_overlay_configs import declared_animations
     rows = declared_animations(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8")))
     loads = {row["package"] + ".pe2pkg": row["load"] for row in rows}
@@ -860,7 +860,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                                              f"which is not for {kinds[m['file']]} ({m['condition'] or 'always'})")
 
     import tomllib
-    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
+    sys.path.insert(0, str(ROOT / "tools" / "config" / "splat"))
     from gen_overlay_configs import slot_packages
     address = {}
     for _family, spec in tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8")).items():

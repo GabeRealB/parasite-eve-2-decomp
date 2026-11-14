@@ -1,4 +1,4 @@
-"""asm-differ settings: `python3 tools/asm-differ/diff.py --no-pager <function>` from the repository root.
+"""asm-differ settings: `python3 local/tools/asm-differ/diff.py --no-pager <function>` from the repository root.
 
 The project builds 449 images, each linked to its own ELF under build/USA/out, so there is no single map file
 to search. The function is looked up in the ELF symbol tables instead - static functions included, which a GNU

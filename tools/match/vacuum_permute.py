@@ -64,6 +64,13 @@ class Seed:
         return len(re.findall(r'\b(?:SOFT_BARRIER|SCHED_BARRIER|SOFT_USE_REG|(?:SOFT_)?TOUCH_REG(?:_USE)?|asm|__asm(?:__)?)\s*\(', source))
 
 
+
+def _fetched(name):
+    """A tool the build fetches (tools/config/fetch_tools.py)."""
+    sys.path.insert(0, str(REPO_ROOT / "tools" / "config"))
+    import fetch_tools
+    return fetch_tools.ensure(name)
+
 def parse_penalties(fields: list[str]) -> Optional[dict]:
     out: dict[str, int] = {}
     for field in fields:
@@ -319,7 +326,7 @@ def run_permuter(
 
     cmd = [
         _python(),
-        str(REPO_ROOT / "tools" / "decomp-permuter" / "permuter.py"),
+        str(_fetched("decomp-permuter") / "permuter.py"),
         f"-j{jobs}",
         "--better-only",
         "--stop-on-zero",

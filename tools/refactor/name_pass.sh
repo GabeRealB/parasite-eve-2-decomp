@@ -520,11 +520,10 @@ RUN_ID="$(date -u '+%Y%m%dT%H%M%SZ')-$$"
 echo "logging to $LOG"
 
 # Paths a worktree needs but must never commit: the generated trees and the
-# machine-local directory are gitignored, and a submodule that had to be linked
-# rather than checked out shows up as a type change. Both the dirty-tree test
-# and the commit exclude them, so scaffolding cannot ride along on a rename.
-SCAFFOLD_PATHS=(venv .venv assets rom local
-                tools/maspsx tools/m2c tools/asm-differ tools/decomp-permuter)
+# machine-local directory (the fetched tools among it) are gitignored. Both the
+# dirty-tree test and the commit exclude them, so scaffolding cannot ride along
+# on a rename.
+SCAFFOLD_PATHS=(venv .venv assets rom local)
 scaffold_re="^($(IFS='|'; echo "${SCAFFOLD_PATHS[*]//./\\.}"))(/|$)"
 
 tree_changes() {
@@ -748,14 +747,7 @@ create_worker() {
   rm -rf "$wt"
   git -C "$ROOT" branch -D "$branch" >/dev/null 2>&1 || true
   git -C "$ROOT" worktree add -f -b "$branch" "$wt" HEAD >/dev/null || return 1
-  # git worktree add does not check out submodule contents, and the build needs
-  # maspsx. A checkout keeps the tree clean; a link is the fallback, and is why
-  # the commit excludes these paths.
-  git -C "$wt" submodule update --init --recursive >/dev/null 2>&1 || true
-  for rel in tools/maspsx tools/m2c tools/asm-differ tools/decomp-permuter; do
-    [[ -n "$(ls -A "$wt/$rel" 2>/dev/null)" ]] && continue
-    rm -rf "$wt/$rel"; ln -sfn "$ROOT/$rel" "$wt/$rel"
-  done
+  # The build's tools come with local/ (local/tools), linked below.
   for rel in assets rom venv .venv; do
     [[ -e "$ROOT/$rel" ]] || continue
     rm -rf "$wt/$rel"; ln -sfn "$ROOT/$rel" "$wt/$rel"

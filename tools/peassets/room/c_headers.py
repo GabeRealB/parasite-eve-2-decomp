@@ -31,7 +31,7 @@ def _public() -> dict[str, Path]:
     """The packages' public folders by name, which the build links into its include path (`engine/fs.h`); Sony's
     are spelled from include/psyq, and core's types through types.h."""
     import sys
-    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
+    sys.path.insert(0, str(ROOT / "tools" / "config"))
     from declarations import Declarations
 
     return {name: path for name, path in Declarations().public().items() if name not in ("psyq", "core")}

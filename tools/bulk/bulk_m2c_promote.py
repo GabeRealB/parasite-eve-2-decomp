@@ -14,7 +14,7 @@ symbol maps. This does the source half and verifies the result:
   3. delete the body from its own overlay's .c, and delete the now-covered
      INCLUDE_ASM line from every other carrier -- splat never rewrites an
      existing .c, so a leftover declaration breaks the link;
-  4. `ninja_config.py`, then the bare unscoped build. Only that proves it, since
+  4. `config.py splat`, then the bare unscoped build. Only that proves it, since
      a promotion changes the link layout of every carrier at once.
 
 Anything short of a clean unscoped build reverts the whole promotion, configs
@@ -53,7 +53,7 @@ import overlay_dup_index as D  # noqa: E402
 
 REPO_ROOT = B.REPO_ROOT
 DUP = REPO_ROOT / "tools" / "bulk" / "overlay_dup_index.py"
-NINJA = REPO_ROOT / "ninja_config.py"
+CONFIG = REPO_ROOT / "config.py"
 
 # "ActorsShared801327b4: 9 of 17 copies share src/lib/actors_shared_801327b4.c"
 HEAD_RE = re.compile(
@@ -581,10 +581,10 @@ def run_split(tag: str = "run") -> tuple[bool, str]:
     venv = REPO_ROOT / "venv" / "bin" / "python3"
     if venv.is_file():
         py = str(venv)
-    proc = sh([py, str(NINJA)])
+    proc = sh([py, str(CONFIG), "splat"])
     path = _log(f"{tag}.ninja.log", proc)
     if proc.returncode != 0:
-        return False, f"ninja_config failed ({path}):\n" + signal_lines(
+        return False, f"config.py splat failed ({path}):\n" + signal_lines(
             proc.stdout + "\n" + proc.stderr)
     return True, ""
 

@@ -702,7 +702,7 @@ def c_files(name: str, assets: dict, embedded: dict, assets_root: Path) -> dict[
 
     others = sorted(a for a in im.names if im.in_room(a) and im.names[a] not in objects
                     and not any(at[s] < a < end[s] for s in objects))
-    header = [f"/* {name}: written from its room instance by tools/buildsteps/gen_room_inc.py. */"]
+    header = [f"/* {name}: written from its room instance by tools/config/splat/gen_room_inc.py. */"]
     files: dict[str, list] = {}
     units = _units(package)
     rodata = {s for s in objects for start, stop, _u, sec in units if sec == ".rodata" and start <= at[s] - im.base < stop}

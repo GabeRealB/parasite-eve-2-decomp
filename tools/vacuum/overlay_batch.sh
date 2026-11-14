@@ -178,7 +178,7 @@ cleanup_lease() {
 trap cleanup_lease ERR
 
 # --- is any of this landable here? -------------------------------------------
-# Setting up costs a 235MB asm copy and four submodule clones, so ask before
+# Setting up costs a 235MB asm copy, so ask before
 # paying: does this overlay's own src/ hold an INCLUDE_ASM slot for anything we
 # just claimed? A shared body is claimable here but lives in src/lib,
 # and the landing filter later refuses it - "not landing X here: body is not in
@@ -223,26 +223,14 @@ else
     echo "worktree: $WT ($BRANCH)"
 fi
 
-# The gitignored inputs a fresh worktree lacks. Without the submodule links the
-# cc1 gate silently rejects every header set and every seed comes out untyped -
-# a failure with no error message attached to it.
+# The gitignored inputs a fresh worktree lacks. Without the fetched tools
+# (local/tools: the toolchain, maspsx, m2c, the permuter, asm-differ) the cc1
+# gate silently rejects every header set and every seed comes out untyped - a
+# failure with no error message attached to it.
 ln -sfn "$ROOT/assets" "$WT/assets"
 ln -sfn "$ROOT/venv" "$WT/venv"
-for d in m2c maspsx asm-differ decomp-permuter; do
-    # `[[ ... ]] && continue` returns 1 when the test is false, which fires the
-    # ERR trap and silently released the lease while the script carried on
-    # reporting success. Use a plain if.
-    if [[ ! -L "$WT/tools/$d" ]]; then
-        rm -rf "$WT/tools/$d"
-        ln -sfn "$ROOT/tools/$d" "$WT/tools/$d"
-    fi
-    # These are tracked gitlinks, so replacing them with a symlink is a
-    # modification to a tracked path and `git add -A` stages it - which an agent
-    # did, breaking every submodule in the worktree and with it the build, so
-    # the vacuum's post-match verify failed and the sweep stopped after one
-    # function. .gitignore cannot protect a tracked path; skip-worktree can.
-    git -C "$WT" update-index --skip-worktree "tools/$d" 2>/dev/null || true
-done
+mkdir -p "$WT/local"
+ln -sfn "$ROOT/local/tools" "$WT/local/tools"
 
 if [[ ! -d "$WT/asm" ]]; then
     echo "splitting (a few minutes)..."
@@ -251,7 +239,7 @@ if [[ ! -d "$WT/asm" ]]; then
     # sweeps - the real error (a missing package, from an asset tree being
     # re-extracted underneath them) was only recoverable from other lanes' logs.
     split_log="$WT/.split.log"
-    if ! (cd "$WT" && venv/bin/python3 ninja_config.py >"$split_log" 2>&1); then
+    if ! (cd "$WT" && venv/bin/python3 config.py splat >"$split_log" 2>&1); then
         echo "split failed in $WT" >&2
         tail -15 "$split_log" >&2
         exit 1

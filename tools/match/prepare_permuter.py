@@ -1,31 +1,24 @@
 #!/usr/bin/env python3
-"""Apply repository-owned permuter fixes and refresh its cached parser tables."""
+"""Fetch decomp-permuter as pinned, with the repository's fixes (tools/config/fetch_tools.py applies
+tools/patches/decomp-permuter-*.patch as it fetches), and refresh its cached parser tables."""
 from pathlib import Path
-import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
-PERMUTER = ROOT / 'tools/decomp-permuter'
+sys.path.insert(0, str(ROOT / 'tools' / 'config'))
+import fetch_tools  # noqa: E402
 
 
 def main():
-    for name in ('decomp-permuter-objdump.patch', 'decomp-permuter-sizeof.patch'):
-        patch = ROOT / 'tools' / 'patches' / name
-        command = ['git', '-C', str(PERMUTER), 'apply']
-        ready = subprocess.run(command + ['--check', str(patch)], capture_output=True)
-        if ready.returncode == 0:
-            subprocess.run(command + [str(patch)], check=True)
-            print(f'Applied {name}')
-        else:
-            applied = subprocess.run(command + ['--reverse', '--check', str(patch)], capture_output=True)
-            if applied.returncode:
-                sys.exit(f'Cannot apply {name}; inspect local permuter changes before searching.\n'
-                         + ready.stderr.decode(errors='replace'))
+    try:
+        permuter = fetch_tools.ensure('decomp-permuter')
+    except fetch_tools.FetchError as error:
+        sys.exit(f'prepare_permuter: {error}')
     # optimize=True silently accepts stale yacc tables even after grammar edits.
     # False checks the grammar signature and regenerates only when necessary.
-    sys.path.insert(0, str(PERMUTER))
+    sys.path.insert(0, str(permuter))
     from perm_pycparser.c_parser import CParser
-    CParser(yacc_optimize=False, taboutputdir=str(PERMUTER / 'perm_pycparser'))
+    CParser(yacc_optimize=False, taboutputdir=str(permuter / 'perm_pycparser'))
 
 
 if __name__ == '__main__':

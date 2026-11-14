@@ -17,17 +17,19 @@ CC_OUTPUT="$(realpath "${1//.c/.s}")"
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_PATH/../.." && pwd)"
 
-CC="$PROJECT_ROOT/tools/linux/gcc-2.8.1-psx/cc1"
-CPP="mips-linux-gnu-cpp"
+# The toolchain the build fetches (`config.py splat fetch-tools`).
+fetched() { python3 "$PROJECT_ROOT/config.py" splat fetch-tools --path "$1"; }
+CC="$(fetched gcc-psx)/cc1"
+CPP="$(fetched aro-cpp)/cpp"
 
-INCLUDE_FLAGS="-I $PROJECT_ROOT/include -I $PROJECT_ROOT/build -I $PROJECT_ROOT/build/include -I $PROJECT_ROOT/include/psyq -I $PROJECT_ROOT/include/decomp -I $PROJECT_ROOT/tools/m2c"
+INCLUDE_FLAGS="-I $PROJECT_ROOT/include -I $PROJECT_ROOT/build -I $PROJECT_ROOT/build/include -I $PROJECT_ROOT/include/psyq -I $PROJECT_ROOT/include/decomp -I $(fetched m2c)"
 OPT_FLAGS="-O2"
-CPP_FLAGS="$INCLUDE_FLAGS -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
+CPP_FLAGS="$INCLUDE_FLAGS -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -nostdinc"
 CC_FLAGS="$OPT_FLAGS -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp"
 
 pushd "$PROJECT_ROOT" > /dev/null
 
-$CPP -P -MMD -MP -MT "$CPP_OUTPUT" -MF "${CPP_OUTPUT}.d" $CPP_FLAGS \
+$CPP -E -quiet -P -MMD "${CPP_OUTPUT}.d" -MF "${CPP_OUTPUT}.d" -MP -MT "$CPP_OUTPUT" $CPP_FLAGS \
     -DVER_USA -DSKIP_ASM \
     -o "$CPP_OUTPUT" "$INPUT"
 rm -f "${CPP_OUTPUT}.d"

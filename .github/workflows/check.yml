@@ -36,10 +36,11 @@ jobs:
           cp -r -p /rom/* ./rom/image
 
       - name: Extract ROM
-        run: python3 ./ninja_config.py --iso_build
+        run: python3 ./config.py splat extract
 
       - name: Setup Environment
-        run: python3 ./ninja_config.py
+        run: python3 ./config.py splat
 
       - name: Build and Check for Match
-        run: ninja
+        run: |
+          "$(python3 config.py splat fetch-tools --path ninja)/ninja"

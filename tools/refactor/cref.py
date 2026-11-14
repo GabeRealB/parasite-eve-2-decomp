@@ -75,7 +75,7 @@ def load_db(root: str, version: str = DEFAULT_VERSION) -> dict[str, list[str]]:
     path = os.path.join(root, "compile_commands.json")
     if not os.path.exists(path):
         sys.exit(
-            "compile_commands.json is missing; run ninja_config.py in this tree first"
+            "compile_commands.json is missing; run config.py splat in this tree first"
         )
     marker = f"-DVER_{version}"
     entries = json.load(open(path))

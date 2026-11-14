@@ -36,16 +36,18 @@ jobs:
           cp -r -p /rom/* ./rom/image
 
       - name: Extract ROM
-        run: python3 ./ninja_config.py --iso_build
+        run: python3 ./config.py splat extract
 
       - name: Setup Environment
-        run: python3 ./ninja_config.py --objdiff_config
+        run: python3 ./config.py splat
 
       - name: Build Objects
-        run: ninja
+        run: |
+          "$(python3 config.py splat fetch-tools --path ninja)/ninja" objdiff
 
       - name: Generate Progress Report
-        run: ./tools/objdiff/objdiff-cli report generate -o ./build/USA/progress.json
+        run: |
+          "$(python3 config.py splat fetch-tools --path objdiff-cli)/objdiff-cli" report generate -o ./build/USA/progress.json
 
       - name: Upload Progress Report
         uses: actions/upload-artifact@v4

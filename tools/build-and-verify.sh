@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Format project sources, then build and verify the matching binary.
 #
-# Usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean] [--project DIR]
+# Usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]
 #
 # With --only, splits and builds just those units and checksums only what it
 # built - a family (core, weapons) or a single basename (gameplay, m93r).
@@ -9,12 +9,12 @@
 # inner loop while matching one function; finish with an unscoped run before
 # calling anything done.
 #
-# Both re-split only the units whose split would change (tools/split_cache.py)
-# and rebuild incrementally. --clean wipes asm/, linkers/ and build/ and splits
-# everything, as every run used to.
+# Both re-split only the units whose split would change and rebuild
+# incrementally (`config.py splat`). --clean wipes asm/, linkers/ and build/
+# and splits everything, as every run used to.
 #
-# --project DIR builds the project in DIR instead of the extraction's data in
-# assets/<release>, reached through the link build/<release>/project.
+# An editor project is built by the editor: `python3 config.py editor [DIR] &&
+# ninja` runs its build and holds its images to the checksums.
 #
 # Formats:
 #   - src/**/*.{c,h}
@@ -29,9 +29,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-ARGS=("$@")
 SCOPE_ARGS=()
-PROJECT_ARGS=()
 SCOPE_LABEL=""
 CLEAN=0
 while [[ $# -gt 0 ]]; do
@@ -43,23 +41,15 @@ while [[ $# -gt 0 ]]; do
             SCOPE_ARGS+=(--only "${1#*=}"); SCOPE_LABEL="${SCOPE_LABEL:+$SCOPE_LABEL,}${1#*=}"; shift ;;
         --clean)
             CLEAN=1; shift ;;
-        --project)
-            [[ $# -ge 2 ]] || { echo "build-and-verify.sh: --project needs a directory" >&2; exit 2; }
-            PROJECT_ARGS=(--project "$2"); shift 2 ;;
         -h|--help)
             sed -n "2,16p" "$0"; exit 0 ;;
         *)
             echo "build-and-verify.sh: unknown argument '$1'" >&2
-            echo "usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean] [--project DIR]" >&2
+            echo "usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]" >&2
             exit 2 ;;
     esac
 done
 
-# A build of a project holds the project's lock throughout - configuring and building both read it - so it runs
-# again under the lock (tools/project_lock.py), which waits while another process holds the project.
-if [[ ${#PROJECT_ARGS[@]} -gt 0 && -z "${PE2_PROJECT_LOCKED:-}" ]]; then
-    exec python3 tools/project_lock.py "${PROJECT_ARGS[1]}" "tools/build-and-verify.sh" -- "$0" "${ARGS[@]}"
-fi
 
 # Prefer the project venv. Agent CLIs (especially grok) often invoke this
 # script with a PATH that has system python3 and no splat/spimdisasm.
@@ -141,7 +131,7 @@ fi
 # the same build. --clean starts from nothing.
 FRESH_ARGS=()
 if [[ $CLEAN -eq 1 ]]; then
-    "$PYTHON" ninja_config.py -c 1>/dev/null
+    "$PYTHON" config.py clean 1>/dev/null
     FRESH_ARGS=(--fresh)
 fi
 if [[ ${#SCOPE_ARGS[@]} -eq 0 ]]; then
@@ -157,11 +147,13 @@ fi
 # like the error. Keep it, and print it when the build fails.
 NINJA_LOG="$(mktemp -t pe2-ninja-XXXXXX.log)"
 ninja_failed=0
-"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" "${FRESH_ARGS[@]+"${FRESH_ARGS[@]}"}" "${PROJECT_ARGS[@]+"${PROJECT_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
+"$PYTHON" config.py splat "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" "${FRESH_ARGS[@]+"${FRESH_ARGS[@]}"}" 1>/dev/null || ninja_failed=1
 if [[ $ninja_failed -eq 0 ]]; then
-    # PE2_JOBS caps parallelism when several trees build at once (the naming
-    # pass's workers); ninja's own default is every CPU plus two.
-    ninja ${PE2_JOBS:+-j "$PE2_JOBS"} >"$NINJA_LOG" 2>&1 || ninja_failed=1
+    # ninja as fetched (tools/config/fetched_tools.toml). PE2_JOBS caps
+    # parallelism when several trees build at once (the naming pass's workers);
+    # ninja's own default is every CPU plus two.
+    NINJA="$("$PYTHON" config.py splat fetch-tools --path ninja)/ninja"
+    "$NINJA" ${PE2_JOBS:+-j "$PE2_JOBS"} >"$NINJA_LOG" 2>&1 || ninja_failed=1
 fi
 
 if [[ $ninja_failed -eq 0 ]]; then

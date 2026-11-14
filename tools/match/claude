@@ -60,7 +60,7 @@ done
 
 CLAUDE_DIR="$ROOT/tools/claude-decomp-env"
 CLAUDE_CONFIG="$ROOT/.claude"
-M2C="$ROOT/tools/m2c/m2c.py"
+M2C="$(python3 "$ROOT/config.py" splat fetch-tools --path m2c)/m2c.py"
 OVERLAY_PY="$ROOT/tools/match/decomp_overlay.py"
 
 create_unique_dir() {

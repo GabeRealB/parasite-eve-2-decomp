@@ -1,4 +1,4 @@
-# Declarations: the rooms' dialogues (tools/editor_project/dialogue.py).
+# Declarations: the rooms' dialogues (tools/config/editor/dialogue.py).
 
 [motel_lobby_night_dialogue_2]
 uid = "uid://fktw5lkxvkqn"

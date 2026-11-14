@@ -1,4 +1,4 @@
-# Declarations: the text of dryfield's dialogues, by key (tools/editor_project/dialogue.py).
+# Declarations: the text of dryfield's dialogues, by key (tools/config/editor/dialogue.py).
 
 [dialogue]
 uid = "uid://5342mzo1oy32"

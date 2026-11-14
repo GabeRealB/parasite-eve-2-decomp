@@ -33,7 +33,11 @@ def import_c_file(in_file) -> str:
 
     if sys.platform == "win32":
         delete_file = False
-        cpp = "tools/windows/gcc-win/bin/gcc"
+        # MinGW's GCC, as the build fetches it (tools/config/fetch_tools.py: mingw-gcc).
+        sys.path.insert(0, os.path.join(root_dir, "tools", "config"))
+        import fetch_tools
+
+        cpp = str(fetch_tools.ensure("mingw-gcc") / "bin" / "gcc.exe")
     else:
         delete_file = True
         cpp = "gcc"

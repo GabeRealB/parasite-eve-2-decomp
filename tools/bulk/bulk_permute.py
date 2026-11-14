@@ -91,13 +91,15 @@ def run_one(row: dict, staged: Path, timeout: int, threads: int) -> dict:
         return result
 
     # permute.sh preprocesses with `-Iinclude -Iinclude/decomp -Iinclude/psyq`,
-    # which does not reach tools/m2c, so a --valid-syntax seed's
+    # which does not reach the fetched m2c, so a --valid-syntax seed's
     # `#include "m2c_macros.h"` kills the preprocess and leaves an empty base.c
     # ("Function ... not found in base.c"). 439 of the 516 near seeds are that
     # shape. Inline the header instead of editing the shared script.
     text = seed.read_text()
     if "m2c_macros.h" in text:
-        macros = (REPO_ROOT / "tools" / "m2c" / "m2c_macros.h").read_text()
+        sys.path.insert(0, str(REPO_ROOT / "tools" / "config"))
+        import fetch_tools
+        macros = (fetch_tools.ensure("m2c") / "m2c_macros.h").read_text()
         text = text.replace('#include "m2c_macros.h"', macros)
         prepared = staged / "permute-src" / f"{func}.c"
         prepared.parent.mkdir(parents=True, exist_ok=True)

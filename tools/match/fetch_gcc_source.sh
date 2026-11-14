@@ -9,8 +9,9 @@
 # pulling 2.95.3 - seven years newer, different scheduler and CSE. Nothing in
 # the matching loop catches a conclusion drawn from the wrong compiler.
 #
-# And stock 2.8.1 is not what we build with either: tools/linux/gcc-2.8.1-psx
-# comes from decompals/old-gcc, which patches the tree before building. This
+# And stock 2.8.1 is not what we build with either: the cc1 the build fetches
+# (gcc-psx) and the one the tracers fetch (old-gcc's) are built from the tree
+# decompals/old-gcc patches. This
 # applies the same patches, so what you read is what compiled the object.
 # It does NOT build anything - source only.
 #
@@ -85,8 +86,8 @@ cat > "$DEST/README.md" <<'NOTE'
 Regenerate with `tools/match/fetch_gcc_source.sh`. Gitignored via `local/`; GCC is
 GPL and nothing here is redistributed by this repository.
 
-* `gcc-2.8.1-psx/` - stock 2.8.1 plus the decompals patches, matching
-  `tools/linux/gcc-2.8.1-psx/cc1`.
+* `gcc-2.8.1-psx/` - stock 2.8.1 plus the decompals patches, from which the
+  fetched `cc1`s are built (`tools/config/fetch_tools.py`: gcc-psx, old-gcc).
 * `patches/` - the patch set, with the upstream commit in `.commit`.
 
 Read **only** this tree. If a question needs a different GCC to answer, the

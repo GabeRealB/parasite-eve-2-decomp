@@ -621,7 +621,7 @@ Also carry across, merging rather than replacing:
   - configs/USA/overlays.toml    (only the entries the worktree changed)
 
 Then:
-  1. If configs/USA/overlays.toml changed, re-split: venv/bin/python3 ninja_config.py
+  1. If configs/USA/overlays.toml changed, re-split: venv/bin/python3 config.py splat
   2. ./tools/build-and-verify.sh  - require the '✅ BUILD SUCCEEDED' line, and check
      the exit status explicitly. Never pipe it into tail or head under set -e.
      Run it, and everything else, in the foreground and wait for it. This is a
@@ -983,7 +983,7 @@ rm -f "$funcs_file"
 # A manifest change only takes effect after a re-split.
 if printf '%s\n' "${EXTRAS[@]}" | grep -q 'configs/USA/overlays.toml'; then
     log "manifest changed; re-splitting"
-    venv/bin/python3 ninja_config.py >>"$LOG_FILE" 2>&1 || {
+    venv/bin/python3 config.py splat >>"$LOG_FILE" 2>&1 || {
         log "re-split failed"; exit 1; }
 fi
 

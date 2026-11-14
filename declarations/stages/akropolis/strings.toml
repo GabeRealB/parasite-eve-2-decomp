@@ -1,4 +1,4 @@
-# Declarations: the text of akropolis's dialogues, by key (tools/editor_project/dialogue.py).
+# Declarations: the text of akropolis's dialogues, by key (tools/config/editor/dialogue.py).
 
 [dialogue]
 uid = "uid://15e4yena0gh1e"

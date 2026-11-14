@@ -20,7 +20,7 @@ RUN=false
 THREADS=4
 TIMEOUT=""
 
-# Small-data threshold. Must match ninja_config.py, or the permuter compiles
+# Small-data threshold. Must match tools/config/splat/configure.py, or the permuter compiles
 # with gp-relative addressing the target does not use.
 G_OPTION="-G0"
 
@@ -89,9 +89,15 @@ if [[ ! -x "$PYTHON" ]]; then
     PYTHON="python3"
 fi
 
-# Keep upstream-submodule fixes as repository-owned patches: objdump must
-# accept bare-hex jump targets, and sizeof(type) must survive parser emission.
-# Preparation also refreshes the cached yacc table after a grammar change.
+# The tools the build fetches (`config.py splat fetch-tools`): the toolchain, maspsx, and decomp-permuter with the
+# repository's fixes applied as it is fetched (objdump accepts bare-hex jump targets, sizeof(type) survives parser
+# emission). Preparation refreshes the permuter's cached yacc table after a grammar change.
+fetched() { "$PYTHON" "$SCRIPT_DIR/config.py" splat fetch-tools --path "$1"; }
+CC1="$(fetched gcc-psx)/cc1"
+CPP="$(fetched aro-cpp)/cpp"
+AS="$(fetched binutils-mipsel)/mips-linux-gnu-as"
+MASPSX="$(fetched maspsx)/maspsx.py"
+PERMUTER="$(fetched decomp-permuter)/permuter.py"
 "$PYTHON" "$SCRIPT_DIR/tools/match/prepare_permuter.py"
 
 # Clean the directory if the --clean flag is set
@@ -122,9 +128,9 @@ echo "Creating compile.sh file"
     echo ''
     printf 'cd %q\n' "$SCRIPT_DIR"
     echo ''
-    echo 'mips-linux-gnu-cpp -P -MMD -MP -MT "$INPUT_I" -MF "$INPUT_D" -Iinclude -Iinclude/psyq -I build -I build/include -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc -o "$INPUT_I" "$INPUT"'
-    echo "tools/linux/gcc-2.8.1-psx/cc1 -O2 $G_OPTION -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -o \"\$INPUT_S\" \"\$INPUT_I\""
-    echo "python3 tools/maspsx/maspsx.py --aspsx-version=2.77 --run-assembler --expand-div -EL -Iinclude -Iinclude/psyq -I build -O2 $G_OPTION -march=r3000 -mtune=r3000 -no-pad-sections -o \"\$OUTPUT\" \"\$INPUT_S\" < /dev/null"
+    printf '%q -E -quiet -P -MMD "$INPUT_D" -MF "$INPUT_D" -MP -MT "$INPUT_I" -Iinclude -Iinclude/psyq -I build -I build/include -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -nostdinc -o "$INPUT_I" "$INPUT"\n' "$CPP"
+    printf '%q -O2 %s -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -o "$INPUT_S" "$INPUT_I"\n' "$CC1" "$G_OPTION"
+    printf 'python3 %q --aspsx-version=2.77 --gnu-as-path %q --run-assembler --expand-div -EL -Iinclude -Iinclude/psyq -I build -O2 %s -march=r3000 -mtune=r3000 -no-pad-sections -o "$OUTPUT" "$INPUT_S" < /dev/null\n' "$MASPSX" "$AS" "$G_OPTION"
 } > permuter/$FUNCTION_NAME/compile.sh
 
 chmod +x permuter/$FUNCTION_NAME/compile.sh
@@ -147,7 +153,7 @@ echo "Preprocessing the C function $C_FUNCTION and saving to permuter/$FUNCTION_
 gcc -E -P -Iinclude -Iinclude/decomp -Iinclude/psyq -Ibuild/include -DPERMUTER $C_FUNCTION > permuter/$FUNCTION_NAME/base.c
 
 echo "Assembling the ASM function permuter/$FUNCTION_NAME/target.o"
-mips-linux-gnu-as -EL -Iinclude -Iinclude/decomp -Iinclude/psyq -I build -O2 -march=r3000 -mtune=r3000 -no-pad-sections $G_OPTION -o permuter/$FUNCTION_NAME/target.o permuter/$FUNCTION_NAME/target.s
+"$AS" -EL -Iinclude -Iinclude/decomp -Iinclude/psyq -I build -O2 -march=r3000 -mtune=r3000 -no-pad-sections $G_OPTION -o permuter/$FUNCTION_NAME/target.o permuter/$FUNCTION_NAME/target.s
 
 # Run decomp-permuter if the --run flag is set
 if [ "$RUN" = true ]; then
@@ -164,7 +170,7 @@ if [ "$RUN" = true ]; then
 
     echo "Running decomp-permuter"
     PERM_CMD=(
-        "$PYTHON" tools/decomp-permuter/permuter.py
+        "$PYTHON" "$PERMUTER"
         -j"$THREADS"
         --better-only
         --stop-on-zero

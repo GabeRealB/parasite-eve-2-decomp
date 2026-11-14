@@ -1,0 +1,748 @@
+#!/usr/bin/env python3
+"""Generate splat configs for the overlay families listed in overlays.toml.
+
+main / gameplay stay hand-written: each has quirks a template cannot
+express. Every other overlay is a flat `.pe2pkg` with the same shape, and there
+are 442 of them, so they are generated instead - from one template plus a
+manifest that holds only the decisions a person actually made (the overlay's
+name, and what it is).
+
+Everything checkable is derived from the package rather than written down:
+
+``sha1`` / ``size``
+    Read off the file, so a config cannot drift from the data it describes.
+An overlay **is** an extracted package. The manifest key is the package's name
+and the config is built from the project's ``pe2pkg/<key>.pe2pkg`` (through ``build/USA/project``); file ids do not
+appear. Several stage-0 ids load one package - the extractor dedups by SHA-1, so
+`10500` and `10600` are a single file - but that is the extractor's business,
+and naming the package there (``tools/peassets/asset_data.py``) is what makes it
+a single thing here. One package, one entry, one split, one set of symbols.
+
+``.text`` span
+    Found the same way ``doc/OVERLAYS.md`` §4.3 does - first stack-frame
+    prologue through the last ``jr $ra`` plus its delay slot. The detector
+    reproduces the known title and gameplay spans exactly. A wrong span shows
+    up as a failed build, not as silent corruption, and an overlay can pin it
+    with `text = [start, end]` in the manifest if the detector ever misses.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import struct
+import sys
+import tomllib
+from pathlib import Path
+
+MANIFEST = Path("configs/USA/overlays.toml")
+PACKAGE_DIR = Path("build/USA/project/pe2pkg")     # the packages, through the build's link (project.py)
+TEMPLATE = Path("configs/USA/overlay.template.yaml")
+OUT_DIR = Path("configs/USA/generated")
+
+ADDIU_SP = 0x27BD0000  # addiu $sp, $sp, -N  (negative immediate)
+JR_RA = 0x03E00008
+
+
+def text_span(data: bytes) -> tuple[int, int] | None:
+    """Byte range of the code region, or None for a data-only package."""
+    n = len(data) // 4
+    words = struct.unpack_from(f"<{n}I", data, 0)
+    starts = [i for i, w in enumerate(words) if (w & 0xFFFF0000) == ADDIU_SP and w & 0x8000]
+    if not starts:
+        return None
+    ends = [i for i, w in enumerate(words) if w == JR_RA]
+    if not ends:
+        return None
+    return min(starts) * 4, (max(ends) + 2) * 4
+
+
+def trailing_segment(name: str, data: bytes) -> list[str]:
+    """Cover a package whose size is not word-aligned.
+
+    Package sizes are byte counts, not word counts, so a file can end part-way
+    through a word. Without this the linker stops at the last whole word and the
+    build comes out a couple of bytes short with every other byte identical -
+    which `title` needed for its own 0x14AA size.
+
+    Which segment depends on what those bytes are. `pad` emits zeros, so it is
+    only correct when the tail *is* zeros. A tail with content needs `databin`,
+    which writes the bytes out and .incbin's them back rather than inventing
+    them.
+
+    A unit whose C defines the image through its last byte is marked
+    `tail = true` in the manifest, and then no segment is added: the partial
+    word is the end of its last object, which the compiler emits itself.
+    """
+    tail = data[len(data) & ~3 :]
+    if not tail:
+        return []
+    start = f"0x{len(data) & ~3:X}"
+    if not any(tail):
+        return [f"      - [{start}, pad]"]
+    return [f"      - [{start}, databin, {name}_tail]"]
+
+
+def check_c_data_owner(name: str, objects: list[dict], start: int, end: int, size: int) -> None:
+    """An embedded resource must fit wholly within a code unit's data run."""
+    runs = sorted(
+        (int(str(obj["data"]), 16), True)
+        if "unit" in obj else (int(str(obj["at"]), 16), False)
+        for obj in objects
+        if ("unit" in obj and "data" in obj)
+        or (obj.get("kind") in ("data", "model", "modelSource", "animation", "collision", "collisionSource")
+            and not obj.get("in_c"))
+    )
+    owner = next((is_c for at, is_c in reversed(runs) if at <= start), False)
+    limit = next((at for at, _ in runs if at > start), size)
+    if not owner or end > limit:
+        raise SystemExit(f"{name}: C resource at 0x{start:X}..0x{end:X} has no C data owner")
+
+
+def check_model_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
+    """Every `model` object is exactly the model its `modelSource` record describes.
+
+    The manifest declares both; this decodes the record at the declared offset
+    and requires the model object to be its arrays and stream, from the lowest
+    array to the record, so neither boundary can be misplaced.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    from model import tmd
+
+    kinds = [(obj.get("kind"), int(str(obj["at"]), 16) if "at" in obj else None) for obj in objects]
+    # Where each object's runs begin: a run's `at`, and every section a unit owns.
+    starts = sorted(int(str(obj[k]), 16) for obj in objects for k in ("at", "rodata", "text", "data") if k in obj)
+    for i, (kind, at) in enumerate(kinds):
+        if kind == "model":
+            nxt = kinds[i + 1] if i + 1 < len(kinds) else (None, None)
+            if nxt[0] != "modelSource":
+                raise SystemExit(f"{name}: model at 0x{at:X} is not followed by its modelSource")
+        elif kind == "modelSource":
+            if i == 0 or kinds[i - 1][0] != "model":
+                raise SystemExit(f"{name}: modelSource at 0x{at:X} does not follow a model")
+            try:
+                src = tmd.read_source(data, load, at)
+            except ValueError as e:
+                raise SystemExit(f"{name}: modelSource {e}")
+            model_at = kinds[i - 1][1]
+            if src["head"] != model_at or src["end"] != at:
+                raise SystemExit(
+                    f"{name}: the record at 0x{at:X} describes a model at "
+                    f"0x{src['head']:X}..0x{src['end']:X}, not the declared 0x{model_at:X}..0x{at:X}")
+            if objects[i - 1].get("in_c"):
+                check_c_data_owner(name, objects, model_at, at, len(data))
+            if objects[i].get("in_c"):
+                check_c_data_owner(name, objects, at, at + tmd.TMD_SOURCE_SIZE, len(data))
+            else:
+                end = next((a for a in starts if a > at), len(data))
+                if end != at + tmd.TMD_SOURCE_SIZE:
+                    raise SystemExit(f"{name}: modelSource at 0x{at:X} runs to 0x{end:X}, not its record's end")
+
+
+def _manifest_models(manifest: dict) -> list[dict]:
+    """Every model the manifest declares, with its package, load address and record.
+
+    One row per package, so an object list shared by several slots yields a row
+    for each package it describes.
+    """
+    rows = []
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        entry_names = {id(e): n for n, e in spec["overlays"].items()}
+        for name, slot, entry in slot_packages(spec):
+            objects = slot.get("objects") or entry["objects"]
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            for i, obj in enumerate(objects):
+                if obj.get("kind") == "modelSource":
+                    rows.append({
+                        "family": family,
+                        "entry": entry_names[id(entry)],
+                        "package": name,
+                        "load": load,
+                        "model": int(str(objects[i - 1]["at"]), 16),
+                        "source": int(str(obj["at"]), 16),
+                        "in_c": bool(objects[i - 1].get("in_c")),
+                    })
+    return rows
+
+
+def _asset_rows(manifest: dict, rows: list[dict], placed: list[dict], key: str) -> list[dict]:
+    """The manifest's rows, and those of the objects the asset declarations place that it does not declare: each
+    package's assets are moving out of the manifest into the packages' own declarations (package.py)."""
+    where = {}
+    for family, spec in manifest.items():
+        if isinstance(spec, dict) and "overlays" in spec:
+            entry_names = {id(e): n for n, e in spec["overlays"].items()}
+            for name, _slot, entry in slot_packages(spec):
+                where[name] = (family, entry_names[id(entry)])
+    have = {(r["package"], r[key]) for r in rows}
+    extra = [{"family": where[p["package"]][0], "entry": where[p["package"]][1], **p}
+             for p in placed if p["package"] in where and (p["package"], p[key]) not in have]
+    return rows + extra
+
+
+def _asset_tables():
+    root = Path(__file__).resolve().parents[3] / "tools" / "peassets"
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    import asset_data
+    import package
+    return asset_data, package
+
+
+def declared_models(manifest: dict) -> list[dict]:
+    """Models, one row per package carrying one: its arrays (`model`) and its TmdSource record (`source`)."""
+    data, package = _asset_tables()
+    return _asset_rows(manifest, _manifest_models(manifest), package.placed_models(data.ASSETS, data.EMBEDDED_ASSETS),
+                       "model")
+
+
+def declared_collisions(manifest: dict) -> list[dict]:
+    """Collision grids, one row per package: the grid's first array and its header."""
+    data, package = _asset_tables()
+    return _asset_rows(manifest, _manifest_collisions(manifest),
+                       package.placed_collisions(data.ASSETS, data.EMBEDDED_ASSETS)[0], "source")
+
+
+def declared_collision_patches(manifest: dict) -> list[dict]:
+    """Collision patches: headerless runs of grid arrays that code copies into a live grid."""
+    data, package = _asset_tables()
+    return _asset_rows(manifest, _manifest_collision_patches(manifest),
+                       package.placed_collisions(data.ASSETS, data.EMBEDDED_ASSETS)[1], "offset")
+
+
+def declared_resident_models(resident: dict) -> list[dict]:
+    """The models configs/USA/resident.toml declares in the resident images, as declared_models rows."""
+    rows = []
+    for image, spec in resident.items():
+        objects = spec.get("objects") or []
+        for i, obj in enumerate(objects):
+            if obj.get("kind") == "modelSource":
+                rows.append({"family": "resident", "entry": image, "package": image, "load": int(spec["load_addr"]),
+                             "model": int(str(objects[i - 1]["at"]), 16), "source": int(str(obj["at"]), 16),
+                             "in_c": bool(objects[i - 1].get("in_c"))})
+    return rows
+
+
+def check_animation_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
+    """An animation resource contains exactly its declared exported sets."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    import pkg_anim
+
+    starts = sorted(
+        int(str(obj[key]), 16)
+        for obj in objects if not obj.get("in_c")
+        for key in ("at", "rodata", "text", "data") if key in obj
+    )
+    for obj in objects:
+        if obj.get("kind") != "animation":
+            continue
+        at = int(str(obj["at"]), 16)
+        cursor = at
+        if not obj.get("sets"):
+            raise SystemExit(f"{name}: animation at 0x{at:X} declares no sets")
+        for offset in obj["sets"]:
+            try:
+                aset = pkg_anim.read_set(data, load, int(str(offset), 16))
+            except ValueError as exc:
+                raise SystemExit(f"{name}: {exc}")
+            if aset["head"] != cursor:
+                raise SystemExit(f"{name}: animation at 0x{at:X} has a gap or overlap at 0x{cursor:X}")
+            cursor = aset["end"]
+        end = next((start for start in starts if start > at), len(data))
+        if obj.get("in_c"):
+            check_c_data_owner(name, objects, at, cursor, len(data))
+        elif cursor != end:
+            raise SystemExit(f"{name}: animation at 0x{at:X} ends at 0x{cursor:X}, not 0x{end:X}")
+
+
+def declared_animations(manifest: dict) -> list[dict]:
+    """Animation resources and their exported sets, once per physical package."""
+    rows = []
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        for name, slot, entry in slot_packages(spec):
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            for obj in slot.get("objects") or entry["objects"]:
+                if obj.get("kind") == "animation":
+                    rows.append(dict(
+                        family=family, package=name, load=load,
+                        offset=int(str(obj["at"]), 16),
+                        sets=[int(str(at), 16) for at in obj["sets"]],
+                        in_c=bool(obj.get("in_c")),
+                    ))
+    return rows
+
+
+def _manifest_collisions(manifest: dict) -> list[dict]:
+    """Collision grids, one row per package: the grid's first array and its header."""
+    rows = []
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        for name, slot, entry in slot_packages(spec):
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            objects = slot.get("objects") or entry["objects"]
+            for i, obj in enumerate(objects):
+                if obj.get("kind") == "collisionSource":
+                    rows.append(dict(
+                        family=family, package=name, load=load,
+                        grid=int(str(objects[i - 1]["at"]), 16),
+                        source=int(str(obj["at"]), 16),
+                        in_c=bool(obj.get("in_c")),
+                        cell_face_list_macro=obj.get("cell_face_list_macro", "GRID_CELL"),
+                    ))
+    return rows
+
+
+def _manifest_collision_patches(manifest: dict) -> list[dict]:
+    """Collision patches: headerless runs of grid arrays that code copies into a live grid."""
+    rows = []
+    for family, spec in manifest.items():
+        if not isinstance(spec, dict) or "overlays" not in spec:
+            continue
+        slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+        for name, slot, entry in slot_packages(spec):
+            load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+            for obj in slot.get("objects") or entry["objects"]:
+                if obj.get("kind") == "collisionPatch":
+                    rows.append(dict(family=family, package=name, load=load,
+                                     offset=int(str(obj["at"]), 16), pieces=list(obj["pieces"]),
+                                     in_c=bool(obj.get("in_c"))))
+    return rows
+
+
+def check_collision_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
+    """Every `collision` object is exactly the grid its `collisionSource` header describes."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from gen_collision_inc import HEADER_SIZE, components
+
+    kinds = [(obj.get("kind"), int(str(obj["at"]), 16) if "at" in obj else None) for obj in objects]
+    for i, (kind, at) in enumerate(kinds):
+        if kind == "collisionPatch":
+            from gen_collision_inc import patch_pieces
+            if not objects[i].get("in_c"):
+                raise SystemExit(f"{name}: collisionPatch at 0x{at:X} is only supported in C")
+            try:
+                parts = patch_pieces(at, list(objects[i]["pieces"]))
+            except ValueError as e:
+                raise SystemExit(f"{name}: {e}")
+            check_c_data_owner(name, objects, at, parts[-1]["offset"] + parts[-1]["size"], len(data))
+            continue
+        if kind == "collision" and (i + 1 >= len(kinds) or kinds[i + 1][0] != "collisionSource"):
+            raise SystemExit(f"{name}: collision at 0x{at:X} is not followed by its collisionSource")
+        if kind != "collisionSource":
+            continue
+        if i == 0 or kinds[i - 1][0] != "collision":
+            raise SystemExit(f"{name}: collisionSource at 0x{at:X} does not follow a collision")
+        try:
+            parts = components(data, load, at)
+        except ValueError as e:
+            raise SystemExit(f"{name}: {e}")
+        if parts[0]["offset"] != kinds[i - 1][1]:
+            raise SystemExit(f"{name}: the grid header at 0x{at:X} describes a grid at "
+                             f"0x{parts[0]['offset']:X}, not the declared 0x{kinds[i - 1][1]:X}")
+        if bool(objects[i - 1].get("in_c")) != bool(objects[i].get("in_c")):
+            raise SystemExit(f"{name}: a grid and its header at 0x{at:X} must both be C or both be assembly")
+        if objects[i].get("in_c"):
+            # The arrays and the header may belong to different units.
+            check_c_data_owner(name, objects, kinds[i - 1][1], at, len(data))
+            check_c_data_owner(name, objects, at, at + HEADER_SIZE, len(data))
+
+
+def object_subsegments(
+    name: str, family: str, objects: list[dict], data: bytes, load: int, pkg_id: int,
+    entry_name: str | None = None, defines: dict | None = None, src_dir: str | None = None,
+) -> str:
+    """The package layout as splat subsegment lines, from the manifest's object list.
+
+    An object is one translation unit with runs in whichever sections it owns,
+    or a run of assembly nobody has claimed. splat lists an object in the linker
+    script at its first subsegment and concatenates a section's contributions in
+    that order, so the single ordered list the manifest carries is exactly what
+    determines link order - there is nothing left to stitch together here.
+
+    Assembly runs are named for the offset they start at. Naming them by their
+    position in the walk meant inserting one renamed every later run, which is
+    the defect the object list exists to remove.
+    """
+    check_model_records(name, objects, data, load)
+    check_animation_records(name, objects, data, load)
+    check_collision_records(name, objects, data, load)
+    lines: list[str] = []
+    for obj in objects:
+        kind = obj.get("kind")
+        if obj.get("in_c"):
+            if kind not in ("model", "modelSource", "animation", "collision", "collisionSource", "collisionPatch"):
+                raise SystemExit(f"{name}: in_c is only supported for model, animation, and collision declarations")
+            continue
+        if kind == "packageId":
+            if pkg_id is None:
+                raise SystemExit(
+                    f"{name}: has a packageId object but declares no `id`")
+            # Written by the link (tools/splat_ext/pkgid.py), not compiled.
+            lines.append((0x0, f"      - {{start: 0x0, type: pkgid, name: packageid, id: {int(pkg_id)}}}"))
+            continue
+        if kind == "pad":
+            at = int(str(obj["at"]), 16)
+            if not (0 < len(data) - at <= 3) or any(data[at:]):
+                raise SystemExit(f"{name}: explicit pad must cover 1-3 zero bytes at the package end")
+            lines.append((at, f"      - [0x{at:X}, pad]"))
+            continue
+        if kind in ("data", "model", "modelSource", "animation", "collision", "collisionSource", "rodata"):
+            at = int(str(obj["at"]), 16)
+            typ = {"model": "databin", "modelSource": "data", "collision": "databin",
+                   "animation": "databin", "collisionSource": "data", "data": "data", "rodata": "rodata"}[kind]
+            lines.append((at, f"      - [0x{at:X}, {typ}, {name}_{kind}_{at:05X}]"))
+            continue
+        unit = str(obj["unit"])
+        lib = obj.get("lib", False)
+        if lib is not True and "lib" in obj:
+            raise SystemExit(f"{name}: {unit}: `lib` is a flag, write `lib = true`")
+        if lib and "text" not in obj:
+            # splat gives a unit's .rodata/.data the object of its C sibling.
+            # Without one it would imply a source under the family instead.
+            raise SystemExit(f"{name}: library unit {unit} has no text run")
+        path = f"lib/{unit}" if lib else (
+            unit if "/" in unit else f"{name}/{unit}")
+        # A variant unit is one source compiled once per package with that
+        # package's defines: the object is named per package, the source is the
+        # entry's. It only exists where the packages declare what differs.
+        variant = obj.get("variant", False)
+        if src_dir and not lib and "/" in unit:
+            raise SystemExit(f"{name}: unit {unit} of an entry with `src` must be a bare name")
+        if variant:
+            if "/" in unit or lib or "text" not in obj:
+                raise SystemExit(f"{name}: variant unit {unit} must be a bare, non-library unit with a text run")
+            if not defines:
+                raise SystemExit(f"{name}: variant unit {unit}, but the slot declares no `defines`")
+        # A library unit's source is src/lib/, shared by every family.
+        text = "libsrc" if lib else "c"
+        runs = dict(obj)
+        if src_dir and not lib and "text" not in runs:
+            # A data-only unit of an entry naming its own directory (the Akropolis map pages): a zero-length text
+            # run where its first section begins gives its .rodata and .data the sibling whose source is there.
+            runs["text"] = next(runs[k] for k in ("rodata", "data") if k in runs)
+        for key, sect in (("rodata", ".rodata"), ("text", text), ("data", ".data")):
+            if key in runs:
+                at = int(str(runs[key]), 16)
+                if (variant or (src_dir and not lib)) and key == "text":
+                    # The source sits under the family by default; an entry that
+                    # names its own directory (`src`, from the repository root)
+                    # keeps it there, as the stage rooms do - merged or not.
+                    source = f"{src_dir}/{unit}" if src_dir else f"{entry_name}/{unit}"
+                    lines.append((at, f"      - {{start: 0x{at:X}, type: variantsrc, name: {path}, "
+                                      f"source: {source}}}"))
+                else:
+                    lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
+        if "bss" in obj:
+            at = int(str(obj["bss"]), 16)
+            # Stored BSS can sit between other objects' initialized data. Keep
+            # its input section in the same address-ordered linker group.
+            order = "" if "bss_size" in obj else ", linker_section_order: .data"
+            lines.append((at, f"      - {{start: 0x{at:X}, type: .bss, name: {path}, vram: 0x{load + at:08X}{order}}}"))
+    out = [line for _, line in sorted(lines, key=lambda t: t[0])]
+    tails = [i for i, obj in enumerate(objects) if obj.get("tail", False)]
+    if tails and (tails != [len(objects) - 1] or not any(k in objects[-1] for k in ("data", "bss"))):
+        raise SystemExit(f"{name}: only the last object, a unit with data or BSS, can be `tail = true`")
+    if not tails:
+        out.extend(trailing_segment(name, data))
+    return "\n".join(out)
+
+
+def overlay_label(name: str, entry: dict) -> str:
+    """Human label for the config's title line.
+
+    Families describe their overlays with different keys - `weapon` names the
+    gun, `note` says what an unnamed one is - so the label falls back through
+    them to the overlay name rather than requiring any particular field. A
+    family that adds a new descriptive key needs it listed here, nothing more.
+    """
+    for key in ("weapon", "note"):
+        value = entry.get(key)
+        if value:
+            return str(value)
+    return name
+
+
+def slot_packages(spec: dict) -> list[tuple[str, dict, dict]]:
+    """(package, slot record, entry) for every package a family declares.
+
+    An entry covers one package, or - where a family loads the same image into
+    several slots - all of them at once. Expanding here keeps everything below
+    working per package, which is what a config describes.
+    """
+    out = []
+    for name, entry in sorted(spec["overlays"].items()):
+        for slot in entry.get("slots") or [{"package": name, "slot": entry.get("slot")}]:
+            out.append((str(slot["package"]), slot, entry))
+    return out
+
+
+def serialized_bss_tail(name: str, objects: list[dict], data: bytes) -> tuple[int, int] | None:
+    """A zero-initialized terminal allocation may extend beyond its package.
+
+    Keep its full runtime size in C BSS. Only the zero prefix present in the
+    extracted file is serialized; the complete allocation remains available
+    to the room or actor at runtime.
+    """
+    rows = [obj for obj in objects if "bss_size" in obj]
+    if not rows:
+        return None
+    if len(rows) != 1:
+        raise SystemExit(f"{name}: only one terminal BSS allocation is supported")
+    obj = rows[0]
+    start = int(str(obj["bss"]), 16)
+    size = int(str(obj["bss_size"]), 16)
+    if not (0 <= start < len(data) <= start + size) or any(data[start:]):
+        raise SystemExit(f"{name}: serialized BSS must be a zero prefix of the terminal allocation")
+    if any(int(str(row.get("data", "0")), 16) >= start for row in objects):
+        raise SystemExit(f"{name}: initialized data cannot follow terminal BSS")
+    return start, size
+
+
+def has_stored_bss(name: str, objects: list[dict], data: bytes) -> bool:
+    """Check BSS runs whose complete zero storage belongs to the loaded image."""
+    rows = [obj for obj in objects if "bss" in obj and "bss_size" not in obj]
+    if not rows:
+        return False
+    if any("bss_size" in obj for obj in objects):
+        raise SystemExit(f"{name}: stored BSS cannot accompany an unstored terminal allocation")
+    boundaries = {len(data)}
+    for obj in objects:
+        if obj.get("in_c"):
+            continue
+        for key in ("rodata", "text", "data", "bss", "at"):
+            if key in obj:
+                boundaries.add(int(str(obj[key]), 16))
+    for obj in rows:
+        start = int(str(obj["bss"]), 16)
+        if not 0 <= start < len(data) or start % 8:
+            raise SystemExit(f"{name}: stored BSS must start at an eight-byte boundary inside the package")
+        end = min(at for at in boundaries if at > start)
+        if any(data[start:end]):
+            raise SystemExit(f"{name}: stored BSS at 0x{start:X} contains nonzero bytes")
+    return True
+
+
+RECORD_SIZE = {"model": 0x24, "clip": 0x28}   # a model's symbol names its TmdSource record, a clip's its AnimationClip: the last bytes
+_ASSET_TABLES: list = []
+
+
+def asset_symbols(package: str) -> list[tuple[str, int]]:
+    """(symbol, address) of each declared asset placed in `package` whose record names its symbol (`symbol`)."""
+    if not _ASSET_TABLES:
+        import importlib.util
+        root = Path(__file__).resolve().parents[3] / "tools" / "peassets"
+        for module in ("asset_data", "asset_schema"):
+            spec = importlib.util.spec_from_file_location(module, root / f"{module}.py")
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            _ASSET_TABLES.append(mod)
+    data, schema = _ASSET_TABLES
+    out = []
+    # An asset several packages carry (the P08's model, which its Snail variant places too) is listed by each.
+    holder = next((rec for key, rec in data.ASSETS.items()
+                   if rec.get("type") in ("pe2pkg", "room", "stage", "package") and rec.get("package_name", key) == package), None)
+    placed = {p["name"]: p for p in (holder or {}).get("embedded", ()) if isinstance(p, dict)}
+    for name, rec in data.ASSETS.items():
+        place = data.EMBEDDED_ASSETS.get(name)
+        if place and place.get("source") != f"{package}.pe2pkg":
+            place = None
+        if name in placed and "address" in placed[name]:
+            place = {**placed[name], "source": f"{package}.pe2pkg"}
+        if "symbol" not in rec or not place:
+            continue
+        out.append((rec["symbol"], schema.embedded_address(place) + place["size"] - RECORD_SIZE.get(rec["type"], place["size"])))
+    return sorted(out, key=lambda s: s[1])
+
+
+def export_symbols(package: str) -> list[tuple[str, int, str]]:
+    """(symbol, address, reference) the package's link takes from the exports of the packages it binds or requires
+    (package.link_symbols)."""
+    root = Path(__file__).resolve().parents[3]
+    if str(root / "tools" / "peassets") not in sys.path:
+        sys.path.insert(0, str(root / "tools" / "peassets"))
+    import asset_data
+    import package as packages
+    key = next((k for k, r in asset_data.ASSETS.items()
+                if r.get("type") == "package" and r.get("package_name", k) == package), None)
+    if key is None:
+        return []
+    # The data the build reads, through its link (PACKAGE_DIR's root).
+    return packages.link_symbols(key, asset_data.ASSETS, asset_data.EMBEDDED_ASSETS, PACKAGE_DIR.parent)
+
+
+def write_if_changed(dest: Path, text: str) -> None:
+    """Unchanged files keep their mtime: tools/config/splat/configure.py treats a config modified during a split as a reason to
+    split it again."""
+    if not dest.is_file() or dest.read_text(encoding="utf-8") != text:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(text, encoding="utf-8")
+
+
+def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path]:
+    written: list[Path] = []
+    seen: dict[bytes, str] = {}
+    slot_addr = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
+    entry_names = {id(e): n for n, e in spec["overlays"].items()}
+    for name, slot, entry in slot_packages(spec):
+        entry_name = entry_names[id(entry)]
+        target = PACKAGE_DIR / f"{name}.pe2pkg"
+        if not target.is_file():
+            raise SystemExit(
+                f"{family}/{name}: {target} not found.\n"
+                f"  Package names come from tools/peassets/asset_data.py. The asset\n"
+                f"  tree is incomplete - most often because an extraction is running\n"
+                f"  right now, since `config.py splat extract` deletes assets/ and\n"
+                f"  rom/ before rebuilding them, and every sweep worktree symlinks\n"
+                f"  those from the main checkout. Wait for it to finish and retry.\n"
+                f"  Do not start an extraction yourself while other sweeps are\n"
+                f"  running: that is how one wipe took out 50 of them at once."
+            )
+        data = target.read_bytes()
+
+        # Two entries on one package would split the same file twice and give
+        # its functions two symbol prefixes. Distinct names sharing content mean
+        # the extractor's naming disagrees with this manifest.
+        digest = hashlib.sha1(data).digest()
+        clash = seen.get(digest)
+        if clash is not None:
+            raise SystemExit(
+                f"{family}/{name} is the same package as {family}/{clash}.\n"
+                f"  Splitting it again would disassemble the same file twice.\n"
+                f"  Keep one entry, and give the package one name in asset_data.py."
+            )
+        seen[digest] = name
+
+        declared = slot.get("text", entry.get("text"))
+        span = tuple(int(str(v), 16) for v in declared) if declared else text_span(data)
+        # The title becomes the config's quoted `name:`, so a note containing a
+        # quote would still break the yaml.
+        label = slot.get("label", entry.get("label")) or name
+        title = f"{spec['description']} - {label}".replace('"', "'")
+
+        # A family may span several RAM slots, and a slot is one address, so an
+        # overlay's load address - and the vram end that tracks it - follow from
+        # the slot it declares rather than being restated per overlay.
+        load = slot_addr.get(slot.get("slot"), int(spec["load_addr"]))
+        vram_end = load if slot_addr else int(spec["global_vram_end"])
+        objects = slot.get("objects") or entry["objects"]
+        bss_tail = serialized_bss_tail(name, objects, data)
+        stored_bss = has_stored_bss(name, objects, data)
+
+        text = template
+        # Declared assets name their own symbols, and the exports of the packages a package binds or requires
+        # name what it points into there (absolute); the overlay's split sees both through a generated map, and its
+        # link takes the absolute ones (configure.append_overlay_absolute_imports).
+        symbols, imported = asset_symbols(name), export_symbols(name)
+        if symbols or imported:
+            sym_path = out_dir / "sym" / f"{name}.txt"
+            write_if_changed(sym_path, f"// Generated by gen_overlay_configs.py from the asset table's `symbol` keys"
+                             " and its packages' exports.\n"
+                             + "".join(f"{s} = 0x{a:08X};\n" for s, a in symbols)
+                             + "".join(f"{s} = 0x{a:08X}; // absolute:True {ref}\n" for s, a, ref in imported))
+            text = text.replace("    - @@IMPORTS@@", f"    - @@IMPORTS@@\n    - {sym_path.as_posix()}", 1)
+            written.append(sym_path)
+        for key, val in {
+            "TITLE": title,
+            "NAME": name,
+            "FAMILY": family,
+            "TARGET": target.as_posix(),
+            "SHA1": hashlib.sha1(data).hexdigest(),
+            "SIZE": str(len(data)),
+            "SIZE_HEX": f"0x{len(data):X}",
+            "VRAM": f"0x{load:08X}",
+            "GLOBAL_VRAM_START": f"0x{spec['global_vram_start']:08X}",
+            "GLOBAL_VRAM_END": f"0x{vram_end:08X}",
+            "IMPORTS": spec["imports"],
+            "RELOCS": (
+                f'[{entry.get("relocs", spec.get("relocs", ""))}]'
+                if entry.get("relocs", spec.get("relocs"))
+                else "[]"
+            ),
+            "SUBSEGMENTS": object_subsegments(
+                # Packages built from one source can still carry different
+                # content - their own models and data - so a slot may lay its
+                # package out with its own object list.
+                name, family, slot.get("objects") or entry["objects"], data, load,
+                slot.get("id", entry.get("id")),
+                entry_name, slot.get("defines"), entry.get("src"),
+            ),
+        }.items():
+            text = text.replace(f"@@{key}@@", val)
+        if stored_bss:
+            # The loader copies the flat image and does not clear BSS. Include
+            # these zeros in its PROGBITS output; do not auto-link empty input
+            # sections, whose alignment could extend a package's final bytes.
+            text = text.replace("  ld_bss_is_noload: True", "  ld_bss_is_noload: False", 1)
+            text = text.replace("  section_order:", '  auto_link_sections: [".rodata"]\n  section_order:', 1)
+        elif any(obj.get("tail") for obj in objects) or bss_tail:
+            # Only declared data contributions may follow the terminal C
+            # object. Even an empty auto-linked .data section can align the
+            # location counter and add bytes to a partial-word package tail.
+            text = text.replace(
+                "  section_order:",
+                '  auto_link_sections: [".rodata", ".bss"]\n  section_order:',
+                1,
+            )
+        if bss_tail:
+            start, size = bss_tail
+            text = text.replace(
+                "    subsegments:",
+                f"    bss_size: 0x{start + size - len(data):X}\n    subsegments:",
+                1,
+            )
+        if "@@" in text:
+            raise SystemExit(f"{family}/{name}: unsubstituted placeholder in template")
+
+        dest = out_dir / f"{name}.yaml"
+        write_if_changed(dest, text)
+        written.append(dest)
+    return written
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--family", help="only generate this family")
+    ap.add_argument("--list", action="store_true", help="print names and exit")
+    args = ap.parse_args()
+
+    manifest = tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    template = TEMPLATE.read_text(encoding="utf-8")
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    total = 0
+    produced: set[Path] = set()
+    for family, spec in manifest.items():
+        if args.family and family != args.family:
+            continue
+        if args.list:
+            for name, e in sorted(spec["overlays"].items()):
+                print(f"{family}\t{name}\t{overlay_label(name, e)}")
+            continue
+        written = generate(family, spec, template, OUT_DIR)
+        produced.update(written)
+        total += sum(p.suffix == ".yaml" for p in written)
+        print(f"{family}: wrote {len(written)} config(s) to {OUT_DIR}")
+
+    # Drop configs the manifest no longer produces. Without this, renaming an
+    # overlay or marking one as a duplicate leaves its old config behind and the
+    # build keeps splitting it.
+    if not args.list and not args.family:
+        stale = sorted(p for p in [*OUT_DIR.glob("*.yaml"), *OUT_DIR.glob("sym/*.txt")] if p not in produced)
+        for path in stale:
+            path.unlink()
+        if stale:
+            print(f"removed {len(stale)} stale config(s): "
+                  + ", ".join(p.stem for p in stale))
+    return 0 if args.list or total else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -203,7 +203,7 @@ audio/streams.json        catalog
 ```
 
 ```bash
-# included in a full extract.py / tools/pe2project.py extract run
+# included in a full extract.py / config.py editor --fresh run
 python3 tools/peassets/extract.py ... -o assets/USA
 # audio only
 python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
@@ -506,7 +506,7 @@ Encode uses ``ffmpeg`` for **true lossless** (bit-exact vs decoded RGB + PCM):
 ALAC). Use **VLC**, **mpv**, **MPC-HC**, or ``ffplay``.
 
 ```bash
-# included in a full extract.py / tools/pe2project.py extract run
+# included in a full extract.py / config.py editor --fresh run
 python3 tools/peassets/extract.py ... -o assets/USA
 # movies only
 python3 tools/peassets/extract_movies.py --rom rom/USA --out assets/USA -j 16

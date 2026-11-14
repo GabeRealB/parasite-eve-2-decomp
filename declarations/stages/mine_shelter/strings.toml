@@ -1,4 +1,4 @@
-# Declarations: the text of mine_shelter's dialogues, by key (tools/editor_project/dialogue.py).
+# Declarations: the text of mine_shelter's dialogues, by key (tools/config/editor/dialogue.py).
 
 [dialogue]
 uid = "uid://1uex4o4z4b9rp"

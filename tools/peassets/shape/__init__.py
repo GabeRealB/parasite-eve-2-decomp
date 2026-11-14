@@ -12,9 +12,9 @@ its `shape` and, in `outputs`, the stored asset each output is:
 
 Its instance is `<group>/<local name>.toml` in the extraction, the form that is edited; it states its `shape` first,
 which has to be its asset's. An asset with `include = true` is written as C by its codec (`c_source`), which the
-build generates as `assets/<name>.inc` (tools/buildsteps/gen_shape_inc.py) for a source to include whole. The extractor writes it
+build generates as `assets/<name>.inc` (tools/config/splat/gen_shape_inc.py) for a source to include whole. The extractor writes it
 from the outputs (and not their stored texts), and checks that it encodes back to them; the build takes an output
-it compiles from the instance (tools/buildsteps/gen_shape_inc.py). An instance states a field only where it is not
+it compiles from the instance (tools/config/splat/gen_shape_inc.py). An instance states a field only where it is not
 the default.
 
     python3 tools/peassets/shape decode|check [--assets assets/USA] [--only NAME]

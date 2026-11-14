@@ -1,22 +1,22 @@
-# Patches to the tool submodules
+# Patches to the fetched tools
 
-Fixes this project needs in two of its submodules and that upstream does not
-carry. A submodule's working tree is reset by `git submodule update` and by a
-fresh clone, so each fix is kept here as a patch and re-applied by the tool
-that needs it. Both submodules are marked `ignore = dirty` in `.gitmodules`
-for that reason: a patched working tree is the expected state.
+Fixes this project needs in two of the tools it fetches and that upstream does
+not carry. `tools/config/fetch_tools.py` applies them, in the order
+`tools/config/fetched_tools.toml` lists, to the source it unpacks into `local/tools/`,
+before it records what the folder was made from: a changed patch fetches the
+tool again.
 
-| Patch | Submodule | Applied by | The matching build needs it |
-|---|---|---|---|
-| `maspsx-lo-load-nop.patch` | `tools/maspsx` | `ninja_config.py` | yes |
-| `maspsx-bss-layout.patch` | `tools/maspsx` | `ninja_config.py` | yes |
-| `maspsx-bss-local.patch` | `tools/maspsx` | `ninja_config.py` | yes |
-| `decomp-permuter-objdump.patch` | `tools/decomp-permuter` | `tools/match/prepare_permuter.py` | no |
-| `decomp-permuter-sizeof.patch` | `tools/decomp-permuter` | `tools/match/prepare_permuter.py` | no |
+| Patch | Tool | The matching build needs it |
+|---|---|---|
+| `maspsx-lo-load-nop.patch` | maspsx | yes |
+| `maspsx-bss-layout.patch` | maspsx | yes |
+| `maspsx-bss-local.patch` | maspsx | yes |
+| `decomp-permuter-objdump.patch` | decomp-permuter | no |
+| `decomp-permuter-sizeof.patch` | decomp-permuter | no |
 
-The maspsx patches apply to upstream `4ffa8b5` (2026-10-24), the commit the
-submodule points at, as written against `670417c` (2026-10-17); they apply in
-the order listed. With them, one of upstream's own tests fails,
+The maspsx patches apply to upstream `4ffa8b5` (2026-10-24), the commit fetched
+(the editor's `pe2.psx` pins it, and applies its own copies of these patches,
+rooted where its download unpacks), as written against `670417c` (2026-10-17). With them, one of upstream's own tests fails,
 `test_lcomm_alignment_none`: it expects every `.lcomm` symbol global, which is
 what `maspsx-bss-local.patch` undoes.
 
@@ -28,11 +28,8 @@ closes a difference between the two. A patch belongs here only when the
 behaviour it gives maspsx has been observed from the real tools; a change that
 merely makes the images match is a hack and does not.
 
-`ninja_config.py` applies them every time it runs (`_ensure_maspsx_patch`,
-`_ensure_maspsx_bss_layout_patch`, `_ensure_maspsx_bss_local_patch`). Each
-function looks for a line of its patch in `maspsx/__init__.py` and applies the
-patch only when that line is missing. maspsx's two source files are inputs of
-every assembly step, so a changed patch reassembles everything.
+maspsx's two source files, as fetched and patched, are inputs of every
+assembly step, so a changed patch reassembles everything.
 
 "Without it" below is what happens when the build is run with that one patch
 reversed and the other two in place, measured on 2026-10-14. The functions

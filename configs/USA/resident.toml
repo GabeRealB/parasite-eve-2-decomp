@@ -6,7 +6,7 @@
 #
 # A model declared here is cataloged like an overlay's (tools/peassets/pkg_model.declared_records), and where it
 # is `in_c` the build writes its arrays' initializers (`<name>_skeleton.inc`, `_partVerts`, `_verts`, `_normals`,
-# `_stream`; tools/buildsteps/gen_model_inc.py).
+# `_stream`; tools/config/splat/gen_model_inc.py).
 
 [gameplay]
 load_addr = 0x80093800

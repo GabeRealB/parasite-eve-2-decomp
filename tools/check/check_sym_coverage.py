@@ -30,7 +30,8 @@ def configs(version: str) -> list[Path]:
 
 
 def image_functions(elf: Path) -> list[tuple[int, str]]:
-    out = subprocess.run(["mips-linux-gnu-readelf", "-sW", str(elf)], capture_output=True, text=True, check=True).stdout
+    # GNU readelf reads every architecture's ELF alike: the host's, as no MIPS binutils need be installed to build.
+    out = subprocess.run(["readelf", "-sW", str(elf)], capture_output=True, text=True, check=True).stdout
     funcs = []
     for line in out.splitlines():
         f = line.split()

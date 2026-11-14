@@ -41,7 +41,12 @@ def _create_config():
     parser.add_argument("config", type = Path)
     parser.add_argument("version", type = str)
     parser.add_argument("--ninja", action="store_true")
+    parser.add_argument("--objects", type=Path,
+                        help="a file listing the expected objects the build makes; without it, every one expected/ holds")
     args = parser.parse_args()
+
+    global listed_objects
+    listed_objects = [Path(p) for p in args.objects.read_text().split()] if args.objects else None
 
     if not args.config.exists() or args.config.is_dir() or args.config.suffix != ".yaml":
         raise ValueError(f"The given path {args.objects} is not pointing towards a valid config.")
@@ -94,7 +99,7 @@ EXCLUDED_NAMES = {"data", "rodata", "sdata", "bss"}
 def _collect_objects(path: Path, config) -> list[Path]:
     ignored = config["ignored_files"]
     return [
-        path for path in path.rglob("*.o")
+        path for path in (listed_objects if listed_objects is not None else path.rglob("*.o"))
         if not any(name in path.name for name in EXCLUDED_NAMES ) and not any(file in str(path) for file in ignored)
     ]
 
@@ -130,9 +135,9 @@ def main():
         processed_path = _determine_categories(file, config)
         input_path = Path(processed_path[1]).as_posix()
         if game_version != "ALL":
-            base_path = f"build/{game_version}/src/{input_path}.c.o"
+            base_path = f"build/{game_version}/objdiff/src/{input_path}.c.o"   # objdiff's objects (config.py splat)
         else:
-            base_path = f"build{processed_path[2]}src/{input_path}.c.o"
+            base_path = f"build{processed_path[2]}objdiff/src/{input_path}.c.o"
             input_path = f"{processed_path[2][1:]}{input_path}"
             
         

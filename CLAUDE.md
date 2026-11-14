@@ -99,7 +99,7 @@ package compiles with what it declares and what those expose, and theirs
 image: an image dependency is linked against by its symbols, and a library
 reached through it is that image's, so Psy-Q's members come from the
 executable rather than into the title (`Package.linked`). The two builds
-implement this once each: `tools/buildsteps/declarations.py` and the editor's
+implement this once each: `tools/config/declarations.py` and the editor's
 `gather.rs`. `PE2_BIND(x, package)` is a slot, a choice made in the editor
 (`self`), never how a package reaches a library.
 
@@ -168,7 +168,7 @@ inspector does, each element and nested struct a group that opens, each integer 
 field held to its type's range, the default greyed in what a package leaves unset,
 a dynamic array's elements added (a copy of the last) and removed.
 
-`ninja_packages` in `ninja_config.py` finds what to build in the declarations - a
+`ninja_packages` in `tools/config/splat/configure.py` finds what to build in the declarations - a
 package is what names a `link_script` - through the rules everything else uses,
 and writes `build/USA/out/<name>`, held to `checksum.sha` like any image. A
 package needs no splat config, no symbol map and no manifest entry, so `diff.py`
@@ -184,7 +184,7 @@ code and layout; that assets rebuild those bytes is the editor's to prove. Where
 both make a token it must be the same text.
 
 **What splat still builds reaches the packages' headers where they are.**
-`ninja_config.py` links each package's public folder into `build/include` by
+`config.py splat` links each package's public folder into `build/include` by
 its name, as a package's `deps` holds them, so a split unit includes
 `engine/fs.h` or `title/title.h` with no copy, and their own angle includes
 (`<core/pe2.h>`, `<psyq/libgte.h>`) resolve there too. `pe2.h` includes what
@@ -212,7 +212,7 @@ shape, and there are 442 of them, so their configs are **generated**:
 |---|---|
 | `configs/USA/overlays.toml` | the manifest — keyed by package name, holding only what the decomp adds |
 | `configs/USA/overlay.template.yaml` | the shared config body |
-| `configs/USA/generated/*.yaml` | output, gitignored, rewritten by every `ninja_config.py` run |
+| `configs/USA/generated/*.yaml` | output, gitignored, rewritten by every `config.py splat` run |
 | `configs/USA/sym/<family>/<name>.txt` | per-overlay symbol map |
 | `configs/USA/sym/<family>.imports.txt` | main + gameplay imports, shared by the family |
 
@@ -235,13 +235,13 @@ what makes it one thing here. The generator errors if two entries resolve to the
 same package.
 
 Packages the decomp builds are marked `"required": True` in `asset_data.py`, so
-`python3 ninja_config.py --iso_build` materialises exactly that set — 443 overlays —
+`python3 config.py splat extract` materialises exactly that set — 443 overlays —
 with the rest of what the build reads (the stored chunks, the executables, the
 instances of the data compiled into overlays, the folders' streaming lists) into
 `assets/USA`: the CI/matching extract, and nothing a repack alone needs. A project
-for the editor is made from the declarations: `venv/bin/python3 tools/pe2project.py
-create --roms rom/image` makes one in `project/` (gitignored) - the game's nodes
-(`.layers/game`, written by `tools/editor_project/` as a tree of files that
+for the editor is made from the declarations: `python3 config.py editor --roms rom/image` makes one in `project/`
+(gitignored) - the game's nodes
+(`.layers/game`, written by `tools/config/editor/` as a tree of files that
 `pe2-cli project layer import` makes the layer's records) and the plan filling
 them with their files (`.layers/game-files.plan.jsonl`, stating the discs it
 reads by size and sha1), the plan run by `pe2-cli project extract` into
@@ -251,13 +251,14 @@ files, both without the discs). The discs are in the unmanaged mount `roms` -
 read by path, never indexed - wherever this machine's `project.local.toml` says.
 The project itself is made by the editor's commands (`pe2-cli project new`, `layer
 add`, `layer add --generated --fills`, `mount add`, `mount locate`, `config add`),
-never by writing its `project.toml` - and every asset tool defaults to it
-(`tools/peassets/project.py`). The editor knows nothing of the declarations: it runs
-the plan it is given.
+never by writing its `project.toml`. The editor knows nothing of the declarations: it runs
+the plan it is given; and no Python tool reads an editor project - the Python side does
+only what building needs, from `assets/USA`, and a tool given no data folder works there
+(`tools/peassets/project.py`).
 
 **A project is of every release declared: USA and Europe.** Europe's discs have
 USA's structure, so each asset's `[<asset>.from.EUR]` is written by
-`tools/editor_project/release.py declare EUR --like USA`, which surveys both
+`tools/config/editor/release.py declare EUR --like USA`, which surveys both
 releases' discs through the plan the USA's declarations make (`pe2-cli plan
 observe`, USA's reads held to what it declares): an asset read alike takes USA's
 placement; one read differently takes Europe's sha1; a package's run is USA's
@@ -271,14 +272,22 @@ releases whose discs are found (`--releases all|available|USA,EUR`); a layer of
 some is `partial`. The old full Python extraction (`tools/peassets/extract.py`:
 `stages.json` and the ISO manifests, which the viewer, `dump_asset_db.py` and the
 repack read) is run by hand.
-`ninja_config.py --project [DIR]` builds a project's data instead of
-`assets/USA`.
+`config.py editor [DIR] [--config NAME]` has the editor build a project and holds its
+images to `checksum.sha`, reading nothing of the project itself: it makes the project
+first where DIR has none (`--fresh` makes the game's part of one anew), trusts it
+(`--no-trust` not), makes it the active one (`compile_commands.json` a link to the one
+its build writes), and writes a `build.ninja` in which `ninja` runs `pe2-cli project
+build` and then `tools/config/editor/check_build.py` over what the editor deployed
+(`<project>/build/<config>/`, a package's `<name>.pe2pkg` checked as the ninja build's
+`<name>`). `config.py splat` writes the splat build back. The editor's group needs only
+Python's standard library; the editor comes from `cargo xtask dist`, which `config.py
+editor build-tools` runs (and `config.py editor` where none is laid out).
 
 **The `.text` span is derived, and rarely wrong.** A `0x03E00008` word inside a
 data block can extend the span past the end of the code; splat then emits a
 `dlabel` for that data inside the code subsegment. The build does *not* reliably
 fail on it — from a clean split the reference and definition agree, and it only
-breaks on a later re-split — so `ninja_config.py` checks for it after every
+breaks on a later re-split — so `config.py splat` checks for it after every
 overlay split and stops with the `text = [start, end]` override to add. One room
 of 168 (`s2_30`) needs one.
 
@@ -370,7 +379,7 @@ need ownership analysis and, where supported by code/data evidence, TU splits.
 alignment and missing TU boundaries before defining storage. Do not invent
 unreferenced zero arrays or widen an array just to consume a gap. Keep uncertain
 intervals in generated assembly until their ownership and extent are known.
-Do not change BSS alignment in `ninja_config.py` to force a proposed layout.
+Do not change BSS alignment in `tools/config/splat/configure.py` to force a proposed layout.
 
 In BSS, an apparent gap may also be unrecognized trailing fields or unused
 array capacity belonging to the preceding object. Observed accesses establish
@@ -522,7 +531,7 @@ resolves the model references this way.
 symbol and reloc files the config names, `sym.<name>.imports.txt`, the unit's
 `c`-subsegment `.c` files (splat reads those to sort each function into
 `matchings/` or `nonmatchings/`, and creates a `.c` that is missing), the splat
-and spimdisasm versions, and `ninja_config.py` itself. A unit that misses has
+and spimdisasm versions, and `tools/config/splat/configure.py` itself. A unit that misses has
 its `nonmatchings/<name>` and `matchings/<name>` directories deleted before it
 is re-split, because splat never removes a `.s` whose function moved. **If you
 make the split, or a post-split fixup, read a new file, add it to
@@ -530,14 +539,14 @@ make the split, or a post-split fixup, read a new file, add it to
 build still passes. `build/` is kept between runs for the same reason it can
 be: the assembler's depfiles track the `.s` files `INCLUDE_ASM` pulls into a C
 object, which cpp never sees, so any new rule reading files cpp cannot see
-needs a depfile of its own. `--clean` / `ninja_config.py --fresh` bypass all of
+needs a depfile of its own. `--clean` / `config.py splat --fresh` bypass all of
 it.
 
 Two maintenance commands, neither run by the build:
 
-- `python3 tools/buildsteps/gen_overlay_configs.py [--family F] [--list]` — regenerate the
-  configs. `ninja_config.py` also calls this, so the build is self-consistent.
-- `python3 tools/buildsteps/gen_overlay_imports.py [family]` — rebuild a family's imports
+- `python3 tools/config/splat/gen_overlay_configs.py [--family F] [--list]` — regenerate the
+  configs. `config.py splat` also calls this, so the build is self-consistent.
+- `python3 tools/config/splat/gen_overlay_imports.py [family]` — rebuild a family's imports
   file from the split output, then re-split so the sources pick up the names.
   Run it after adding a family or after a naming pass.
 
@@ -571,25 +580,38 @@ comments, tests or docs. Only this side knows the editor, so what pairs the two 
   `doc/CAP_FORMAT.md` describes (`CapCommand`, `CapSequenceRecord`: `packages/gameplay/include/cap.h`),
   `formats::bundle` what `doc/BUNDLE_FORMAT.md` does; `codecs::texture`, `xa`, `bs` and `formats::str` decode as
   `tools/peassets/`' `image_codec.py` (`texture/color.py`), `xa_codec.py`, `bs_codec.py` and `str_codec.py` do.
-- **The packages' rules**: `pe2.packages` names packages and resolves includes as `tools/buildsteps/declarations.py`
+- **The packages' rules**: `pe2.packages` names packages and resolves includes as `tools/config/declarations.py`
   does (`Declarations.names`, `Package.resolved`) and reads option types as `option_types.py`; `pe2.psx` writes
-  the executable header `tools/buildsteps/psx_exe.py` writes, and its maspsx patches
+  the executable header `tools/config/splat/psx_exe.py` writes, and its maspsx patches
   (`editor/extensions/psx/patches/`) are `tools/patches/maspsx-*.patch`, rooted where its download unpacks.
-- **The project lock**: `tools/project_lock.py` takes the editor's lock by the same file and frames
+- **The toolchain's pins**: `pe2.psx`'s `[[setup]]` entries (gcc-psx, binutils-mipsel, aro-cpp, maspsx's archive) are
+  pinned again in `tools/config/fetched_tools.toml`, which `tools/config/fetch_tools.py` fetches for the decomp's build into
+  `local/tools/`: keep the two in step, so both build with the same tools while neither needs the other. The decomp
+  applies its own `tools/patches/maspsx-*.patch` to the maspsx it fetches.
+- **The project lock**: `tools/config/editor/project_lock.py` takes the editor's lock by the same file and frames
   (`project::lock`, `project::wire`); its frames are what `project::wire`'s test reads.
-- **What the Python side declares of the game's nodes**: `tools/editor_project/sounds.py declare` writes a
+- **What the Python side declares of the game's nodes**: `tools/config/editor/sounds.py declare` writes a
   package's sounds (USA only, for the banks of the packages the repository builds) into `<group>/sounds.toml` -
   each instrument, script and sample once, named by the first bank binding it and its place there, never from the
-  code's names. `tools/editor_project/dialogue.py declare` writes the dialogues from the bundles
+  code's names. `tools/config/editor/dialogue.py declare` writes the dialogues from the bundles
   (`rooms/<room>/files/bundle`): each once at `<room>/dialogue_<i>`, a shared one where its rooms are
   (`stages/shared` across stages), a string table a stage (`stages/<stage>/strings/dialogue`, keys
   `<room>/<dialogue>/<command>/<record>`, translated through `ui/dialogue/translated`), their faces
-  `ui/dialogue/{glyphs,bold,speakers}`; `tools/editor_project/plan.py` gives the plan's `extract_dialogues` its
+  `ui/dialogue/{glyphs,bold,speakers}`; `tools/config/editor/plan.py` gives the plan's `extract_dialogues` its
   `glyph_table` and `plate_table` from `tools/peassets/cap_glyphs.tsv` and `cap_plates.tsv`.
-  `tools/pe2project.py` declares a game project's `language` property.
+  `config.py editor` declares a game project's `language` property.
 
 ## Tools
 
+- `python3 config.py splat|editor|clean` configures a build, each group's tools
+  (`tools/config/splat`, `tools/config/editor`, what both share in `tools/config`)
+  loaded only when asked for: `splat [--only ...] [--fresh] [--jobs N]` writes the
+  splat build (`ninja` builds and checks every image, `ninja objdiff` writes
+  `objdiff.json` and objdiff's objects beside the build's), `splat extract` the
+  build's data, `splat fetch-tools [--path NAME]` the pinned tools
+  (`tools/config/fetched_tools.toml`, ninja among them, into `local/tools`);
+  `editor [DIR]` an editor project's build (above), `editor build-tools` the
+  editor; `clean [--all]` what configuring and building wrote.
 - `./tools/build-and-verify.sh [--only SELECTOR[,SELECTOR...]] [--clean]`
   build the project and verify that it matches the target. Run it bare: it
   re-splits only the units whose split would change and rebuilds
@@ -602,15 +624,13 @@ comments, tests or docs. Only this side knows the editor, so what pairs the two 
   about the overlays it skipped, which for a header change is the thing you
   have to check, so finish unscoped. `--clean` wipes `asm/`, `linkers/` and
   `build/` and splits everything, as every run used to.
-- `python3 tools/check/suite.py [--jobs N] [--skip STEP ...]` the full check suite
-  over the project's extraction (`project/`; it never extracts): asset-table stability, the
-  repack of both discs, every declared texture, model, clip, shape, font and
-  room encoding back (one task an asset), the build with the room order check,
-  residency and declarations - a work graph on one pool of workers, about 2.5
-  minutes. Re-extract (`tools/pe2project.py
-  extract`, and `ninja_config.py --iso_build` for the build's data) only after
-  changing the asset table's schema or a decoder.
-- `PE2_JOBS=N` caps the parallelism of the build (`ninja_config.py`'s split
+- `python3 tools/check/suite.py [--jobs N] [--skip STEP ...]` the build's check suite
+  over the build's data (`assets/USA`; it never extracts): asset-table growth, the build
+  with the room order check, residency and declarations - a work graph on one pool of
+  workers. That assets encode back to their bytes is the editor's to prove. Re-extract
+  (`config.py splat extract`) only after changing the asset table's schema or a
+  decoder.
+- `PE2_JOBS=N` caps the parallelism of the build (`config.py splat`'s split
   pool and `ninja`) and of the libclang refactor tools, which otherwise use
   every CPU. Set it when several trees build at once: the naming pass sets it
   per worker to the CPUs divided by `--workers`, because a full split pool per
@@ -621,7 +641,7 @@ comments, tests or docs. Only this side knows the editor, so what pairs the two 
   function renamed in C but not in the map cannot be paired by objdiff or the
   naming pass's verifier, while the checksum still matches. The unscoped
   `build-and-verify.sh` runs it; when it fails, add `name = 0xADDR; // type:func`.
-- `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
+- `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 local/tools/asm-differ/diff.py --no-pager <function name>` (the build fetches asm-differ, `config.py splat fetch-tools`)
 - `./tools/match/claude [--bootstrap-only] [--no-bootstrap] [--id ID] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. It builds the environment and nothing else - the agent is launched by whatever called it. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
 - `python3 tools/match/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.
 - `python3 tools/match/score_functions.py <directory>` find the easiest function to decompile in a given directory (and its subdirectories).
@@ -889,7 +909,7 @@ Vacuum owns cleanup when it launched the session; leave its scratch in place.
    - Example: If you add a field at offset 0x14, search for all functions accessing that struct and verify they still compile to the correct offsets
 
 5. **If the checksum fails after your changes:**
-   - Use `python3 tools/asm-differ/diff.py --no-pager <function>` to check ALL functions in the modified file(s)
+   - Use `python3 local/tools/asm-differ/diff.py --no-pager <function>` to check ALL functions in the modified file(s)
    - Look for functions that access the same structs you modified
    - Fix any mismatches before declaring success
 
@@ -927,7 +947,7 @@ lists - which describes a shape the way a model does. It is a `collision` asset
 placed by its package's `embedded` list: the placement covers the arrays, and the
 `WorldCollisionGrid` header that follows it is the room's data. The arrays keep
 their C declarations but take their initializers from includes that
-`tools/buildsteps/gen_collision_inc.py` writes from the package, after checking the grid's
+`tools/config/splat/gen_collision_inc.py` writes from the package, after checking the grid's
 layout against its header. Non-NULL table entries call the including source's
 face-list binding with an element offset into its packed `s16` pool. The grid
 asset's `cell_face_list_macro` selects that binding; unconfigured grids
@@ -949,7 +969,7 @@ is decoded from the binary into the extraction's `<room group>/room.toml` (the
 build's in `assets/USA`, the project's in its generated layer) and
 written back to C by the build, one include per module
 (`assets/<group>/<module>.inc`, plus `declarations.inc`;
-`tools/buildsteps/gen_room_inc.py`). The room package's record has
+`tools/config/splat/gen_room_inc.py`). The room package's record has
 `type = "room"` and states only the entry points the stage overlay's per-area
 tables and gameplay's area table do not give, by role (`entries`;
 `tools/peassets/room/`); every other object is reached through pointers, and
@@ -1027,7 +1047,7 @@ bytes to `asm/USA/incbin/` (per worktree, like the rest of `asm/`) and emits a
 small `.s` that `.incbin`s them back, so the build keeps matching. Where the
 asset sits inside a unit whose data is in C, the unit defines it itself: mark
 its `EMBEDDED_ASSETS` record `"include": True`, and the build turns the
-extracted file into `build/include/assets/<id>.inc` (`tools/buildsteps/gen_asset_inc.py`),
+extracted file into `build/include/assets/<id>.inc` (`tools/config/splat/gen_asset_inc.py`),
 which the definition includes as its initializer (`_gFontGlyphsMedium` in
 `src/engine/textdraw.c`). For **inspection**, catalog it by address in
 `asset_db.EMBEDDED_ASSETS` and it flows through the normal extract pipeline

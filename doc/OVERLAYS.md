@@ -540,7 +540,7 @@ Three things this needs, each learned by hitting it:
   (`Room_DrawBillboard = 0x…`), otherwise every room calls it by its own
   `func_<room>_<vram>` and the link fails.
 * **One rule per object.** The object is reached once per overlay that links it;
-  `ninja_config.py` emits the build rule the first time and afterwards records
+  `tools/config/splat/configure.py` emits the build rule the first time and afterwards records
   only the dependency, because ninja rejects two rules for one output.
 * **No absolute aliases.** splat emits an `alabel` for any known symbol inside
   the body; named after the room it was split from, it collides in the other 32.

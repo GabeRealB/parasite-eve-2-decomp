@@ -105,7 +105,10 @@ def main():
     parser.add_argument('--regs', type=int, nargs='+', default=[], help='filter the text report only')
     parser.add_argument('--uids', type=int, nargs='+', default=[], help='observe scheduler comparisons, dependency releases and hazard selection for these UIDs; also filters post-reload substitutions')
     args = parser.parse_args()
-    compiler = ROOT / 'tools/linux/gcc-2.8.1-psx/cc1'
+    # old-gcc's unstripped build, fetched for the tracers (tools/config/fetch_tools.py): the build's gcc-psx is stripped.
+    sys.path.insert(0, str(ROOT / 'tools' / 'config'))
+    import fetch_tools
+    compiler = fetch_tools.ensure('old-gcc') / 'cc1'
     if digest(compiler.read_bytes()) != COMPILER_SHA256:
         parser.error('unsupported cc1 binary; audit the ABI/layout before adding its fingerprint')
     if not (args.input.name.endswith('.i') or args.input.name.endswith('.i.gz')):

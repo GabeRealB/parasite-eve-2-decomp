@@ -63,18 +63,24 @@ import decomp_overlay as ovl  # noqa: E402
 import m2ctx  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "tools" / "config"))
+import fetch_tools  # noqa: E402
+
 ENV_DIR = REPO_ROOT / "tools" / "claude-decomp-env"
-M2C = REPO_ROOT / "tools" / "m2c" / "m2c.py"
-MASPSX = REPO_ROOT / "tools" / "maspsx" / "maspsx.py"
-CC1 = REPO_ROOT / "tools" / "linux" / "gcc-2.8.1-psx" / "cc1"
+# The tools the build fetches (tools/config/fetch_tools.py), as build.sh runs them.
+M2C_DIR = fetch_tools.ensure("m2c")
+M2C = M2C_DIR / "m2c.py"
+MASPSX = fetch_tools.ensure("maspsx") / "maspsx.py"
+CC1 = fetch_tools.ensure("gcc-psx") / fetch_tools.exe("cc1")
+_BINUTILS = fetch_tools.ensure("binutils-mipsel")
 GIVEUPS = REPO_ROOT / "tools" / "giveups"
 DIFFICULT = REPO_ROOT / "tools" / "match" / "difficult_functions"
 DIST = ENV_DIR / "dist.py"
 
 CROSS = "mips-linux-gnu"
-CPP = f"{CROSS}-cpp"
-AS = f"{CROSS}-as"
-NM = f"{CROSS}-nm"
+CPP = str(fetch_tools.ensure("aro-cpp") / fetch_tools.exe("cpp"))
+AS = str(_BINUTILS / fetch_tools.exe(f"{CROSS}-as"))
+NM = str(_BINUTILS / fetch_tools.exe(f"{CROSS}-nm"))
 
 # Verbatim from tools/claude-decomp-env/build.sh. If that file changes these
 # must follow, or a "100%" here stops meaning a 100% there.
@@ -91,7 +97,7 @@ CPP_FLAGS = [
     "-lang-c", "-nostdinc", "-DVER_USA", "-DSKIP_ASM",
     # For m2c_macros.h, which only --valid-syntax seeds include. Adding the
     # directory defines nothing on its own, so codegen matches build.sh.
-    "-I", str(REPO_ROOT / "tools" / "m2c"),
+    "-I", str(M2C_DIR),
 ]
 CC_FLAGS = [
     "-O2", "-mips1", "-mcpu=3000", "-w", "-funsigned-char", "-fpeephole",

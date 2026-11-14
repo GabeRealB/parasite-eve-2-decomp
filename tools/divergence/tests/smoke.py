@@ -15,7 +15,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[3]
 TOOLS = ROOT / 'tools/divergence'
 sys.path.insert(0, str(TOOLS))
-from evidence import COMPILER
+from evidence import COMPILER, MASPSX, ASSEMBLER
 from intervene import tracer
 from report_paths import public_path
 
@@ -39,7 +39,7 @@ def build(source):
     asm = source.with_suffix('.assembler.s')
     asm.write_text(raw)
     obj = source.with_suffix('.o')
-    run([sys.executable, ROOT / 'tools/maspsx/maspsx.py', '--aspsx-version=2.77', '--run-assembler', '--expand-div',
+    run([sys.executable, MASPSX, '--aspsx-version=2.77', '--gnu-as-path', ASSEMBLER, '--run-assembler', '--expand-div',
          '-EL', '-O2', '-march=r3000', '-mtune=r3000', '-no-pad-sections', '-G0', '-o', obj, asm], ROOT)
     run([sys.executable, ROOT / 'tools/claude-decomp-env/objdump.py', obj], ROOT,
         directory / f'{stem}_object_dump_normalized.s')

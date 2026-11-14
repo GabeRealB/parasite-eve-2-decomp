@@ -33,6 +33,7 @@ import json
 import logging
 import platform
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -43,16 +44,11 @@ TOOLS_DIR = REPO_ROOT / "tools"
 
 
 def find_mkpsxiso() -> Path:
-    system = platform.system()
-    if system == "Windows":
-        candidate = TOOLS_DIR / "windows" / "mkpsxiso" / "mkpsxiso.exe"
-    elif system == "Darwin":
-        candidate = TOOLS_DIR / "macos" / "mkpsxiso" / "mkpsxiso"
-    else:
-        candidate = TOOLS_DIR / "linux" / "mkpsxiso" / "mkpsxiso"
-    if not candidate.exists():
-        raise FileNotFoundError(f"mkpsxiso not found at {candidate}")
-    return candidate
+    """mkpsxiso, as the build fetches it (tools/config/fetch_tools.py)."""
+    sys.path.insert(0, str(TOOLS_DIR / "config"))
+    import fetch_tools
+
+    return fetch_tools.ensure("mkpsxiso") / fetch_tools.exe("mkpsxiso")
 
 
 def load_json(path: Path) -> Any:

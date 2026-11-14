@@ -196,7 +196,7 @@ def _dump_streaming_json(path: Path, entries: list[dict[str, Any]]) -> None:
         f.write("\n")
 
 
-# The build's extraction (--iso_build) writes only what the build reads of these: each folder's streaming list, for the
+# The build's extraction (config.py splat extract) writes only what the build reads of these: each folder's streaming list, for the
 # movies' frame sizes (movie.py). Everything else here is for the repack.
 _STREAMING_ONLY = False
 

@@ -366,10 +366,10 @@ def _apply(args, wt: Path, funcs: list[str]) -> int:
     # asm has to be regenerated under those names before bodies are applied.
     if any(e.startswith("configs/") for e in extras):
         print("  config changed; re-splitting trunk before mapping bodies")
-        r = subprocess.run([sys.executable, "ninja_config.py", "--only", args.overlay],
+        r = subprocess.run([sys.executable, "config.py", "splat", "--only", args.overlay],
                            cwd=ROOT, capture_output=True, text=True)
         if r.returncode != 0:
-            # ninja_config.py reports on stdout, so quoting only stderr printed
+            # config.py reports on stdout, so quoting only stderr printed
             # a bare "re-split ... failed:" and nothing else - which is what
             # made actor_400100_text's landing failure undiagnosable.
             detail = (r.stdout + r.stderr).strip() or f"exit {r.returncode}, no output"

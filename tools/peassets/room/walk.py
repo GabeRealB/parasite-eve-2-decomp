@@ -107,9 +107,9 @@ class Images:
 
 
 def _collision():
-    """tools/buildsteps/gen_collision_inc.py, which cuts a grid into its parts."""
+    """tools/config/splat/gen_collision_inc.py, which cuts a grid into its parts."""
     import importlib.util
-    spec = importlib.util.spec_from_file_location("gen_collision_inc", ROOT / "tools" / "buildsteps" / "gen_collision_inc.py")
+    spec = importlib.util.spec_from_file_location("gen_collision_inc", ROOT / "tools" / "config" / "splat" / "gen_collision_inc.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

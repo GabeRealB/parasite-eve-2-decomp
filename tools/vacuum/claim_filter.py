@@ -2,7 +2,7 @@
 """Claim an overlay and report whether any of it can actually land here.
 
 Run by the list driver before it spends a worker on an overlay. Setting one up
-costs a 235MB asm copy and four submodule clones, and an overlay whose
+costs a 235MB asm copy, and an overlay whose
 remaining functions are all shared bodies produces nothing: the landing filter
 refuses them ("not landing X here: body is not in src/..."), so the whole
 worktree is built and torn down for no result.

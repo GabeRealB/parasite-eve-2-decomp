@@ -1,4 +1,4 @@
-# Declarations: the dialogues' faces and cast (tools/editor_project/dialogue.py).
+# Declarations: the dialogues' faces and cast (tools/config/editor/dialogue.py).
 
 [glyphs]
 uid = "uid://cpcg4huffesp"

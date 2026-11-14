@@ -13,9 +13,23 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import time
 import uuid
 
+
+
+def fetched_tools(repo):
+    """The fetched tools a search ran with (tools/config/fetch_tools.py), by their paths in the repository."""
+    sys.path.insert(0, str(repo / 'tools' / 'config'))
+    import fetch_tools
+    cc1 = fetch_tools.ensure('gcc-psx') / fetch_tools.exe('cc1')
+    maspsx = fetch_tools.ensure('maspsx')
+    permuter = fetch_tools.ensure('decomp-permuter')
+    files = (cc1, maspsx / 'maspsx.py', maspsx / 'maspsx' / '__init__.py',
+             permuter / 'perm_pycparser' / 'c_parser.py', permuter / 'perm_pycparser' / 'yacctab.py',
+             permuter / 'src' / 'scorer.py', permuter / 'src' / 'randomizer.py')
+    return [str(path.relative_to(repo)) for path in files]
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
@@ -81,13 +95,9 @@ def capture(perm_dir, scratch, seed, repo):
     record = {'id': run_id, 'path': str(directory.relative_to(scratch)), 'seed': seed.name,
               'seed_build': baseline, 'outputs': outputs, 'analysis_at_capture': 'unresolved',
               'tool_sha256': {name: digest(repo / name) for name in (
-                  'tools/linux/gcc-2.8.1-psx/cc1', 'tools/maspsx/maspsx.py',
-                  'tools/maspsx/maspsx/__init__.py', 'tools/match/permuter_evidence.py',
+                  *fetched_tools(repo), 'tools/match/permuter_evidence.py',
                   'tools/match/vacuum_permute.py', 'tools/match/prepare_permuter.py',
                   'tools/patches/decomp-permuter-sizeof.patch', 'tools/patches/decomp-permuter-objdump.patch',
-                  'tools/decomp-permuter/perm_pycparser/c_parser.py',
-                  'tools/decomp-permuter/perm_pycparser/yacctab.py',
-                  'tools/decomp-permuter/src/scorer.py', 'tools/decomp-permuter/src/randomizer.py',
                   'tools/claude-decomp-env/dist.py', 'permute.sh')}}
     save(scratch, record)
     return record

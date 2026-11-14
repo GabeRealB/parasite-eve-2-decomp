@@ -162,7 +162,7 @@ next_overlay() {
 worker() {
     local id=$1 name rc done=0 skipped=0 stranded=0
     # Stagger the first claim. A worker's first act is a 235MB asm copy and
-    # four submodule clones; N of those at once is an I/O storm - eight of them
+    # its split; N of those at once is an I/O storm - eight of them
     # drove load to 88 and took available memory from 17G to 3G, all of it page
     # cache the kernel then had to reclaim. Subsequent claims desynchronise on
     # their own, so only the opening needs spreading.

@@ -27,7 +27,7 @@ PERMUTER=1
 # the same path via VACUUM_DIFFICULT_FILE.
 DIFFICULT_FUNCTIONS="${VACUUM_DIFFICULT_FILE:-tools/match/difficult_functions}"
 # Paths a match is allowed to land. Jump-table / splat edits live in configs/.
-# Do not add tools/ or ninja_config.py; agents sometimes stage those by accident.
+# Do not add tools/ or config.py; agents sometimes stage those by accident.
 MATCH_LAND_PATHS=(
   src
   include
@@ -613,7 +613,7 @@ run_agent() {
   (
     cd "$cwd" || exit 1
     # Grok's tool subprocesses often get a clean PATH without the caller's
-    # venv, so ninja_config.py dies on splat/spimdisasm and the agent then
+    # venv, so config.py splat dies on splat/spimdisasm and the agent then
     # "verifies" against leftover build/USA/out binaries.
     if [[ -d venv/bin ]]; then
       export VIRTUAL_ENV="$PWD/venv"
@@ -678,7 +678,7 @@ run_agent() {
         # codex exec is the headless form. Three defaults have to be overridden
         # or the lane stalls on its first iteration:
         #  - the sandbox restricts the filesystem and the network, and the
-        #    worktree bootstrap clones four submodules;
+        #    build fetches its tools where a worktree has none linked;
         #  - the approval policy is OnRequest, which blocks waiting for a human
         #    who is not there;
         #  - reasoning effort defaults to none, which is not a matching model.
@@ -688,7 +688,7 @@ run_agent() {
         # way it does for grok.
         # inherit=all passes the activated venv through: codex runs tool
         # commands via `zsh -lc`, and a login shell rebuilds PATH - the same
-        # trap noted above for grok, where ninja_config.py then dies on splat
+        # trap noted above for grok, where config.py splat then dies on splat
         # and the agent "verifies" against leftover build/USA/out binaries.
         # stdin must be closed: `codex exec` folds piped stdin into the prompt
         # ("Reading additional input from stdin..."), so an inherited pipe
@@ -1123,7 +1123,7 @@ IMPORTANT — stale build artifacts:
 \`build/\` in \`$tree\` already contains binaries that checksum from the INCLUDE_ASM version. \`sha256sum --check\` / an existing \`build/USA/out/SLUS_010.42: OK\` is NOT a match.
 The only success is running \`./tools/build-and-verify.sh\` **in \`$tree\`** after your edits and seeing:
   ✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors
-That script reformats, regenerates ninja, and rebuilds. If \`python3 ninja_config.py\` fails with missing splat/spimdisasm, use \`venv/bin/python3\`.
+That script reformats, regenerates ninja, and rebuilds. If \`python3 config.py splat\` fails with missing splat/spimdisasm, use \`venv/bin/python3\`.
 EOF
 }
 
@@ -1190,7 +1190,7 @@ so promotion is part of this port, not a follow-up:
    other overlays' \`.c\` — their span is carved out, so a leftover declaration
    breaks the link. splat will not do this for you: it never rewrites an
    existing \`.c\`.
-4. \`venv/bin/python3 ninja_config.py\` then the unscoped
+4. \`venv/bin/python3 config.py splat\` then the unscoped
    \`./tools/build-and-verify.sh\`. All targets must still match.
 
 If the functions next to it are shared by the same overlays too, use
@@ -1248,7 +1248,7 @@ Port the matched function onto **current** trunk:
 2. Read the same paths on trunk. Adapt to structs, INCLUDE_ASM sites, splat yaml, and nearby functions that already landed.
 3. Replace INCLUDE_ASM for \`$func\` on trunk. Copy any \`configs/\` splat/jump-table edits. Reconcile types rather than duplicating fields.
 4. If the old body no longer matches because layout / context changed, keep adapting until \`./tools/build-and-verify.sh\` prints \`✅ BUILD SUCCEEDED\`.
-5. Commit \`matched $func $attempts\` on trunk. Run \`venv/bin/python3 ninja_config.py\` if splat still lists this function under nonmatchings.
+5. Commit \`matched $func $attempts\` on trunk. Run \`venv/bin/python3 config.py splat\` if splat still lists this function under nonmatchings.
 6. If \`$func\` is listed in \`tools/match/difficult_functions\`, delete that line and include the file in the match commit (or a follow-up \`Update tools/match/difficult_functions\`). Vacuum also drops the name after a verified land.
 7. Optional learnings: add a note to DECOMPILATION_LEARNINGS.md only if it is still true on trunk.
 
@@ -1315,7 +1315,7 @@ print(" ".join(d.get("claims") or []))' 2>/dev/null || true)
   git -C "$ROOT" worktree prune >/dev/null 2>&1 || true
 }
 
-# splat target binaries (configs/USA/{main,gameplay}.yaml). ninja_config.py
+# splat target binaries (configs/USA/{main,gameplay}.yaml). tools/config/splat/configure.py
 # wipes asm/ and re-splits from these; a worktree without them cannot configure.
 SPLAT_ASSET_TARGETS=(
   assets/USA/main.exe
@@ -1334,38 +1334,14 @@ link_worktree_dir() {
   ln -sfn "$src" "$dest"
 }
 
-# git worktree add does not check out submodule contents. Matching needs
-# maspsx, m2c, decomp-permuter, and asm-differ.
-WORKTREE_SUBMODULES=(
-  tools/maspsx
-  tools/m2c
-  tools/decomp-permuter
-  tools/asm-differ
-)
-
+# The build fetches its tools into local/tools (tools/config/fetch_tools.py): a
+# worktree links trunk's, so nothing is fetched again.
 populate_worktree_submodules() {
   local wt=$1
-  local path marker
-  git -C "$wt" submodule update --init --recursive 2>&1 | tee -a "$LOG_FILE" || true
-  for path in "${WORKTREE_SUBMODULES[@]}"; do
-    case "$path" in
-      tools/maspsx) marker=maspsx.py ;;
-      tools/m2c) marker=m2c.py ;;
-      tools/decomp-permuter) marker=permuter.py ;;
-      tools/asm-differ) marker=diff.py ;;
-      *) marker="" ;;
-    esac
-    if [[ -n "$marker" && -e "$wt/$path/$marker" ]]; then
-      continue
-    fi
-    if [[ ! -e "$ROOT/$path" ]]; then
-      echo "Error: submodule $path is empty in the worktree and missing on trunk" | tee -a "$LOG_FILE"
-      return 1
-    fi
-    echo "Worktree $path empty after submodule update; linking trunk copy" | tee -a "$LOG_FILE"
-    rm -rf "$wt/$path"
-    ln -sfn "$ROOT/$path" "$wt/$path"
-  done
+  if [[ -d "$ROOT/local/tools" ]]; then
+    mkdir -p "$wt/local"
+    ln -sfn "$ROOT/local/tools" "$wt/local/tools"
+  fi
 }
 
 create_match_worktree() {
@@ -1381,7 +1357,7 @@ create_match_worktree() {
   fi
 
   if ! link_worktree_dir "$ROOT/assets" "$wt/assets"; then
-    echo "Error: $ROOT/assets is missing. ninja_config/splat needs overlay binaries:" | tee -a "$LOG_FILE"
+    echo "Error: $ROOT/assets is missing. config.py splat needs overlay binaries:" | tee -a "$LOG_FILE"
     printf '  %s\n' "${SPLAT_ASSET_TARGETS[@]}" | tee -a "$LOG_FILE"
     remove_match_worktree "$func"
     return 1
@@ -1414,7 +1390,7 @@ create_match_worktree() {
        "$wt/local/divergence/records/" 2>/dev/null || true
   fi
   # Scratch matching needs the .s (and generated headers) *before* any
-  # ninja_config. Configure wipes asm/ and re-splits; it runs later when the
+  # config.py splat, which wipes asm/ and re-splits; it runs later when the
   # match/port agent calls build-and-verify.sh.
   if [[ ! -d "$ROOT/asm" ]]; then
     echo "Error: $ROOT/asm is missing; cannot bootstrap $func" | tee -a "$LOG_FILE"

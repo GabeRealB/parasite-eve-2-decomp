@@ -708,7 +708,7 @@ def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]],
     found again by where it sits.
     """
     repo = Path(__file__).resolve().parents[2]
-    sys.path.insert(0, str(repo / "tools" / "buildsteps"))
+    sys.path.insert(0, str(repo / "tools" / "config" / "splat"))
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import tomllib
     import pkg_anim

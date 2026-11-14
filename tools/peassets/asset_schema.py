@@ -589,8 +589,8 @@ def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | No
     * everything under `raw/`. The stored bytes stay at `raw/<type>/<name><ext>` (`raw_rel`; a grouped asset's
       name is a path, so `raw/<type>/<group>/<local name><ext>`): `pack`,
       `dump_asset_db.py` and every tool that reads bytes look there, and so does the build, which takes an
-      `include`-marked embedded asset from `raw/<type>/<id><ext>` (`ninja_config.asset_includes`,
-      `tools/buildsteps/gen_asset_inc.py`).
+      `include`-marked embedded asset from `raw/<type>/<id><ext>` (`configure.asset_includes`,
+      `tools/config/splat/gen_asset_inc.py`).
     * an inflated package, `pe2pkg/<name>.pe2pkg` (`PINNED_TYPE_DIRS`). The overlay configs are built from that
       path (`gen_overlay_configs.PACKAGE_DIR`, the `target_path` of the hand-written configs), the model,
       collision and animation initializers are generated from it, and `room_scene.py`, `asset_residency.py`,

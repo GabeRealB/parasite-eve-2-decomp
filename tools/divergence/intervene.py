@@ -12,7 +12,7 @@ import re
 import shutil
 import sys
 
-from evidence import ROOT, COMPILER, SUPPORTED, digest
+from evidence import ROOT, COMPILER, SUPPORTED, MASPSX, ASSEMBLER, digest
 from experiments import run_process
 from report_paths import public_data, public_path, public_text
 
@@ -109,7 +109,7 @@ def execute(input_path, output, function, intervention, timeout=60, target=None)
             sanitized = directory / "assembler.s"
             sanitized.write_text(raw)
             obj = directory / "output.o"
-            cmd = [sys.executable, str(ROOT / "tools/maspsx/maspsx.py"), "--aspsx-version=2.77", "--run-assembler", "--expand-div",
+            cmd = [sys.executable, str(MASPSX), "--aspsx-version=2.77", "--gnu-as-path", str(ASSEMBLER), "--run-assembler", "--expand-div",
                    "-EL", "-O2", "-march=r3000", "-mtune=r3000", "-no-pad-sections", "-G0",
                    "-I", str(ROOT / "include"), "-I", str(ROOT / "build"), "-o", str(obj), str(sanitized)]
             assembly_run = run_process(cmd, ROOT, directory / "assemble.log", timeout)

@@ -7,7 +7,12 @@ import shlex
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-COMPILER = ROOT / "tools/linux/gcc-2.8.1-psx/cc1"
+# The tracers' cc1: old-gcc's unstripped i386 build, fetched for them (tools/config/fetch_tools.py: old-gcc), whose symbols
+# they drive under gdb - not the build's gcc-psx, which is stripped.
+COMPILER = ROOT / "local/tools/linux-x86_64/old-gcc/cc1"
+# What the build fetches, by the same paths it does (tools/config/fetch_tools.py).
+MASPSX = ROOT / "local/tools/maspsx/maspsx.py"
+ASSEMBLER = ROOT / "local/tools/linux-x86_64/binutils-mipsel/mips-linux-gnu-as"
 SUPPORTED = "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd"
 
 

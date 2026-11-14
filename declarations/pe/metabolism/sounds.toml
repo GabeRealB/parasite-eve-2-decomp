@@ -1,5 +1,5 @@
 # Declarations: sound banks as the disc stores them, and the instruments, scripts and samples they bind - each once,
-# under the first bank binding it (tools/editor_project/sounds.py).
+# under the first bank binding it (tools/config/editor/sounds.py).
 
 [level_1]
 uid = "uid://8q55cbpbgx8k"

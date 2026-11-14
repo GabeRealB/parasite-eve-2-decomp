@@ -1,0 +1,158 @@
+# What the decomp fetches to build and match with (`tools/config/fetch_tools.py`, `config.py splat fetch-tools`), each by its URL and SHA-256, into
+# `local/tools/<name>/` - or `local/tools/<platform>/<name>/` for what is built for one platform (a table a platform,
+# `[<name>.<platform>]`). The toolchain is what the editor's pe2.psx downloads, built from source by the editor's
+# repository: the same releases, pinned here as there, so that each builds with the same tools and neither needs the
+# other.
+#
+# `strip` names an archive's top folder, unpacked without it; `take` the files taken of one (to where, and with what
+# SHA-256 where given); `file` names a download that is the program itself; `patches` are applied in order after
+# unpacking.
+
+# GCC 2.8.1's cc1 (gcc-psx), GNU binutils 2.47 for mipsel (binutils-mipsel) and the preprocessor (aro-cpp).
+[gcc-psx.linux-x86_64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/gcc-psx-2.8.1-1/gcc-psx-2.8.1-linux-x86_64.zip"
+sha256 = "4987655eb857692518f9165593f137ff98490d7c40fa5a66cd62fdb20493f925"
+take = { "cc1" = { to = "cc1", sha256 = "e8f052df62c1f7f495eb24d616654aaebaeb74d5554ad50412db73f2216dd93d" } }
+
+[gcc-psx.macos-aarch64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/gcc-psx-2.8.1-1/gcc-psx-2.8.1-macos-aarch64.zip"
+sha256 = "4b08d88e7258223f85f142cdf5e60a567d42f4fedec09001bf5f9b2abda6c5e4"
+take = { "cc1" = { to = "cc1", sha256 = "30c2c9b359ec8c0fac64c04beae72c69a7a4cf8ba4b5aa08b94537cf8cc206c4" } }
+
+[gcc-psx.windows-x86_64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/gcc-psx-2.8.1-1/gcc-psx-2.8.1-windows-x86_64.zip"
+sha256 = "69c43bb7f77bb6296f674520278a418111c5e5376bb415959c65ae47cb79ab2f"
+take = { "cc1.exe" = { to = "cc1.exe", sha256 = "7e23e26ffe4dfb624c8cfe5716e6c6b4818bf299caaf7366b899323002569f40" } }
+
+[binutils-mipsel.linux-x86_64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/binutils-mipsel-2.47-1/binutils-mipsel-2.47-linux-x86_64.zip"
+sha256 = "d00749652829b46d5c7748a4254e8dd29ff250de1b1350696d4e397938842c3e"
+take = { "as" = { to = "mips-linux-gnu-as", sha256 = "ba2dbbbdfee7571d17af0d24dfda700f6d4a02ad98fbd524d0b31d83dfc078a6" }, "ld" = { to = "mips-linux-gnu-ld", sha256 = "0e1ba58f9a33a53947ebcbbbebade91ceaf0d0a24bcd6bedb9153296212f0852" }, "nm" = { to = "mips-linux-gnu-nm", sha256 = "ae9e992d7eb48d91f72da8d161b423745f1e236027eee9be879634949864e06f" }, "objcopy" = { to = "mips-linux-gnu-objcopy", sha256 = "51bab827506f273fe8ce271f4c6e26cc8a435acf000644a945388af4afa63d5b" } }
+
+[binutils-mipsel.macos-aarch64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/binutils-mipsel-2.47-1/binutils-mipsel-2.47-macos-aarch64.zip"
+sha256 = "0b60bc15de117cb62a810bf948cb5e62c236db5139be107cb8d3f3fba421a4f5"
+take = { "as" = { to = "mips-linux-gnu-as", sha256 = "5e5c48be56a35d66ced0a5084273a143ef946ac22353bfa09df5181538398d97" }, "ld" = { to = "mips-linux-gnu-ld", sha256 = "d9385f9144be09800284f0c6d276f4a6c38101bacde80297eb1ed4d08e66af32" }, "nm" = { to = "mips-linux-gnu-nm", sha256 = "224102801bd69fee19b3793a9860d198464f934b0a48c75480cde435e41c6853" }, "objcopy" = { to = "mips-linux-gnu-objcopy", sha256 = "39f8c4b9726aa67152b354ae1b43872c2d11a553407633f0989ebcf6b7fe05ac" } }
+
+[binutils-mipsel.windows-x86_64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/binutils-mipsel-2.47-1/binutils-mipsel-2.47-windows-x86_64.zip"
+sha256 = "3cae8720d342422c94b8e80abb611330b1272933556693b9a59b6ec4f7c8444e"
+take = { "as.exe" = { to = "mips-linux-gnu-as.exe", sha256 = "5478e7b1e7f510e203a9d66adfa68d37de06ab2d0fd187436fe7434c09658480" }, "ld.exe" = { to = "mips-linux-gnu-ld.exe", sha256 = "3559ecd54a6d79211c39df08806dd2dd2d71ed932681607a1057d92a3fc169d1" }, "nm.exe" = { to = "mips-linux-gnu-nm.exe", sha256 = "0cf54e637610358392c0db6670d20d733f96bf08982cc09cca1b778a1377ebe8" }, "objcopy.exe" = { to = "mips-linux-gnu-objcopy.exe", sha256 = "7706d6bc9e79de4bdf360ba38febfa7b9d43b811a1723f94c7c40df4cebef713" } }
+
+[aro-cpp.linux-x86_64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/aro-cpp-0.17.1-1/aro-cpp-0.17.1-linux-x86_64.zip"
+sha256 = "a2398e60a70480099c5c602f54c1b23d0e97dfedbd169c44283e3663e1bb9fce"
+take = { "cpp" = { to = "cpp", sha256 = "a33b65d17c0fbf14d31b1de4fed4d0a593146afe6f12d1f1c3545a234945139b" } }
+
+[aro-cpp.macos-aarch64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/aro-cpp-0.17.1-1/aro-cpp-0.17.1-macos-aarch64.zip"
+sha256 = "3859072b2e80990046e495f4bf0d4a56e4ea07f578f2b5581fca01e91a072d2c"
+take = { "cpp" = { to = "cpp", sha256 = "cdd4156ca6f33d0d1dd28eaf9a5833a7435415974bdd26e627e63334fb9154f4" } }
+
+[aro-cpp.windows-x86_64]
+url = "https://github.com/GabeRealB/pe2-editor/releases/download/aro-cpp-0.17.1-1/aro-cpp-0.17.1-windows-x86_64.zip"
+sha256 = "e480cd5facad0a84f5977b009a5ca8ec8ebcf7036b729d195b16e9e6f0fff201"
+take = { "cpp.exe" = { to = "cpp.exe", sha256 = "d2a227d0388b023baebe02eda2cf30df8356fdc643b45eef070787ab0da247c3" } }
+
+# maspsx at the commit pe2.psx pins; the decomp applies its own copies of the patches (rooted at the archive's top).
+[maspsx]
+url = "https://github.com/mkst/maspsx/archive/4ffa8b5106f9780d5d4aa7609f184949433ddbbc.tar.gz"
+sha256 = "c9d007c88bd2ac7f63ba65e8b7b07732a2b06034eba55b41c3ccfaacc926f464"
+strip = "maspsx-4ffa8b5106f9780d5d4aa7609f184949433ddbbc"
+patches = [
+    "tools/patches/maspsx-lo-load-nop.patch",
+    "tools/patches/maspsx-bss-layout.patch",
+    "tools/patches/maspsx-bss-local.patch",
+]
+
+[m2c]
+url = "https://github.com/matt-kempster/m2c/archive/3478473441a1e6da75d6bf07629452f410390ef4.tar.gz"
+sha256 = "dcbccbd7506b2ee9b02473eaa0cfe54d1d045e155b254f6d5aae803b020fbf7d"
+strip = "m2c-3478473441a1e6da75d6bf07629452f410390ef4"
+
+[decomp-permuter]
+url = "https://github.com/simonlindholm/decomp-permuter/archive/efc5c5e7d9850f7267323b7dca6b41bc30a42d1f.tar.gz"
+sha256 = "c42c56fc6f00f216a1e35544cd27e3dc1b4c87a703a759968f7ad209d44cc8aa"
+strip = "decomp-permuter-efc5c5e7d9850f7267323b7dca6b41bc30a42d1f"
+patches = [
+    "tools/patches/decomp-permuter-objdump.patch",
+    "tools/patches/decomp-permuter-sizeof.patch",
+]
+
+[asm-differ]
+url = "https://github.com/simonlindholm/asm-differ/archive/6299ebf95dd54e572f71b87a34cac37bc85b7870.tar.gz"
+sha256 = "5eba1406f50b5596593603b68d0a9f4b6c747471f81e1cbd0318910b57a964ba"
+strip = "asm-differ-6299ebf95dd54e572f71b87a34cac37bc85b7870"
+
+# The GCC tracers (tools/match/trace_gcc.py, tools/divergence) drive cc1 under gdb by its symbols: old-gcc's build,
+# unstripped, the one the build compiled with before gcc-psx - not the build's own, which is stripped.
+[old-gcc]
+platform = "linux-x86_64"
+url = "https://github.com/decompals/old-gcc/releases/download/0.13/gcc-2.8.1-psx.tar.gz"
+sha256 = "51e94d84906d5ac1fa58cf66b7eed43e2c995526ef71df6ff5562df0177117e3"
+
+# mkpsxiso 2.20: dumpsxiso writes a disc's files out (`ninja_config.py --iso_build`), mkpsxiso builds a disc back.
+[mkpsxiso.linux-x86_64]
+url = "https://github.com/Lameguy64/mkpsxiso/releases/download/v2.20/mkpsxiso-2.20-Linux.zip"
+sha256 = "daed582892322e8ec6238c2f7b335f49731a9d7174266f1166ab9ea946becb50"
+take = { "mkpsxiso-2.20-Linux/bin/mkpsxiso" = "mkpsxiso", "mkpsxiso-2.20-Linux/bin/dumpsxiso" = "dumpsxiso", "mkpsxiso-2.20-Linux/share/doc/mkpsxiso/LICENSE.md" = "LICENSE.md" }
+
+[mkpsxiso.windows-x86_64]
+url = "https://github.com/Lameguy64/mkpsxiso/releases/download/v2.20/mkpsxiso-2.20-win64.zip"
+sha256 = "a2f7c3dccd8c9bd562d9ec31ce34f42297c9f68e738dac8d5cdb1658a4d3a118"
+take = { "mkpsxiso-2.20-win64/mkpsxiso.exe" = "mkpsxiso.exe", "mkpsxiso-2.20-win64/dumpsxiso.exe" = "dumpsxiso.exe", "mkpsxiso-2.20-win64/doc/LICENSE.md" = "LICENSE.md" }
+
+[mkpsxiso.macos-aarch64]
+url = "https://github.com/Lameguy64/mkpsxiso/releases/download/v2.20/mkpsxiso-2.20-Darwin.zip"
+sha256 = "a9ab385204b8f551bb1c612e81ab527461a2122960c7cb3ef506ca755c1ce24a"
+take = { "mkpsxiso-2.20-Darwin/bin/mkpsxiso" = "mkpsxiso", "mkpsxiso-2.20-Darwin/bin/dumpsxiso" = "dumpsxiso", "mkpsxiso-2.20-Darwin/share/doc/mkpsxiso/LICENSE.md" = "LICENSE.md" }
+
+# ninja 1.13.2, which runs the builds `config.py` writes.
+[ninja.linux-x86_64]
+url = "https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-linux.zip"
+sha256 = "5749cbc4e668273514150a80e387a957f933c6ed3f5f11e03fb30955e2bbead6"
+take = { "ninja" = { to = "ninja", sha256 = "607e668f90dd6cd82e1a42ae572647ad1b1fd43063964295b9547836d8c15d99" } }
+
+[ninja.windows-x86_64]
+url = "https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip"
+sha256 = "07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65"
+take = { "ninja.exe" = { to = "ninja.exe", sha256 = "e52a7ad9538d9618c67a0bd777964e2eec8a30f68b810a2f6adce1f2daf847b8" } }
+
+[ninja.macos-aarch64]
+url = "https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-mac.zip"
+sha256 = "c99048673aa765960a99cf10c6ddb9f1fad506099ff0a0e137ad8960a88f321b"
+take = { "ninja" = { to = "ninja", sha256 = "458cdf3a6cf289118da14cc897b5106d152c66545947329b016629d9df085815" } }
+
+# objdiff-cli 3.8.3: the progress report (`objdiff-cli report generate`) and the naming pass's verifier.
+[objdiff-cli.linux-x86_64]
+url = "https://github.com/encounter/objdiff/releases/download/v3.8.3/objdiff-cli-linux-x86_64"
+sha256 = "e823ae932a56c68dcd86b68d12f2268c953e0c027402162c8a6dfa6a00d65008"
+file = "objdiff-cli"
+
+[objdiff-cli.windows-x86_64]
+url = "https://github.com/encounter/objdiff/releases/download/v3.8.3/objdiff-cli-windows-x86_64.exe"
+sha256 = "dd12dfb5e9e94a7f6c949a37e1815963cf2cffe4c87b4999b7ebc8c15b398a1f"
+file = "objdiff-cli.exe"
+
+[objdiff-cli.macos-aarch64]
+url = "https://github.com/encounter/objdiff/releases/download/v3.8.3/objdiff-cli-macos-arm64"
+sha256 = "27dbd79196394c246dde77ef0a6ac855ff6c568069171dd7db0093f39c03ee8d"
+file = "objdiff-cli"
+
+# MinGW GCC 15.2.0 (WinLibs), for m2ctx on Windows, which preprocesses m2c's context with `gcc -E -dD` and `-dM`:
+# its driver and cc1, each with the DLLs it loads beside it, in the archive's layout.
+[mingw-gcc.windows-x86_64]
+url = "https://github.com/brechtsanders/winlibs_mingw/releases/download/15.2.0posix-14.0.0-ucrt-r7/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-14.0.0-r7.zip"
+sha256 = "cb2fbad6162540cdf5e1facdce08d4dac359e8cf64f7f696a99274291763b815"
+
+[mingw-gcc.windows-x86_64.take]
+"mingw64/bin/gcc.exe" = "bin/gcc.exe"
+"mingw64/libexec/gcc/x86_64-w64-mingw32/15.2.0/cc1.exe" = "libexec/gcc/x86_64-w64-mingw32/15.2.0/cc1.exe"
+"mingw64/bin/libiconv-2.dll" = ["bin/libiconv-2.dll", "libexec/gcc/x86_64-w64-mingw32/15.2.0/libiconv-2.dll"]
+"mingw64/bin/libwinpthread-1.dll" = ["bin/libwinpthread-1.dll", "libexec/gcc/x86_64-w64-mingw32/15.2.0/libwinpthread-1.dll"]
+"mingw64/bin/libgmp-10.dll" = "libexec/gcc/x86_64-w64-mingw32/15.2.0/libgmp-10.dll"
+"mingw64/bin/libisl-23.dll" = "libexec/gcc/x86_64-w64-mingw32/15.2.0/libisl-23.dll"
+"mingw64/bin/libmpc-3.dll" = "libexec/gcc/x86_64-w64-mingw32/15.2.0/libmpc-3.dll"
+"mingw64/bin/libmpfr-6.dll" = "libexec/gcc/x86_64-w64-mingw32/15.2.0/libmpfr-6.dll"
+"mingw64/bin/zlib1.dll" = "libexec/gcc/x86_64-w64-mingw32/15.2.0/zlib1.dll"
+"mingw64/bin/libzstd.dll" = "libexec/gcc/x86_64-w64-mingw32/15.2.0/libzstd.dll"

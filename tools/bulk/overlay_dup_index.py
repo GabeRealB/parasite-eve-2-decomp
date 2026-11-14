@@ -622,7 +622,7 @@ def cmd_promote(data: dict, name: str, unit: str | None, run: bool = False) -> i
         _report_promotion(result, shared_name, text_of)
     for tail in tails:
         print(f"  {tail}")
-    print("  run: python3 ninja_config.py && ./tools/build-and-verify.sh")
+    print("  run: ./tools/build-and-verify.sh")
     return 0
 
 

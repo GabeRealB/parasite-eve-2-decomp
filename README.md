@@ -26,7 +26,7 @@ The decompilation is complete: the executable `SLUS_010.42`, the resident `gamep
   - Inline assembly outside the GTE macros: `actor143000CaptureStripTask`, `_capDrawTextStream` (two statements), `_actor560800HandleKyleCue`, `_screenWaveGridTask`.
   - Handwritten assembly in `src/engine/hasm/`: `fsDecompressStream`, `fsDecompressImagePayload`, `tmdDrawModelStream`, `tmdSkipStreamRecord`, `Tmd_DispatchStream`, `Tmd_StreamHandler_Prim32`, `Tmd_StreamHandler_Prim3A`, `Tmd_StreamHandlers_Ops`.
 - **Patches to maspsx** ([`tools/patches/README.md`](tools/patches/README.md)), not upstream:
-  - `maspsx-bss-layout` reaches beyond the assembler: it also reproduces where the linker, PSYLINK, places non-`static` variables, and depends on `align_main_bss` in `ninja_config.py` and on those variables being declared in address order.
+  - `maspsx-bss-layout` reaches beyond the assembler: it also reproduces where the linker, PSYLINK, places non-`static` variables, and depends on `align_main_bss` in `tools/config/splat/configure.py` and on those variables being declared in address order.
   - `maspsx-lo-load-nop` and `maspsx-bss-local` change assembler behaviour only.
 - **Order of global variables.** PSYLINK placed each file's non-`static` uninitialised variables by a hash of their names; the original names are unknown, so the sources declare them in address order instead.
 - **Follow-ups from an AI review**, by category: semantics, rematching, runtime, unrelated.
@@ -39,35 +39,31 @@ Only the USA release is set up. The Japanese version (`SLPS-02480` / `SLPS-02481
 
 ## Prerequisites
 
-Linux is the platform the project is developed and checked on. Windows builds natively. A macOS toolchain is bundled under `tools/macos/`.
+Linux is the platform the project is developed and checked on. Windows builds natively; macOS on Apple silicon has a toolchain too (see [Tools](#tools)).
 
 ### Linux
 
 - Python 3.11+
-- Ninja
-- `binutils-mips-linux-gnu` (assembler, linker, objcopy; the C preprocessor is bundled, in `tools/<os>/cpp`) — **binutils ≥ 2.45** is required; older packages often fail to assemble or link correctly
 - `clang-format` (used by `tools/build-and-verify.sh`)
 - Git (with submodules)
+- For matching only: `binutils-mips-linux-gnu`, whose `mips-linux-gnu-objdump` the diff tools read objects with (the build needs no MIPS binutils of the system's)
 
 On Ubuntu/Debian-style systems this is roughly:
 
 ```bash
 sudo apt-get install -y \
-  build-essential ninja-build python3 python3-pip python3-venv \
+  build-essential python3 python3-pip python3-venv \
   binutils-mips-linux-gnu clang-format git
 ```
-
-Check the installed version with `mips-linux-gnu-as --version`. If your distro ships something older than 2.45, install a newer binutils from a backports/PPA source or build from upstream.
 
 A `Dockerfile` is provided for a containerized environment similar to CI (`ghcr.io/gaberealb/decomp-images-parasite-eve-2`).
 
 ### Windows
 
 - Python 3.11+
-- Ninja
 - Git
 
-The compiler, binutils and preprocessor are bundled under `tools/windows/`. The repository's `.gitattributes` checks text files out with LF endings whatever Git's `core.autocrlf` is set to; the build needs that. `tools/build-and-verify.sh` is a shell script and is not used on Windows: run `ninja_config.py` and `ninja` directly (see [Building](#building)).
+The repository's `.gitattributes` checks text files out with LF endings whatever Git's `core.autocrlf` is set to; the build needs that. `tools/build-and-verify.sh` is a shell script and is not used on Windows: run `config.py splat` and `ninja` directly (see [Building](#building)).
 
 ### Python dependencies
 
@@ -83,18 +79,32 @@ pip install -r requirements.txt
 git submodule update --init --recursive
 ```
 
-This pulls in:
+The one submodule is the editor (`editor/`). The ninja build needs nothing of it; `config.py editor` runs it.
 
-- [maspsx](https://github.com/mkst/maspsx) — ASPSX-compatible assembler front-end
-- [m2c](https://github.com/matt-kempster/m2c) — assembly → C decompiler aid
-- [asm-differ](https://github.com/simonlindholm/asm-differ) — instruction-level diffs
-- [decomp-permuter](https://github.com/simonlindholm/decomp-permuter) — match search via code mutation
+### Tools
+
+The build fetches what it builds with, each pinned by its URL and SHA-256, into `local/tools/` - what is built for a
+platform under `local/tools/<platform>/` (`linux-x86_64`, `windows-x86_64`, `macos-aarch64`), so that one checkout
+keeps each system's. `config.py splat` fetches what is missing; `python3 config.py splat fetch-tools` fetches everything
+ahead of time, and `--path <name>` prints a tool's folder. `tools/config/fetched_tools.toml` pins them all.
+
+- The toolchain, the releases the editor's `pe2.psx` downloads too, built from source by the editor's repository: GCC 2.8.1's `cc1` with old-gcc's PlayStation patches (gcc-psx), GNU binutils 2.47 for
+  mipsel (binutils-mipsel) and a C preprocessor taking `cc1 -E`'s arguments (aro-cpp).
+- [maspsx](https://github.com/mkst/maspsx), the ASPSX-compatible assembler front-end, at the commit `pe2.psx` uses.
+- [m2c](https://github.com/matt-kempster/m2c) (assembly to C), [asm-differ](https://github.com/simonlindholm/asm-differ)
+  (instruction-level diffs) and [decomp-permuter](https://github.com/simonlindholm/decomp-permuter) (match search by
+  code mutation), at the commits `tools/config/fetched_tools.toml` pins; and, for the GCC tracers, old-gcc's unstripped
+  `cc1`.
+- From their projects' releases, at the versions `tools/config/fetched_tools.toml` pins:
+  [ninja](https://ninja-build.org), which runs the builds `config.py` writes,
+  [mkpsxiso](https://github.com/Lameguy64/mkpsxiso) (`dumpsxiso` extracts the discs, `mkpsxiso` builds them back),
+  [objdiff](https://github.com/encounter/objdiff)'s `objdiff-cli` (the progress report), and on Windows MinGW's GCC
+  ([WinLibs](https://github.com/brechtsanders/winlibs_mingw)), with which m2ctx preprocesses m2c's context.
+
+maspsx and decomp-permuter are patched as they are fetched. [`tools/patches/README.md`](tools/patches/README.md) says
+what each patch does, why, and how its behaviour was checked against the real Psy-Q assembler and linker.
 
 [splat](https://github.com/ethteck/splat), which splits the binaries, comes through pip.
-
-Two of the submodules are patched in place by the build. [`tools/patches/README.md`](tools/patches/README.md) says what each patch does, why, and how its behaviour was checked against the real Psy-Q assembler and linker. Run `git submodule update` again after a pull that moves a submodule.
-
-The original PSX GCC 2.8.1 compiler ships under `tools/linux/` (and equivalents for Windows/macOS).
 
 ## Obtaining game files
 
@@ -111,12 +121,14 @@ The original PSX GCC 2.8.1 compiler ships under `tools/linux/` (and equivalents 
 3. Extract what the build reads:
 
    ```bash
-   python3 ninja_config.py --iso_build
+   python3 config.py splat extract
    ```
+
+   (`--roms DIR` reads the images from elsewhere.)
 
    This uses `dumpsxiso` to write the disc's files under `rom/USA/disk1/` and `rom/USA/disk2/`, then writes what the build reads - the executables, the packages, the stored chunks and the instances of the data compiled into overlays - under `assets/USA/`.
 
-   For the editor, with every asset in an editable form (PNG, WAV, USD, ...), make a project instead: `venv/bin/python3 tools/pe2project.py create --roms rom/image` writes one to `project/` from the declarations - every asset's node and the plan of what to read off the discs - and the editor fills it from your discs (`pe2-cli project extract`).
+   For the editor, with every asset in an editable form (PNG, WAV, USD, ...), make a project instead: `python3 config.py editor --roms rom/image` writes one to `project/` from the declarations - every asset's node and the plan of what to read off the discs - and the editor fills it from your discs (`pe2-cli project extract`).
 
 ## Building
 
@@ -125,12 +137,15 @@ There are two build paths, both a work in progress: the ninja build described he
 From the repository root (with the venv active):
 
 ```bash
-# Configure (runs splat, generates build.ninja, link scripts, etc.)
-python3 ninja_config.py
+# Configure: fetch the tools, split what changed, write build.ninja, the link scripts, ...
+python3 config.py splat
 
-# Build and verify the checksums against the retail binaries
+# Build, and verify the checksums against the retail binaries
 ninja
 ```
+
+`ninja` is any ninja on your `PATH`, or the one the configure fetched, whose path it prints. `ninja objdiff` writes
+`objdiff.json` and the objects [objdiff](https://github.com/encounter/objdiff) compares, function by function.
 
 On Linux the all-in-one helper formats the sources, reconfigures, builds and checks:
 
@@ -138,7 +153,7 @@ On Linux the all-in-one helper formats the sources, reconfigures, builds and che
 ./tools/build-and-verify.sh
 ```
 
-Only its `✅ BUILD SUCCEEDED` means the project matches. It re-splits only what changed and rebuilds incrementally, so a run with nothing changed takes seconds; the first run, or one after a change to `ninja_config.py`, splits everything and takes minutes.
+Only its `✅ BUILD SUCCEEDED` means the project matches. It re-splits only what changed and rebuilds incrementally, so a run with nothing changed takes seconds; the first run, or one after a change to `tools/config/splat/configure.py`, splits everything and takes minutes.
 
 It also takes a scope, for iterating on one overlay:
 
@@ -150,25 +165,35 @@ It also takes a scope, for iterating on one overlay:
 
 A scoped run splits, builds and checksums only those units, and says so in its success message. It tells you nothing about the overlays it skipped, so finish with an unscoped run.
 
-### Configure flags
+### Configuring
 
-| Flag | Meaning |
+`config.py` writes the build `ninja` runs: the splat build, or an editor project's. Each group's tools load only when
+asked for; the editor's needs nothing but Python's standard library.
+
+```text
+python3 config.py splat [--release R] [--only SELECTOR[,SELECTOR...]]... [--fresh] [--jobs N]
+python3 config.py splat fetch-tools [--path NAME]
+python3 config.py splat extract [--release R] [--roms DIR]
+python3 config.py editor [DIR] [--config NAME] [--release R]... [--roms DIR] [--fresh] [--no-extract] [--no-extensions] [--no-trust]
+python3 config.py editor build-tools [--jobs N]
+python3 config.py clean [--all]
+```
+
+| Command | What it does |
 |---|---|
-| `--iso_build` | Extract what the build reads into `assets/<release>` (what CI uses) |
-| `--project [DIR]` | Build a project's data (`project/` without a DIR) instead of `assets/<release>` |
-| `-o` / `--only` | Split and build only the named families or overlays |
-| `--fresh` | Ignore the split cache and split everything selected |
-| `-c` / `--clean` | Clean build and permuter outputs |
-| `-j` / `--jobs` | Parallel split workers (default: `$PE2_JOBS`, else the CPU count) |
-| `-sc` / `--skip_checksum` | Build without the checksum step |
-| `-obj` / `--objdiff_config` | Generate the objdiff setup for per-object diffs |
+| `splat` | Fetch the toolchain, split what changed, and write `build.ninja`: `ninja` builds every image and checks it, `ninja objdiff` makes `objdiff.json`. `--only` splits and builds only the named families or overlays, and checks only what they build; `--fresh` ignores the split cache; `--jobs` caps the split's workers (default: `$PE2_JOBS`, else the CPU count) |
+| `splat fetch-tools` | Fetch every pinned tool into `local/tools`, or one (`--path NAME`), printing its folder |
+| `splat extract` | Extract what the build reads from the disc images (`rom/image`, or `--roms`) into `assets/<release>` (what CI uses) |
+| `editor` | Make the editor project in DIR (`project/` by default) where there is none, from the discs (`--roms`), of every release declared (`--release` for fewer), with its extensions (`--no-extensions`) and extracted (`--no-extract`); `--fresh` makes the game's part of one there is anew. Then trust it (`--no-trust`), make it the active one (`compile_commands.json` links to its), and write `build.ninja`: `ninja` runs `pe2-cli project build` for the configuration (`--config`, else the first release's) and checks its images against `checksum.sha` |
+| `editor build-tools` | Build the editor and lay it out (`cargo xtask dist`); `config.py editor` does it first where none is |
+| `clean` | Remove `build/`, `permuter/`, the ninja files and logs and `objdiff.json`; `--all` also what the split writes (`asm/`, `linkers/`, `expected/`) |
 
 ## Working on the source
 
 Any change has to keep the build matching, so the loop is: edit, `./tools/build-and-verify.sh`, and look at the difference when it fails.
 
 ```bash
-python3 tools/asm-differ/diff.py --no-pager <function_name>
+python3 local/tools/asm-differ/diff.py --no-pager <function_name>
 ```
 
 Tools that help, each documented in its own file:
@@ -197,7 +222,7 @@ cargo build --release   # pe2-editor and pe2-cli, in editor/target/release/
 cargo xtask dist        # as they ship, with pe2.psx and pe2.ffmpeg beside them, in editor/target/dist/
 ```
 
-`tools/pe2project.py create` gives a new project the two extensions every project holds, `pe2.psx` and `pe2.ffmpeg`, from the editor as `cargo xtask dist` lays it out (`--no-extensions` leaves them out).
+`config.py editor` gives a new project the two extensions every project holds, `pe2.psx` and `pe2.ffmpeg`, from the editor as `cargo xtask dist` lays it out (`--no-extensions` leaves them out).
 
 ## Repository layout
 
@@ -220,7 +245,7 @@ src/                   # C source: src/engine, src/gameplay,
                        #   overlays include, by module (actor, creatures/<name>,
                        #   effects, room, screen, walk)
 tools/                 # Build steps, checks, refactoring, tracer, extractor, patches
-ninja_config.py        # Configure / extract / generate the ninja build
+config.py              # Configure a build: the splat build, an editor project's (tools/config)
 ```
 
 Documentation:

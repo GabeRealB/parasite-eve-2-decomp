@@ -46,7 +46,7 @@ Record such an entry as `wontfix` with the evidence, instead of attempting it.
 
 ```
 ./tools/build-and-verify.sh --only <image>          # builds and checksums one image
-python3 tools/asm-differ/diff.py --no-pager <function>
+python3 local/tools/asm-differ/diff.py --no-pager <function>
 ```
 
 The differ finds the function in the built images itself. For a function several

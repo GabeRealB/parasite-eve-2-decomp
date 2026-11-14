@@ -72,7 +72,7 @@ mid-function labels for cooperative suspend when the CD sector buffer ends
 
 - `hasm_in_src_path`: sources under `src/engine/hasm/` (survive `asm/` wipe).
 - Reconfigure does **not** overwrite existing hasm `.s` files.
-- `ninja_config.py` assembles `hasm` with the same `as` rule as `asm`.
+- `tools/config/splat/configure.py` assembles `hasm` with the same `as` rule as `asm`.
 
 ## Do not
 

@@ -1,25 +1,3 @@
-[submodule "tools/maspsx"]
-	path = tools/maspsx
-	url = https://github.com/mkst/maspsx.git
-	# ninja_config.py keeps tools/patches/maspsx-lo-load-nop.patch applied here, so a
-	# dirty working tree is the expected steady state, not work in progress.
-	# "dirty" hides only file edits; a moved pointer still shows, which is the
-	# case that would actually need committing.
-	ignore = dirty
-[submodule "tools/m2c"]
-	path = tools/m2c
-	url = https://github.com/matt-kempster/m2c.git
-[submodule "tools/decomp-permuter"]
-	path = tools/decomp-permuter
-	url = https://github.com/simonlindholm/decomp-permuter.git
-	# prepare_permuter.py keeps our objdump/sizeof fixes and parser tables here, so a
-	# dirty working tree is the expected steady state, not work in progress.
-	# "dirty" hides only file edits; a moved pointer still shows, which is the
-	# case that would actually need committing.
-	ignore = dirty
-[submodule "tools/asm-differ"]
-	path = tools/asm-differ
-	url = https://github.com/simonlindholm/asm-differ.git
 [submodule "editor"]
 	path = editor
 	url = https://github.com/GabeRealB/pe2-editor.git

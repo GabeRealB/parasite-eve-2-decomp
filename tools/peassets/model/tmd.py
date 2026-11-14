@@ -306,7 +306,7 @@ def declared_records(repo_root: Path) -> dict[str, tuple[int, list[int]]]:
     From the overlay manifest, whose model declarations the build checks
     against every package, and configs/USA/resident.toml for the resident images.
     """
-    sys.path.insert(0, str(repo_root / "tools" / "buildsteps"))
+    sys.path.insert(0, str(repo_root / "tools" / "config" / "splat"))
     import tomllib
     from gen_overlay_configs import declared_models
 

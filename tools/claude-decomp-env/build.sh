@@ -32,21 +32,26 @@ fi
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_PATH/../.." && pwd)"
 
-# Compiler settings (ninja_config)
-MASPSX="$PROJECT_ROOT/tools/maspsx/maspsx.py"
+# Compiler settings (tools/config/splat/configure.py): the toolchain and tools the build fetches (`config.py splat fetch-tools`); objdump is the
+# system's.
+fetched() { python3 "$PROJECT_ROOT/config.py" splat fetch-tools --path "$1"; }
+MASPSX="$(fetched maspsx)/maspsx.py"
+M2C_DIR="$(fetched m2c)"
+BINUTILS="$(fetched binutils-mipsel)"
 CROSS="mips-linux-gnu"
 OBJDUMP="${CROSS}-objdump"
-CPP="${CROSS}-cpp"
-NM="${CROSS}-nm"
-CC="$PROJECT_ROOT/tools/linux/gcc-2.8.1-psx/cc1"
+CPP="$(fetched aro-cpp)/cpp"
+NM="$BINUTILS/${CROSS}-nm"
+AS="$BINUTILS/${CROSS}-as"
+CC="$(fetched gcc-psx)/cc1"
 
-INCLUDE_FLAGS="-I $PROJECT_ROOT/include -I $PROJECT_ROOT/build -I $PROJECT_ROOT/build/include -I $PROJECT_ROOT/include/psyq -I $PROJECT_ROOT/include/decomp -I $PROJECT_ROOT/tools/m2c"
+INCLUDE_FLAGS="-I $PROJECT_ROOT/include -I $PROJECT_ROOT/build -I $PROJECT_ROOT/build/include -I $PROJECT_ROOT/include/psyq -I $PROJECT_ROOT/include/decomp -I $M2C_DIR"
 OPT_FLAGS="-O2"
 ENDIAN="-EL"
 MASPX_VERSION="2.77"
 
-CPP_FLAGS="$INCLUDE_FLAGS -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
-MASPSX_FLAGS="--aspsx-version=${MASPX_VERSION} --run-assembler --expand-div"
+CPP_FLAGS="$INCLUDE_FLAGS -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -nostdinc"
+MASPSX_FLAGS="--aspsx-version=${MASPX_VERSION} --gnu-as-path $AS --run-assembler --expand-div"
 CC_FLAGS="$OPT_FLAGS -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff -dp"
 AS_FLAGS="$ENDIAN $INCLUDE_FLAGS $OPT_FLAGS -march=r3000 -mtune=r3000 -no-pad-sections"
 OBJDUMP_FLAGS="--disassemble-all --reloc --disassemble-zeroes -Mreg-names=32"
@@ -55,8 +60,8 @@ trap 'status=$?; if (( status != 0 )); then python3 "$SCRIPT_PATH/attempt.py" re
 # Compile from project root so assembler can find include/macro.inc
 pushd "$PROJECT_ROOT" > /dev/null
 
-# Run cpp
-$CPP -P -MMD -MP -MT "$CPP_OUTPUT" -MF "${CPP_OUTPUT}.d" $CPP_FLAGS \
+# Run cpp, as the build does (GCC's `cc1 -E` arguments)
+$CPP -E -quiet -P -MMD "${CPP_OUTPUT}.d" -MF "${CPP_OUTPUT}.d" -MP -MT "$CPP_OUTPUT" $CPP_FLAGS \
     -DVER_USA -DSKIP_ASM \
     -o "$CPP_OUTPUT" "$INPUT"
 

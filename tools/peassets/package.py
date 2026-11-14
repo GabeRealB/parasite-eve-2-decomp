@@ -15,7 +15,7 @@ A package (type `package`) is an overlay image that states where it loads and wh
 
 with `package_name`, `entries`, `embedded` and `sha1` as a `pe2pkg` or `room` has them. Consumers name what they
 point at through these, and a package's link takes every export of the packages it binds or requires
-(`link_symbols`, written into its generated symbol map by tools/buildsteps/gen_overlay_configs.py); after the link,
+(`link_symbols`, written into its generated symbol map by tools/config/splat/gen_overlay_configs.py); after the link,
 tools/check/check_exports.py holds each export to its own package's image. Nothing here reads splat's symbol files.
 local/package_type_design.md is the design.
 """

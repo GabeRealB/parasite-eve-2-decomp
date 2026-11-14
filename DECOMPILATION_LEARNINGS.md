@@ -2924,7 +2924,7 @@ Example: `_actor400500InitTask`. Inputs: `base_2.i`
 `migrate_rodata_to_functions` folds a function-pointer table into that
 function's `.s`. Matching the function drops `INCLUDE_ASM`, so those bytes
 leave the object. A hand-made `D_<sym>.s` plus `INCLUDE_RODATA` can pass a
-scoped build and then fail the unscoped one: `ninja_config.py` regenerates
+scoped build and then fail the unscoped one: `tools/config/splat/configure.py` regenerates
 `asm/` and does not emit a separate file for a migrated symbol.
 
 Emit the words with file-scope `.section .rodata` / `dlabel` asm in the unit
@@ -9409,7 +9409,7 @@ its own. Treat a stubborn multi-cluster diff as one coupled problem and let
 which is in `requirements.txt`):
 
 ```sh
-./venv/bin/python tools/decomp-permuter/permuter.py \
+./venv/bin/python local/tools/decomp-permuter/permuter.py \
   -j 12 --better-only --stop-on-zero --algorithm levenshtein permuter/<fn>/
 ```
 
@@ -10206,7 +10206,7 @@ across sharers of the same body - `actor_800300` could have taken a cut at
 **Deleting the sharers' `.c` and re-splitting does that hand-work for you.**
 splat never *rewrites* an existing `.c`, but it happily writes a missing one, so
 after adding the `shared` (and, below, `rodata`) keys to the manifest, `rm
-src/<family>/<overlay>/*.c` for each sharer and re-run `ninja_config.py`. splat
+src/<family>/<overlay>/*.c` for each sharer and re-run `config.py splat`. splat
 then emits both `<name>.c` and `<name>_2.c` with the `INCLUDE_ASM` lines already
 in the right units and the right path strings, and re-migrates the leading
 rodata tables into whichever unit references them - no manual line moving, no
@@ -10656,7 +10656,7 @@ rodata file appended as a second input:
 
 ```sh
 python3 tools/match/m2ctx.py src/gameplay/3E9C.c          # writes ./ctx.c
-python3 tools/m2c/m2c.py --target mipsel-gcc-c -f effectThrownModelTask --context ctx.c \
+python3 local/tools/m2c/m2c.py --target mipsel-gcc-c -f effectThrownModelTask --context ctx.c \
     asm/USA/gameplay/nonmatchings/3E9C/effectThrownModelTask.s \
     asm/USA/gameplay/data/rodata_3E9C.rodata.s
 ```
@@ -14167,7 +14167,7 @@ Symptom in the scratch: target starts with the trap block after `div`, your
 build has `div` then immediate `mflo` (and the rest of the function shifts by
 ~10 instructions). Full-project checksum also fails without the expansion.
 
-Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
+Fix: enable `--expand-div` for the translation unit in `tools/config/splat/configure.py`
 (`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
 divides that become shifts do not need this. Known TUs: `tmd.c`
 (`_mdecImageStripCallback`), `sndbank.c` (`linInterpSetup`).
@@ -18755,7 +18755,7 @@ skipped. (`_uiRefreshListViewportWithInset`.)
 ## `--expand-div` for TUs with signed division traps
 
 ASPSX expands `div` into the `bnez`/`break 7`/`break 6` trap sequence. Enable
-`--expand-div` in `ninja_config.py` for any TU whose target contains those
+`--expand-div` in `tools/config/splat/configure.py` for any TU whose target contains those
 traps (now includes `ui.c` alongside `tmd` / `sndbank` / `textdraw`).
 Scratch-env `build.sh` does not pass this flag by default — use a local
 wrapper or expect a score gap of only the missing trap block.
@@ -22933,7 +22933,7 @@ Large (~0xA68) CD ready callback (`CdStream_*` / `CdReady_*` subsystem).
 Infrastructure landed; full match still open (~84% best). Key requirements for
 the next attempt:
 
-1. **`--expand-div` on the `cdstream.c` TU** (already in `ninja_config.py`). Target
+1. **`--expand-div` on the `cdstream.c` TU** (already in `tools/config/splat/configure.py`). Target
    has the full signed `div` trap sequence (`break 7` / `break 6`); bare `div`
    from GCC will not match without maspsx expansion.
 
@@ -23660,7 +23660,7 @@ overwrite.
 
 ## Splat `-c` reverts unnamed data labels
 
-`ninja_config.py -c` re-splits the ROM. Function `glabel`s that live in
+`config.py clean` re-splits the ROM. Function `glabel`s that live in
 `sym.engine.txt` keep their names, but data that was only renamed in `.s` files
 (and never added to the symbol map) comes back as `D_800xxxxx`.
 
@@ -27082,7 +27082,7 @@ splat-owned standalone file. For a table stuck in a `matchings/` dump, emit
 the words with inline `.section .rodata` / `.globl` in the C file — a C
 `TaskFuncTable` definition is collected to the end of the TU and shifts
 later tables; a hand-written `.s` under `nonmatchings/` is deleted on the next
-`ninja_config.py` splat.
+`tools/config/splat/configure.py` splat.
 
 ## A matched function's migrated rodata leaves the build with its `INCLUDE_ASM`
 
@@ -36927,9 +36927,9 @@ shows the old auto-name (`F179D4_ClearOTag`, `F16494_ResetSpuAttr`,
 `spuResetCommonOutput`, `cdAudioCancelAndWait`), even though the linked
 binary still matches.
 
-Fix: `python3 ninja_config.py -obj` (re-splat + assemble `expected/`),
-then `ninja -f matching.ninja` for the ROM check. With `-obj`, `build.ninja`
-is the `SKIP_ASM` objdiff base and matching is `matching.ninja`.
+Fix: `python3 config.py splat && ninja objdiff` (re-splat + assemble `expected/`);
+a plain `ninja` is the ROM check. The `SKIP_ASM` objdiff bases are built beside the
+matching objects, under `build/<release>/objdiff/`.
 
 ## `rel.*.txt` `MIPS_NONE` when C emits a numeric `%hi`/`%lo`
 
@@ -38055,9 +38055,9 @@ The rule of thumb: when a constant is shared across several primitives, check
 bounded on both sides by stores the target already fixes, the tie cannot be
 broken by reordering and a pin is the only option.
 
-## `permute.sh` must mirror `ninja_config.py`'s maspsx flags
+## `permute.sh` must mirror `tools/config/splat/configure.py`'s maspsx flags
 
-`ninja_config.py` passes `--expand-div` to maspsx for every TU, and the scratch
+`tools/config/splat/configure.py` passes `--expand-div` to maspsx for every TU, and the scratch
 `build.sh` does too, but the `compile.sh` that `permute.sh` generates did not.
 For any function containing a signed `div`, the permuter therefore compiled
 without the ASPSX trap sequence (`bnez`/`break 7`, `bne`/`break 6`) and scored
@@ -41677,7 +41677,7 @@ remainder as asm:
       - [0x4C4, rodata, rodata_268]
 ```
 
-Changing the config makes `ninja_config.py` re-run splat, so the asm file is
+Changing the config makes `tools/config/splat/configure.py` re-run splat, so the asm file is
 regenerated without the jtbl. The C TU's `.rodata` must be the *first*
 jtbl-bearing group at that offset (here the TU's text starts at
 `inventoryIsItemLimitReached`), otherwise the generated jtbl lands in the wrong order.
@@ -41919,7 +41919,7 @@ Renaming a matched function is checksum-neutral only if every place that
 names it moves together. `tools/rename_gameplay_syms*.py` does a whole-tree
 token substitution plus an `.s` basename rename, and that is the complete
 list because splat regenerates `asm/` from the symbol map on the next
-`ninja_config.py -c`:
+`config.py clean`:
 
 - `configs/USA/sym.<overlay>.txt` — the definition. Miss this and the clean
   re-split hands the function its old `func_800XXXXX` label back.
@@ -41931,7 +41931,7 @@ list because splat regenerates `asm/` from the symbol map on the next
 - `src/`, `include/`, `asm/`, and the `.s` file basenames themselves, since
   `INCLUDE_ASM` derives the path from the function name.
 
-`./tools/build-and-verify.sh` runs `ninja_config.py -c` first, so a full
+`./tools/build-and-verify.sh` runs `config.py clean` first, so a full
 green build after a rename pass *is* the proof that the symbol map and the
 sources agree — a rename that only edited C would fail there, not at compile
 time.
@@ -42125,7 +42125,7 @@ while being decompiled C the entire time.
 Two practical points when fixing one:
 
 - The import belongs in `configs/USA/sym.<importer>.imports.txt`, which
-  `ninja_config.py` appends onto the undefined-symbol script. Renaming only the
+  `tools/config/splat/configure.py` appends onto the undefined-symbol script. Renaming only the
   C breaks the link, because splat's auto-undef list still emits the old name
   and now nothing defines the new one.
 - splat names an auto-undef symbol from how the *referencing* binary sees it.
@@ -42148,7 +42148,7 @@ exact rename list is ever needed.
 
 `configs/USA/sym.gameplay.aliases.txt` used to hold labels splat folds into a
 parent symbol, appended onto `undefined_syms_auto.gameplay.txt` by
-`ninja_config.py`. Over time all eight of its entries — `_gItemMenuInventoryTotalText`,
+`tools/config/splat/configure.py`. Over time all eight of its entries — `_gItemMenuInventoryTotalText`,
 `_gItemMenuNoCompatibleAmmoText` and the `D_8011xxxx` interiors — were *also* added to
 `sym.gameplay.txt`, so the linker received each assignment twice.
 
@@ -43934,7 +43934,7 @@ and asm and let splat lay them out:
 ```
 rm -f  src/<family>/<overlay>/*.c
 rm -rf asm/USA/<family>/{non,}matchings/<overlay>
-venv/bin/python3 ninja_config.py --only <overlay>
+venv/bin/python3 config.py splat --only <overlay>
 ```
 
 splat preserves function bodies already decompiled in those files, so the only
@@ -44143,7 +44143,7 @@ sym map, not just the entry point.
 
 ## `promote` says "contains it twice" when a scoped split left a stale `.s`
 
-`ninja_config.py --only <overlay>` (and `build-and-verify.sh --only`) writes the
+`config.py splat --only <overlay>` (and `build-and-verify.sh --only`) writes the
 newly matched function under `asm/.../matchings/` but does **not** delete the
 old copy under `asm/.../nonmatchings/`. The duplicate index is derived from
 `asm/`, so it then sees the same body twice in one overlay and `promote` bails:
@@ -47610,7 +47610,7 @@ yaml and check each `.rodata` subsegment still names the code unit it belongs to
 Renaming `<name>_2.c` to `<name>_3.c` and retargeting its `INCLUDE_ASM` path
 strings is error-prone once more than a couple of overlays are involved (this
 promotion touched sixteen). Instead: parse each overlay's `.c` into
-`symbol -> C body` plus its preamble, `rm` the files, run `ninja_config.py` so
+`symbol -> C body` plus its preamble, `rm` the files, run `config.py splat` so
 splat writes freshly named files with correct asm paths, then replace each
 `INCLUDE_ASM(..., sym);` whose `sym` you stashed with its body. Two details:
 splat emits a trivial `jr $ra` function as an empty C body itself, so those
@@ -47765,7 +47765,7 @@ only one of them has an `sll`.
 ## Relocated actor twins need the `rodata` cut in both manifest entries
 
 `actor_101900` and `actor_301900` are the same package linked at two addresses,
-so `tools/buildsteps/gen_overlay_configs.py` takes the `text_all_shared` path and the whole
+so `tools/config/splat/gen_overlay_configs.py` takes the `text_all_shared` path and the whole
 code region is one shared `lib/actor_101900_text` object. Decompiling a switch in
 that object still needs the table's range handed to C, and the manifest key goes
 on **every** twin — the generator reads each entry independently, so a cut on
@@ -48238,7 +48238,7 @@ rename to apply. Getting it backwards deletes a `.c` full of other functions
 and leaves the stub, and the build still links.
 
 `configs/USA/generated/` is gitignored and only as fresh as the last
-`ninja_config.py` run in this checkout, so it is not a baseline. Diffing it
+`tools/config/splat/configure.py` run in this checkout, so it is not a baseline. Diffing it
 after regenerating showed the previous two promotions' spans as if this one had
 introduced them. Take the "before" copy from a regeneration with the config
 changes stashed.
@@ -49719,7 +49719,7 @@ and neither is automatic:
   the wrong `.c`, and the functions that actually use them lose their tables.
   `grep -rl jtbl_<overlay>_<addr> asm/…` names the unit the block belongs to.
 
-Splat invoked directly (rather than through `ninja_config.py`) writes
+Splat invoked directly (rather than through `tools/config/splat/configure.py`) writes
 `INCLUDE_ASM("asm/USA/<family>/nonmatchings/…")`; the tree's convention is
 `INCLUDE_ASM("<family>/nonmatchings/…")`, so strip the prefix after a manual
 re-split.
@@ -54371,7 +54371,7 @@ is then assembled by a tool that is wrong in a way nothing will catch.
 
 The real oracle is what ASPSX 2.77 does. `tools/maspsx/aspsx/` has the harness:
 `download.sh` fetches the Psy-Q releases (2.77 is in **psyq4.3**, matching
-`MASPX_VERSION` in `ninja_config.py`), and `util.run_aspsx` + `read_text_section`
+`MASPX_VERSION` in `tools/config/splat/configure.py`), and `util.run_aspsx` + `read_text_section`
 return the emitted machine words. Assembling all three forms:
 
 ```
@@ -54388,7 +54388,7 @@ the opcode. Upstream fixed only `sw` because that is what the reported issue
 contained.
 
 **Fix.** `tools/patches/maspsx-lo-load-nop.patch` adds the mirror-image load case, plus
-a discriminating test in maspsx's own suite. `ninja_config.py` re-applies it on
+a discriminating test in maspsx's own suite. `tools/config/splat/configure.py` re-applies it on
 every run, because a submodule edit survives neither a fresh clone nor
 `git submodule update` — the same arrangement `permute.sh` uses for
 `tools/patches/decomp-permuter-objdump.patch`. All 137 maspsx tests pass, and all 3413
@@ -64278,7 +64278,7 @@ the files down from the bottom up: `_3.c` gets the old `_2.c` with its paths
 rewritten, `_4.c` gets the old `_3.c`, and the new `_2.c` is built from the tail
 the promoted span cut off the first file — including any matched C bodies that
 were down there. Do that first and splat writes nothing at all on the next
-`ninja_config.py`, which is the confirmation that the boundaries were right.
+`tools/config/splat/configure.py`, which is the confirmation that the boundaries were right.
 Taking splat's skeleton for a renamed file instead would drop those bodies with
 the checksum still green, which is the loss `tools/check/check_lost_matches.py` exists
 to catch.
@@ -67386,7 +67386,7 @@ example of the fold.
 
 `promote` renumbers a carrier's overlay-local units, but a manifest `rodata` cut
 is keyed by unit *name*, and a cut means "the `.rodata` of the object built from
-`<name>.c` lands at this offset" (`unit_path()` in `tools/buildsteps/gen_overlay_configs.py`).
+`<name>.c` lands at this offset" (`unit_path()` in `tools/config/splat/gen_overlay_configs.py`).
 A compiler-generated jump table is emitted by the unit holding its reader, so a
 cut stays correct only while that unit keeps its number - exactly what a
 promotion changes.
@@ -71465,7 +71465,7 @@ Example: `_actor400500InitTask`. Inputs: `base_2.i`
 `migrate_rodata_to_functions` folds a function-pointer table into that
 function's `.s`. Matching the function drops `INCLUDE_ASM`, so those bytes
 leave the object. A hand-made `D_<sym>.s` plus `INCLUDE_RODATA` can pass a
-scoped build and then fail the unscoped one: `ninja_config.py` regenerates
+scoped build and then fail the unscoped one: `tools/config/splat/configure.py` regenerates
 `asm/` and does not emit a separate file for a migrated symbol.
 
 Emit the words with file-scope `.section .rodata` / `dlabel` asm in the unit
@@ -75519,7 +75519,7 @@ body then lives once in `src/<family>/lib/<unit>.c`. What that does to the split
 is narrower than "every later unit shifts" — **when the span's ends fall on cuts
 that are already there**:
 
-* `emit_run` in `tools/buildsteps/gen_overlay_configs.py` increments the unit counter once
+* `emit_run` in `tools/config/splat/gen_overlay_configs.py` increments the unit counter once
   per **run** (a maximal stretch of `.text` no `shared` span owns), so a span
   that only *shortens* a run changes no unit *number*. The cut added to
   `actor_205200` renames nothing.
@@ -75838,7 +75838,7 @@ re-running m2c yourself (the error is explicit):
 
 ```sh
 python3 tools/match/m2ctx.py src/actors/actor_800200/actor_800200_2.c
-python3 tools/m2c/m2c.py --target mipsel-gcc-c -f _actor800200EnterPlayerFollow \
+python3 local/tools/m2c/m2c.py --target mipsel-gcc-c -f _actor800200EnterPlayerFollow \
     --context ctx.c asm/USA/actors/nonmatchings/actor_800200/actor_800200_2/_actor800200EnterPlayerFollow.s
 ```
 
@@ -78040,7 +78040,7 @@ copying its control flow and declaration types took the m2c seed from 83.7%
 In the per-overlay worktree layout, `assets/` and `venv/` are **symlinks into
 the main checkout** (`pe2-ov-actor_<id>/assets -> /home/gabriel/parasite-eve-2-decomp/assets`),
 so every worktree reads one shared extracted-content tree. A lane running
-`ninja_config.py` in *another* worktree rewrites files under it while your
+`tools/config/splat/configure.py` in *another* worktree rewrites files under it while your
 build is reading them.
 
 Symptom: an unscoped `./tools/build-and-verify.sh` stops with
@@ -78052,7 +78052,7 @@ sha256sum: WARNING: 1 computed checksum did NOT match
 
 for an overlay the change never touched, while `--only actor_104400` on that
 same unit passes and the next unscoped run passes too. Observed here with two
-other worktrees in `ninja_config.py` at the same moment.
+other worktrees in `tools/config/splat/configure.py` at the same moment.
 
 Rebuild just the failing unit (`./tools/build-and-verify.sh --only <unit>`),
 then re-run the bare build. Do not treat it as a codegen difference and do not
@@ -78348,7 +78348,7 @@ This happens whenever the body *is* the first function of a unit, which is where
 a body promoted earlier in the same overlay leaves the next one — the previous
 promotion's span ends and the following unit starts on the same byte.
 `overlay_dup_index.py promote` writes the manifest and symbol maps either way;
-the `ninja_config.py` re-split, or just reading the generated yaml, is what tells
+the `tools/config/splat/configure.py` re-split, or just reading the generated yaml, is what tells
 you which of the two cases you are in.
 
 `_actor548100OpenHotspotCommands` / `_actor143000OpenKeypadCommands` → 100% with the
@@ -81708,7 +81708,7 @@ below the first code subsegment still belongs to that first unit's name, so it
 stays in `<overlay>.c` rather than following the function it sat next to.
 
 The hand redistribution is smaller than it sounds. `emit_run` in
-`tools/buildsteps/gen_overlay_configs.py` numbers the unshared runs positionally, so a span
+`tools/config/splat/gen_overlay_configs.py` numbers the unshared runs positionally, so a span
 inserted anywhere but at a unit boundary renames every later unit — but only two
 kinds of move are needed per carrier. The run *after* the span keeps its old
 index and gains the tail the span cut off, so that unit's `.c` is split at the
@@ -85095,7 +85095,7 @@ splat left that address unnamed, and it belongs to neither main nor gameplay: it
 is offset 0x440 into the room-overlay region (rooms load at 0x8017D5C0), which
 is why the original bare import sat in `configs/USA/sym/actors.imports.txt`'s *third* bucket,
 "still unnamed in their own overlay". That bucket exists for exactly this case -
-`tools/buildsteps/gen_overlay_imports.py` resolves names only from `sym.engine.txt` and
+`tools/config/splat/gen_overlay_imports.py` resolves names only from `sym.engine.txt` and
 `sym.gameplay.txt`, so anything outside those two keeps its raw `func_`/`D_`
 form.
 
@@ -87263,7 +87263,7 @@ drops the `INCLUDE_RODATA` line the rodata-to-function migration had pinned
 there (the table is compiler-generated now, so the pin would be a duplicate
 definition - see "Interleaved jump tables"/the migration entry above). No file
 is deleted, so no matched body can be lost; `build-and-verify.sh --only <overlay>`
-confirms it, and `ninja_config.py`'s post-split check still guards the `.text`
+confirms it, and `tools/config/splat/configure.py`'s post-split check still guards the `.text`
 span.
 ## The `lui`-order trick has a mirror: read the target's *first* `lui` to pick the form (_mineCavernActivateRoom2, 2026-09-15)
 
@@ -90582,7 +90582,7 @@ hidden parameter, write the one-argument form and rescore it.
 
 Every overlay lane works in its own worktree, but `assets/` and `rom/` are
 gitignored and per-tree, so a lane with no store extracts its own: `rom/USA`
-gets symlinked to the main checkout's disc dump and `ninja_config.py --iso_build`
+gets symlinked to the main checkout's disc dump and `config.py splat extract`
 is run once. That command starts by `shutil.rmtree`-ing the target tree's
 `assets/USA`, and each lane does it on its own schedule, so a
 `build-and-verify.sh` that overlaps another lane's extraction dies inside
@@ -90591,7 +90591,7 @@ is run once. That command starts by `shutil.rmtree`-ing the target tree's
 ```
 weapons/as12: assets/USA/pe2pkg/as12.pe2pkg not found.
   Package names come from tools/peassets/asset_data.py; extract with
-  `python3 ninja_config.py --iso_build` to materialise the required set.
+  `python3 config.py splat extract` to materialise the required set.
 ```
 
 The package count is the readiness signal, not the directory's existence:
@@ -91779,7 +91779,7 @@ needs — is not. It also confirms the inverse: a function under
 write that file on the next split.
 
 **The pre-promotion config.** `git checkout` the manifest and the overlay's sym
-files, run `ninja_config.py`, save the generated yaml, restore, re-run. Diffing
+files, run `config.py splat`, save the generated yaml, restore, re-run. Diffing
 the two `subsegments` lists gives old range -> new unit directly. Worth doing
 when the split output alone is ambiguous, e.g. when a unit's range is unowned
 afterwards.
@@ -92685,7 +92685,7 @@ to the highest `argN` m2c named - `(s32 index, s32 value, s32 arg2)` - was
 Two tells. In the target, an argument register the body never touches is still
 an argument, because the *callers* pass it in o32 position; check the callee's
 own asm for the highest `$aN` it reads before trusting the seed's arity. And
-`python3 tools/m2c/m2c.py --target mips-gcc-c -f <fn> <asm>` reproduces the
+`python3 local/tools/m2c/m2c.py --target mips-gcc-c -f <fn> <asm>` reproduces the
 truncated signature from the asm alone, so this is m2c's behaviour and not a
 hand-trimmed seed.
 
@@ -95746,12 +95746,12 @@ bodies alone is not enough:
   treats them as current, so `maspsx` runs on a stale `.s`. `rm -rf
   build/USA/src/rooms/<overlay>` (and the other carrier's directory) first.
 
-Do the redistribution **before** `ninja_config.py`, not after. Re-splitting
+Do the redistribution **before** `tools/config/splat/configure.py`, not after. Re-splitting
 first leaves the new tail unit with no `.c`, so splat writes it full of
 `INCLUDE_ASM` stubs for the functions the *old* last unit still defines under
 its old name - a duplicate-definition state that has to be unpicked before
 anything links. Rewrite the carriers first and every unit already has a `.c`, so
-splat creates nothing: `ninja_config.py` then lands the new spans with the tree
+splat creates nothing: `tools/config/splat/configure.py` then lands the new spans with the tree
 already in the shape they describe.
 
 The redistribution itself is lossless if it is done by text rather than by hand:
@@ -101131,7 +101131,7 @@ case, and the s0/s1 pair - the one a value held across calls lands in - was not
 among them.
 
 Tracked as `tools/patches/maspsx-li-d-register-pair.patch` and applied by
-`ninja_config.py`, the same way as the other two maspsx fixes. It derives the
+`tools/config/splat/configure.py`, the same way as the other two maspsx fixes. It derives the
 partner for any even GP number below 30, which is the only one a 64-bit value
 can have, so the omission cannot recur for `$20`/`$22`/`$24`. A constant that
 goes straight into `$6`/`$7` for a single call was already covered, which is why
@@ -106337,7 +106337,7 @@ whether its constants stay its own.
 
 ## Under `rodata_head` a data run cannot be its own asm unit
 
-The `rodata_head` branch of `tools/buildsteps/gen_overlay_configs.py` emits `.rodata` -
+The `rodata_head` branch of `tools/config/splat/gen_overlay_configs.py` emits `.rodata` -
 a C unit - for *every* cut, because from `head` on the block is paired with the
 unit name it shares with a `c` subsegment. A bare `rodata` cut naming an asm
 data unit (the `_header_tail` / `_header_extra` shape `actor_400100` uses) only
@@ -112741,7 +112741,7 @@ The address *is* its own symbol in one family and not another —
 `D_801153F6 = 0x801153F6` sits in `configs/USA/sym/rooms.imports.txt` but not in
 `actors.imports.txt`, whose own split output never named it. Naming it as a
 separate object would mean editing the family's imports file and keeping that
-edit alive across `tools/buildsteps/gen_overlay_imports.py`. Keep the imported symbol and
+edit alive across `tools/config/splat/gen_overlay_imports.py`. Keep the imported symbol and
 index it instead:
 
 ```c
@@ -134937,7 +134937,7 @@ then says nothing about the original's shape at all, and three separate 4-byte
 declarations are as consistent with the bytes as one twelve-byte table.
 
 **Fix.** Pass `-G0` - the `cc` and `cpp` rules take it from `$DLFLAG`, which
-`ninja_config.py` writes as `-G0` for every unit, and the scratch environment's
+`tools/config/splat/configure.py` writes as `-G0` for every unit, and the scratch environment's
 `build.sh` passes it too - whenever a probe's conclusion is about where data
 lands, and read a section as evidence about the original only when it was.
 `__attribute__((section(".rodata")))` is not what puts such an object at its
@@ -135812,7 +135812,7 @@ many overlays that link fine, so the shared body it is missing looks like a
 config or symbol-map problem rather than a stale artifact.
 
 The cure is to delete that unit's stamp, and the truncated file with it, so the
-next run re-splits the unit; `--clean` or `ninja_config.py --fresh` do the same
+next run re-splits the unit; `--clean` or `config.py splat --fresh` do the same
 for the whole tree at the cost of splitting all of it. One room's data blob was
 the only zero-byte file of 168 in the tree with a current stamp; dropping the
 stamp rewrote it at 141990 bytes and the link passed.
@@ -140526,7 +140526,7 @@ pad, and the text cut went at the state-0 function that the table lists first.
 With the explicit `objects` list in `overlays.toml`, a new unit is one line
 with its own name (`{ unit = "shelter_r47/shelter_r47_7", rodata = "0x21C",
 text = "0x6D5C" }`). No later unit renumbers, unlike the older `units` cut. Let
-`ninja_config.py` create the skeleton `.c`, then move each body into it by hand.
+`tools/config/splat/configure.py` create the skeleton `.c`, then move each body into it by hand.
 Move the struct the two files now share, plus prototypes for the functions
 called across the cut, into the overlay header. Calls that used to see an
 earlier definition would otherwise become implicit.
@@ -153811,7 +153811,7 @@ addresses were one array or several scalars. It changes no byte and no access,
 so the file's existing convention is kept - an addressed record is its own
 object, an unaddressed run is an array.
 
-`tools/asm-differ/diff.py` cannot be run from the repository root for an
+`local/tools/asm-differ/diff.py` cannot be run from the repository root for an
 overlay function (its settings name the scratch environment's `target.bin` /
 `source.bin`); for a data-layout change, `cmp build/USA/out/<pkg>
 assets/USA/pe2pkg/<pkg>.pe2pkg` plus `objdump -dr` on the object for the
